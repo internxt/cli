@@ -1,0 +1,79 @@
+{
+  "author": "PixoDev",
+  "bin": {
+    "internxt-cli": "./bin/run.js"
+  },
+  "version": "0.0.0",
+  "description": "Internxt CLI to manage your encrypted files",
+  "scripts": {
+    "build": "shx rm -rf dist && tsc -b",
+    "lint": "eslint . --ext .ts",
+    "postpack": "shx rm -f oclif.manifest.json",
+    "posttest": "yarn lint",
+    "prepack": "yarn build && oclif manifest && oclif readme",
+    "prepare": "husky",
+    "test": "mocha --forbid-only \"test/**/*.test.ts\"",
+    "version": "oclif readme && git add README.md"
+  },
+  "homepage": "https://github.com/internxt/cli",
+  "license": "MIT",
+  "main": "",
+  "name": "internxt-cli",
+  "repository": "https://github.com/internxt/cli",
+  "bugs": "https://github.com/internxt/cli",
+  "types": "dist/index.d.ts",
+  "exports": "./lib/index.js",
+  "type": "module",
+  "files": [
+    "/bin",
+    "/dist",
+    "/oclif.manifest.json"
+  ],
+  "dependencies": {
+    "@internxt/eslint-config-internxt": "^1.0.9",
+    "@internxt/prettier-config": "^1.0.2",
+    "@internxt/sdk": "^1.4.67",
+    "@oclif/core": "^3",
+    "@oclif/plugin-help": "^6",
+    "@oclif/plugin-plugins": "^4"
+  },
+  "devDependencies": {
+    "@oclif/prettier-config": "^0.2.1",
+    "@oclif/test": "^3",
+    "@types/chai": "^4",
+    "@types/mocha": "^10",
+    "@types/node": "^18",
+    "chai": "^4",
+    "eslint": "^8",
+    "eslint-config-oclif": "^5",
+    "eslint-config-oclif-typescript": "^3",
+    "eslint-config-prettier": "^9.1.0",
+    "husky": "^9.0.10",
+    "lint-staged": "^15.2.2",
+    "mocha": "^10",
+    "oclif": "^4.4.2",
+    "prettier": "^3.2.5",
+    "shx": "^0.3.4",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.1.6"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "oclif": {
+    "bin": "internxt-cli",
+    "dirname": "internxt-cli",
+    "commands": "./dist/commands",
+    "plugins": [
+      "@oclif/plugin-help",
+      "@oclif/plugin-plugins"
+    ],
+    "topicSeparator": " ",
+    "topics": {}
+  },
+  "lint-staged": {
+    "*.{js,jsx,tsx,ts}": [
+      "prettier --write"
+    ]
+  }
+}

@@ -1,0 +1,14 @@
+**/.DS_Store
+*-debug.log
+*-error.log
+/.idea
+/.nyc_output
+/dist
+/lib
+/package-lock.json
+/tmp
+node_modules
+oclif.lock
+oclif.manifest.json
+.npmrc
+*.tsbuildinfo
