@@ -1,6 +1,6 @@
 import { ConfigKeys } from '../types/config.types';
 export class ConfigService {
-  public static instance: ConfigService = new ConfigService();
+  public static readonly instance: ConfigService = new ConfigService();
 
   get(key: keyof ConfigKeys): string {
     const value = process.env[key];
