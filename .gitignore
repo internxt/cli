@@ -12,3 +12,4 @@ oclif.lock
 oclif.manifest.json
 .npmrc
 *.tsbuildinfo
+.env

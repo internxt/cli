@@ -6,7 +6,7 @@
   "version": "0.0.0",
   "description": "Internxt CLI to manage your encrypted files",
   "scripts": {
-    "build": "shx rm -rf dist && tsc -b",
+    "build": "tsc",
     "lint": "eslint . --ext .ts",
     "postpack": "shx rm -f oclif.manifest.json",
     "posttest": "yarn lint",
@@ -23,7 +23,6 @@
   "bugs": "https://github.com/internxt/cli",
   "types": "dist/index.d.ts",
   "exports": "./lib/index.js",
-  "type": "module",
   "files": [
     "/bin",
     "/dist",
@@ -33,7 +32,8 @@
     "@internxt/eslint-config-internxt": "^1.0.9",
     "@internxt/prettier-config": "^1.0.2",
     "@internxt/sdk": "^1.4.67",
-    "@oclif/core": "^3"
+    "@oclif/core": "^3",
+    "dotenv": "^16.4.1"
   },
   "devDependencies": {
     "@oclif/prettier-config": "^0.2.1",
