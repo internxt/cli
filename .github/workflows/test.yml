@@ -1,29 +1,29 @@
 name: tests
 on:
   push:
-    branches-ignore: [main]
   workflow_dispatch:
 
 jobs:
-  setup-npmrc:
-    runs-on: ubuntu-latest
-
+   
+  unit-tests:
     strategy:
       matrix:
-        node-version: [16.16.0]
-      fail-fast: true
-
+        os: ["ubuntu-latest", "windows-latest"]
+        node_version: [lts/-1, lts/*, latest]
+      fail-fast: false
+    runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v3
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'yarn'
+          node-version: ${{ matrix.node_version }}
+          cache: yarn
+      # Generate a .npmrc file with the NPM_TOKEN
       - run: echo "registry=https://registry.yarnpkg.com/" > .npmrc
       - run: echo "@internxt:registry=https://npm.pkg.github.com" >> .npmrc
       - run: echo //npm.pkg.github.com/:_authToken=${{ secrets.NPM_TOKEN }} >> .npmrc
       - run: echo "always-auth=true" >> .npmrc
-  
-  unit-tests:
-    uses: oclif/github-workflows/.github/workflows/unitTest.yml@main
+      # Install dependencies, build and run tests
+      - run: yarn install --network-timeout 600000
+      - run: yarn build
+      - run: yarn test
