@@ -1,9 +1,7 @@
-import { Args, Command } from '@oclif/core';
+import { Command } from '@oclif/core';
 
 export default class Whoami extends Command {
-  static args = {
-    file: Args.string({ description: 'file to read' }),
-  };
+  static args = {};
   static description = 'Displays the current user logged into the Internxt CLI.';
 
   static examples = ['<%= config.bin %> <%= command.id %>'];

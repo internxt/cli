@@ -33,9 +33,7 @@
     "@internxt/eslint-config-internxt": "^1.0.9",
     "@internxt/prettier-config": "^1.0.2",
     "@internxt/sdk": "^1.4.67",
-    "@oclif/core": "^3",
-    "@oclif/plugin-help": "^6",
-    "@oclif/plugin-plugins": "^4"
+    "@oclif/core": "^3"
   },
   "devDependencies": {
     "@oclif/prettier-config": "^0.2.1",
@@ -64,10 +62,7 @@
     "bin": "internxt-cli",
     "dirname": "internxt-cli",
     "commands": "./dist/commands",
-    "plugins": [
-      "@oclif/plugin-help",
-      "@oclif/plugin-plugins"
-    ],
+    "plugins": [],
     "topicSeparator": " ",
     "topics": {}
   },
