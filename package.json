@@ -12,7 +12,7 @@
     "posttest": "yarn lint",
     "prepack": "yarn build && oclif manifest && oclif readme",
     "prepare": "husky",
-    "test": "mocha --forbid-only \"test/**/*.test.ts\"",
+    "test:commands:unit": "mocha --forbid-only \"test/commands/**/*.test.ts\"",
     "version": "oclif readme && git add README.md"
   },
   "homepage": "https://github.com/internxt/cli",

@@ -5,12 +5,11 @@ on:
 
 jobs:
    
-  unit-tests:
+  commands-unit-tests:
     strategy:
       matrix:
         os: ["ubuntu-latest", "windows-latest", "macos-latest"]
         node-version: [20.11.0]
-      fail-fast: false
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -24,6 +23,6 @@ jobs:
       - run: echo //npm.pkg.github.com/:_authToken=${{ secrets.NPM_TOKEN }} >> .npmrc
       - run: echo "always-auth=true" >> .npmrc
       # Install dependencies, build and run tests
-      - run: yarn install --network-timeout 600000
+      - run: yarn install
       - run: yarn build
-      - run: yarn test
+      - run: yarn test:commands:unit
