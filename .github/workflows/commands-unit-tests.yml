@@ -26,3 +26,9 @@ jobs:
       - run: yarn install --network-timeout 600000
       - run: yarn build
       - run: yarn test:commands:unit
+      # Run SonarCloud analysis
+      - name: Analyze with SonarCloud
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
