@@ -13,3 +13,4 @@ oclif.manifest.json
 .npmrc
 *.tsbuildinfo
 .env
+coverage

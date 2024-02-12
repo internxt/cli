@@ -12,7 +12,7 @@
     "posttest": "yarn lint",
     "prepack": "yarn build && oclif manifest && oclif readme",
     "prepare": "husky",
-    "test:commands:unit": "mocha --forbid-only \"test/commands/**/*.test.ts\"",
+    "test:commands:unit": "nyc --reporter=lcov --reporter=text mocha --forbid-only \"test/commands/**/*.test.ts\"",
     "version": "oclif readme && git add README.md"
   },
   "homepage": "https://github.com/internxt/cli",
@@ -54,6 +54,7 @@
     "husky": "^9.0.10",
     "lint-staged": "^15.2.2",
     "mocha": "^10",
+    "nyc": "^15.1.0",
     "oclif": "^4.4.8",
     "prettier": "^3.2.5",
     "shx": "^0.3.4",
