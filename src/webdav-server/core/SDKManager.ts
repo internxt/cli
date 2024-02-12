@@ -1,8 +1,8 @@
 import { Auth, Drive, photos } from '@internxt/sdk';
 import { Trash } from '@internxt/sdk/dist/drive';
 import { ApiSecurity, AppDetails } from '@internxt/sdk/dist/shared';
-import packageJson from '../../../package.json';
 import { ConfigService } from '../../services/config.service';
+import packageJson = require('../../../package.json');
 
 export type SdkManagerApiSecurity = ApiSecurity & { newToken: string };
 /**
