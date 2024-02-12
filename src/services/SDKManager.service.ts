@@ -1,8 +1,10 @@
 import { Auth, Drive, photos } from '@internxt/sdk';
 import { Trash } from '@internxt/sdk/dist/drive';
 import { ApiSecurity, AppDetails } from '@internxt/sdk/dist/shared';
-import { ConfigService } from '../../services/config.service';
-import packageJson = require('../../../package.json');
+import { ConfigService } from './config.service';
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const packageJson = require('../../package.json');
 
 export type SdkManagerApiSecurity = ApiSecurity & { newToken: string };
 /**

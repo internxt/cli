@@ -2,15 +2,10 @@ import { CryptoProvider, LoginDetails } from '@internxt/sdk';
 import { Keys, Password } from '@internxt/sdk/dist/auth';
 import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings.js';
 import { aes } from '@internxt/lib';
-import { SdkManager } from '../../../core/SDKManager.ts';
-import { decryptText, decryptTextWithKey, encryptText, passToHash } from '../../crypto/services/utils.ts';
-import { generateNewKeys } from '../../crypto/services/pgp.service.ts';
-import {
-  assertPrivateKeyIsValid,
-  assertValidateKeys,
-  decryptPrivateKey,
-  getAesInitFromEnv,
-} from '../../crypto/services/keys.service.ts';
+import { SdkManager } from './SDKManager.service';
+import { decryptText, decryptTextWithKey, encryptText, passToHash } from '../utils/crypto.utils';
+import { generateNewKeys } from './pgp.service';
+import { assertPrivateKeyIsValid, assertValidateKeys, decryptPrivateKey, getAesInitFromEnv } from './keys.service';
 
 const generateNewKeysWithEncrypted = async (password: string) => {
   const { privateKeyArmored, publicKeyArmored, revocationCertificate } = await generateNewKeys();

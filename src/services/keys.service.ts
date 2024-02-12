@@ -1,6 +1,6 @@
 import { aes } from '@internxt/lib';
-import { isValid } from './utilspgp.ts';
-import { getOpenpgp } from './pgp.service.ts';
+import { isValid } from '../utils/pgp.utils';
+import { getOpenpgp } from './pgp.service';
 
 export class Base64EncodedPrivateKeyError extends Error {
   constructor() {

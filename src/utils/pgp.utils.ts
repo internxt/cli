@@ -1,4 +1,4 @@
-import { getOpenpgp } from './pgp.service.ts';
+import { getOpenpgp } from '../services/pgp.service';
 
 export async function isValid(key: string): Promise<boolean> {
   try {

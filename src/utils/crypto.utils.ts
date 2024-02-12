@@ -1,5 +1,5 @@
 import CryptoJS from 'crypto-js';
-import { ConfigService } from '../../../../services/config.service';
+import { ConfigService } from '../services/config.service';
 
 interface PassObjectInterface {
   salt?: string | null;
