@@ -1,5 +1,5 @@
 import { CryptoProvider, LoginDetails } from '@internxt/sdk';
-import { Keys, Password, UserAccessError } from '@internxt/sdk/dist/auth';
+import { Keys, Password } from '@internxt/sdk/dist/auth';
 import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings.js';
 import { aes } from '@internxt/lib';
 import { SdkManager } from '../../../core/SDKManager.ts';

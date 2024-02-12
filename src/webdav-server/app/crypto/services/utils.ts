@@ -1,4 +1,5 @@
 import CryptoJS from 'crypto-js';
+import { ConfigService } from '../../../../services/config.service';
 
 interface PassObjectInterface {
   salt?: string | null;
@@ -19,18 +20,14 @@ function passToHash(passObject: PassObjectInterface): { salt: string; hash: stri
 
 // AES Plain text encryption method
 function encryptText(textToEncrypt: string): string {
-  if (!process.env.REACT_APP_CRYPTO_SECRET) {
-    throw new Error('env variable REACT_APP_CRYPTO_SECRET is not defined');
-  }
-  return encryptTextWithKey(textToEncrypt, process.env.REACT_APP_CRYPTO_SECRET);
+  const REACT_APP_CRYPTO_SECRET = ConfigService.instance.get('REACT_APP_CRYPTO_SECRET');
+  return encryptTextWithKey(textToEncrypt, REACT_APP_CRYPTO_SECRET);
 }
 
 // AES Plain text decryption method
 function decryptText(encryptedText: string): string {
-  if (!process.env.REACT_APP_CRYPTO_SECRET) {
-    throw new Error('env variable REACT_APP_CRYPTO_SECRET is not defined');
-  }
-  return decryptTextWithKey(encryptedText, process.env.REACT_APP_CRYPTO_SECRET);
+  const REACT_APP_CRYPTO_SECRET = ConfigService.instance.get('REACT_APP_CRYPTO_SECRET');
+  return decryptTextWithKey(encryptedText, REACT_APP_CRYPTO_SECRET);
 }
 
 // AES Plain text encryption method with enc. key
@@ -43,10 +40,6 @@ function encryptTextWithKey(textToEncrypt: string, keyToEncrypt: string): string
 
 // AES Plain text decryption method with enc. key
 function decryptTextWithKey(encryptedText: string, keyToDecrypt: string): string {
-  if (!keyToDecrypt) {
-    throw new Error('No key defined. Check .env file');
-  }
-
   const reb = CryptoJS.enc.Hex.parse(encryptedText);
   const bytes = CryptoJS.AES.decrypt(reb.toString(CryptoJS.enc.Base64), keyToDecrypt);
 
