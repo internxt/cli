@@ -9,11 +9,8 @@
     "moduleResolution": "Node",
     "composite": true,
     "resolveJsonModule": true,
-    "noEmit": true,
-    "allowImportingTsExtensions": true,
     "removeComments": true,
     "esModuleInterop": true,
   },
-
   "include": ["./src/**/*"]
 }
