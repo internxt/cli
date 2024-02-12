@@ -785,10 +785,10 @@
   resolved "https://npm.pkg.github.com/download/@internxt/prettier-config/1.0.2/5bd220b8de76734448db5475b3e0c01f9d22c19b#5bd220b8de76734448db5475b3e0c01f9d22c19b"
   integrity sha512-t4HiqvCbC7XgQepwWlIaFJe3iwW7HCf6xOSU9nKTV0tiGqOPz7xMtIgLEloQrDA34Cx4PkOYBXrvFPV6RxSFAA==
 
-"@internxt/sdk@^1.4.68":
-  version "1.4.68"
-  resolved "https://npm.pkg.github.com/download/@internxt/sdk/1.4.68/20ba40fc4dfb78b9ab574c9325e0ea29ee01e161#20ba40fc4dfb78b9ab574c9325e0ea29ee01e161"
-  integrity sha512-pARjPLPTcWfBZvadZCxQLT4VKl4cISqt59uvU6+lYVDaLecPdCWOQDBIJB5duNlQ0ilmse6D4vZUjSXJKQ0SJA==
+"@internxt/sdk@^1.4.70":
+  version "1.4.70"
+  resolved "https://npm.pkg.github.com/download/@internxt/sdk/1.4.70/6e07263dbaa130269323d21b895ea8c0e7d1cc3c#6e07263dbaa130269323d21b895ea8c0e7d1cc3c"
+  integrity sha512-bqtTsYjT9kjkxFfqFVOrxlp3vlCtQdLhH9LWOF4DSIc5j/EnDh7hTKwSGo+mzMdqYYeivQB3cqrxr6QiyBMkcw==
   dependencies:
     axios "^0.24.0"
     query-string "^7.1.0"
@@ -816,6 +816,11 @@
   dependencies:
     "@jridgewell/resolve-uri" "^3.0.3"
     "@jridgewell/sourcemap-codec" "^1.4.10"
+
+"@mattiasbuelens/web-streams-adapter@~0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@mattiasbuelens/web-streams-adapter/-/web-streams-adapter-0.1.0.tgz#607b5a25682f4ae2741da7ba6df39302505336b3"
+  integrity sha512-oV4PyZfwJNtmFWhvlJLqYIX1Nn22ML8FZpS16ZUKv0hg7414xV1fjsGqxQzLT2dyK92TKxsJSwMOd7VNHAtPmA==
 
 "@nodelib/fs.scandir@2.1.5":
   version "2.1.5"
@@ -1158,6 +1163,14 @@
   integrity sha512-eJ2jbzjdijiL3B4PrSQaSjuF2sPEQPVCPzBvTHJD9Nz+9dw2SGH4K4xeQJ77YfTq5bRQ+bD8wT11JbeDPmxmGg==
   dependencies:
     "@octokit/openapi-types" "^12.11.0"
+
+"@openpgp/web-stream-tools@0.0.11-patch-0":
+  version "0.0.11-patch-0"
+  resolved "https://registry.yarnpkg.com/@openpgp/web-stream-tools/-/web-stream-tools-0.0.11-patch-0.tgz#c8b2ecfa62403bb10de2b33c8548bd25b14f1828"
+  integrity sha512-NrIF4DkCqC3WDcMDAgz17z+0Iik1fVrKuvdbjZXCnMZgYAWHpIG8CWnbp8yQRahAdF26jqCopA/qXrp8CYI2yw==
+  dependencies:
+    "@mattiasbuelens/web-streams-adapter" "~0.1.0"
+    web-streams-polyfill "~3.0.3"
 
 "@sindresorhus/is@^4.0.0":
   version "4.6.0"
@@ -6974,6 +6987,11 @@ wcwidth@^1.0.1:
   integrity sha512-XHPEwS0q6TaxcvG85+8EYkbiCux2XtWG2mkc47Ng2A77BQu9+DqIOJldST4HgPkuea7dvKSj5VgX3P1d4rW8Tg==
   dependencies:
     defaults "^1.0.3"
+
+web-streams-polyfill@~3.0.3:
+  version "3.0.3"
+  resolved "https://registry.yarnpkg.com/web-streams-polyfill/-/web-streams-polyfill-3.0.3.tgz#f49e487eedeca47a207c1aee41ee5578f884b42f"
+  integrity sha512-d2H/t0eqRNM4w2WvmTdoeIvzAUSpK7JmATB8Nr2lb7nQ9BTIJVjbQ/TRFVEh2gUH1HwclPdoPtfMoFfetXaZnA==
 
 webidl-conversions@^3.0.0:
   version "3.0.1"

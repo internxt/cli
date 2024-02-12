@@ -32,15 +32,16 @@
     "@internxt/eslint-config-internxt": "^1.0.9",
     "@internxt/lib": "^1.2.0",
     "@internxt/prettier-config": "^1.0.2",
-    "@internxt/sdk": "^1.4.68",
+    "@internxt/sdk": "^1.4.70",
     "@oclif/core": "^3",
     "crypto-js": "^4.2.0",
-    "openpgp": "^5.11.0",
-    "dotenv": "^16.4.1"
+    "dotenv": "^16.4.1",
+    "openpgp": "^5.11.0"
   },
   "devDependencies": {
     "@oclif/prettier-config": "^0.2.1",
     "@oclif/test": "^3",
+    "@openpgp/web-stream-tools": "0.0.11-patch-0",
     "@types/chai": "^4",
     "@types/crypto-js": "^4.2.2",
     "@types/mocha": "^10",
