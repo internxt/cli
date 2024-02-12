@@ -20,14 +20,14 @@ export const passToHash = (passObject: PassObjectInterface): { salt: string; has
 
 // AES Plain text encryption method
 export const encryptText = (textToEncrypt: string): string => {
-  const REACT_APP_CRYPTO_SECRET = ConfigService.instance.get('REACT_APP_CRYPTO_SECRET');
-  return encryptTextWithKey(textToEncrypt, REACT_APP_CRYPTO_SECRET);
+  const APP_CRYPTO_SECRET = ConfigService.instance.get('APP_CRYPTO_SECRET');
+  return encryptTextWithKey(textToEncrypt, APP_CRYPTO_SECRET);
 };
 
 // AES Plain text decryption method
 export const decryptText = (encryptedText: string): string => {
-  const REACT_APP_CRYPTO_SECRET = ConfigService.instance.get('REACT_APP_CRYPTO_SECRET');
-  return decryptTextWithKey(encryptedText, REACT_APP_CRYPTO_SECRET);
+  const APP_CRYPTO_SECRET = ConfigService.instance.get('APP_CRYPTO_SECRET');
+  return decryptTextWithKey(encryptedText, APP_CRYPTO_SECRET);
 };
 
 // AES Plain text encryption method with enc. key

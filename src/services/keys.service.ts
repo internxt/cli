@@ -87,8 +87,8 @@ export class KeysService {
   };
 
   public getAesInitFromEnv = (): { iv: string; salt: string } => {
-    const MAGIC_IV = ConfigService.instance.get('REACT_APP_MAGIC_IV');
-    const MAGIC_SALT = ConfigService.instance.get('REACT_APP_MAGIC_SALT');
+    const MAGIC_IV = ConfigService.instance.get('APP_MAGIC_IV');
+    const MAGIC_SALT = ConfigService.instance.get('APP_MAGIC_SALT');
 
     return { iv: MAGIC_IV as string, salt: MAGIC_SALT as string };
   };
