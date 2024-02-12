@@ -9,6 +9,6 @@ export default class Whoami extends Command {
   static flags = {};
 
   public async run(): Promise<void> {
-    this.log('You are somebody');
+    this.log('You are somebody.');
   }
 }
