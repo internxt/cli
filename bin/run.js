@@ -1,8 +1,7 @@
 #!/usr/bin/env node
-
-async function main() {
-  const { execute } = await import('@oclif/core');
-  await execute({ dir: import.meta.url });
-}
-
-await main();
+/* eslint-disable */
+require('dotenv').config();
+(async () => {
+  const oclif = await import('@oclif/core');
+  await oclif.execute({ development: false, dir: __dirname });
+})();

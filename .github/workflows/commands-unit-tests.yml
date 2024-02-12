@@ -1,4 +1,4 @@
-name: tests
+name: Commands Unit Tests
 on:
   push:
   workflow_dispatch:
