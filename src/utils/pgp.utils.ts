@@ -1,11 +1,10 @@
-import { getOpenpgp } from '../services/pgp.service';
+import { OpenpgpService } from '../services/pgp.service';
 
-export async function isValid(key: string): Promise<boolean> {
+export const isValidKey = async (key: string): Promise<boolean> => {
   try {
-    const openpgp = await getOpenpgp();
-    await openpgp.readKey({ armoredKey: key });
+    await OpenpgpService.openpgp.readKey({ armoredKey: key });
     return true;
   } catch (error) {
     return false;
   }
-}
+};

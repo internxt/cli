@@ -18,38 +18,38 @@ export class SdkManager {
    *  Sets the security details needed to create SDK clients
    * @param apiSecurity Security properties to be setted
    */
-  static init(apiSecurity: SdkManagerApiSecurity) {
+  static init = (apiSecurity: SdkManagerApiSecurity) => {
     SdkManager.setApiSecurity(apiSecurity);
-  }
+  };
 
-  static setApiSecurity(apiSecurity: SdkManagerApiSecurity) {
+  static setApiSecurity = (apiSecurity: SdkManagerApiSecurity) => {
     SdkManager.apiSecurity = apiSecurity;
-  }
+  };
 
-  static clean() {
+  static clean = () => {
     SdkManager.apiSecurity = undefined;
-  }
+  };
 
-  static getInstance() {
+  static getInstance = () => {
     if (!SdkManager.instance) {
       throw new Error('No instance found, call init method first');
     }
     return SdkManager.instance;
-  }
+  };
 
-  public getApiSecurity(config = { throwErrorOnMissingCredentials: true }): SdkManagerApiSecurity {
+  public getApiSecurity = (config = { throwErrorOnMissingCredentials: true }): SdkManagerApiSecurity => {
     if (!SdkManager.apiSecurity && config.throwErrorOnMissingCredentials)
       throw new Error('Api security properties not found in SdkManager');
 
     return SdkManager.apiSecurity as SdkManagerApiSecurity;
-  }
+  };
 
-  private static getAppDetails(): AppDetails {
+  private static getAppDetails = (): AppDetails => {
     return {
       clientName: packageJson.name,
       clientVersion: packageJson.version,
     };
-  }
+  };
 
   /** Auth SDK */
   get authV2() {

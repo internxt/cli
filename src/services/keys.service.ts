@@ -1,8 +1,9 @@
 import { aes } from '@internxt/lib';
-import { isValid } from '../utils/pgp.utils';
-import { getOpenpgp } from './pgp.service';
+import { isValidKey } from '../utils/pgp.utils';
+import { ConfigService } from './config.service';
+import { OpenpgpService } from './pgp.service';
 
-export class Base64EncodedPrivateKeyError extends Error {
+class Base64EncodedPrivateKeyError extends Error {
   constructor() {
     super('Key is encoded in base64');
 
@@ -10,7 +11,7 @@ export class Base64EncodedPrivateKeyError extends Error {
   }
 }
 
-export class WrongIterationsToEncryptPrivateKeyError extends Error {
+class WrongIterationsToEncryptPrivateKeyError extends Error {
   constructor() {
     super('Key was encrypted using the wrong iterations number');
 
@@ -18,7 +19,7 @@ export class WrongIterationsToEncryptPrivateKeyError extends Error {
   }
 }
 
-export class CorruptedEncryptedPrivateKeyError extends Error {
+class CorruptedEncryptedPrivateKeyError extends Error {
   constructor() {
     super('Key is corrupted');
 
@@ -26,7 +27,7 @@ export class CorruptedEncryptedPrivateKeyError extends Error {
   }
 }
 
-export class KeysDoNotMatchError extends Error {
+class KeysDoNotMatchError extends Error {
   constructor() {
     super('Keys do not match');
 
@@ -34,66 +35,61 @@ export class KeysDoNotMatchError extends Error {
   }
 }
 
-/**
- * This function validates the private key
- * @param privateKey The private key to validate encrypted
- * @param password The password used for encrypting the private key
- * @throws {Base64EncodedPrivateKeyError} If the PLAIN private key is base64 encoded (known issue introduced in the past)
- * @throws {WrongIterationsToEncryptPrivateKeyError} If the ENCRYPTED private key was encrypted using the wrong iterations number (known issue introduced in the past)
- * @throws {CorruptedEncryptedPrivateKeyError} If the ENCRYPTED private key is un-decryptable (corrupted)
- * @async
- */
-export async function assertPrivateKeyIsValid(privateKey: string, password: string): Promise<void> {
-  let privateKeyDecrypted: string;
+export class KeysService {
+  public static readonly instance: KeysService = new KeysService();
 
-  try {
-    privateKeyDecrypted = decryptPrivateKey(privateKey, password);
-  } catch {
+  public assertPrivateKeyIsValid = async (privateKey: string, password: string): Promise<void> => {
+    let privateKeyDecrypted: string;
+
     try {
-      aes.decrypt(privateKey, password, 9999);
+      privateKeyDecrypted = this.decryptPrivateKey(privateKey, password);
     } catch {
-      throw new CorruptedEncryptedPrivateKeyError();
+      try {
+        aes.decrypt(privateKey, password, 9999);
+      } catch {
+        throw new CorruptedEncryptedPrivateKeyError();
+      }
+
+      throw new WrongIterationsToEncryptPrivateKeyError();
     }
 
-    throw new WrongIterationsToEncryptPrivateKeyError();
-  }
+    const hasValidFormat = await isValidKey(privateKeyDecrypted);
 
-  const hasValidFormat = await isValid(privateKeyDecrypted);
+    if (!hasValidFormat) throw new Base64EncodedPrivateKeyError();
+  };
 
-  if (!hasValidFormat) throw new Base64EncodedPrivateKeyError();
-}
+  public decryptPrivateKey = (privateKey: string, password: string): string => {
+    return aes.decrypt(privateKey, password);
+  };
 
-export function decryptPrivateKey(privateKey: string, password: string): string {
-  return aes.decrypt(privateKey, password);
-}
+  public assertValidateKeys = async (privateKey: string, publicKey: string): Promise<void> => {
+    const publicKeyArmored = await OpenpgpService.openpgp.readKey({ armoredKey: publicKey });
+    const privateKeyArmored = await OpenpgpService.openpgp.readPrivateKey({ armoredKey: privateKey });
 
-export async function assertValidateKeys(privateKey: string, publicKey: string): Promise<void> {
-  const openpgp = await getOpenpgp();
-  const publicKeyArmored = await openpgp.readKey({ armoredKey: publicKey });
-  const privateKeyArmored = await openpgp.readPrivateKey({ armoredKey: privateKey });
+    const plainMessage = 'validate-keys';
+    const originalText = await OpenpgpService.openpgp.createMessage({ text: plainMessage });
+    const encryptedMessage = await OpenpgpService.openpgp.encrypt({
+      message: originalText,
+      encryptionKeys: publicKeyArmored,
+    });
 
-  const plainMessage = 'validate-keys';
-  const originalText = await openpgp.createMessage({ text: plainMessage });
-  const encryptedMessage = await openpgp.encrypt({
-    message: originalText,
-    encryptionKeys: publicKeyArmored,
-  });
+    const decryptedMessage = (
+      await OpenpgpService.openpgp.decrypt({
+        message: await OpenpgpService.openpgp.readMessage({ armoredMessage: encryptedMessage }),
+        verificationKeys: publicKeyArmored,
+        decryptionKeys: privateKeyArmored,
+      })
+    ).data;
 
-  const decryptedMessage = (
-    await openpgp.decrypt({
-      message: await openpgp.readMessage({ armoredMessage: encryptedMessage }),
-      verificationKeys: publicKeyArmored,
-      decryptionKeys: privateKeyArmored,
-    })
-  ).data;
+    if (decryptedMessage !== plainMessage) {
+      throw new KeysDoNotMatchError();
+    }
+  };
 
-  if (decryptedMessage !== plainMessage) {
-    throw new KeysDoNotMatchError();
-  }
-}
+  public getAesInitFromEnv = (): { iv: string; salt: string } => {
+    const MAGIC_IV = ConfigService.instance.get('REACT_APP_MAGIC_IV');
+    const MAGIC_SALT = ConfigService.instance.get('REACT_APP_MAGIC_SALT');
 
-export function getAesInitFromEnv(): { iv: string; salt: string } {
-  const { REACT_APP_MAGIC_IV: MAGIC_IV, REACT_APP_MAGIC_SALT: MAGIC_SALT } = process.env;
-
-  return { iv: MAGIC_IV as string, salt: MAGIC_SALT as string };
+    return { iv: MAGIC_IV as string, salt: MAGIC_SALT as string };
+  };
 }
