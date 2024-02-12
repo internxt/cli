@@ -23,6 +23,14 @@ const generateNewKeysWithEncrypted = async (password: string) => {
   };
 };
 
+export const is2FANeeded = async (email: string): Promise<boolean> => {
+  const authClient = SdkManager.getInstance().auth;
+  const securityDetails = await authClient.securityDetails(email).catch((error) => {
+    throw new Error(error.message ?? 'Login error');
+  });
+  return securityDetails.tfaEnabled;
+};
+
 export const doLogin = async (
   email: string,
   password: string,
@@ -84,8 +92,8 @@ export const doLogin = async (
 
       //TODO save tokens for later use
       /*localStorageService.set('xToken', token);
-            localStorageService.set('xMnemonic', clearMnemonic);
-            localStorageService.set('xNewToken', newToken);*/
+                  localStorageService.set('xMnemonic', clearMnemonic);
+                  localStorageService.set('xNewToken', newToken);*/
 
       return {
         user: clearUser,
