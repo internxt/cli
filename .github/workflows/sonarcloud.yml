@@ -30,7 +30,7 @@ jobs:
       # Install dependencies, build and run tests
       - run: yarn install --network-timeout 600000
       - run: yarn build
-      - run: yarn test:commands:unit
+      - run: yarn test:unit
       # Analyze with SonarCloud
       - name: Analyze with SonarCloud
         uses: SonarSource/sonarcloud-github-action@master
