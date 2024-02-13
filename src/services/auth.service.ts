@@ -3,7 +3,6 @@ import { Keys, Password } from '@internxt/sdk/dist/auth';
 import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings.js';
 import { SdkManager } from './SDKManager.service';
 import { KeysService } from './keys.service';
-import { OpenpgpService } from './pgp.service';
 import { decryptText, decryptTextWithKey, encryptText, passToHash } from '../utils/crypto.utils';
 
 export class AuthService {
@@ -33,7 +32,7 @@ export class AuthService {
       },
       async generateKeys(password: Password): Promise<Keys> {
         const { privateKeyArmoredEncrypted, publicKeyArmored, revocationCertificate } =
-          await OpenpgpService.instance.generateNewKeysWithEncrypted(password);
+          await KeysService.instance.generateNewKeysWithEncrypted(password);
         const keys: Keys = {
           privateKeyEncrypted: privateKeyArmoredEncrypted,
           publicKey: publicKeyArmored,
