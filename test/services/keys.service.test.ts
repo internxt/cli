@@ -7,9 +7,6 @@ import { KeysService } from '../../src/services/keys.service';
 import { ConfigService } from '../../src/services/config.service';
 import { AesInit, CorruptedEncryptedPrivateKeyError } from '../../src/types/keys.types';
 
-import { config } from 'dotenv';
-config();
-
 describe('Keys service', () => {
   let keysServiceSandbox: SinonSandbox;
 
@@ -32,13 +29,11 @@ describe('Keys service', () => {
     keysServiceSandbox.stub(openpgp, 'createMessage').resolves();
     keysServiceSandbox.stub(openpgp, 'encrypt').resolves();
     keysServiceSandbox.stub(openpgp, 'readMessage').resolves();
-    keysServiceSandbox
-      .stub(openpgp, 'decrypt')
-      .returns(
-        Promise.resolve({ data: 'validate-keys' } as openpgp.DecryptMessageResult & {
-          data: openpgp.MaybeStream<string>;
-        }),
-      );
+    keysServiceSandbox.stub(openpgp, 'decrypt').returns(
+      Promise.resolve({ data: 'validate-keys' } as openpgp.DecryptMessageResult & {
+        data: openpgp.MaybeStream<string>;
+      }),
+    );
 
     await KeysService.instance.assertValidateKeys('dontcareprivate', 'dontcarepublic');
     expect(true).to.be.true; //checks that assertValidateKeys does not throw any error

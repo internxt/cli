@@ -10,17 +10,14 @@ export type SdkManagerApiSecurity = ApiSecurity & { newToken: string };
  * based on the current apiSecurity details
  */
 export class SdkManager {
+  public static readonly instance: SdkManager = new SdkManager();
   private static apiSecurity?: SdkManagerApiSecurity = undefined;
-  private static instance: SdkManager = new SdkManager();
+
   /**
    *  Sets the security details needed to create SDK clients
    * @param apiSecurity Security properties to be setted
    */
-  static init = (apiSecurity: SdkManagerApiSecurity) => {
-    SdkManager.setApiSecurity(apiSecurity);
-  };
-
-  static setApiSecurity = (apiSecurity: SdkManagerApiSecurity) => {
+  public static init = (apiSecurity: SdkManagerApiSecurity) => {
     SdkManager.apiSecurity = apiSecurity;
   };
 
@@ -28,14 +25,7 @@ export class SdkManager {
     SdkManager.apiSecurity = undefined;
   };
 
-  static getInstance = () => {
-    if (!SdkManager.instance) {
-      throw new Error('No instance found, call init method first');
-    }
-    return SdkManager.instance;
-  };
-
-  public getApiSecurity = (config = { throwErrorOnMissingCredentials: true }): SdkManagerApiSecurity => {
+  public static getApiSecurity = (config = { throwErrorOnMissingCredentials: true }): SdkManagerApiSecurity => {
     if (!SdkManager.apiSecurity && config.throwErrorOnMissingCredentials)
       throw new Error('Api security properties not found in SdkManager');
 
@@ -50,30 +40,30 @@ export class SdkManager {
   };
 
   /** Auth SDK */
-  get authV2() {
+  getAuthV2() {
     const DRIVE_NEW_API_URL = ConfigService.instance.get('DRIVE_NEW_API_URL');
 
-    const apiSecurity = this.getApiSecurity({ throwErrorOnMissingCredentials: false });
+    const apiSecurity = SdkManager.getApiSecurity({ throwErrorOnMissingCredentials: false });
     const appDetails = SdkManager.getAppDetails();
 
     return Auth.client(DRIVE_NEW_API_URL, appDetails, apiSecurity);
   }
 
   /** Auth old client SDK */
-  get auth() {
+  getAuth() {
     const DRIVE_API_URL = ConfigService.instance.get('DRIVE_API_URL');
 
-    const apiSecurity = this.getApiSecurity({ throwErrorOnMissingCredentials: false });
+    const apiSecurity = SdkManager.getApiSecurity({ throwErrorOnMissingCredentials: false });
     const appDetails = SdkManager.getAppDetails();
 
     return Auth.client(DRIVE_API_URL, appDetails, apiSecurity);
   }
 
   /** Payments SDK */
-  get payments() {
+  getPayments() {
     const PAYMENTS_API_URL = ConfigService.instance.get('PAYMENTS_API_URL');
 
-    const newToken = this.getApiSecurity().newToken;
+    const newToken = SdkManager.getApiSecurity().newToken;
     const appDetails = SdkManager.getAppDetails();
 
     return Drive.Payments.client(PAYMENTS_API_URL, appDetails, {
@@ -83,40 +73,40 @@ export class SdkManager {
   }
 
   /** Users SDK */
-  get users() {
+  getUsers() {
     const DRIVE_API_URL = ConfigService.instance.get('DRIVE_API_URL');
 
-    const apiSecurity = this.getApiSecurity({ throwErrorOnMissingCredentials: false });
+    const apiSecurity = SdkManager.getApiSecurity({ throwErrorOnMissingCredentials: false });
     const appDetails = SdkManager.getAppDetails();
 
     return Drive.Users.client(DRIVE_API_URL, appDetails, apiSecurity);
   }
 
   /** Referrals SDK */
-  get referrals() {
+  getReferrals() {
     const DRIVE_API_URL = ConfigService.instance.get('DRIVE_API_URL');
 
-    const apiSecurity = this.getApiSecurity();
+    const apiSecurity = SdkManager.getApiSecurity();
     const appDetails = SdkManager.getAppDetails();
 
     return Drive.Referrals.client(DRIVE_API_URL, appDetails, apiSecurity);
   }
 
   /** Storage SDK */
-  get storage() {
+  getStorage() {
     const DRIVE_API_URL = ConfigService.instance.get('DRIVE_API_URL');
 
-    const apiSecurity = this.getApiSecurity();
+    const apiSecurity = SdkManager.getApiSecurity();
     const appDetails = SdkManager.getAppDetails();
 
     return Drive.Storage.client(DRIVE_API_URL, appDetails, apiSecurity);
   }
 
   /** Trash SDK */
-  get trash() {
+  getTrash() {
     const DRIVE_NEW_API_URL = ConfigService.instance.get('DRIVE_NEW_API_URL');
 
-    const newToken = this.getApiSecurity().newToken;
+    const newToken = SdkManager.getApiSecurity().newToken;
     const appDetails = SdkManager.getAppDetails();
 
     return Trash.client(DRIVE_NEW_API_URL, appDetails, {
@@ -126,19 +116,19 @@ export class SdkManager {
   }
 
   /** Photos SDK */
-  get photos() {
+  getPhotos() {
     const PHOTOS_API_URL = ConfigService.instance.get('PHOTOS_API_URL');
 
-    const newToken = this.getApiSecurity().newToken;
+    const newToken = SdkManager.getApiSecurity().newToken;
 
     return new photos.Photos(PHOTOS_API_URL, newToken);
   }
 
   /** Share SDK */
-  get share() {
+  getShare() {
     const DRIVE_NEW_API_URL = ConfigService.instance.get('DRIVE_NEW_API_URL');
 
-    const newToken = this.getApiSecurity().newToken;
+    const newToken = SdkManager.getApiSecurity().newToken;
     const appDetails = SdkManager.getAppDetails();
 
     return Drive.Share.client(DRIVE_NEW_API_URL, appDetails, {
