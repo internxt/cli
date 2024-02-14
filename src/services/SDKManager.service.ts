@@ -32,7 +32,7 @@ export class SdkManager {
     return SdkManager.apiSecurity as SdkManagerApiSecurity;
   };
 
-  private static getAppDetails = (): AppDetails => {
+  public static getAppDetails = (): AppDetails => {
     return {
       clientName: packageJson.name,
       clientVersion: packageJson.version,
