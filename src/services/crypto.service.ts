@@ -1,7 +1,6 @@
 import { CryptoProvider } from '@internxt/sdk';
 import { Keys, Password } from '@internxt/sdk/dist/auth';
 import crypto from 'crypto';
-import CryptoJS from 'crypto-js';
 import { KeysService } from './keys.service';
 import { ConfigService } from '../services/config.service';
 
@@ -49,19 +48,61 @@ export class CryptoService {
     return this.decryptTextWithKey(encryptedText, APP_CRYPTO_SECRET);
   };
 
-  // AES Plain text encryption method with enc. key
-  public encryptTextWithKey = (textToEncrypt: string, keyToEncrypt: string): string => {
-    const bytes = CryptoJS.AES.encrypt(textToEncrypt, keyToEncrypt).toString();
-    const text64 = CryptoJS.enc.Base64.parse(bytes);
+  /**
+   * Encrypts a plain message into an AES encrypted text
+   * [Crypto.JS compatible] (deprecated dependency)
+   * @param textToEncrypt The plain text to be encrypted
+   * @param secret The secret used to encrypt
+   * @returns The encrypted private key in 'hex' encoding
+   **/
+  public encryptTextWithKey = (textToEncrypt: string, secret: string) => {
+    const TRANSFORM_ROUNDS = 3;
+    const openSSLstart = Buffer.from('Salted__');
+    const salt = crypto.randomBytes(8);
+    const password = Buffer.concat([Buffer.from(secret, 'binary'), salt]);
+    const md5Hashes = [];
 
-    return text64.toString(CryptoJS.enc.Hex);
+    let digest = password;
+
+    for (let i = 0; i < TRANSFORM_ROUNDS; i++) {
+      md5Hashes[i] = crypto.createHash('md5').update(digest).digest();
+      digest = Buffer.concat([md5Hashes[i], password]);
+    }
+
+    const key = Buffer.concat([md5Hashes[0], md5Hashes[1]]);
+    const iv = md5Hashes[2];
+    const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
+
+    const encrypted = Buffer.concat([cipher.update(textToEncrypt, 'utf8'), cipher.final()]);
+    return Buffer.concat([openSSLstart, salt, encrypted]).toString('hex');
   };
 
-  // AES Plain text decryption method with enc. key
-  public decryptTextWithKey = (encryptedText: string, keyToDecrypt: string): string => {
-    const reb = CryptoJS.enc.Hex.parse(encryptedText);
-    const bytes = CryptoJS.AES.decrypt(reb.toString(CryptoJS.enc.Base64), keyToDecrypt);
+  /**
+   * Decrypts an AES encrypted text
+   * [Crypto.JS compatible] (deprecated dependency)
+   * @param encryptedText The AES encrypted text in 'HEX' encoding
+   * @param secret The secret used to encrypt
+   * @returns The decrypted private key in 'utf8' encoding
+   **/
+  public decryptTextWithKey = (encryptedText: string, secret: string) => {
+    const TRANSFORM_ROUNDS = 3;
+    const cypher = Buffer.from(encryptedText, 'hex');
+    const salt = cypher.subarray(8, 16);
+    const password = Buffer.concat([Buffer.from(secret, 'binary'), salt]);
+    const md5Hashes = [];
 
-    return bytes.toString(CryptoJS.enc.Utf8);
+    let digest = password;
+
+    for (let i = 0; i < TRANSFORM_ROUNDS; i++) {
+      md5Hashes[i] = crypto.createHash('md5').update(digest).digest();
+      digest = Buffer.concat([md5Hashes[i], password]);
+    }
+
+    const key = Buffer.concat([md5Hashes[0], md5Hashes[1]]);
+    const iv = md5Hashes[2];
+    const contents = cypher.subarray(16);
+    const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
+
+    return Buffer.concat([decipher.update(contents), decipher.final()]).toString('utf8');
   };
 }

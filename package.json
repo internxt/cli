@@ -34,7 +34,6 @@
     "@internxt/prettier-config": "^1.0.2",
     "@internxt/sdk": "^1.4.70",
     "@oclif/core": "^3",
-    "crypto-js": "^4.2.0",
     "dotenv": "^16.4.1",
     "openpgp": "^5.11.0"
   },
@@ -43,7 +42,6 @@
     "@oclif/test": "^3",
     "@openpgp/web-stream-tools": "0.0.11-patch-0",
     "@types/chai": "^4",
-    "@types/crypto-js": "^4.2.2",
     "@types/mocha": "^10",
     "@types/node": "^18",
     "@types/sinon-chai": "^3.2.12",

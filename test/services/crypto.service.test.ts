@@ -2,11 +2,9 @@ import chai, { expect } from 'chai';
 import sinon, { SinonSandbox } from 'sinon';
 import sinonChai from 'sinon-chai';
 import crypto from 'crypto';
-import CryptoJS from 'crypto-js';
 import { ConfigService } from '../../src/services/config.service';
 import { CryptoService } from '../../src/services/crypto.service';
 import { ConfigKeys } from '../../src/types/config.types';
-import { AesInit } from '../../src/types/keys.types';
 import { Keys } from '@internxt/sdk';
 import { KeysService } from '../../src/services/keys.service';
 
@@ -73,14 +71,6 @@ describe('Crypto service', () => {
       value: crypto.randomBytes(16).toString('hex'),
       salt: crypto.randomBytes(16).toString('hex'),
     };
-
-    /*
-      // used to migrate from discontinued CryptoJS to nodejs crypto
-      const pass1 = CryptoJS.PBKDF2(password.value, password.salt, { keySize: 256 / 32, iterations: 10000 }).toString();
-      const pass2 = crypto.pbkdf2Sync(password.value, password.salt, 10000, 256 / 8, 'sha256').toString('hex');
-      expect(pass1).to.equal(pass2);
-      expect(CryptoJS.lib.WordArray.random(128 / 8).toString().length).to.equal(crypto.randomBytes(128 / 8).toString('hex').length);
-    */
 
     const encryptedSalt = CryptoService.instance.encryptText(password.salt);
     const hashedAndEncryptedPassword = CryptoService.cryptoProvider.encryptPasswordHash(password.value, encryptedSalt);

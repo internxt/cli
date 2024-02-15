@@ -14,8 +14,8 @@ export class KeysService {
 
   /**
    * Validates if the private key can be decrypted with the password
-   * @param privateKey The private key to validate encrypted
-   * @param password The password used for encrypting the private key
+   * @param privateKey The encrypted private key
+   * @param password The password used to encrypt the private key
    * @throws {BadEncodedPrivateKeyError} If the PLAIN private key is base64 encoded (known issue introduced in the past)
    * @throws {WrongIterationsToEncryptPrivateKeyError} If the ENCRYPTED private key was encrypted using the wrong iterations number (known issue introduced in the past)
    * @throws {CorruptedEncryptedPrivateKeyError} If the ENCRYPTED private key is un-decryptable (corrupted)
@@ -52,10 +52,22 @@ export class KeysService {
     if (hasValidFormat === false) throw new BadEncodedPrivateKeyError();
   };
 
+  /**
+   * Encrypts private key using password
+   * @param privateKey The plain private key
+   * @param password The password to encrypt
+   * @returns The encrypted private key
+   **/
   public encryptPrivateKey = (privateKey: string, password: string): string => {
     return aes.encrypt(privateKey, password, this.getAesInitFromEnv());
   };
 
+  /**
+   * Decrypts private key using password
+   * @param privateKey The encrypted private key
+   * @param password The password used to encrypt the private key
+   * @returns The decrypted private key
+   **/
   public decryptPrivateKey = (privateKey: string, password: string): string => {
     return aes.decrypt(privateKey, password);
   };
@@ -66,7 +78,7 @@ export class KeysService {
    * @param publicKey The plain public key
    * @throws {KeysDoNotMatchError} If the keys can not be used together to encrypt/decrypt a message
    * @async
-   */
+   **/
   public assertValidateKeys = async (privateKey: string, publicKey: string): Promise<void> => {
     const publicKeyArmored = await openpgp.readKey({ armoredKey: publicKey });
     const privateKeyArmored = await openpgp.readPrivateKey({ armoredKey: privateKey });
@@ -91,6 +103,12 @@ export class KeysService {
     }
   };
 
+  /**
+   * Checks if a pgp key can be read
+   * @param key The openpgp key to be validated
+   * @returns True if it can be read, false otherwise
+   * @async
+   **/
   public isValidKey = async (key: string): Promise<boolean> => {
     try {
       await openpgp.readKey({ armoredKey: key });
@@ -105,7 +123,7 @@ export class KeysService {
    * @param password The password for encrypting the private key
    * @returns The keys { privateKeyArmored, privateKeyArmoredEncrypted, publicKeyArmored, revocationCertificate }
    * @async
-   */
+   **/
   public generateNewKeysWithEncrypted = async (password: string) => {
     const { privateKey, publicKey, revocationCertificate } = await openpgp.generateKey({
       userIDs: [{ email: 'inxt@inxt.com' }],
@@ -120,6 +138,10 @@ export class KeysService {
     };
   };
 
+  /**
+   * Returns the AesInit params using ConfigService
+   * @returns The IV and the SALT from ConfigService
+   **/
   public getAesInitFromEnv = (): AesInit => {
     const MAGIC_IV = ConfigService.instance.get('APP_MAGIC_IV');
     const MAGIC_SALT = ConfigService.instance.get('APP_MAGIC_SALT');
