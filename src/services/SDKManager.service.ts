@@ -24,7 +24,7 @@ export class SdkManager {
   /**
    * Cleans the security details
    **/
-  static clean = () => {
+  public static readonly clean = () => {
     SdkManager.apiSecurity = undefined;
   };
 

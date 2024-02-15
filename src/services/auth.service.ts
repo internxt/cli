@@ -32,40 +32,34 @@ export class AuthService {
       tfaCode: twoFactorCode,
     };
 
-    // eslint-disable-next-line no-useless-catch
-    try {
-      const data = await authClient.login(loginDetails, CryptoService.cryptoProvider);
-      const { user, token, newToken } = data;
-      const { privateKey, publicKey } = user;
+    const data = await authClient.login(loginDetails, CryptoService.cryptoProvider);
+    const { user, token, newToken } = data;
+    const { privateKey, publicKey } = user;
 
-      const plainPrivateKeyInBase64 = privateKey
-        ? Buffer.from(KeysService.instance.decryptPrivateKey(privateKey, password)).toString('base64')
-        : '';
+    const plainPrivateKeyInBase64 = privateKey
+      ? Buffer.from(KeysService.instance.decryptPrivateKey(privateKey, password)).toString('base64')
+      : '';
 
-      if (privateKey) {
-        await KeysService.instance.assertPrivateKeyIsValid(privateKey, password);
-        await KeysService.instance.assertValidateKeys(
-          Buffer.from(plainPrivateKeyInBase64, 'base64').toString(),
-          Buffer.from(publicKey, 'base64').toString(),
-        );
-      }
-
-      const clearMnemonic = CryptoService.instance.decryptTextWithKey(user.mnemonic, password);
-      const clearUser = {
-        ...user,
-        mnemonic: clearMnemonic,
-        privateKey: plainPrivateKeyInBase64,
-      };
-      return {
-        user: clearUser,
-        token: token,
-        newToken: newToken,
-        mnemonic: clearMnemonic,
-      };
-    } catch (error) {
-      //TODO send Sentry login errors and remove eslint-disable from this trycatch
-      throw error;
+    if (privateKey) {
+      await KeysService.instance.assertPrivateKeyIsValid(privateKey, password);
+      await KeysService.instance.assertValidateKeys(
+        Buffer.from(plainPrivateKeyInBase64, 'base64').toString(),
+        Buffer.from(publicKey, 'base64').toString(),
+      );
     }
+
+    const clearMnemonic = CryptoService.instance.decryptTextWithKey(user.mnemonic, password);
+    const clearUser = {
+      ...user,
+      mnemonic: clearMnemonic,
+      privateKey: plainPrivateKeyInBase64,
+    };
+    return {
+      user: clearUser,
+      token: token,
+      newToken: newToken,
+      mnemonic: clearMnemonic,
+    };
   };
 
   /**
