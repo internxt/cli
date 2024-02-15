@@ -28,7 +28,7 @@ describe('SDKManager service', () => {
     sdkManagerServiceSandbox = sinon.createSandbox();
   });
 
-  afterEach(function () {
+  afterEach(() => {
     sdkManagerServiceSandbox.restore();
   });
 

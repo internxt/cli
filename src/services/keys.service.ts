@@ -68,29 +68,25 @@ export class KeysService {
    * @async
    */
   public assertValidateKeys = async (privateKey: string, publicKey: string): Promise<void> => {
-    try {
-      const publicKeyArmored = await openpgp.readKey({ armoredKey: publicKey });
-      const privateKeyArmored = await openpgp.readPrivateKey({ armoredKey: privateKey });
+    const publicKeyArmored = await openpgp.readKey({ armoredKey: publicKey });
+    const privateKeyArmored = await openpgp.readPrivateKey({ armoredKey: privateKey });
 
-      const plainMessage = 'validate-keys';
-      const originalText = await openpgp.createMessage({ text: plainMessage });
-      const encryptedMessage = await openpgp.encrypt({
-        message: originalText,
-        encryptionKeys: publicKeyArmored,
-      });
+    const plainMessage = 'validate-keys';
+    const originalText = await openpgp.createMessage({ text: plainMessage });
+    const encryptedMessage = await openpgp.encrypt({
+      message: originalText,
+      encryptionKeys: publicKeyArmored,
+    });
 
-      const decryptedMessage = (
-        await openpgp.decrypt({
-          message: await openpgp.readMessage({ armoredMessage: encryptedMessage }),
-          verificationKeys: publicKeyArmored,
-          decryptionKeys: privateKeyArmored,
-        })
-      ).data;
+    const decryptedMessage = (
+      await openpgp.decrypt({
+        message: await openpgp.readMessage({ armoredMessage: encryptedMessage }),
+        verificationKeys: publicKeyArmored,
+        decryptionKeys: privateKeyArmored,
+      })
+    ).data;
 
-      if (decryptedMessage !== plainMessage) {
-        throw new KeysDoNotMatchError();
-      }
-    } catch {
+    if (decryptedMessage !== plainMessage) {
       throw new KeysDoNotMatchError();
     }
   };
@@ -99,7 +95,7 @@ export class KeysService {
     try {
       await openpgp.readKey({ armoredKey: key });
       return true;
-    } catch (error) {
+    } catch {
       return false;
     }
   };

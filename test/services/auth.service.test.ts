@@ -15,7 +15,7 @@ describe('Auth service', () => {
     authServiceSandbox = sinon.createSandbox();
   });
 
-  afterEach(function () {
+  afterEach(() => {
     authServiceSandbox.restore();
   });
 
