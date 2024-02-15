@@ -224,7 +224,7 @@ describe('Keys service', () => {
     const pgpKeysWithEncrypted = {
       privateKeyArmored: pgpKeys.privateKey,
       privateKeyArmoredEncrypted: crypto.randomBytes(16).toString('hex'),
-      publicKeyArmored: Buffer.from(pgpKeys.publicKey as unknown as string).toString('base64'),
+      publicKeyArmored: Buffer.from(String(pgpKeys.publicKey)).toString('base64'),
       revocationCertificate: Buffer.from(pgpKeys.revocationCertificate).toString('base64'),
     };
 

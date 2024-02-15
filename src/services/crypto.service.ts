@@ -1,12 +1,9 @@
 import { CryptoProvider } from '@internxt/sdk';
 import { Keys, Password } from '@internxt/sdk/dist/auth';
+import crypto from 'crypto';
+import CryptoJS from 'crypto-js';
 import { KeysService } from './keys.service';
 import { ConfigService } from '../services/config.service';
-
-interface PassObjectInterface {
-  salt?: string | null;
-  password: string;
-}
 
 export class CryptoService {
   public static readonly instance: CryptoService = new CryptoService();
@@ -30,14 +27,13 @@ export class CryptoService {
   };
 
   // Method to hash password. If salt is passed, use it, in other case use crypto lib for generate salt
-  public passToHash = (passObject: PassObjectInterface): { salt: string; hash: string } => {
-    const salt = passObject.salt ? CryptoJS.enc.Hex.parse(passObject.salt) : CryptoJS.lib.WordArray.random(128 / 8);
-    const hash = CryptoJS.PBKDF2(passObject.password, salt, { keySize: 256 / 32, iterations: 10000 });
+  public passToHash = (passObject: { salt?: string | null; password: string }): { salt: string; hash: string } => {
+    const salt = passObject.salt ? passObject.salt : crypto.randomBytes(128 / 8).toString('hex');
+    const hash = crypto.pbkdf2Sync(passObject.password, salt, 10000, 256 / 8, 'sha256').toString('hex');
     const hashedObjetc = {
-      salt: salt.toString(),
-      hash: hash.toString(),
+      salt,
+      hash,
     };
-
     return hashedObjetc;
   };
 
