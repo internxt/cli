@@ -119,7 +119,7 @@ describe('Crypto service', () => {
   });
 
   it('The node:crypto works the same as CryptoJS library', () => {
-    return;
+    /*
     const password = {
       value: crypto.randomBytes(16).toString('hex'),
       salt: crypto.randomBytes(16).toString('hex'),
@@ -154,5 +154,6 @@ describe('Crypto service', () => {
     const expectedText1 = CryptoService.instance.encryptTextWithKey(password.value, APP_CRYPTO_SECRET);
     const expectedText2 = CryptoService.instance.decryptTextWithKey(expectedText1, APP_CRYPTO_SECRET);
     expect(password.value).to.equal(expectedText2);
+    */
   });
 });
