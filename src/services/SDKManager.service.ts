@@ -17,7 +17,7 @@ export class SdkManager {
    * Sets the security details needed to create SDK clients
    * @param apiSecurity Security properties to be setted
    **/
-  public static init = (apiSecurity: SdkManagerApiSecurity) => {
+  public static readonly init = (apiSecurity: SdkManagerApiSecurity) => {
     SdkManager.apiSecurity = apiSecurity;
   };
 
@@ -34,7 +34,9 @@ export class SdkManager {
    * @throws {Error} When throwErrorOnMissingCredentials is setted to true and there is not apiSecurity defined
    * @returns The SDK Manager api security details
    **/
-  public static getApiSecurity = (config = { throwErrorOnMissingCredentials: true }): SdkManagerApiSecurity => {
+  public static readonly getApiSecurity = (
+    config = { throwErrorOnMissingCredentials: true },
+  ): SdkManagerApiSecurity => {
     if (!SdkManager.apiSecurity && config.throwErrorOnMissingCredentials)
       throw new Error('Api security properties not found in SdkManager');
 
@@ -45,7 +47,7 @@ export class SdkManager {
    * Returns the application details from package.json
    * @returns The name and the version of the app from package.json
    **/
-  public static getAppDetails = (): AppDetails => {
+  public static readonly getAppDetails = (): AppDetails => {
     return {
       clientName: packageJson.name,
       clientVersion: packageJson.version,
