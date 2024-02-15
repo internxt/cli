@@ -1,50 +1,40 @@
-import { CryptoProvider, LoginDetails } from '@internxt/sdk';
-import { Keys, Password } from '@internxt/sdk/dist/auth';
+import { LoginDetails } from '@internxt/sdk';
 import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings.js';
 import { SdkManager } from './SDKManager.service';
 import { KeysService } from './keys.service';
-import { decryptText, decryptTextWithKey, encryptText, passToHash } from '../utils/crypto.utils';
+import { CryptoService } from './crypto.service';
 
 export class AuthService {
   public static readonly instance: AuthService = new AuthService();
 
+  /**
+   * Login with user credentials and returns its tokens and properties
+   * @param email The user's email
+   * @param password The user's password
+   * @param twoFactorCode (Optional) The temporal two factor auth code
+   * @returns The user's properties and the tokens needed for auth
+   * @async
+   **/
   public doLogin = async (
     email: string,
     password: string,
-    twoFactorCode: string,
+    twoFactorCode?: string,
   ): Promise<{
     user: UserSettings;
     token: string;
     newToken: string;
     mnemonic: string;
   }> => {
-    const authClient = SdkManager.getInstance().auth;
+    const authClient = SdkManager.instance.getAuth();
     const loginDetails: LoginDetails = {
       email: email.toLowerCase(),
       password: password,
       tfaCode: twoFactorCode,
     };
-    const cryptoProvider: CryptoProvider = {
-      encryptPasswordHash(password: Password, encryptedSalt: string): string {
-        const salt = decryptText(encryptedSalt);
-        const hashObj = passToHash({ password, salt });
-        return encryptText(hashObj.hash);
-      },
-      async generateKeys(password: Password): Promise<Keys> {
-        const { privateKeyArmoredEncrypted, publicKeyArmored, revocationCertificate } =
-          await KeysService.instance.generateNewKeysWithEncrypted(password);
-        const keys: Keys = {
-          privateKeyEncrypted: privateKeyArmoredEncrypted,
-          publicKey: publicKeyArmored,
-          revocationCertificate: revocationCertificate,
-        };
-        return keys;
-      },
-    };
 
     // eslint-disable-next-line no-useless-catch
     try {
-      const data = await authClient.login(loginDetails, cryptoProvider);
+      const data = await authClient.login(loginDetails, CryptoService.cryptoProvider);
       const { user, token, newToken } = data;
       const { privateKey, publicKey } = user;
 
@@ -60,7 +50,7 @@ export class AuthService {
         );
       }
 
-      const clearMnemonic = decryptTextWithKey(user.mnemonic, password);
+      const clearMnemonic = CryptoService.instance.decryptTextWithKey(user.mnemonic, password);
       const clearUser = {
         ...user,
         mnemonic: clearMnemonic,
@@ -78,8 +68,15 @@ export class AuthService {
     }
   };
 
+  /**
+   * Checks from user's security details if it has enabled two factor auth
+   * @param email The user's email
+   * @throws {Error} If auth.securityDetails endpoint fails
+   * @returns True if user has enabled two factor auth
+   * @async
+   **/
   public is2FANeeded = async (email: string): Promise<boolean> => {
-    const authClient = SdkManager.getInstance().auth;
+    const authClient = SdkManager.instance.getAuth();
     const securityDetails = await authClient.securityDetails(email).catch((error) => {
       throw new Error(error.message ?? 'Login error');
     });

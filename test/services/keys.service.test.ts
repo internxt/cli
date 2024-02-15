@@ -7,9 +7,6 @@ import { KeysService } from '../../src/services/keys.service';
 import { ConfigService } from '../../src/services/config.service';
 import { AesInit, CorruptedEncryptedPrivateKeyError } from '../../src/types/keys.types';
 
-import { config } from 'dotenv';
-config();
-
 describe('Keys service', () => {
   let keysServiceSandbox: SinonSandbox;
 
@@ -22,7 +19,7 @@ describe('Keys service', () => {
     keysServiceSandbox = sinon.createSandbox();
   });
 
-  afterEach(function () {
+  afterEach(() => {
     keysServiceSandbox.restore();
   });
 
@@ -32,13 +29,11 @@ describe('Keys service', () => {
     keysServiceSandbox.stub(openpgp, 'createMessage').resolves();
     keysServiceSandbox.stub(openpgp, 'encrypt').resolves();
     keysServiceSandbox.stub(openpgp, 'readMessage').resolves();
-    keysServiceSandbox
-      .stub(openpgp, 'decrypt')
-      .returns(
-        Promise.resolve({ data: 'validate-keys' } as openpgp.DecryptMessageResult & {
-          data: openpgp.MaybeStream<string>;
-        }),
-      );
+    keysServiceSandbox.stub(openpgp, 'decrypt').returns(
+      Promise.resolve({ data: 'validate-keys' } as openpgp.DecryptMessageResult & {
+        data: openpgp.MaybeStream<string>;
+      }),
+    );
 
     await KeysService.instance.assertValidateKeys('dontcareprivate', 'dontcarepublic');
     expect(true).to.be.true; //checks that assertValidateKeys does not throw any error
@@ -53,13 +48,17 @@ describe('Keys service', () => {
     }
   });
 
-  it('When there is no error thrown at decryption but it is not working, then the validation throws an error', async () => {
+  it('When keys can be used to decrypt but they are not working good to encrypt/decrypt, then the validation throws an error', async () => {
     keysServiceSandbox.stub(openpgp, 'readKey').resolves();
     keysServiceSandbox.stub(openpgp, 'readPrivateKey').resolves();
     keysServiceSandbox.stub(openpgp, 'createMessage').resolves();
     keysServiceSandbox.stub(openpgp, 'encrypt').resolves();
     keysServiceSandbox.stub(openpgp, 'readMessage').resolves();
-    keysServiceSandbox.stub(openpgp, 'decrypt').resolves();
+    keysServiceSandbox.stub(openpgp, 'decrypt').returns(
+      Promise.resolve({ data: 'bad-validation' } as openpgp.DecryptMessageResult & {
+        data: openpgp.MaybeStream<string>;
+      }),
+    );
     //every dependency method resolves (no error thrown), but nothing should be encrypted/decrypted, so the result should not be valid
     try {
       await KeysService.instance.assertValidateKeys('dontcareprivate', 'dontcarepublic');
@@ -70,21 +69,39 @@ describe('Keys service', () => {
     }
   });
 
-  it('When keys do not match, then it throws a KeysDoNotMatchError', async () => {
+  it('When encryption fails, then it throws an error', async () => {
     keysServiceSandbox.stub(openpgp, 'readKey').resolves();
     keysServiceSandbox.stub(openpgp, 'readPrivateKey').resolves();
     keysServiceSandbox.stub(openpgp, 'createMessage').resolves();
-    keysServiceSandbox.stub(openpgp, 'encrypt').resolves();
+    keysServiceSandbox.stub(openpgp, 'encrypt').rejects(new Error('Encryption failed'));
     keysServiceSandbox.stub(openpgp, 'readMessage').resolves();
-    keysServiceSandbox.stub(openpgp, 'decrypt').rejects();
+    keysServiceSandbox.stub(openpgp, 'decrypt').resolves();
 
-    //decrypt method throws an exception as it can not decrypt the message (public and private keys do not match)
+    //encrypt method throws an exception as it can not encrypt the message (something with the encryptionKeys is bad)
     try {
       await KeysService.instance.assertValidateKeys('dontcareprivate', 'dontcarepublic');
       expect(false).to.be.true; //should throw error
     } catch (err) {
       const error = err as Error;
-      expect(error.message).to.equal('Keys do not match');
+      expect(error.message).to.equal('Encryption failed');
+    }
+  });
+
+  it('When decryption fails, then it throws an error', async () => {
+    keysServiceSandbox.stub(openpgp, 'readKey').resolves();
+    keysServiceSandbox.stub(openpgp, 'readPrivateKey').resolves();
+    keysServiceSandbox.stub(openpgp, 'createMessage').resolves();
+    keysServiceSandbox.stub(openpgp, 'encrypt').resolves();
+    keysServiceSandbox.stub(openpgp, 'readMessage').resolves();
+    keysServiceSandbox.stub(openpgp, 'decrypt').rejects(new Error('Decryption failed'));
+
+    //decrypt method throws an exception as it can not decrypt the message (something with the decryptionKeys is bad)
+    try {
+      await KeysService.instance.assertValidateKeys('dontcareprivate', 'dontcarepublic');
+      expect(false).to.be.true; //should throw error
+    } catch (err) {
+      const error = err as Error;
+      expect(error.message).to.equal('Decryption failed');
     }
   });
 
@@ -207,7 +224,7 @@ describe('Keys service', () => {
     const pgpKeysWithEncrypted = {
       privateKeyArmored: pgpKeys.privateKey,
       privateKeyArmoredEncrypted: crypto.randomBytes(16).toString('hex'),
-      publicKeyArmored: Buffer.from(pgpKeys.publicKey as unknown as string).toString('base64'),
+      publicKeyArmored: Buffer.from(String(pgpKeys.publicKey)).toString('base64'),
       revocationCertificate: Buffer.from(pgpKeys.revocationCertificate).toString('base64'),
     };
 
