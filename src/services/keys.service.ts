@@ -13,7 +13,7 @@ export class KeysService {
   public static readonly instance: KeysService = new KeysService();
 
   /**
-   * Validates if the private key can be decrypted with the password
+   * Checks if a private key can be decrypted with a password, otherwise it throws an error
    * @param privateKey The encrypted private key
    * @param password The password used to encrypt the private key
    * @throws {BadEncodedPrivateKeyError} If the PLAIN private key is base64 encoded (known issue introduced in the past)
@@ -53,7 +53,7 @@ export class KeysService {
   };
 
   /**
-   * Encrypts private key using password
+   * Encrypts a private key using a password
    * @param privateKey The plain private key
    * @param password The password to encrypt
    * @returns The encrypted private key
@@ -63,7 +63,7 @@ export class KeysService {
   };
 
   /**
-   * Decrypts private key using password
+   * Decrypts a private key using a password
    * @param privateKey The encrypted private key
    * @param password The password used to encrypt the private key
    * @returns The decrypted private key
@@ -73,7 +73,7 @@ export class KeysService {
   };
 
   /**
-   * Validates if a message encrypted with the public key can be decrypted with the private key
+   * Checks if a message encrypted with the public key can be decrypted with a private key, otherwise it throws an error
    * @param privateKey The plain private key
    * @param publicKey The plain public key
    * @throws {KeysDoNotMatchError} If the keys can not be used together to encrypt/decrypt a message
