@@ -33,7 +33,7 @@ export class CryptoService {
   public passToHash = (passObject: { password: string; salt?: string | null }): { salt: string; hash: string } => {
     const salt = passObject.salt ? passObject.salt : crypto.randomBytes(128 / 8).toString('hex');
     const hash = crypto
-      .pbkdf2Sync(passObject.password, Buffer.from(salt, 'hex'), 10000, 256 / 8, 'sha256')
+      .pbkdf2Sync(passObject.password, Buffer.from(salt, 'hex'), 10000, 256 / 8, 'sha1')
       .toString('hex');
     const hashedObjetc = {
       salt,
