@@ -4,7 +4,7 @@ import sinonChai from 'sinon-chai';
 import crypto from 'crypto';
 import { Auth, Drive, photos } from '@internxt/sdk';
 import { Trash } from '@internxt/sdk/dist/drive';
-import { SdkManager, SdkManagerApiSecurity } from '../../src/services/SDKManager.service';
+import { SdkManager, SdkManagerApiSecurity } from '../../src/services/sdk-manager.service';
 import { ConfigKeys } from '../../src/types/config.types';
 import { ConfigService } from '../../src/services/config.service';
 import { AppDetails } from '@internxt/sdk/dist/shared';

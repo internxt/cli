@@ -4,7 +4,7 @@ import crypto from 'crypto';
 import { AuthService } from '../../src/services/auth.service';
 import { KeysService } from '../../src/services/keys.service';
 import { CryptoService } from '../../src/services/crypto.service';
-import { SdkManager } from '../../src/services/SDKManager.service';
+import { SdkManager } from '../../src/services/sdk-manager.service';
 import { UserFixture } from '../fixtures/auth.fixture';
 import { Auth, LoginDetails, SecurityDetails } from '@internxt/sdk';
 

@@ -7,6 +7,10 @@ import { CryptoService } from '../../src/services/crypto.service';
 import { ConfigKeys } from '../../src/types/config.types';
 import { Keys } from '@internxt/sdk';
 import { KeysService } from '../../src/services/keys.service';
+import { createReadStream } from 'fs';
+import { CryptoUtils } from '../../src/utils/crypto.utils';
+import { StreamUtils } from '../../src/utils/stream.utils';
+import path from 'path';
 
 chai.use(sinonChai);
 
@@ -118,6 +122,27 @@ describe('Crypto service', () => {
     expect(kerysServiceStub).to.be.calledWith(password);
   });
 
+  it('When encrypting an stream, the output hash should be correct', async () => {
+    const key = Buffer.from('4ba9058b2efc8c7c9c869b6573b725aa8bf67aecb26d3ebd678e624565570e9c', 'hex');
+    const iv = Buffer.from('4ae6fcc4dd6ebcdb9076f2396d64da48', 'hex');
+    const file = path.join(process.cwd(), 'test/fixtures/test-content.fixture.txt');
+    const readStream = createReadStream(file);
+
+    const result = await CryptoService.instance.encryptStream(
+      StreamUtils.readStreamToReadableStream(readStream),
+      key,
+      iv,
+    );
+
+    const buffer = Buffer.from(await result.blob.arrayBuffer());
+    expect(buffer.toString('hex')).to.be.equal('5d14c5cf');
+  });
+
+  /**
+   * This test is commented since the CryptoJS library is not available in the project.
+   *
+   * We migrated from CryptoJS to node:crypto. This test ensures that the new implementation works the same as the old one.
+   */
   it('The node:crypto works the same as CryptoJS library', () => {
     /*
     const password = {
