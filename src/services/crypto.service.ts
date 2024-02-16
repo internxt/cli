@@ -27,12 +27,14 @@ export class CryptoService {
 
   /**
    * Generates the hash for a password, if salt is provided it uses it, in other case it is generated from crypto
-   * @param passObject The object containing the password and an optional salt
+   * @param passObject The object containing the password and an optional salt hex encoded
    * @returns The hashed password and the salt
    **/
-  public passToHash = (passObject: { salt?: string | null; password: string }): { salt: string; hash: string } => {
+  public passToHash = (passObject: { password: string; salt?: string | null }): { salt: string; hash: string } => {
     const salt = passObject.salt ? passObject.salt : crypto.randomBytes(128 / 8).toString('hex');
-    const hash = crypto.pbkdf2Sync(passObject.password, salt, 10000, 256 / 8, 'sha256').toString('hex');
+    const hash = crypto
+      .pbkdf2Sync(passObject.password, Buffer.from(salt, 'hex'), 10000, 256 / 8, 'sha256')
+      .toString('hex');
     const hashedObjetc = {
       salt,
       hash,
