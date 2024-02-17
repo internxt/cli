@@ -34,7 +34,7 @@
     "@internxt/prettier-config": "^1.0.2",
     "@internxt/sdk": "^1.4.70",
     "@oclif/core": "^3",
-    "dotenv": "^16.4.1",
+    "dotenv": "^16.4.4",
     "openpgp": "^5.11.0"
   },
   "devDependencies": {
