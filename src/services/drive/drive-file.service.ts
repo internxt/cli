@@ -35,6 +35,7 @@ export class DriveFileService {
 
     return {
       uuid: driveFile.uuid,
+      encryptedName,
       name: payload.name,
       bucket: payload.bucket,
       createdAt: driveFile.createdAt,

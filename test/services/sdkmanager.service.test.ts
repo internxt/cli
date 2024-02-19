@@ -2,7 +2,7 @@ import chai, { expect } from 'chai';
 import sinon, { SinonSandbox } from 'sinon';
 import sinonChai from 'sinon-chai';
 import crypto from 'crypto';
-import { Auth, Drive, photos } from '@internxt/sdk';
+import { Auth, Drive, Network, photos } from '@internxt/sdk';
 import { Trash } from '@internxt/sdk/dist/drive';
 import { SdkManager, SdkManagerApiSecurity } from '../../src/services/sdk-manager.service';
 import { ConfigKeys } from '../../src/types/config.types';
@@ -288,6 +288,36 @@ describe('SDKManager service', () => {
     sdkManagerServiceSandbox.stub(Drive.Share, 'client').returns(client);
 
     const newClient = SdkManager.instance.getShare();
+
+    expect(spyConfigService).to.be.calledWith(envEndpoint.key);
+    expect(newClient).to.eql(client);
+  });
+
+  it('When Network client is requested, then it is generated using internxt sdk', () => {
+    const envEndpoint: { key: keyof ConfigKeys; value: string } = {
+      key: 'NETWORK_URL',
+      value: 'test/network',
+    };
+    SdkManager.init(apiSecurity);
+
+    const client = Network.Network.client(envEndpoint.value, appDetails, {
+      bridgeUser: 'bridgeUser',
+      userId: 'userId',
+    });
+
+    const spyConfigService = sdkManagerServiceSandbox
+      .stub(ConfigService.instance, 'get')
+      .withArgs(envEndpoint.key)
+      .returns(envEndpoint.value);
+    sdkManagerServiceSandbox.stub(SdkManager, 'getApiSecurity').returns(apiSecurity);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    sdkManagerServiceSandbox.stub(SdkManager, <any>'getAppDetails').returns(appDetails);
+    sdkManagerServiceSandbox.stub(Network.Network, 'client').returns(client);
+
+    const newClient = SdkManager.instance.getNetwork({
+      user: 'bridgeUser',
+      pass: '123',
+    });
 
     expect(spyConfigService).to.be.calledWith(envEndpoint.key);
     expect(newClient).to.eql(client);

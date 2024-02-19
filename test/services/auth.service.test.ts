@@ -7,6 +7,10 @@ import { CryptoService } from '../../src/services/crypto.service';
 import { SdkManager } from '../../src/services/sdk-manager.service';
 import { UserFixture } from '../fixtures/auth.fixture';
 import { Auth, LoginDetails, SecurityDetails } from '@internxt/sdk';
+import { CryptoUtils } from '../../src/utils/crypto.utils';
+import { ConfigService } from '../../src/services/config.service';
+import { ConfigKeys } from '../../src/types/config.types';
+import { Users } from '@internxt/sdk/dist/drive';
 
 describe('Auth service', () => {
   let authServiceSandbox: SinonSandbox;
@@ -96,5 +100,131 @@ describe('Auth service', () => {
     } catch {
       /* no op */
     }
+  });
+
+  it('When getting auth details, should get them if all are found', () => {
+    const sut = AuthService.instance;
+
+    authServiceSandbox
+      .stub(ConfigService.instance, 'get')
+      .withArgs('DEV_AUTH_TOKEN')
+      .returns('test_auth_token')
+      .withArgs('DEV_NEW_AUTH_TOKEN')
+      .returns('test_new_auth_token')
+      .withArgs('DEV_MNEMONIC')
+      .returns('test_mnemonic');
+
+    const validateMnemonicStub = authServiceSandbox.stub(CryptoUtils, 'validateMnemonic').returns(true);
+
+    const result = sut.getAuthDetails();
+
+    expect(validateMnemonicStub).to.be.calledOnceWith('test_mnemonic');
+
+    expect(result).to.deep.equal({
+      token: 'test_auth_token',
+      newToken: 'test_new_auth_token',
+      mnemonic: 'test_mnemonic',
+    });
+
+    sinon.restore();
+  });
+
+  it('When auth token is missing, should throw an error', () => {
+    const sut = AuthService.instance;
+
+    authServiceSandbox
+      .stub(ConfigService.instance, 'get')
+      .withArgs('DEV_AUTH_TOKEN')
+      // @ts-expect-error - We are faking a missing auth token
+      .returns(undefined)
+      .withArgs('DEV_NEW_AUTH_TOKEN')
+      .returns('test_new_auth_token')
+      .withArgs('DEV_MNEMONIC')
+      .returns('test_mnemonic');
+
+    try {
+      sut.getAuthDetails();
+    } catch (error) {
+      expect((error as Error).message).to.contain('Auth token not found');
+    }
+
+    sinon.restore();
+  });
+
+  it('When new auth token is missing, should throw an error', () => {
+    const sut = AuthService.instance;
+
+    authServiceSandbox
+      .stub(ConfigService.instance, 'get')
+      .withArgs('DEV_AUTH_TOKEN')
+      .returns('test_auth_token')
+      .withArgs('DEV_NEW_AUTH_TOKEN')
+      // @ts-expect-error - We are faking a missing auth token
+      .returns(undefined)
+      .withArgs('DEV_MNEMONIC')
+      .returns('test_mnemonic');
+
+    try {
+      sut.getAuthDetails();
+    } catch (error) {
+      expect((error as Error).message).to.contain('New Auth token not found');
+    }
+
+    sinon.restore();
+  });
+
+  it('When mnemonic is missing, should throw an error', () => {
+    const sut = AuthService.instance;
+
+    authServiceSandbox
+      .stub(ConfigService.instance, 'get')
+      .withArgs('DEV_AUTH_TOKEN')
+      .returns('test_auth_token')
+      .withArgs('DEV_NEW_AUTH_TOKEN')
+
+      .returns('test_new_auth_token')
+      .withArgs('DEV_MNEMONIC')
+      // @ts-expect-error - We are faking a missing auth token
+      .returns(undefined);
+
+    try {
+      sut.getAuthDetails();
+    } catch (error) {
+      expect((error as Error).message).to.contain('Mnemonic not found');
+    }
+
+    sinon.restore();
+  });
+
+  it('When mnemonic is invalid, should throw an error', () => {
+    const sut = AuthService.instance;
+
+    authServiceSandbox
+      .stub(ConfigService.instance, 'get')
+      .withArgs('DEV_AUTH_TOKEN')
+      .returns('test_auth_token')
+      .withArgs('DEV_NEW_AUTH_TOKEN')
+
+      .returns('test_new_auth_token')
+      .withArgs('DEV_MNEMONIC')
+      .returns('test_mnemonic');
+
+    try {
+      sut.getAuthDetails();
+    } catch (error) {
+      expect((error as Error).message).to.contain('Mnemonic is not valid');
+    }
+
+    sinon.restore();
+  });
+
+  it('When getting user, should return the user', async () => {
+    const sut = AuthService.instance;
+    authServiceSandbox.stub(Users.prototype, 'refreshUser').resolves({ user: UserFixture, token: 'test_token' });
+    authServiceSandbox.stub(SdkManager.instance, 'getUsers').returns(Users.prototype);
+
+    const result = await sut.getUser();
+
+    expect(result).to.deep.equal(UserFixture);
   });
 });

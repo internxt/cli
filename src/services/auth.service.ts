@@ -99,6 +99,12 @@ export class AuthService {
    */
 
   public getAuthDetails(): { token: string; newToken: string; mnemonic: string } {
+    /**
+     * DEV PURPOSE ONLY
+     *
+     * We are using this method to get the auth details for the user from the env, in
+     * production we should pull this data from a locally persisted file
+     */
     const token = ConfigService.instance.get('DEV_AUTH_TOKEN');
     const newToken = ConfigService.instance.get('DEV_NEW_AUTH_TOKEN');
     const mnemonic = ConfigService.instance.get('DEV_MNEMONIC');

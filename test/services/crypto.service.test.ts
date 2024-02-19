@@ -8,7 +8,6 @@ import { ConfigKeys } from '../../src/types/config.types';
 import { Keys } from '@internxt/sdk';
 import { KeysService } from '../../src/services/keys.service';
 import { createReadStream } from 'fs';
-import { CryptoUtils } from '../../src/utils/crypto.utils';
 import { StreamUtils } from '../../src/utils/stream.utils';
 import path from 'path';
 
@@ -135,7 +134,7 @@ describe('Crypto service', () => {
     );
 
     const buffer = Buffer.from(await result.blob.arrayBuffer());
-    expect(buffer.toString('hex')).to.be.equal('5d14c5cf');
+    expect(buffer.toString('hex')).to.be.equal('5d14c5cf376caeb54154');
   });
 
   /**
