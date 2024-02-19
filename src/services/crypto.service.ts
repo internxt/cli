@@ -119,7 +119,6 @@ export class CryptoService {
           const status = await reader.read();
 
           if (!status.done) {
-            console.log('VALUE', Buffer.from(status.value).toString('utf-8'));
             controller.enqueue(cipher.update(status.value));
           }
 
