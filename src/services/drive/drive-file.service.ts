@@ -20,7 +20,7 @@ export class DriveFileService {
     const encryptedName = aes.encrypt(
       payload.name,
       `${ConfigService.instance.get('APP_CRYPTO_SECRET2')}-${payload.folderId}`,
-      CryptoUtils.getAesInitFromEnv(),
+      CryptoUtils.getAesInit(),
     );
     const driveFile = await storageClient.createFileEntry({
       name: encryptedName,

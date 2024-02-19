@@ -10,6 +10,10 @@ describe('Upload Service', () => {
     sut = UploadService.instance;
   });
 
+  afterEach(() => {
+    sinon.restore();
+  });
+
   it('When a file is uploaded and etag is missing, should throw an error', async () => {
     const url = 'https://example.com/upload';
     const data = new Blob(['test content'], { type: 'text/plain' });
@@ -26,8 +30,6 @@ describe('Upload Service', () => {
     } catch (error) {
       expect((error as Error).message).to.contain('Missing Etag');
     }
-
-    sinon.restore();
   });
 
   it('When a file is uploaded and etag is returned, the etag should be returned', async () => {
@@ -45,8 +47,6 @@ describe('Upload Service', () => {
 
     const result = await sut.uploadFile(url, data, options);
     expect(result.etag).to.equal('test-etag');
-
-    sinon.restore();
   });
 
   it('When a file is uploaded, should update the progress', async () => {
@@ -70,8 +70,6 @@ describe('Upload Service', () => {
 
     sinon.assert.calledWithExactly(options.progressCallback, 90);
     sinon.assert.calledWithExactly(options.progressCallback, 100);
-
-    sinon.restore();
   });
 
   it('When a file is uploaded and the upload is aborted, should cancel the request', async () => {
@@ -90,7 +88,5 @@ describe('Upload Service', () => {
 
     expect(axiosPutStub.called).to.be.true;
     expect(axiosPutStub.args[0][0]).to.equal(url);
-
-    sinon.restore();
   });
 });

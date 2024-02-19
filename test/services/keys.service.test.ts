@@ -191,15 +191,6 @@ describe('Keys service', () => {
     expect(await KeysService.instance.isValidKey('key')).to.be.true;
   });
 
-  it('When aes information is required, then it is read from the config service', async () => {
-    const configServiceInstanceStub = keysServiceSandbox.stub(ConfigService.instance, 'get');
-    configServiceInstanceStub.withArgs('APP_MAGIC_IV').returns(aesInit.iv);
-    configServiceInstanceStub.withArgs('APP_MAGIC_SALT').returns(aesInit.salt);
-
-    const result = KeysService.instance.getAesInitFromEnv();
-    expect(result).to.eql(aesInit);
-  });
-
   it('When message is encrypted with private key & password, then it can be decrypted using same data', async () => {
     const plainPrivateKey = crypto.randomBytes(16).toString('hex');
     const password = crypto.randomBytes(8).toString('hex');

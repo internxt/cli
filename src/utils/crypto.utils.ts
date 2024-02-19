@@ -5,7 +5,7 @@ export class CryptoUtils {
     return validateMnemonic(mnemonic);
   }
 
-  static getAesInitFromEnv(): { iv: string; salt: string } {
+  static getAesInit(): { iv: string; salt: string } {
     return { iv: ConfigService.instance.get('APP_MAGIC_IV'), salt: ConfigService.instance.get('APP_MAGIC_SALT') };
   }
 }
