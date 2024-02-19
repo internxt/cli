@@ -14,7 +14,11 @@ import { StreamUtils } from '../../utils/stream.utils';
 export class NetworkFacade {
   private readonly cryptoLib: Network.Crypto;
 
-  constructor(private readonly network: Network.Network) {
+  constructor(
+    private readonly network: Network.Network,
+    private readonly uploadService: UploadService,
+    private readonly cryptoService: CryptoService,
+  ) {
     this.cryptoLib = {
       algorithm: Network.ALGORITHMS.AES256CTR,
       validateMnemonic: (mnemonic) => {
@@ -45,7 +49,7 @@ export class NetworkFacade {
 
     const fileReadableStream = StreamUtils.readStreamToReadableStream(from);
     const encryptFile: EncryptFileFunction = async (_, key, iv) => {
-      const { blob, hash } = await CryptoService.instance.encryptStream(
+      const { blob, hash } = await this.cryptoService.encryptStream(
         fileReadableStream,
         Buffer.from(key as ArrayBuffer),
         Buffer.from(iv as ArrayBuffer),
@@ -56,7 +60,7 @@ export class NetworkFacade {
     };
 
     const uploadFile: UploadFileFunction = async (url) => {
-      await UploadService.instance.uploadFile(url, encryptedBlob, {
+      await this.uploadService.uploadFile(url, encryptedBlob, {
         abortController: abortable,
         progressCallback: onProgress,
       });
@@ -76,6 +80,7 @@ export class NetworkFacade {
 
       return {
         fileId: uploadResult,
+        hash: fileHash,
       };
     };
 

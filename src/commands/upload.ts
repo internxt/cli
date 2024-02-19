@@ -8,6 +8,8 @@ import { CLIUtils } from '../utils/cli.utils';
 import { ConfigService } from '../services/config.service';
 import path from 'node:path';
 import { DriveFileService } from '../services/drive/drive-file.service';
+import { UploadService } from '../services/network/upload.service';
+import { CryptoService } from '../services/crypto.service';
 
 export default class Upload extends Command {
   static description = 'Upload a file to Internxt Drive';
@@ -42,7 +44,7 @@ export default class Upload extends Command {
       user: user.bridgeUser,
       pass: user.userId,
     });
-    const networkFacade = new NetworkFacade(networkModule);
+    const networkFacade = new NetworkFacade(networkModule, UploadService.instance, CryptoService.instance);
 
     CLIUtils.done();
 

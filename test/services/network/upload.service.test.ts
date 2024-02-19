@@ -82,20 +82,15 @@ describe('Upload Service', () => {
       abortController: new AbortController(),
     };
 
-    // Mocking the axios.put() method
     const axiosPutStub = sinon.stub(axios, 'put');
 
-    // Call the uploadFile method
     sut.uploadFile(url, data, options);
 
-    // Trigger the request cancellation by aborting the AbortController
     options.abortController.abort();
 
-    // Ensure axios.put is called with the correct arguments
     expect(axiosPutStub.called).to.be.true;
     expect(axiosPutStub.args[0][0]).to.equal(url);
 
-    // Restore the axios.put() method to its original state
     sinon.restore();
   });
 });

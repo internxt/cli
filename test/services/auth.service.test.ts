@@ -9,7 +9,6 @@ import { UserFixture } from '../fixtures/auth.fixture';
 import { Auth, LoginDetails, SecurityDetails } from '@internxt/sdk';
 import { CryptoUtils } from '../../src/utils/crypto.utils';
 import { ConfigService } from '../../src/services/config.service';
-import { ConfigKeys } from '../../src/types/config.types';
 import { Users } from '@internxt/sdk/dist/drive';
 
 describe('Auth service', () => {
