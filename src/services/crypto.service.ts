@@ -3,8 +3,6 @@ import { Keys, Password } from '@internxt/sdk/dist/auth';
 import crypto, { Cipher, createCipheriv, createHash } from 'crypto';
 import { KeysService } from './keys.service';
 import { ConfigService } from '../services/config.service';
-import { Transform } from 'stream';
-import { ReadStream } from 'fs';
 
 export class CryptoService {
   public static readonly instance: CryptoService = new CryptoService();
