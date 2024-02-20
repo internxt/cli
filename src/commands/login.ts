@@ -75,7 +75,7 @@ export default class Login extends Command {
     this.exit(1);
   }
 
-  private static readonly maxAttempts = 3; // max of attempts to let the user rewrite their credentials in case of mistake
+  private static readonly MAX_ATTEMPTS = 3; // max of attempts to let the user rewrite their credentials in case of mistake
 
   public getEmailFromFlag = async (
     emailFlag: string | undefined,
@@ -85,15 +85,13 @@ export default class Login extends Command {
       const isValidEmail = ValidationService.instance.validateEmail(emailFlag);
       if (isValidEmail) {
         return emailFlag;
+      } else if (nonInteractive) {
+        throw new NotValidEmailError(emailFlag);
       } else {
-        if (nonInteractive) {
-          throw new NotValidEmailError(emailFlag);
-        } else {
-          CLIUtils.error(new NotValidEmailError(emailFlag).message);
-        }
+        CLIUtils.error(new NotValidEmailError(emailFlag).message);
       }
-    } else {
-      if (nonInteractive) throw new NoFlagProvidedError(Login.flags['email'].name);
+    } else if (nonInteractive) {
+      throw new NoFlagProvidedError(Login.flags['email'].name);
     }
   };
 
@@ -106,10 +104,11 @@ export default class Login extends Command {
       isValidEmail = ValidationService.instance.validateEmail(email);
       if (!isValidEmail) {
         currentAttempts++;
-        const tryAgain = currentAttempts < Login.maxAttempts ? ', please type it again' : '';
-        CLIUtils.error(`'${email}' is not a valid email${tryAgain}`);
+        if (currentAttempts < Login.MAX_ATTEMPTS) {
+          CLIUtils.warning(`'${email}' is not a valid email, please type it again`);
+        }
       }
-    } while (!isValidEmail && currentAttempts < Login.maxAttempts);
+    } while (!isValidEmail && currentAttempts < Login.MAX_ATTEMPTS);
 
     if (!isValidEmail) throw new NotValidEmailError(email);
     return email;
@@ -123,15 +122,13 @@ export default class Login extends Command {
       const isValidPassword = passwordFlag.trim().length > 0;
       if (isValidPassword) {
         return passwordFlag;
+      } else if (nonInteractive) {
+        throw new EmptyPasswordError();
       } else {
-        if (nonInteractive) {
-          throw new EmptyPasswordError();
-        } else {
-          CLIUtils.error(new EmptyPasswordError().message);
-        }
+        CLIUtils.error(new EmptyPasswordError().message);
       }
-    } else {
-      if (nonInteractive) throw new NoFlagProvidedError(Login.flags['password'].name);
+    } else if (nonInteractive) {
+      throw new NoFlagProvidedError(Login.flags['password'].name);
     }
   };
 
@@ -144,10 +141,11 @@ export default class Login extends Command {
       isValidPassword = password.trim().length > 0;
       if (!isValidPassword) {
         currentAttempts++;
-        const tryAgain = currentAttempts < Login.maxAttempts ? ', please type it again' : '';
-        CLIUtils.error(`Password can not be empty, please type it again${tryAgain}`);
+        if (currentAttempts < Login.MAX_ATTEMPTS) {
+          CLIUtils.warning('Password can not be empty, please type it again');
+        }
       }
-    } while (!isValidPassword && currentAttempts < Login.maxAttempts);
+    } while (!isValidPassword && currentAttempts < Login.MAX_ATTEMPTS);
 
     if (!isValidPassword) throw new EmptyPasswordError();
     return password;
@@ -161,15 +159,13 @@ export default class Login extends Command {
       const isValid2FAcode = ValidationService.instance.validate2FA(twoFactorFlag);
       if (isValid2FAcode) {
         return twoFactorFlag;
+      } else if (nonInteractive) {
+        throw new NotValidTwoFactorCodeError();
       } else {
-        if (nonInteractive) {
-          throw new NotValidTwoFactorCodeError();
-        } else {
-          CLIUtils.error(new NotValidTwoFactorCodeError().message);
-        }
+        CLIUtils.error(new NotValidTwoFactorCodeError().message);
       }
-    } else {
-      if (nonInteractive) throw new NoFlagProvidedError(Login.flags['two-factor'].name);
+    } else if (nonInteractive) {
+      throw new NoFlagProvidedError(Login.flags['two-factor'].name);
     }
   };
 
@@ -182,10 +178,11 @@ export default class Login extends Command {
       isValid2FAcode = ValidationService.instance.validate2FA(twoFactorCode);
       if (!isValid2FAcode) {
         currentAttempts++;
-        const tryAgain = currentAttempts < Login.maxAttempts ? ', please type it again' : '';
-        CLIUtils.error(`Two factor auth code is not valid, please type it again${tryAgain}`);
+        if (currentAttempts < Login.MAX_ATTEMPTS) {
+          CLIUtils.warning('Two factor auth code is not valid, please type it again');
+        }
       }
-    } while (!isValid2FAcode && currentAttempts < Login.maxAttempts);
+    } while (!isValid2FAcode && currentAttempts < Login.MAX_ATTEMPTS);
 
     if (!isValid2FAcode) throw new NotValidTwoFactorCodeError();
     return twoFactorCode;

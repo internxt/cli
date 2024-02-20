@@ -9,11 +9,11 @@ export class ValidationService {
   };
 
   public validate2FA = (code: string): boolean => {
-    return /^[0-9]{6}$/.test(code);
+    return /^\d{6}$/.test(code);
   };
 
   public isStrongPassword = (pwd: string): boolean => {
-    return /^(?=.*[a-zA-Z])(?=.*[0-9]).{6,}$/.test(pwd);
+    return /^(?=.*[a-zA-Z])(?=.*\d).{6,}$/.test(pwd);
   };
 
   public validateMnemonic = (mnemonic: string): boolean => {
