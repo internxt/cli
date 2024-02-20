@@ -1,8 +1,9 @@
-import { Auth, Drive, photos } from '@internxt/sdk';
+import { Auth, Drive, photos, Network as NetworkModule } from '@internxt/sdk';
 import { Trash } from '@internxt/sdk/dist/drive';
 import { ApiSecurity, AppDetails } from '@internxt/sdk/dist/shared';
 import { ConfigService } from './config.service';
 import packageJson from '../../package.json';
+import { NetworkUtils } from '../utils/network.utils';
 
 export type SdkManagerApiSecurity = ApiSecurity & { newToken: string };
 /**
@@ -149,6 +150,19 @@ export class SdkManager {
     return Drive.Share.client(DRIVE_NEW_API_URL, appDetails, {
       // Weird, normal accessToken doesn't work here
       token: newToken,
+    });
+  }
+
+  /** Network SDK */
+  getNetwork(credentials: { user: string; pass: string }) {
+    const appDetails = SdkManager.getAppDetails();
+    const auth = NetworkUtils.getAuthFromCredentials({
+      user: credentials.user,
+      pass: credentials.pass,
+    });
+    return NetworkModule.Network.client(ConfigService.instance.get('NETWORK_URL'), appDetails, {
+      bridgeUser: auth.username,
+      userId: auth.password,
     });
   }
 }
