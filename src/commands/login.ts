@@ -11,27 +11,37 @@ import { ConfigService } from '../services/config.service';
 
 export default class Login extends Command {
   static args = {};
-  static description = `Logs into an Internxt account. If the account is two-factor protected, then an extra code will be required.
-    Using the password parameter is not recommended as it can lead to security problems (the password is written plainly in the console), it is safer to type your password interactively when the cli asks for it.`;
+  static description =
+    'Logs into an Internxt account. If the account is two-factor protected, then an extra code will be required.\n' +
+    'Using the password parameter is not recommended as it can lead to security problems (the password is written plainly in the console), ' +
+    'it is safer to type your password interactively when the cli asks for it.';
 
   static examples = ['<%= config.bin %> <%= command.id %>'];
 
   static flags = {
-    email: Flags.string({ char: 'e', description: 'The email to log in', required: false }),
+    email: Flags.string({
+      char: 'e',
+      env: 'INXT_EMAIL',
+      description: 'The email to log in',
+      required: false,
+    }),
     password: Flags.string({
       char: 'p',
+      env: 'INXT_PASSWORD',
       description: '[Insecure] The plain password to log in',
       required: false,
     }),
     'two-factor': Flags.string({
       char: 'w',
+      env: 'MY_NAME',
       description: '[If needed] The two factor auth code',
       required: false,
       helpValue: '123456',
     }),
     'non-interactive': Flags.boolean({
-      helpGroup: 'helper',
       char: 'n',
+      env: 'MY_NAME',
+      helpGroup: 'helper',
       description:
         'Blocks the cli from being interactive. If passed, the cli will not request data through the console and will throw errors directly',
       required: false,
