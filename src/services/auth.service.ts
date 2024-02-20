@@ -3,8 +3,8 @@ import { SdkManager } from './sdk-manager.service';
 import { KeysService } from './keys.service';
 import { CryptoService } from './crypto.service';
 import { ConfigService } from './config.service';
-import { CryptoUtils } from '../utils/crypto.utils';
 import { LoginCredentials } from '../types/login.types';
+import { ValidationService } from './validation.service';
 
 export class AuthService {
   public static readonly instance: AuthService = new AuthService();
@@ -112,7 +112,7 @@ export class AuthService {
       throw new Error('Mnemonic not found, please login first');
     }
 
-    if (!CryptoUtils.validateMnemonic(mnemonic)) {
+    if (!ValidationService.instance.validateMnemonic(mnemonic)) {
       throw new Error('Mnemonic is not valid, cannot use it');
     }
 

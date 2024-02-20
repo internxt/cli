@@ -1,15 +1,15 @@
 import { expect } from 'chai';
 import sinon, { SinonSandbox } from 'sinon';
 import crypto from 'crypto';
+import { Auth, LoginDetails, SecurityDetails } from '@internxt/sdk';
+import { Users } from '@internxt/sdk/dist/drive';
 import { AuthService } from '../../src/services/auth.service';
 import { KeysService } from '../../src/services/keys.service';
 import { CryptoService } from '../../src/services/crypto.service';
 import { SdkManager } from '../../src/services/sdk-manager.service';
-import { UserFixture } from '../fixtures/auth.fixture';
-import { Auth, LoginDetails, SecurityDetails } from '@internxt/sdk';
-import { CryptoUtils } from '../../src/utils/crypto.utils';
 import { ConfigService } from '../../src/services/config.service';
-import { Users } from '@internxt/sdk/dist/drive';
+import { ValidationService } from '../../src/services/validation.service';
+import { UserFixture } from '../fixtures/auth.fixture';
 
 describe('Auth service', () => {
   let authServiceSandbox: SinonSandbox;
@@ -113,7 +113,7 @@ describe('Auth service', () => {
       .withArgs('DEV_MNEMONIC')
       .returns('test_mnemonic');
 
-    const validateMnemonicStub = authServiceSandbox.stub(CryptoUtils, 'validateMnemonic').returns(true);
+    const validateMnemonicStub = authServiceSandbox.stub(ValidationService.instance, 'validateMnemonic').returns(true);
 
     const result = sut.getAuthDetails();
 

@@ -10,6 +10,7 @@ import { CryptoService } from '../crypto.service';
 import { UploadService } from './upload.service';
 import { ReadStream } from 'fs';
 import { StreamUtils } from '../../utils/stream.utils';
+import { ValidationService } from '../validation.service';
 
 export class NetworkFacade {
   private readonly cryptoLib: Network.Crypto;
@@ -22,7 +23,7 @@ export class NetworkFacade {
     this.cryptoLib = {
       algorithm: Network.ALGORITHMS.AES256CTR,
       validateMnemonic: (mnemonic) => {
-        return CryptoUtils.validateMnemonic(mnemonic);
+        return ValidationService.instance.validateMnemonic(mnemonic);
       },
       generateFileKey: (mnemonic, bucketId, index) => {
         return Environment.utils.generateFileKey(mnemonic, bucketId, index as Buffer);
