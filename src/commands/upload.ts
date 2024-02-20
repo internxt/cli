@@ -38,7 +38,7 @@ export default class Upload extends Command {
 
     // 1. Prepare the network
     CLIUtils.doing('Preparing Network');
-    const { mnemonic } = AuthService.instance.getAuthDetails();
+    const { mnemonic } = await AuthService.instance.getAuthDetails();
     const user = await AuthService.instance.getUser();
     const networkModule = SdkManager.instance.getNetwork({
       user: user.bridgeUser,

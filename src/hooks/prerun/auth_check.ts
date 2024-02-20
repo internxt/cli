@@ -9,7 +9,7 @@ const hook: Hook<'prerun'> = async function (opts) {
   if (!CommandsToSkip.map((command) => command.name).includes(opts.Command.name)) {
     CLIUtils.doing('Checking credentials');
     try {
-      const { token, newToken } = AuthService.instance.getAuthDetails();
+      const { token, newToken } = await AuthService.instance.getAuthDetails();
       SdkManager.init({
         token,
         newToken,

@@ -89,31 +89,28 @@ export class AuthService {
    * @returns The user plain mnemonic and the auth tokens
    */
 
-  public getAuthDetails(): { token: string; newToken: string; mnemonic: string } {
-    /**
-     * DEV PURPOSE ONLY
-     *
-     * We are using this method to get the auth details for the user from the env, in
-     * production we should pull this data from a locally persisted file
-     */
-    const token = ConfigService.instance.get('DEV_AUTH_TOKEN');
-    const newToken = ConfigService.instance.get('DEV_NEW_AUTH_TOKEN');
-    const mnemonic = ConfigService.instance.get('DEV_MNEMONIC');
+  public getAuthDetails = async (): Promise<{ token: string; newToken: string; mnemonic: string }> => {
+    const loginCredentials = await ConfigService.instance.readUser();
+    if (!loginCredentials) {
+      throw new Error('Credentials not found, please login first');
+    }
+
+    const { token, newToken, mnemonic } = loginCredentials;
 
     if (!token) {
-      throw new Error('Auth token not found, please login first');
+      throw new Error('Auth token not found, please login again');
     }
 
     if (!newToken) {
-      throw new Error('New Auth token not found, please login first');
+      throw new Error('New Auth token not found, please login again');
     }
 
     if (!mnemonic) {
-      throw new Error('Mnemonic not found, please login first');
+      throw new Error('Mnemonic not found, please login again');
     }
 
     if (!ValidationService.instance.validateMnemonic(mnemonic)) {
-      throw new Error('Mnemonic is not valid, cannot use it');
+      throw new Error('Mnemonic is not valid, please login again');
     }
 
     return {
@@ -121,5 +118,5 @@ export class AuthService {
       newToken,
       mnemonic,
     };
-  }
+  };
 }
