@@ -1,8 +1,8 @@
 import { LoginDetails } from '@internxt/sdk';
-import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings.js';
 import { SdkManager } from './SDKManager.service';
 import { KeysService } from './keys.service';
 import { CryptoService } from './crypto.service';
+import { LoginCredentials } from '../types/login.types';
 
 export class AuthService {
   public static readonly instance: AuthService = new AuthService();
@@ -15,16 +15,7 @@ export class AuthService {
    * @returns The user's properties and the tokens needed for auth
    * @async
    **/
-  public doLogin = async (
-    email: string,
-    password: string,
-    twoFactorCode?: string,
-  ): Promise<{
-    user: UserSettings;
-    token: string;
-    newToken: string;
-    mnemonic: string;
-  }> => {
+  public doLogin = async (email: string, password: string, twoFactorCode?: string): Promise<LoginCredentials> => {
     const authClient = SdkManager.instance.getAuth();
     const loginDetails: LoginDetails = {
       email: email.toLowerCase(),

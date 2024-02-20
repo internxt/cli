@@ -1,4 +1,4 @@
-import { ConfigKeys } from '../types/config.types';
+import { LoginCredentials } from '../types/login.types';
 export class ConfigService {
   public static readonly instance: ConfigService = new ConfigService();
 
