@@ -17,10 +17,10 @@ export default class Login extends Command {
   static examples = ['<%= config.bin %> <%= command.id %>'];
 
   static flags = {
-    email: Flags.string({ char: 'e', description: "The user's email to log in", required: false }),
+    email: Flags.string({ char: 'e', description: 'The email to log in', required: false }),
     password: Flags.string({
       char: 'p',
-      description: "[Insecure] The user's plain password to log in",
+      description: '[Insecure] The plain password to log in',
       required: false,
     }),
     'two-factor': Flags.string({
