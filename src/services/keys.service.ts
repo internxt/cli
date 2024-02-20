@@ -1,13 +1,12 @@
 import { aes } from '@internxt/lib';
 import * as openpgp from 'openpgp';
-import { ConfigService } from './config.service';
 import {
-  AesInit,
   BadEncodedPrivateKeyError,
   CorruptedEncryptedPrivateKeyError,
   KeysDoNotMatchError,
   WrongIterationsToEncryptPrivateKeyError,
 } from '../types/keys.types';
+import { CryptoUtils } from '../utils/crypto.utils';
 
 export class KeysService {
   public static readonly instance: KeysService = new KeysService();
@@ -59,7 +58,7 @@ export class KeysService {
    * @returns The encrypted private key
    **/
   public encryptPrivateKey = (privateKey: string, password: string): string => {
-    return aes.encrypt(privateKey, password, this.getAesInitFromEnv());
+    return aes.encrypt(privateKey, password, CryptoUtils.getAesInit());
   };
 
   /**
@@ -136,16 +135,5 @@ export class KeysService {
       publicKeyArmored: Buffer.from(publicKey).toString('base64'),
       revocationCertificate: Buffer.from(revocationCertificate).toString('base64'),
     };
-  };
-
-  /**
-   * Returns the AesInit params using ConfigService
-   * @returns The IV and the SALT from ConfigService
-   **/
-  public getAesInitFromEnv = (): AesInit => {
-    const MAGIC_IV = ConfigService.instance.get('APP_MAGIC_IV');
-    const MAGIC_SALT = ConfigService.instance.get('APP_MAGIC_SALT');
-
-    return { iv: MAGIC_IV, salt: MAGIC_SALT };
   };
 }

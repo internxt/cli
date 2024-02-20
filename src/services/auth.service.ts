@@ -1,8 +1,10 @@
 import { LoginDetails } from '@internxt/sdk';
 import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings.js';
-import { SdkManager } from './SDKManager.service';
+import { SdkManager } from './sdk-manager.service';
 import { KeysService } from './keys.service';
 import { CryptoService } from './crypto.service';
+import { ConfigService } from './config.service';
+import { CryptoUtils } from '../utils/crypto.utils';
 
 export class AuthService {
   public static readonly instance: AuthService = new AuthService();
@@ -76,4 +78,57 @@ export class AuthService {
     });
     return securityDetails.tfaEnabled;
   };
+
+  /**
+   * Obtains the current logged in user
+   *
+   * @returns The current user
+   */
+  public getUser = async () => {
+    const usersClient = SdkManager.instance.getUsers();
+
+    const { user } = await usersClient.refreshUser();
+
+    return user;
+  };
+
+  /**
+   * Obtains the user auth details
+   *
+   * @returns The user plain mnemonic and the auth tokens
+   */
+
+  public getAuthDetails(): { token: string; newToken: string; mnemonic: string } {
+    /**
+     * DEV PURPOSE ONLY
+     *
+     * We are using this method to get the auth details for the user from the env, in
+     * production we should pull this data from a locally persisted file
+     */
+    const token = ConfigService.instance.get('DEV_AUTH_TOKEN');
+    const newToken = ConfigService.instance.get('DEV_NEW_AUTH_TOKEN');
+    const mnemonic = ConfigService.instance.get('DEV_MNEMONIC');
+
+    if (!token) {
+      throw new Error('Auth token not found, please login first');
+    }
+
+    if (!newToken) {
+      throw new Error('New Auth token not found, please login first');
+    }
+
+    if (!mnemonic) {
+      throw new Error('Mnemonic not found, please login first');
+    }
+
+    if (!CryptoUtils.validateMnemonic(mnemonic)) {
+      throw new Error('Mnemonic is not valid, cannot use it');
+    }
+
+    return {
+      token,
+      newToken,
+      mnemonic,
+    };
+  }
 }
