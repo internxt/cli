@@ -7,3 +7,5 @@ export interface ConfigKeys {
   readonly APP_MAGIC_IV: string;
   readonly APP_MAGIC_SALT: string;
 }
+
+export const CREDENTIALS_FILE = './dist/cli.inxt';
