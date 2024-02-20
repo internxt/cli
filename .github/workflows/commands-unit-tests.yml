@@ -22,6 +22,8 @@ jobs:
       - run: echo "@internxt:registry=https://npm.pkg.github.com" >> .npmrc
       - run: echo //npm.pkg.github.com/:_authToken=${{ secrets.NPM_TOKEN }} >> .npmrc
       - run: echo "always-auth=true" >> .npmrc
+      # Create env file
+      - run: echo "${{ secrets.TEST_ENV}}" >> .env
       # Install dependencies, build and run tests
       - run: yarn install --network-timeout 600000
       - run: yarn build
