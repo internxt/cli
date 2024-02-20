@@ -1,5 +1,4 @@
-import { Auth, Drive, photos } from '@internxt/sdk';
-import { Network as NetworkModule } from '@internxt/sdk';
+import { Auth, Drive, photos, Network as NetworkModule } from '@internxt/sdk';
 import { Trash } from '@internxt/sdk/dist/drive';
 import { ApiSecurity, AppDetails } from '@internxt/sdk/dist/shared';
 import { ConfigService } from './config.service';

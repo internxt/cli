@@ -12,16 +12,16 @@ import { UploadService } from '../services/network/upload.service';
 import { CryptoService } from '../services/crypto.service';
 
 export default class Upload extends Command {
-  static description = 'Upload a file to Internxt Drive';
+  static readonly description = 'Upload a file to Internxt Drive';
 
-  static examples = ['<%= config.bin %> <%= command.id %>'];
-  static enableJsonFlag = true;
-  static flags = {
+  static readonly examples = ['<%= config.bin %> <%= command.id %>'];
+  static readonly enableJsonFlag = true;
+  static readonly flags = {
     file: Flags.string({ description: 'The path to read the file in your system', required: true }),
     folderId: Flags.integer({ description: 'The folder id to upload the file to', required: false }),
   };
 
-  static args = {};
+  static readonly args = {};
 
   public async run(): Promise<{ fileId: string }> {
     const { flags } = await this.parse(Upload);
