@@ -101,21 +101,21 @@ describe('Auth service', () => {
     }
   });
 
-  it('When getting auth details, should get them if all are found', () => {
+  it('When getting auth details, should get them if all are found', async () => {
     const sut = AuthService.instance;
 
-    authServiceSandbox
-      .stub(ConfigService.instance, 'get')
-      .withArgs('DEV_AUTH_TOKEN')
-      .returns('test_auth_token')
-      .withArgs('DEV_NEW_AUTH_TOKEN')
-      .returns('test_new_auth_token')
-      .withArgs('DEV_MNEMONIC')
-      .returns('test_mnemonic');
+    authServiceSandbox.stub(ConfigService.instance, 'readUser').returns(
+      Promise.resolve({
+        user: UserFixture,
+        token: 'test_auth_token',
+        newToken: 'test_new_auth_token',
+        mnemonic: 'test_mnemonic',
+      }),
+    );
 
     const validateMnemonicStub = authServiceSandbox.stub(ValidationService.instance, 'validateMnemonic').returns(true);
 
-    const result = sut.getAuthDetails();
+    const result = await sut.getAuthDetails();
 
     expect(validateMnemonicStub).to.be.calledOnceWith('test_mnemonic');
 
@@ -128,21 +128,21 @@ describe('Auth service', () => {
     sinon.restore();
   });
 
-  it('When auth token is missing, should throw an error', () => {
+  it('When auth token is missing, should throw an error', async () => {
     const sut = AuthService.instance;
 
-    authServiceSandbox
-      .stub(ConfigService.instance, 'get')
-      .withArgs('DEV_AUTH_TOKEN')
+    authServiceSandbox.stub(ConfigService.instance, 'readUser').returns(
       // @ts-expect-error - We are faking a missing auth token
-      .returns(undefined)
-      .withArgs('DEV_NEW_AUTH_TOKEN')
-      .returns('test_new_auth_token')
-      .withArgs('DEV_MNEMONIC')
-      .returns('test_mnemonic');
+      Promise.resolve({
+        user: UserFixture,
+        token: undefined,
+        newToken: 'test_new_auth_token',
+        mnemonic: 'test_mnemonic',
+      }),
+    );
 
     try {
-      sut.getAuthDetails();
+      await sut.getAuthDetails();
     } catch (error) {
       expect((error as Error).message).to.contain('Auth token not found');
     }
@@ -150,21 +150,21 @@ describe('Auth service', () => {
     sinon.restore();
   });
 
-  it('When new auth token is missing, should throw an error', () => {
+  it('When new auth token is missing, should throw an error', async () => {
     const sut = AuthService.instance;
 
-    authServiceSandbox
-      .stub(ConfigService.instance, 'get')
-      .withArgs('DEV_AUTH_TOKEN')
-      .returns('test_auth_token')
-      .withArgs('DEV_NEW_AUTH_TOKEN')
+    authServiceSandbox.stub(ConfigService.instance, 'readUser').returns(
       // @ts-expect-error - We are faking a missing auth token
-      .returns(undefined)
-      .withArgs('DEV_MNEMONIC')
-      .returns('test_mnemonic');
+      Promise.resolve({
+        user: UserFixture,
+        token: 'test_auth_token',
+        newToken: undefined,
+        mnemonic: 'test_mnemonic',
+      }),
+    );
 
     try {
-      sut.getAuthDetails();
+      await sut.getAuthDetails();
     } catch (error) {
       expect((error as Error).message).to.contain('New Auth token not found');
     }
@@ -172,22 +172,21 @@ describe('Auth service', () => {
     sinon.restore();
   });
 
-  it('When mnemonic is missing, should throw an error', () => {
+  it('When mnemonic is missing, should throw an error', async () => {
     const sut = AuthService.instance;
 
-    authServiceSandbox
-      .stub(ConfigService.instance, 'get')
-      .withArgs('DEV_AUTH_TOKEN')
-      .returns('test_auth_token')
-      .withArgs('DEV_NEW_AUTH_TOKEN')
-
-      .returns('test_new_auth_token')
-      .withArgs('DEV_MNEMONIC')
+    authServiceSandbox.stub(ConfigService.instance, 'readUser').returns(
       // @ts-expect-error - We are faking a missing auth token
-      .returns(undefined);
+      Promise.resolve({
+        user: UserFixture,
+        token: 'test_auth_token',
+        newToken: 'test_new_auth_token',
+        mnemonic: undefined,
+      }),
+    );
 
     try {
-      sut.getAuthDetails();
+      await sut.getAuthDetails();
     } catch (error) {
       expect((error as Error).message).to.contain('Mnemonic not found');
     }
@@ -195,21 +194,20 @@ describe('Auth service', () => {
     sinon.restore();
   });
 
-  it('When mnemonic is invalid, should throw an error', () => {
+  it('When mnemonic is invalid, should throw an error', async () => {
     const sut = AuthService.instance;
 
-    authServiceSandbox
-      .stub(ConfigService.instance, 'get')
-      .withArgs('DEV_AUTH_TOKEN')
-      .returns('test_auth_token')
-      .withArgs('DEV_NEW_AUTH_TOKEN')
-
-      .returns('test_new_auth_token')
-      .withArgs('DEV_MNEMONIC')
-      .returns('test_mnemonic');
+    authServiceSandbox.stub(ConfigService.instance, 'readUser').returns(
+      Promise.resolve({
+        user: UserFixture,
+        token: 'test_auth_token',
+        newToken: 'test_new_auth_token',
+        mnemonic: 'test_mnemonic',
+      }),
+    );
 
     try {
-      sut.getAuthDetails();
+      await sut.getAuthDetails();
     } catch (error) {
       expect((error as Error).message).to.contain('Mnemonic is not valid');
     }
