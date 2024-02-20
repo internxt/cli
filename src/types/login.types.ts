@@ -33,7 +33,7 @@ export class EmptyPasswordError extends Error {
 
 export class NotValidTwoFactorCodeError extends Error {
   constructor() {
-    super('Two factor auth code is not valid');
+    super('Two factor auth code is not valid (it must be 6 digit long)');
 
     Object.setPrototypeOf(this, NotValidTwoFactorCodeError.prototype);
   }

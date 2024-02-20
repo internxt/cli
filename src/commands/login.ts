@@ -8,6 +8,7 @@ import {
   NotValidTwoFactorCodeError,
 } from '../types/login.types';
 import { ConfigService } from '../services/config.service';
+import { CLIUtils } from '../utils/cli.utils';
 
 export default class Login extends Command {
   static args = {};
@@ -51,23 +52,22 @@ export default class Login extends Command {
   public async run(): Promise<void> {
     const { flags } = await this.parse(Login);
 
-    try {
-      const email = await this.getEmail(flags['email'], flags['non-interactive']);
-      const password = await this.getPassword(flags['password'], flags['non-interactive']);
+    const email = await this.getEmail(flags['email'], flags['non-interactive']);
+    const password = await this.getPassword(flags['password'], flags['non-interactive']);
 
-      const is2FANeeded = await AuthService.instance.is2FANeeded(email);
-      let twoFactorCode: string | undefined;
-      if (is2FANeeded) {
-        twoFactorCode = await this.getTwoFactorCode(flags['two-factor'], flags['non-interactive']);
-      }
-
-      const loginCredentials = await AuthService.instance.doLogin(email, password, twoFactorCode);
-      this.logJson(loginCredentials);
-      await ConfigService.instance.saveUser(loginCredentials);
-    } catch (err) {
-      ux.log(ux.colorize('red', '⚠ Error: ' + (err as Error).message));
-      throw err as Error;
+    const is2FANeeded = await AuthService.instance.is2FANeeded(email);
+    let twoFactorCode: string | undefined;
+    if (is2FANeeded) {
+      twoFactorCode = await this.getTwoFactorCode(flags['two-factor'], flags['non-interactive']);
     }
+
+    const loginCredentials = await AuthService.instance.doLogin(email, password, twoFactorCode);
+    await ConfigService.instance.saveUser(loginCredentials);
+  }
+
+  async catch(error: Error) {
+    CLIUtils.error(error.message);
+    this.exit(1);
   }
 
   private static readonly maxAttempts = 3; // max of attempts to let the user rewrite their credentials in case of mistake
@@ -87,7 +87,7 @@ export default class Login extends Command {
         if (isValidEmail) {
           return emailFlag;
         } else {
-          ux.log(ux.colorize('red', `⚠ Error: '${emailFlag}' is not a valid email, please type again `));
+          CLIUtils.error(`'${emailFlag}' is not a valid email, please type it again`);
         }
       }
     } else {
@@ -102,8 +102,8 @@ export default class Login extends Command {
       isValidEmail = ValidationService.instance.validateEmail(email);
       if (!isValidEmail) {
         currentAttempts++;
-        const tryAgain = currentAttempts < Login.maxAttempts ? ', please type again' : '';
-        ux.log(ux.colorize('red', `⚠ Error: '${email}' is not a valid email${tryAgain}`));
+        const tryAgain = currentAttempts < Login.maxAttempts ? ', please type it again' : '';
+        CLIUtils.error(`'${email}' is not a valid email${tryAgain}`);
       }
     } while (!isValidEmail && currentAttempts < Login.maxAttempts);
 
@@ -126,7 +126,7 @@ export default class Login extends Command {
         if (isValidPassword) {
           return passwordFlag;
         } else {
-          ux.log(ux.colorize('red', '⚠ Error: Password can not be empty, please type again'));
+          CLIUtils.error('Password can not be empty, please type it again');
         }
       }
     } else {
@@ -141,8 +141,8 @@ export default class Login extends Command {
       isValidPassword = password.trim().length > 0;
       if (!isValidPassword) {
         currentAttempts++;
-        const tryAgain = currentAttempts < Login.maxAttempts ? ', please type again' : '';
-        ux.log(ux.colorize('red', '⚠ Error: Password can not be empty' + tryAgain));
+        const tryAgain = currentAttempts < Login.maxAttempts ? ', please type it again' : '';
+        CLIUtils.error(`Password can not be empty, please type it again${tryAgain}`);
       }
     } while (!isValidPassword && currentAttempts < Login.maxAttempts);
 
@@ -165,9 +165,7 @@ export default class Login extends Command {
         if (isValid2FAcode) {
           return twoFactorFlag;
         } else {
-          ux.log(
-            ux.colorize('red', '⚠ Error: Two factor auth code is not valid, please type again [six digit number]'),
-          );
+          CLIUtils.error('Two factor auth code is not valid, please type it again');
         }
       }
     } else {
@@ -182,8 +180,8 @@ export default class Login extends Command {
       isValid2FAcode = ValidationService.instance.validate2FA(twoFactorCode);
       if (!isValid2FAcode) {
         currentAttempts++;
-        const tryAgain = currentAttempts < Login.maxAttempts ? ', please type again [six digit number]' : '';
-        ux.log(ux.colorize('red', '⚠ Error: That is not a valid two factor auth code' + tryAgain));
+        const tryAgain = currentAttempts < Login.maxAttempts ? ', please type it again' : '';
+        CLIUtils.error(`Two factor auth code is not valid, please type it again${tryAgain}`);
       }
     } while (!isValid2FAcode && currentAttempts < Login.maxAttempts);
 
