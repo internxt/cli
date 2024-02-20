@@ -11,15 +11,15 @@ import { ConfigService } from '../services/config.service';
 import { CLIUtils } from '../utils/cli.utils';
 
 export default class Login extends Command {
-  static args = {};
-  static description =
+  static readonly args = {};
+  static readonly description =
     'Logs into an Internxt account. If the account is two-factor protected, then an extra code will be required.\n' +
     'Using the password parameter is not recommended as it can lead to security problems (the password is written plainly in the console), ' +
     'it is safer to type your password interactively when the cli asks for it.';
 
-  static examples = ['<%= config.bin %> <%= command.id %>'];
+  static readonly examples = ['<%= config.bin %> <%= command.id %>'];
 
-  static flags = {
+  static readonly flags = {
     email: Flags.string({
       char: 'e',
       env: 'INXT_EMAIL',
@@ -34,14 +34,14 @@ export default class Login extends Command {
     }),
     'two-factor': Flags.string({
       char: 'w',
-      env: 'MY_NAME',
+      env: 'INXT_TWOFACTORCODE',
       description: '[If needed] The two factor auth code',
       required: false,
       helpValue: '123456',
     }),
     'non-interactive': Flags.boolean({
       char: 'n',
-      env: 'MY_NAME',
+      env: 'INXT_NONINTERACTIVE',
       helpGroup: 'helper',
       description:
         'Blocks the cli from being interactive. If passed, the cli will not request data through the console and will throw errors directly',
@@ -52,13 +52,18 @@ export default class Login extends Command {
   public async run(): Promise<void> {
     const { flags } = await this.parse(Login);
 
-    const email = await this.getEmail(flags['email'], flags['non-interactive']);
-    const password = await this.getPassword(flags['password'], flags['non-interactive']);
+    const email =
+      (await this.getEmailFromFlag(flags['email'], flags['non-interactive'])) ?? (await this.getEmailInteractively());
+    const password =
+      (await this.getPasswordFromFlag(flags['password'], flags['non-interactive'])) ??
+      (await this.getPasswordInteractively());
 
     const is2FANeeded = await AuthService.instance.is2FANeeded(email);
     let twoFactorCode: string | undefined;
     if (is2FANeeded) {
-      twoFactorCode = await this.getTwoFactorCode(flags['two-factor'], flags['non-interactive']);
+      twoFactorCode =
+        (await this.getTwoFactorCodeFromFlag(flags['two-factor'], flags['non-interactive'])) ??
+        (await this.getTwoFactorCodeInteractively());
     }
 
     const loginCredentials = await AuthService.instance.doLogin(email, password, twoFactorCode);
@@ -72,29 +77,28 @@ export default class Login extends Command {
 
   private static readonly maxAttempts = 3; // max of attempts to let the user rewrite their credentials in case of mistake
 
-  public getEmail = async (emailFlag: string | undefined, nonInteractive: boolean): Promise<string> => {
-    let isValidEmail = false;
-
+  public getEmailFromFlag = async (
+    emailFlag: string | undefined,
+    nonInteractive: boolean,
+  ): Promise<string | undefined> => {
     if (emailFlag) {
-      isValidEmail = ValidationService.instance.validateEmail(emailFlag);
-      if (nonInteractive) {
-        if (isValidEmail) {
-          return emailFlag;
-        } else {
-          throw new NotValidEmailError(emailFlag);
-        }
+      const isValidEmail = ValidationService.instance.validateEmail(emailFlag);
+      if (isValidEmail) {
+        return emailFlag;
       } else {
-        if (isValidEmail) {
-          return emailFlag;
+        if (nonInteractive) {
+          throw new NotValidEmailError(emailFlag);
         } else {
-          CLIUtils.error(`'${emailFlag}' is not a valid email, please type it again`);
+          CLIUtils.error(new NotValidEmailError(emailFlag).message);
         }
       }
     } else {
       if (nonInteractive) throw new NoFlagProvidedError(Login.flags['email'].name);
     }
+  };
 
-    // interactive asking
+  public getEmailInteractively = async (): Promise<string> => {
+    let isValidEmail = false;
     let currentAttempts = 0;
     let email = '';
     do {
@@ -111,29 +115,28 @@ export default class Login extends Command {
     return email;
   };
 
-  public getPassword = async (passwordFlag: string | undefined, nonInteractive: boolean): Promise<string> => {
-    let isValidPassword = false;
-
+  public getPasswordFromFlag = async (
+    passwordFlag: string | undefined,
+    nonInteractive: boolean,
+  ): Promise<string | undefined> => {
     if (passwordFlag) {
-      isValidPassword = passwordFlag.trim().length > 0;
-      if (nonInteractive) {
-        if (isValidPassword) {
-          return passwordFlag;
-        } else {
-          throw new EmptyPasswordError();
-        }
+      const isValidPassword = passwordFlag.trim().length > 0;
+      if (isValidPassword) {
+        return passwordFlag;
       } else {
-        if (isValidPassword) {
-          return passwordFlag;
+        if (nonInteractive) {
+          throw new EmptyPasswordError();
         } else {
-          CLIUtils.error('Password can not be empty, please type it again');
+          CLIUtils.error(new EmptyPasswordError().message);
         }
       }
     } else {
       if (nonInteractive) throw new NoFlagProvidedError(Login.flags['password'].name);
     }
+  };
 
-    // interactive asking
+  public getPasswordInteractively = async (): Promise<string> => {
+    let isValidPassword = false;
     let password = '';
     let currentAttempts = 0;
     do {
@@ -150,29 +153,28 @@ export default class Login extends Command {
     return password;
   };
 
-  public getTwoFactorCode = async (twoFactorFlag: string | undefined, nonInteractive: boolean): Promise<string> => {
-    let isValid2FAcode = false;
-
+  public getTwoFactorCodeFromFlag = async (
+    twoFactorFlag: string | undefined,
+    nonInteractive: boolean,
+  ): Promise<string | undefined> => {
     if (twoFactorFlag) {
-      isValid2FAcode = ValidationService.instance.validate2FA(twoFactorFlag);
-      if (nonInteractive) {
-        if (isValid2FAcode) {
-          return twoFactorFlag;
-        } else {
-          throw new NotValidTwoFactorCodeError();
-        }
+      const isValid2FAcode = ValidationService.instance.validate2FA(twoFactorFlag);
+      if (isValid2FAcode) {
+        return twoFactorFlag;
       } else {
-        if (isValid2FAcode) {
-          return twoFactorFlag;
+        if (nonInteractive) {
+          throw new NotValidTwoFactorCodeError();
         } else {
-          CLIUtils.error('Two factor auth code is not valid, please type it again');
+          CLIUtils.error(new NotValidTwoFactorCodeError().message);
         }
       }
     } else {
       if (nonInteractive) throw new NoFlagProvidedError(Login.flags['two-factor'].name);
     }
+  };
 
-    // interactive asking
+  public getTwoFactorCodeInteractively = async (): Promise<string> => {
+    let isValid2FAcode = false;
     let currentAttempts = 0;
     let twoFactorCode = '';
     do {
