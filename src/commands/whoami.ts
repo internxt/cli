@@ -3,12 +3,12 @@ import { ConfigService } from '../services/config.service';
 import { CLIUtils } from '../utils/cli.utils';
 
 export default class Whoami extends Command {
-  static args = {};
-  static description = 'Displays the current user logged into the Internxt CLI.';
+  static readonly args = {};
+  static readonly description = 'Displays the current user logged into the Internxt CLI.';
 
-  static examples = ['<%= config.bin %> <%= command.id %>'];
+  static readonly examples = ['<%= config.bin %> <%= command.id %>'];
 
-  static flags = {};
+  static readonly flags = {};
 
   public async run(): Promise<void> {
     const userCredentials = await ConfigService.instance.readUser();
