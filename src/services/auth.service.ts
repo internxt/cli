@@ -88,7 +88,6 @@ export class AuthService {
    *
    * @returns The user plain mnemonic and the auth tokens
    */
-
   public getAuthDetails = async (): Promise<{ token: string; newToken: string; mnemonic: string }> => {
     const loginCredentials = await ConfigService.instance.readUser();
     if (!loginCredentials) {

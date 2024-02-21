@@ -124,8 +124,18 @@ describe('Auth service', () => {
       newToken: 'test_new_auth_token',
       mnemonic: 'test_mnemonic',
     });
+  });
 
-    sinon.restore();
+  it('When credentials are missing, should throw an error', async () => {
+    const sut = AuthService.instance;
+
+    authServiceSandbox.stub(ConfigService.instance, 'readUser').returns(Promise.resolve(undefined));
+
+    try {
+      await sut.getAuthDetails();
+    } catch (error) {
+      expect((error as Error).message).to.contain('Credentials not found, please login first');
+    }
   });
 
   it('When auth token is missing, should throw an error', async () => {
@@ -146,8 +156,6 @@ describe('Auth service', () => {
     } catch (error) {
       expect((error as Error).message).to.contain('Auth token not found');
     }
-
-    sinon.restore();
   });
 
   it('When new auth token is missing, should throw an error', async () => {
@@ -168,8 +176,6 @@ describe('Auth service', () => {
     } catch (error) {
       expect((error as Error).message).to.contain('New Auth token not found');
     }
-
-    sinon.restore();
   });
 
   it('When mnemonic is missing, should throw an error', async () => {
@@ -190,8 +196,6 @@ describe('Auth service', () => {
     } catch (error) {
       expect((error as Error).message).to.contain('Mnemonic not found');
     }
-
-    sinon.restore();
   });
 
   it('When mnemonic is invalid, should throw an error', async () => {
@@ -211,8 +215,6 @@ describe('Auth service', () => {
     } catch (error) {
       expect((error as Error).message).to.contain('Mnemonic is not valid');
     }
-
-    sinon.restore();
   });
 
   it('When getting user, should return the user', async () => {

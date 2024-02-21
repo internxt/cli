@@ -12,10 +12,6 @@ export class ValidationService {
     return /^\d{6}$/.test(code);
   };
 
-  public isStrongPassword = (pwd: string): boolean => {
-    return /^(?=.*[a-zA-Z])(?=.*\d).{6,}$/.test(pwd);
-  };
-
   public validateMnemonic = (mnemonic: string): boolean => {
     return validateMnemonic(mnemonic);
   };
