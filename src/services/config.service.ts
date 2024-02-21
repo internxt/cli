@@ -30,6 +30,14 @@ export class ConfigService {
   };
 
   /**
+   * Clears the authenticated user from file
+   * @async
+   **/
+  public clearUser = (): Promise<void> => {
+    return fs.writeFile(CREDENTIALS_FILE, '', 'utf8');
+  };
+
+  /**
    * Returns the authenticated user credentials
    * @returns {LoginCredentials} The authenticated user credentials
    * @async
@@ -38,7 +46,12 @@ export class ConfigService {
     try {
       const encryptedCredentials = await fs.readFile(CREDENTIALS_FILE, 'utf8');
       const credentialsString = CryptoService.instance.decryptText(encryptedCredentials);
-      const loginCredentials = JSON.parse(credentialsString) as LoginCredentials;
+      const loginCredentials = JSON.parse(credentialsString, (key, value) => {
+        if (typeof value === 'string' && key === 'createdAt') {
+          return new Date(value);
+        }
+        return value;
+      }) as LoginCredentials;
       return loginCredentials;
     } catch {
       return;
