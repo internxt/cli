@@ -18,9 +18,7 @@ describe('Logout Command', () => {
       .stdout()
       .stub(ConfigService.instance, 'clearUser', (stub) => stub.rejects())
       .command(['logout'])
-      .catch((error: Error) => {
-        expect(error.message).to.equal('EEXIT: 1');
-      })
-      .it('runs logout and expects error');
+      .exit(1)
+      .it('runs logout and expects error (app exit with code 1)');
   });
 });

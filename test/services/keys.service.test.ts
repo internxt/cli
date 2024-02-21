@@ -29,11 +29,9 @@ describe('Keys service', () => {
     keysServiceSandbox.stub(openpgp, 'createMessage').resolves();
     keysServiceSandbox.stub(openpgp, 'encrypt').resolves();
     keysServiceSandbox.stub(openpgp, 'readMessage').resolves();
-    keysServiceSandbox.stub(openpgp, 'decrypt').returns(
-      Promise.resolve({ data: 'validate-keys' } as openpgp.DecryptMessageResult & {
-        data: openpgp.MaybeStream<string>;
-      }),
-    );
+    keysServiceSandbox.stub(openpgp, 'decrypt').resolves({ data: 'validate-keys' } as openpgp.DecryptMessageResult & {
+      data: openpgp.MaybeStream<string>;
+    });
 
     await KeysService.instance.assertValidateKeys('dontcareprivate', 'dontcarepublic');
     expect(true).to.be.true; //checks that assertValidateKeys does not throw any error
@@ -54,11 +52,9 @@ describe('Keys service', () => {
     keysServiceSandbox.stub(openpgp, 'createMessage').resolves();
     keysServiceSandbox.stub(openpgp, 'encrypt').resolves();
     keysServiceSandbox.stub(openpgp, 'readMessage').resolves();
-    keysServiceSandbox.stub(openpgp, 'decrypt').returns(
-      Promise.resolve({ data: 'bad-validation' } as openpgp.DecryptMessageResult & {
-        data: openpgp.MaybeStream<string>;
-      }),
-    );
+    keysServiceSandbox.stub(openpgp, 'decrypt').resolves({ data: 'bad-validation' } as openpgp.DecryptMessageResult & {
+      data: openpgp.MaybeStream<string>;
+    });
     //every dependency method resolves (no error thrown), but nothing should be encrypted/decrypted, so the result should not be valid
     try {
       await KeysService.instance.assertValidateKeys('dontcareprivate', 'dontcarepublic');
