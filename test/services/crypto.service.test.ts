@@ -105,9 +105,9 @@ describe('Crypto service', () => {
       revocationCertificate: crypto.randomBytes(16).toString('hex'),
     };
 
-    const kerysServiceStub = cryptoServiceSandbox
+    const keysServiceStub = cryptoServiceSandbox
       .stub(KeysService.instance, 'generateNewKeysWithEncrypted')
-      .returns(Promise.resolve(keysReturned));
+      .resolves(keysReturned);
 
     const expectedKeys: Keys = {
       privateKeyEncrypted: keysReturned.privateKeyArmoredEncrypted,
@@ -118,7 +118,7 @@ describe('Crypto service', () => {
     const resultedKeys = await CryptoService.cryptoProvider.generateKeys(password);
 
     expect(expectedKeys).to.be.eql(resultedKeys);
-    expect(kerysServiceStub).to.be.calledWith(password);
+    expect(keysServiceStub).to.be.calledWith(password);
   });
 
   it('When encrypting an stream, the output hash should be correct', async () => {

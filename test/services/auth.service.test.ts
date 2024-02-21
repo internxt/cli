@@ -30,7 +30,7 @@ describe('Auth service', () => {
       userTeam: null,
     };
 
-    authServiceSandbox.stub(Auth.prototype, 'login').returns(Promise.resolve(loginResponse));
+    authServiceSandbox.stub(Auth.prototype, 'login').resolves(loginResponse);
     authServiceSandbox.stub(SdkManager.instance, 'getAuth').returns(Auth.prototype);
     authServiceSandbox.stub(KeysService.instance, 'decryptPrivateKey').returns(loginResponse.user.privateKey);
     authServiceSandbox.stub(KeysService.instance, 'assertPrivateKeyIsValid').resolves();
@@ -76,10 +76,7 @@ describe('Auth service', () => {
       tfaEnabled: true,
     };
 
-    authServiceSandbox
-      .stub(Auth.prototype, 'securityDetails')
-      .withArgs(email)
-      .returns(Promise.resolve(securityDetails));
+    authServiceSandbox.stub(Auth.prototype, 'securityDetails').withArgs(email).resolves(securityDetails);
     authServiceSandbox.stub(SdkManager.instance, 'getAuth').returns(Auth.prototype);
 
     const responseLogin = await AuthService.instance.is2FANeeded(email);
@@ -104,14 +101,12 @@ describe('Auth service', () => {
   it('When getting auth details, should get them if all are found', async () => {
     const sut = AuthService.instance;
 
-    authServiceSandbox.stub(ConfigService.instance, 'readUser').returns(
-      Promise.resolve({
-        user: UserFixture,
-        token: 'test_auth_token',
-        newToken: 'test_new_auth_token',
-        mnemonic: 'test_mnemonic',
-      }),
-    );
+    authServiceSandbox.stub(ConfigService.instance, 'readUser').resolves({
+      user: UserFixture,
+      token: 'test_auth_token',
+      newToken: 'test_new_auth_token',
+      mnemonic: 'test_mnemonic',
+    });
 
     const validateMnemonicStub = authServiceSandbox.stub(ValidationService.instance, 'validateMnemonic').returns(true);
 
@@ -129,7 +124,7 @@ describe('Auth service', () => {
   it('When credentials are missing, should throw an error', async () => {
     const sut = AuthService.instance;
 
-    authServiceSandbox.stub(ConfigService.instance, 'readUser').returns(Promise.resolve(undefined));
+    authServiceSandbox.stub(ConfigService.instance, 'readUser').resolves(undefined);
 
     try {
       await sut.getAuthDetails();
@@ -141,15 +136,13 @@ describe('Auth service', () => {
   it('When auth token is missing, should throw an error', async () => {
     const sut = AuthService.instance;
 
-    authServiceSandbox.stub(ConfigService.instance, 'readUser').returns(
+    authServiceSandbox.stub(ConfigService.instance, 'readUser').resolves({
+      user: UserFixture,
       // @ts-expect-error - We are faking a missing auth token
-      Promise.resolve({
-        user: UserFixture,
-        token: undefined,
-        newToken: 'test_new_auth_token',
-        mnemonic: 'test_mnemonic',
-      }),
-    );
+      token: undefined,
+      newToken: 'test_new_auth_token',
+      mnemonic: 'test_mnemonic',
+    });
 
     try {
       await sut.getAuthDetails();
@@ -161,15 +154,13 @@ describe('Auth service', () => {
   it('When new auth token is missing, should throw an error', async () => {
     const sut = AuthService.instance;
 
-    authServiceSandbox.stub(ConfigService.instance, 'readUser').returns(
+    authServiceSandbox.stub(ConfigService.instance, 'readUser').resolves({
+      user: UserFixture,
+      token: 'test_auth_token',
       // @ts-expect-error - We are faking a missing auth token
-      Promise.resolve({
-        user: UserFixture,
-        token: 'test_auth_token',
-        newToken: undefined,
-        mnemonic: 'test_mnemonic',
-      }),
-    );
+      newToken: undefined,
+      mnemonic: 'test_mnemonic',
+    });
 
     try {
       await sut.getAuthDetails();
@@ -181,15 +172,13 @@ describe('Auth service', () => {
   it('When mnemonic is missing, should throw an error', async () => {
     const sut = AuthService.instance;
 
-    authServiceSandbox.stub(ConfigService.instance, 'readUser').returns(
-      // @ts-expect-error - We are faking a missing auth token
-      Promise.resolve({
-        user: UserFixture,
-        token: 'test_auth_token',
-        newToken: 'test_new_auth_token',
-        mnemonic: undefined,
-      }),
-    );
+    authServiceSandbox.stub(ConfigService.instance, 'readUser').resolves({
+      user: UserFixture,
+      token: 'test_auth_token',
+      newToken: 'test_new_auth_token',
+      // @ts-expect-error - We are faking a missing mnemonic
+      mnemonic: undefined,
+    });
 
     try {
       await sut.getAuthDetails();
@@ -201,14 +190,12 @@ describe('Auth service', () => {
   it('When mnemonic is invalid, should throw an error', async () => {
     const sut = AuthService.instance;
 
-    authServiceSandbox.stub(ConfigService.instance, 'readUser').returns(
-      Promise.resolve({
-        user: UserFixture,
-        token: 'test_auth_token',
-        newToken: 'test_new_auth_token',
-        mnemonic: 'test_mnemonic',
-      }),
-    );
+    authServiceSandbox.stub(ConfigService.instance, 'readUser').resolves({
+      user: UserFixture,
+      token: 'test_auth_token',
+      newToken: 'test_new_auth_token',
+      mnemonic: 'test_mnemonic',
+    });
 
     try {
       await sut.getAuthDetails();
