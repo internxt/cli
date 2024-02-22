@@ -7,17 +7,9 @@ export interface LoginCredentials {
   mnemonic: string;
 }
 
-export class NoFlagProvidedError extends Error {
-  constructor(flag: string) {
-    super(`No ${flag} flag has been provided`);
-
-    Object.setPrototypeOf(this, NoFlagProvidedError.prototype);
-  }
-}
-
 export class NotValidEmailError extends Error {
-  constructor(email: string) {
-    super(`'${email}' is not a valid email`);
+  constructor() {
+    super('Email is not valid');
 
     Object.setPrototypeOf(this, NotValidEmailError.prototype);
   }
