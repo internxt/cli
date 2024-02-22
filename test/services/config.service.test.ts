@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import crypto from 'crypto';
 import Sinon, { SinonSandbox } from 'sinon';
-import { promises as fs } from 'fs';
+import fs from 'fs/promises';
 import { ConfigService } from '../../src/services/config.service';
 import { CryptoService } from '../../src/services/crypto.service';
 import { LoginCredentials } from '../../src/types/login.types';
