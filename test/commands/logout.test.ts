@@ -9,7 +9,7 @@ describe('Logout Command', () => {
       .stub(ConfigService.instance, 'clearUser', (stub) => stub.resolves())
       .command(['logout'])
       .it('runs logout', (ctx) => {
-        expect(ctx.stdout).to.be.equal('User logged out correctly\n');
+        expect(ctx.stdout).to.be.equal('✓ User logged out correctly\n');
       });
   });
 

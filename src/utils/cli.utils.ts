@@ -1,10 +1,6 @@
 import { ux } from '@oclif/core';
 
 export class CLIUtils {
-  static log(message: string) {
-    ux.log(ux.colorize('green', message));
-  }
-
   static warning(message: string) {
     ux.log(ux.colorize('#a67805', `⚠ Warning: ${message}`));
   }

@@ -13,9 +13,9 @@ export default class Whoami extends Command {
   public async run(): Promise<void> {
     const userCredentials = await ConfigService.instance.readUser();
     if (userCredentials?.user?.email) {
-      CLIUtils.log(`You are logged in with: ${userCredentials.user.email}`);
+      CLIUtils.success(`You are logged in with: ${userCredentials.user.email}`);
     } else {
-      CLIUtils.log('You are not logged in');
+      CLIUtils.success('You are not logged in');
     }
   }
 }

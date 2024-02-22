@@ -20,7 +20,7 @@ describe('Login Command', () => {
         `-w ${UserLoginFixture.twoFactor}`,
       ])
       .it('runs login with 2fa using flags', (ctx) => {
-        expect(ctx.stdout).to.be.equal(`Succesfully logged in to: ${UserLoginFixture.email}\n`);
+        expect(ctx.stdout).to.be.equal(`✓ Succesfully logged in to: ${UserLoginFixture.email}\n`);
       });
 
     test
@@ -30,7 +30,7 @@ describe('Login Command', () => {
       .stub(AuthService.instance, 'doLogin', (stub) => stub.resolves(UserCredentialsFixture))
       .command(['login', `-e ${UserLoginFixture.email}`, `-p ${UserLoginFixture.password}`])
       .it('runs login without 2fa using flags', (ctx) => {
-        expect(ctx.stdout).to.be.equal(`Succesfully logged in to: ${UserLoginFixture.email}\n`);
+        expect(ctx.stdout).to.be.equal(`✓ Succesfully logged in to: ${UserLoginFixture.email}\n`);
       });
   });
 
@@ -49,7 +49,7 @@ describe('Login Command', () => {
         `-w ${UserLoginFixture.twoFactor}`,
       ])
       .it('runs login forcing non-interactive flags', (ctx) => {
-        expect(ctx.stdout).to.be.equal(`Succesfully logged in to: ${UserLoginFixture.email}\n`);
+        expect(ctx.stdout).to.be.equal(`✓ Succesfully logged in to: ${UserLoginFixture.email}\n`);
       });
   });
 
@@ -90,7 +90,7 @@ describe('Login Command', () => {
       //.stub(ux, 'prompt', (stub) => stub.withArgs('What is your two-factor token?').resolves(UserLogin.twoFactor))
       .command(['login'])
       .it('runs login interactively', (ctx) => {
-        expect(ctx.stdout).to.be.equal(`Succesfully logged in to: ${UserLoginFixture.email}\n`);
+        expect(ctx.stdout).to.be.equal(`✓ Succesfully logged in to: ${UserLoginFixture.email}\n`);
       });
   });
 

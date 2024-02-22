@@ -68,7 +68,7 @@ export default class Login extends Command {
 
     const loginCredentials = await AuthService.instance.doLogin(email, password, twoFactorCode);
     await ConfigService.instance.saveUser(loginCredentials);
-    CLIUtils.log(`Succesfully logged in to: ${loginCredentials.user.email}`);
+    CLIUtils.success(`Succesfully logged in to: ${loginCredentials.user.email}`);
   }
 
   async catch(error: Error) {
