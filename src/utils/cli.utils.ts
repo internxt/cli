@@ -78,6 +78,20 @@ export class CLIUtils {
       return promptValue;
     }
   };
+
+  static prompt = async (
+    prompt: { message: string; options?: ux.IPromptOptions | undefined; error: Error },
+    validate?: (value: string) => boolean,
+  ): Promise<string> => {
+    const promptValue = await ux.prompt(prompt.message, prompt.options);
+    if (validate) {
+      const isValid = validate(promptValue);
+      if (!isValid) {
+        throw prompt.error;
+      }
+    }
+    return promptValue;
+  };
 }
 
 class NoFlagProvidedError extends Error {
