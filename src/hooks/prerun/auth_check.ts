@@ -5,6 +5,7 @@ import Logout from '../../commands/logout';
 import { CLIUtils } from '../../utils/cli.utils';
 import { SdkManager } from '../../services/sdk-manager.service';
 import { AuthService } from '../../services/auth.service';
+import { MissingCredentialsError } from '../../types/command.types';
 
 const CommandsToSkip = [Whoami, Login, Logout];
 const hook: Hook<'prerun'> = async function (opts) {
@@ -17,10 +18,9 @@ const hook: Hook<'prerun'> = async function (opts) {
         newToken,
       });
     } catch (error) {
-      CLIUtils.error('Missing credentials, login first');
+      CLIUtils.error(new MissingCredentialsError().message);
       opts.context.exit(1);
     }
-
     CLIUtils.done();
   }
 };
