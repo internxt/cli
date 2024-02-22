@@ -1,5 +1,5 @@
 import { CREDENTIALS_FILE, ConfigKeys } from '../types/config.types';
-import { LoginCredentials } from '../types/login.types';
+import { LoginCredentials } from '../types/command.types';
 import fs from 'fs/promises';
 import { CryptoService } from './crypto.service';
 

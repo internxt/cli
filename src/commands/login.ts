@@ -1,7 +1,7 @@
 import { Command, Flags } from '@oclif/core';
 import { AuthService } from '../services/auth.service';
 import { ValidationService } from '../services/validation.service';
-import { EmptyPasswordError, NotValidEmailError, NotValidTwoFactorCodeError } from '../types/login.types';
+import { EmptyPasswordError, NotValidEmailError, NotValidTwoFactorCodeError } from '../types/command.types';
 import { ConfigService } from '../services/config.service';
 import { CLIUtils } from '../utils/cli.utils';
 

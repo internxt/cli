@@ -30,3 +30,27 @@ export class NotValidTwoFactorCodeError extends Error {
     Object.setPrototypeOf(this, NotValidTwoFactorCodeError.prototype);
   }
 }
+
+export class NotValidFolderIdError extends Error {
+  constructor() {
+    super('Folder id is not valid (it must be a folder id number)');
+
+    Object.setPrototypeOf(this, NotValidFolderIdError.prototype);
+  }
+}
+
+export class NoRootFolderIdFoundError extends Error {
+  constructor() {
+    super('No root folder id found on your account');
+
+    Object.setPrototypeOf(this, NoRootFolderIdFoundError.prototype);
+  }
+}
+
+export class MissingCredentialsError extends Error {
+  constructor() {
+    super('Missing credentials, login first');
+
+    Object.setPrototypeOf(this, MissingCredentialsError.prototype);
+  }
+}
