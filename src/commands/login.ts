@@ -8,9 +8,7 @@ import { CLIUtils } from '../utils/cli.utils';
 export default class Login extends Command {
   static readonly args = {};
   static readonly description =
-    'Logs into an Internxt account. If the account is two-factor protected, then an extra code will be required.\n' +
-    'Using the password parameter is not recommended as it can lead to security problems (the password is written plainly in the console), ' +
-    'it is safer to type your password interactively when the cli asks for it.';
+    'Logs into an Internxt account. If the account is two-factor protected, then an extra code will be required.';
 
   static readonly examples = ['<%= config.bin %> <%= command.id %>'];
 
@@ -24,13 +22,13 @@ export default class Login extends Command {
     password: Flags.string({
       char: 'p',
       env: 'INXT_PASSWORD',
-      description: '[Insecure] The plain password to log in',
+      description: 'The plain password to log in',
       required: false,
     }),
     'two-factor': Flags.string({
       char: 'w',
       env: 'INXT_TWOFACTORCODE',
-      description: '[If needed] The two factor auth code',
+      description: 'The two factor auth code (only needed if the account is two-factor protected)',
       required: false,
       helpValue: '123456',
     }),
