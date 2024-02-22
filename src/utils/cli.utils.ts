@@ -1,4 +1,4 @@
-import { ux } from '@oclif/core';
+import { ux, Flags } from '@oclif/core';
 
 export class CLIUtils {
   static warning(message: string) {
@@ -20,6 +20,17 @@ export class CLIUtils {
   static done() {
     ux.action.stop(ux.colorize('green', 'done ✓'));
   }
+
+  static CommonFlags = {
+    'non-interactive': Flags.boolean({
+      char: 'n',
+      env: 'INXT_NONINTERACTIVE',
+      helpGroup: 'helper',
+      description:
+        'Blocks the cli from being interactive. If passed, the cli will not request data through the console and will throw errors directly',
+      required: false,
+    }),
+  };
 
   static getValueFromFlag = (
     flag: { value: string | undefined; name: string; error: Error },

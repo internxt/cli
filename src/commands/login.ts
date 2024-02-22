@@ -13,6 +13,7 @@ export default class Login extends Command {
   static readonly examples = ['<%= config.bin %> <%= command.id %>'];
 
   static readonly flags = {
+    ...CLIUtils.CommonFlags,
     email: Flags.string({
       char: 'e',
       env: 'INXT_EMAIL',
@@ -31,14 +32,6 @@ export default class Login extends Command {
       description: 'The two factor auth code (only needed if the account is two-factor protected)',
       required: false,
       helpValue: '123456',
-    }),
-    'non-interactive': Flags.boolean({
-      char: 'n',
-      env: 'INXT_NONINTERACTIVE',
-      helpGroup: 'helper',
-      description:
-        'Blocks the cli from being interactive. If passed, the cli will not request data through the console and will throw errors directly',
-      required: false,
     }),
   };
 
