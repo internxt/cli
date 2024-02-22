@@ -1,15 +1,15 @@
 import { expect } from 'chai';
 import sinon, { SinonSandbox } from 'sinon';
 import crypto from 'crypto';
+import { Auth, LoginDetails, SecurityDetails } from '@internxt/sdk';
+import { Users } from '@internxt/sdk/dist/drive';
 import { AuthService } from '../../src/services/auth.service';
 import { KeysService } from '../../src/services/keys.service';
 import { CryptoService } from '../../src/services/crypto.service';
 import { SdkManager } from '../../src/services/sdk-manager.service';
-import { UserFixture } from '../fixtures/auth.fixture';
-import { Auth, LoginDetails, SecurityDetails } from '@internxt/sdk';
-import { CryptoUtils } from '../../src/utils/crypto.utils';
 import { ConfigService } from '../../src/services/config.service';
-import { Users } from '@internxt/sdk/dist/drive';
+import { ValidationService } from '../../src/services/validation.service';
+import { UserFixture } from '../fixtures/auth.fixture';
 
 describe('Auth service', () => {
   let authServiceSandbox: SinonSandbox;
@@ -30,7 +30,7 @@ describe('Auth service', () => {
       userTeam: null,
     };
 
-    authServiceSandbox.stub(Auth.prototype, 'login').returns(Promise.resolve(loginResponse));
+    authServiceSandbox.stub(Auth.prototype, 'login').resolves(loginResponse);
     authServiceSandbox.stub(SdkManager.instance, 'getAuth').returns(Auth.prototype);
     authServiceSandbox.stub(KeysService.instance, 'decryptPrivateKey').returns(loginResponse.user.privateKey);
     authServiceSandbox.stub(KeysService.instance, 'assertPrivateKeyIsValid').resolves();
@@ -76,10 +76,7 @@ describe('Auth service', () => {
       tfaEnabled: true,
     };
 
-    authServiceSandbox
-      .stub(Auth.prototype, 'securityDetails')
-      .withArgs(email)
-      .returns(Promise.resolve(securityDetails));
+    authServiceSandbox.stub(Auth.prototype, 'securityDetails').withArgs(email).resolves(securityDetails);
     authServiceSandbox.stub(SdkManager.instance, 'getAuth').returns(Auth.prototype);
 
     const responseLogin = await AuthService.instance.is2FANeeded(email);
@@ -101,21 +98,19 @@ describe('Auth service', () => {
     }
   });
 
-  it('When getting auth details, should get them if all are found', () => {
+  it('When getting auth details, should get them if all are found', async () => {
     const sut = AuthService.instance;
 
-    authServiceSandbox
-      .stub(ConfigService.instance, 'get')
-      .withArgs('DEV_AUTH_TOKEN')
-      .returns('test_auth_token')
-      .withArgs('DEV_NEW_AUTH_TOKEN')
-      .returns('test_new_auth_token')
-      .withArgs('DEV_MNEMONIC')
-      .returns('test_mnemonic');
+    authServiceSandbox.stub(ConfigService.instance, 'readUser').resolves({
+      user: UserFixture,
+      token: 'test_auth_token',
+      newToken: 'test_new_auth_token',
+      mnemonic: 'test_mnemonic',
+    });
 
-    const validateMnemonicStub = authServiceSandbox.stub(CryptoUtils, 'validateMnemonic').returns(true);
+    const validateMnemonicStub = authServiceSandbox.stub(ValidationService.instance, 'validateMnemonic').returns(true);
 
-    const result = sut.getAuthDetails();
+    const result = await sut.getAuthDetails();
 
     expect(validateMnemonicStub).to.be.calledOnceWith('test_mnemonic');
 
@@ -124,97 +119,89 @@ describe('Auth service', () => {
       newToken: 'test_new_auth_token',
       mnemonic: 'test_mnemonic',
     });
-
-    sinon.restore();
   });
 
-  it('When auth token is missing, should throw an error', () => {
+  it('When credentials are missing, should throw an error', async () => {
     const sut = AuthService.instance;
 
-    authServiceSandbox
-      .stub(ConfigService.instance, 'get')
-      .withArgs('DEV_AUTH_TOKEN')
-      // @ts-expect-error - We are faking a missing auth token
-      .returns(undefined)
-      .withArgs('DEV_NEW_AUTH_TOKEN')
-      .returns('test_new_auth_token')
-      .withArgs('DEV_MNEMONIC')
-      .returns('test_mnemonic');
+    authServiceSandbox.stub(ConfigService.instance, 'readUser').resolves(undefined);
 
     try {
-      sut.getAuthDetails();
+      await sut.getAuthDetails();
+    } catch (error) {
+      expect((error as Error).message).to.contain('Credentials not found, please login first');
+    }
+  });
+
+  it('When auth token is missing, should throw an error', async () => {
+    const sut = AuthService.instance;
+
+    authServiceSandbox.stub(ConfigService.instance, 'readUser').resolves({
+      user: UserFixture,
+      // @ts-expect-error - We are faking a missing auth token
+      token: undefined,
+      newToken: 'test_new_auth_token',
+      mnemonic: 'test_mnemonic',
+    });
+
+    try {
+      await sut.getAuthDetails();
     } catch (error) {
       expect((error as Error).message).to.contain('Auth token not found');
     }
-
-    sinon.restore();
   });
 
-  it('When new auth token is missing, should throw an error', () => {
+  it('When new auth token is missing, should throw an error', async () => {
     const sut = AuthService.instance;
 
-    authServiceSandbox
-      .stub(ConfigService.instance, 'get')
-      .withArgs('DEV_AUTH_TOKEN')
-      .returns('test_auth_token')
-      .withArgs('DEV_NEW_AUTH_TOKEN')
+    authServiceSandbox.stub(ConfigService.instance, 'readUser').resolves({
+      user: UserFixture,
+      token: 'test_auth_token',
       // @ts-expect-error - We are faking a missing auth token
-      .returns(undefined)
-      .withArgs('DEV_MNEMONIC')
-      .returns('test_mnemonic');
+      newToken: undefined,
+      mnemonic: 'test_mnemonic',
+    });
 
     try {
-      sut.getAuthDetails();
+      await sut.getAuthDetails();
     } catch (error) {
       expect((error as Error).message).to.contain('New Auth token not found');
     }
-
-    sinon.restore();
   });
 
-  it('When mnemonic is missing, should throw an error', () => {
+  it('When mnemonic is missing, should throw an error', async () => {
     const sut = AuthService.instance;
 
-    authServiceSandbox
-      .stub(ConfigService.instance, 'get')
-      .withArgs('DEV_AUTH_TOKEN')
-      .returns('test_auth_token')
-      .withArgs('DEV_NEW_AUTH_TOKEN')
-
-      .returns('test_new_auth_token')
-      .withArgs('DEV_MNEMONIC')
-      // @ts-expect-error - We are faking a missing auth token
-      .returns(undefined);
+    authServiceSandbox.stub(ConfigService.instance, 'readUser').resolves({
+      user: UserFixture,
+      token: 'test_auth_token',
+      newToken: 'test_new_auth_token',
+      // @ts-expect-error - We are faking a missing mnemonic
+      mnemonic: undefined,
+    });
 
     try {
-      sut.getAuthDetails();
+      await sut.getAuthDetails();
     } catch (error) {
       expect((error as Error).message).to.contain('Mnemonic not found');
     }
-
-    sinon.restore();
   });
 
-  it('When mnemonic is invalid, should throw an error', () => {
+  it('When mnemonic is invalid, should throw an error', async () => {
     const sut = AuthService.instance;
 
-    authServiceSandbox
-      .stub(ConfigService.instance, 'get')
-      .withArgs('DEV_AUTH_TOKEN')
-      .returns('test_auth_token')
-      .withArgs('DEV_NEW_AUTH_TOKEN')
-
-      .returns('test_new_auth_token')
-      .withArgs('DEV_MNEMONIC')
-      .returns('test_mnemonic');
+    authServiceSandbox.stub(ConfigService.instance, 'readUser').resolves({
+      user: UserFixture,
+      token: 'test_auth_token',
+      newToken: 'test_new_auth_token',
+      mnemonic: 'test_mnemonic',
+    });
 
     try {
-      sut.getAuthDetails();
+      await sut.getAuthDetails();
     } catch (error) {
       expect((error as Error).message).to.contain('Mnemonic is not valid');
     }
-
-    sinon.restore();
   });
 
   it('When getting user, should return the user', async () => {

@@ -29,11 +29,9 @@ describe('Keys service', () => {
     keysServiceSandbox.stub(openpgp, 'createMessage').resolves();
     keysServiceSandbox.stub(openpgp, 'encrypt').resolves();
     keysServiceSandbox.stub(openpgp, 'readMessage').resolves();
-    keysServiceSandbox.stub(openpgp, 'decrypt').returns(
-      Promise.resolve({ data: 'validate-keys' } as openpgp.DecryptMessageResult & {
-        data: openpgp.MaybeStream<string>;
-      }),
-    );
+    keysServiceSandbox.stub(openpgp, 'decrypt').resolves({ data: 'validate-keys' } as openpgp.DecryptMessageResult & {
+      data: openpgp.MaybeStream<string>;
+    });
 
     await KeysService.instance.assertValidateKeys('dontcareprivate', 'dontcarepublic');
     expect(true).to.be.true; //checks that assertValidateKeys does not throw any error
@@ -54,11 +52,9 @@ describe('Keys service', () => {
     keysServiceSandbox.stub(openpgp, 'createMessage').resolves();
     keysServiceSandbox.stub(openpgp, 'encrypt').resolves();
     keysServiceSandbox.stub(openpgp, 'readMessage').resolves();
-    keysServiceSandbox.stub(openpgp, 'decrypt').returns(
-      Promise.resolve({ data: 'bad-validation' } as openpgp.DecryptMessageResult & {
-        data: openpgp.MaybeStream<string>;
-      }),
-    );
+    keysServiceSandbox.stub(openpgp, 'decrypt').resolves({ data: 'bad-validation' } as openpgp.DecryptMessageResult & {
+      data: openpgp.MaybeStream<string>;
+    });
     //every dependency method resolves (no error thrown), but nothing should be encrypted/decrypted, so the result should not be valid
     try {
       await KeysService.instance.assertValidateKeys('dontcareprivate', 'dontcarepublic');
@@ -113,7 +109,7 @@ describe('Keys service', () => {
 
     keysServiceSandbox.stub(KeysService.instance, 'decryptPrivateKey').resolves();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    keysServiceSandbox.stub(KeysService.instance, <any>'isValidKey').returns(Promise.resolve(true));
+    keysServiceSandbox.stub(KeysService.instance, <any>'isValidKey').resolves(true);
 
     await KeysService.instance.assertPrivateKeyIsValid(encryptedPrivateKey, password);
 
@@ -128,7 +124,7 @@ describe('Keys service', () => {
 
     keysServiceSandbox.stub(KeysService.instance, 'decryptPrivateKey').rejects();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    keysServiceSandbox.stub(KeysService.instance, <any>'isValidKey').returns(Promise.resolve(true));
+    keysServiceSandbox.stub(KeysService.instance, <any>'isValidKey').resolves(true);
 
     try {
       await KeysService.instance.assertPrivateKeyIsValid(badEncryptionPrivateKey, password);
@@ -149,7 +145,7 @@ describe('Keys service', () => {
       .stub(KeysService.instance, 'decryptPrivateKey')
       .throwsException(CorruptedEncryptedPrivateKeyError);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    keysServiceSandbox.stub(KeysService.instance, <any>'isValidKey').returns(Promise.resolve(false));
+    keysServiceSandbox.stub(KeysService.instance, <any>'isValidKey').resolves(false);
 
     try {
       await KeysService.instance.assertPrivateKeyIsValid(badEncryptionPrivateKey, password);
@@ -168,7 +164,7 @@ describe('Keys service', () => {
 
     keysServiceSandbox.stub(KeysService.instance, 'decryptPrivateKey').resolves();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    keysServiceSandbox.stub(KeysService.instance, <any>'isValidKey').returns(Promise.resolve(false));
+    keysServiceSandbox.stub(KeysService.instance, <any>'isValidKey').resolves(false);
 
     try {
       await KeysService.instance.assertPrivateKeyIsValid(badEncodedPrivateKey, password);
@@ -221,7 +217,7 @@ describe('Keys service', () => {
 
     const password = crypto.randomBytes(8).toString('hex');
 
-    keysServiceSandbox.stub(openpgp, 'generateKey').returns(Promise.resolve(pgpKeys));
+    keysServiceSandbox.stub(openpgp, 'generateKey').resolves(pgpKeys);
     keysServiceSandbox
       .stub(KeysService.instance, 'encryptPrivateKey')
       .returns(pgpKeysWithEncrypted.privateKeyArmoredEncrypted);

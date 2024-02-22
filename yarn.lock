@@ -1271,7 +1271,7 @@
     node-gyp "^8.2.0"
     read-package-json-fast "^2.0.1"
 
-"@oclif/core@^3", "@oclif/core@^3.18.1", "@oclif/core@^3.19.2", "@oclif/core@^3.19.3":
+"@oclif/core@^3", "@oclif/core@^3.18.1", "@oclif/core@^3.19.1", "@oclif/core@^3.19.2", "@oclif/core@^3.19.3":
   version "3.19.3"
   resolved "https://registry.yarnpkg.com/@oclif/core/-/core-3.19.3.tgz#8ae8c2bd3a95145ce911346855f304a29d6afbac"
   integrity sha512-pILSMpQ1ltAe51dgGxVsjfEVaZrRSEE3pKBGh/GtUkmVCJCP2MiS4AFg1qiLGrwjks0WrzSii3QdM4jDLyMAAA==

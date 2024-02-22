@@ -1,15 +1,14 @@
 import { Network } from '@internxt/sdk';
-import * as NetworkUpload from '@internxt/sdk/dist/network/upload';
-
 import { Environment } from '@internxt/inxt-js';
-import { CryptoUtils } from '../../utils/crypto.utils';
-import crypto from 'crypto';
-import { UploadOptions, UploadProgressCallback } from '../../types/network.types';
+import * as NetworkUpload from '@internxt/sdk/dist/network/upload';
 import { EncryptFileFunction, UploadFileFunction } from '@internxt/sdk/dist/network';
+import crypto from 'crypto';
+import { ReadStream } from 'fs';
+import { UploadOptions, UploadProgressCallback } from '../../types/network.types';
 import { CryptoService } from '../crypto.service';
 import { UploadService } from './upload.service';
-import { ReadStream } from 'fs';
 import { StreamUtils } from '../../utils/stream.utils';
+import { ValidationService } from '../validation.service';
 
 export class NetworkFacade {
   private readonly cryptoLib: Network.Crypto;
@@ -22,7 +21,7 @@ export class NetworkFacade {
     this.cryptoLib = {
       algorithm: Network.ALGORITHMS.AES256CTR,
       validateMnemonic: (mnemonic) => {
-        return CryptoUtils.validateMnemonic(mnemonic);
+        return ValidationService.instance.validateMnemonic(mnemonic);
       },
       generateFileKey: (mnemonic, bucketId, index) => {
         return Environment.utils.generateFileKey(mnemonic, bucketId, index as Buffer);

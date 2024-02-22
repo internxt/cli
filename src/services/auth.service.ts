@@ -1,10 +1,10 @@
 import { LoginDetails } from '@internxt/sdk';
-import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings.js';
 import { SdkManager } from './sdk-manager.service';
 import { KeysService } from './keys.service';
 import { CryptoService } from './crypto.service';
 import { ConfigService } from './config.service';
-import { CryptoUtils } from '../utils/crypto.utils';
+import { LoginCredentials } from '../types/login.types';
+import { ValidationService } from './validation.service';
 
 export class AuthService {
   public static readonly instance: AuthService = new AuthService();
@@ -17,16 +17,7 @@ export class AuthService {
    * @returns The user's properties and the tokens needed for auth
    * @async
    **/
-  public doLogin = async (
-    email: string,
-    password: string,
-    twoFactorCode?: string,
-  ): Promise<{
-    user: UserSettings;
-    token: string;
-    newToken: string;
-    mnemonic: string;
-  }> => {
+  public doLogin = async (email: string, password: string, twoFactorCode?: string): Promise<LoginCredentials> => {
     const authClient = SdkManager.instance.getAuth();
     const loginDetails: LoginDetails = {
       email: email.toLowerCase(),
@@ -97,32 +88,28 @@ export class AuthService {
    *
    * @returns The user plain mnemonic and the auth tokens
    */
+  public getAuthDetails = async (): Promise<{ token: string; newToken: string; mnemonic: string }> => {
+    const loginCredentials = await ConfigService.instance.readUser();
+    if (!loginCredentials) {
+      throw new Error('Credentials not found, please login first');
+    }
 
-  public getAuthDetails(): { token: string; newToken: string; mnemonic: string } {
-    /**
-     * DEV PURPOSE ONLY
-     *
-     * We are using this method to get the auth details for the user from the env, in
-     * production we should pull this data from a locally persisted file
-     */
-    const token = ConfigService.instance.get('DEV_AUTH_TOKEN');
-    const newToken = ConfigService.instance.get('DEV_NEW_AUTH_TOKEN');
-    const mnemonic = ConfigService.instance.get('DEV_MNEMONIC');
+    const { token, newToken, mnemonic } = loginCredentials;
 
     if (!token) {
-      throw new Error('Auth token not found, please login first');
+      throw new Error('Auth token not found, please login again');
     }
 
     if (!newToken) {
-      throw new Error('New Auth token not found, please login first');
+      throw new Error('New Auth token not found, please login again');
     }
 
     if (!mnemonic) {
-      throw new Error('Mnemonic not found, please login first');
+      throw new Error('Mnemonic not found, please login again');
     }
 
-    if (!CryptoUtils.validateMnemonic(mnemonic)) {
-      throw new Error('Mnemonic is not valid, cannot use it');
+    if (!ValidationService.instance.validateMnemonic(mnemonic)) {
+      throw new Error('Mnemonic is not valid, please login again');
     }
 
     return {
@@ -130,5 +117,5 @@ export class AuthService {
       newToken,
       mnemonic,
     };
-  }
+  };
 }

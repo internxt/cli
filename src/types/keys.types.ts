@@ -26,7 +26,7 @@ export class KeysDoNotMatchError extends Error {
   constructor() {
     super('Keys do not match');
 
-    Object.setPrototypeOf(this, CorruptedEncryptedPrivateKeyError.prototype);
+    Object.setPrototypeOf(this, KeysDoNotMatchError.prototype);
   }
 }
 

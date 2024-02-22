@@ -1,15 +1,17 @@
 import { Hook } from '@oclif/core';
 import Whoami from '../../commands/whoami';
+import Login from '../../commands/login';
+import Logout from '../../commands/logout';
 import { CLIUtils } from '../../utils/cli.utils';
 import { SdkManager } from '../../services/sdk-manager.service';
 import { AuthService } from '../../services/auth.service';
 
-const CommandsToSkip = [Whoami];
+const CommandsToSkip = [Whoami, Login, Logout];
 const hook: Hook<'prerun'> = async function (opts) {
   if (!CommandsToSkip.map((command) => command.name).includes(opts.Command.name)) {
     CLIUtils.doing('Checking credentials');
     try {
-      const { token, newToken } = AuthService.instance.getAuthDetails();
+      const { token, newToken } = await AuthService.instance.getAuthDetails();
       SdkManager.init({
         token,
         newToken,

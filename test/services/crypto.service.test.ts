@@ -80,7 +80,7 @@ describe('Crypto service', () => {
     const hashedPassword = CryptoService.instance.decryptText(hashedAndEncryptedPassword);
 
     const expectedHashedPassword = crypto
-      .pbkdf2Sync(password.value, password.salt, 10000, 256 / 8, 'sha256')
+      .pbkdf2Sync(password.value, Buffer.from(password.salt, 'hex'), 10000, 256 / 8, 'sha1')
       .toString('hex');
 
     expect(hashedPassword).to.be.equal(expectedHashedPassword);
@@ -105,9 +105,9 @@ describe('Crypto service', () => {
       revocationCertificate: crypto.randomBytes(16).toString('hex'),
     };
 
-    const kerysServiceStub = cryptoServiceSandbox
+    const keysServiceStub = cryptoServiceSandbox
       .stub(KeysService.instance, 'generateNewKeysWithEncrypted')
-      .returns(Promise.resolve(keysReturned));
+      .resolves(keysReturned);
 
     const expectedKeys: Keys = {
       privateKeyEncrypted: keysReturned.privateKeyArmoredEncrypted,
@@ -118,7 +118,7 @@ describe('Crypto service', () => {
     const resultedKeys = await CryptoService.cryptoProvider.generateKeys(password);
 
     expect(expectedKeys).to.be.eql(resultedKeys);
-    expect(kerysServiceStub).to.be.calledWith(password);
+    expect(keysServiceStub).to.be.calledWith(password);
   });
 
   it('When encrypting an stream, the output hash should be correct', async () => {
@@ -151,11 +151,8 @@ describe('Crypto service', () => {
     const APP_CRYPTO_SECRET = crypto.randomBytes(16).toString('hex');
 
     // test PBKDF2 - node:crypto equivalent password to hash
-    const actualPass = CryptoJS.PBKDF2(password.value, password.salt, {
-      keySize: 256 / 32,
-      iterations: 10000,
-    }).toString();
-    const expectedPass = crypto.pbkdf2Sync(password.value, password.salt, 10000, 256 / 8, 'sha256').toString('hex');
+    const actualPass = CryptoJS.PBKDF2(password.value, CryptoJS.enc.Hex.parse(password.salt), { keySize: 256 / 32, iterations: 10000 }).toString();
+    const expectedPass = crypto.pbkdf2Sync(password.value, Buffer.from(password.salt, 'hex'), 10000, 256 / 8, 'sha1').toString('hex');
     expect(actualPass).to.equal(expectedPass);
     expect(CryptoJS.lib.WordArray.random(128 / 8).toString().length).to.equal(
       crypto.randomBytes(128 / 8).toString('hex').length,
