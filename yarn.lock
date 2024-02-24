@@ -1094,11 +1094,6 @@
     "@jridgewell/resolve-uri" "^3.1.0"
     "@jridgewell/sourcemap-codec" "^1.4.14"
 
-"@mattiasbuelens/web-streams-adapter@~0.1.0":
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/@mattiasbuelens/web-streams-adapter/-/web-streams-adapter-0.1.0.tgz#607b5a25682f4ae2741da7ba6df39302505336b3"
-  integrity sha512-oV4PyZfwJNtmFWhvlJLqYIX1Nn22ML8FZpS16ZUKv0hg7414xV1fjsGqxQzLT2dyK92TKxsJSwMOd7VNHAtPmA==
-
 "@noble/hashes@^1.2.0":
   version "1.3.3"
   resolved "https://registry.yarnpkg.com/@noble/hashes/-/hashes-1.3.3.tgz#39908da56a4adc270147bb07968bf3b16cfe1699"
@@ -1446,13 +1441,10 @@
   dependencies:
     "@octokit/openapi-types" "^12.11.0"
 
-"@openpgp/web-stream-tools@0.0.11-patch-0":
-  version "0.0.11-patch-0"
-  resolved "https://registry.yarnpkg.com/@openpgp/web-stream-tools/-/web-stream-tools-0.0.11-patch-0.tgz#c8b2ecfa62403bb10de2b33c8548bd25b14f1828"
-  integrity sha512-NrIF4DkCqC3WDcMDAgz17z+0Iik1fVrKuvdbjZXCnMZgYAWHpIG8CWnbp8yQRahAdF26jqCopA/qXrp8CYI2yw==
-  dependencies:
-    "@mattiasbuelens/web-streams-adapter" "~0.1.0"
-    web-streams-polyfill "~3.0.3"
+"@openpgp/web-stream-tools@0.1.1":
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/@openpgp/web-stream-tools/-/web-stream-tools-0.1.1.tgz#d5b5c08ab92901e9dc51d6ed19ed8d2dd8808e38"
+  integrity sha512-1WkV+z78S8DJNlUiCPxSjsna6gfAGCVuepL2KUDlBztXzhvplwWr4lAvsWcYzFkHykaFoCSOV9ssiRRq7QzydQ==
 
 "@sindresorhus/is@^4.0.0":
   version "4.6.0"
@@ -7787,11 +7779,6 @@ wcwidth@^1.0.1:
   integrity sha512-XHPEwS0q6TaxcvG85+8EYkbiCux2XtWG2mkc47Ng2A77BQu9+DqIOJldST4HgPkuea7dvKSj5VgX3P1d4rW8Tg==
   dependencies:
     defaults "^1.0.3"
-
-web-streams-polyfill@~3.0.3:
-  version "3.0.3"
-  resolved "https://registry.yarnpkg.com/web-streams-polyfill/-/web-streams-polyfill-3.0.3.tgz#f49e487eedeca47a207c1aee41ee5578f884b42f"
-  integrity sha512-d2H/t0eqRNM4w2WvmTdoeIvzAUSpK7JmATB8Nr2lb7nQ9BTIJVjbQ/TRFVEh2gUH1HwclPdoPtfMoFfetXaZnA==
 
 webidl-conversions@^3.0.0:
   version "3.0.1"

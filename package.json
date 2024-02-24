@@ -44,7 +44,7 @@
   "devDependencies": {
     "@oclif/prettier-config": "^0.2.1",
     "@oclif/test": "^3",
-    "@openpgp/web-stream-tools": "0.0.11-patch-0",
+    "@openpgp/web-stream-tools": "0.1.1",
     "@types/chai": "^4",
     "@types/mocha": "^10",
     "@types/node": "^18",
