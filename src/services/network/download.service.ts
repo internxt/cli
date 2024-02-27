@@ -8,7 +8,7 @@ export class DownloadService {
     options: { progressCallback?: (progress: number) => void; abortController?: AbortController },
   ): Promise<ReadableStream<Uint8Array>> {
     const request = superagent.get(url).on('progress', (progressEvent) => {
-      console.log('REPORTED', progressEvent);
+      console.log('PROGRESS', progressEvent);
       if (options.progressCallback && progressEvent.total) {
         const reportedProgress = progressEvent.loaded / parseInt(progressEvent.total);
 
@@ -17,6 +17,7 @@ export class DownloadService {
     });
 
     const response = await request;
+
     const readable = new ReadableStream<Uint8Array>({
       start(controller) {
         response.on('data', (chunk: Uint8Array) => {
@@ -27,7 +28,6 @@ export class DownloadService {
         });
       },
     });
-
     return readable;
   }
 }

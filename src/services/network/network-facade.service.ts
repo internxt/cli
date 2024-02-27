@@ -74,12 +74,12 @@ export class NetworkFacade {
         Buffer.from(iv as ArrayBuffer),
       );
 
-      fileStream.pipeTo(to);
+      await fileStream.pipeTo(to);
     };
 
     const downloadFile: DownloadFileFunction = async (downloadables) => {
       for (const downloadable of downloadables) {
-        if (options?.abortController?.signal.aborted) {
+        if (abortable.signal.aborted) {
           throw new Error('Download aborted');
         }
 

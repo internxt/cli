@@ -4,7 +4,7 @@ import * as NetworkDownload from '@internxt/sdk/dist/network/download';
 import { NetworkFacade } from '../../../src/services/network/network-facade.service';
 import { SdkManager } from '../../../src/services/sdk-manager.service';
 import path from 'path';
-import { createReadStream, createWriteStream } from 'fs';
+import { createReadStream, createWriteStream, statSync } from 'fs';
 import sinon, { SinonSandbox } from 'sinon';
 import { expect } from 'chai';
 import { UploadService } from '../../../src/services/network/upload.service';
@@ -83,46 +83,102 @@ describe('Network Facade Service', () => {
     expect(uploadResult.fileId).to.be.equal('uploaded_file_id');
   });
 
-  it.skip('When a file is downloaded, should return write to a stream', async (done) => {
-    const encryptedContent = Buffer.from('encrypted-content');
+  it('When a file is downloaded, should write it to a stream', async () => {
+    const encryptedContent = Buffer.from('b6ccfa381c150f3a4b65245bffa4d84087', 'hex');
+    const bucket = 'cd8abd7e8b13081660b58dbe';
     const readableContent = new ReadableStream<Uint8Array>({
       pull(controller) {
         controller.enqueue(encryptedContent);
+        controller.close();
       },
     });
 
     const networkMock = getNetworkMock();
-    sinon.stub(networkMock, 'getDownloadLinks').resolves({
-      index: '4ae6fcc4dd6ebcdb9076f2396d64da48',
-      bucket: CommonFixture.createObjectId(),
+    networkFacadeSandbox.stub(networkMock, 'getDownloadLinks').resolves({
+      index: '29f07b8914d8353b663ab783f4bbe9950fdde680a69524405790cecca9c549f9',
+      bucket: bucket,
       created: new Date(),
       size: 100,
       shards: [
         {
-          url: 'https://stub.com/file',
+          url: 'https://doesnotexists.com/file',
           index: 0,
-          size: 100,
-          hash: '123456',
+          size: 17,
+          hash: 'a4fc32830aee362a407085f3683f20825a2b21ce',
         },
       ],
       version: 2,
     });
     const downloadServiceStub = DownloadService.instance;
-    sinon.stub(downloadServiceStub, 'downloadFile').resolves(readableContent);
+    networkFacadeSandbox.stub(downloadServiceStub, 'downloadFile').resolves(readableContent);
     const sut = new NetworkFacade(networkMock, UploadService.instance, downloadServiceStub, CryptoService.instance);
 
     const chunks: Uint8Array[] = [];
 
-    const fileToWrite = path.join(process.cwd(), 'test/fixtures/test-writable-network-facade.fixture.txt');
-    const writable = new WritableStream();
+    const writable = new WritableStream<Uint8Array>({
+      write(chunk) {
+        chunks.push(chunk);
+      },
+    });
+
     const [executeDownload] = await sut.downloadToStream(
-      'f1858bc9675f9e4f7ab29429',
-      'animal fog wink trade december thumb sight cousin crunch plunge captain enforce letter creek text',
+      bucket,
+      'index course habit soon assist dragon tragic helmet salute stuff later twice consider grit pulse cement obvious trick sponsor stereo hello win royal more',
       'f1858bc9675f9e4f7ab29429',
       writable,
     );
 
     await executeDownload;
-    done();
+    const fileContent = Buffer.concat(chunks);
+
+    expect(fileContent.toString('utf-8')).to.equal('encrypted-content');
+  });
+
+  it('When a file download is aborted, should abort the download', async () => {
+    const encryptedContent = Buffer.from('b6ccfa381c150f3a4b65245bffa4d84087', 'hex');
+    const bucket = 'cd8abd7e8b13081660b58dbe';
+    const readableContent = new ReadableStream<Uint8Array>({
+      pull(controller) {
+        controller.enqueue(encryptedContent);
+        controller.close();
+      },
+    });
+
+    const networkMock = getNetworkMock();
+    networkFacadeSandbox.stub(networkMock, 'getDownloadLinks').resolves({
+      index: '29f07b8914d8353b663ab783f4bbe9950fdde680a69524405790cecca9c549f9',
+      bucket: bucket,
+      created: new Date(),
+      size: 100,
+      shards: [
+        {
+          url: 'https://doesnotexists.com/file',
+          index: 0,
+          size: 17,
+          hash: 'a4fc32830aee362a407085f3683f20825a2b21ce',
+        },
+      ],
+      version: 2,
+    });
+    const downloadServiceStub = DownloadService.instance;
+    networkFacadeSandbox.stub(downloadServiceStub, 'downloadFile').resolves(readableContent);
+    const sut = new NetworkFacade(networkMock, UploadService.instance, downloadServiceStub, CryptoService.instance);
+
+    const writable = new WritableStream<Uint8Array>();
+
+    const [executeDownload, abort] = await sut.downloadToStream(
+      bucket,
+      'index course habit soon assist dragon tragic helmet salute stuff later twice consider grit pulse cement obvious trick sponsor stereo hello win royal more',
+      'f1858bc9675f9e4f7ab29429',
+      writable,
+    );
+
+    try {
+      abort.abort();
+      await executeDownload;
+      expect(false).to.be.true;
+    } catch (error) {
+      expect((error as Error).message).to.be.equal('Download aborted');
+    }
   });
 });

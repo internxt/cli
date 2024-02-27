@@ -34,7 +34,7 @@ describe('Download Service', () => {
     expect(read.value).to.deep.equal(fileContent);
   });
 
-  it.skip('When a file is downloaded, progress should be reported', async () => {
+  it('When a file is downloaded, progress should be reported', async () => {
     const fileContent = Buffer.from('file-content');
     const options = {
       progressCallback: sandbox.stub(),
@@ -47,26 +47,12 @@ describe('Download Service', () => {
     });
 
     // @ts-expect-error - Partial Superagent request mock
-    sinon.stub(superagent, 'get').returns({
-      on: sinon
-        .stub()
-        .callsFake((event, callback) => {
-          console.log('EVENT', event);
-          if (event === 'progress') {
-            callback({ total: 100, loaded: 50 });
-          }
-        })
-        .callsFake((event, callback) => {
-          if (event === 'progress') {
-            callback({ total: 100, loaded: 100 });
-          }
-        })
-        .resolves(readableContent),
+    sandbox.stub(superagent, 'get').returns({
+      on: sinon.stub().withArgs('progress').yields({ total: 100, loaded: 100 }).resolves(readableContent),
     });
 
     await sut.downloadFile('https://example.com/file', options);
 
-    expect(options.progressCallback.calledWith(0.5)).to.be.true;
-    expect(options.progressCallback.calledWith(1)).to.be.true;
+    +expect(options.progressCallback.calledWith(1)).to.be.true;
   });
 });
