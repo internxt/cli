@@ -33,13 +33,16 @@ export class CLIUtils {
   };
 
   static getValueFromFlag = (
-    flag: { value: string | undefined; name: string; error: Error },
+    flag: { value: string | undefined; name: string; error: Error; canBeEmpty?: boolean },
     nonInteractive: boolean,
     validate: (value: string) => boolean,
   ): string | undefined => {
-    // It returns the value passed from the flag if its valid. If its not valid, it will throw an error when nonInteractive mode is active and a warning otherwise
-    // It throws an error if its in nonInteractive mode and no flag value is aquired
+    // It returns the value passed from the flag if it is valid. If it is not valid, it will throw an error when nonInteractive mode is active and a warning otherwise
+    // It throws an error if nonInteractive mode is active and no flag value is aquired
     if (flag.value) {
+      if (flag.value.trim().length === 0 && flag.canBeEmpty) {
+        return '';
+      }
       const isValid = validate(flag.value);
       if (isValid) {
         return flag.value;
