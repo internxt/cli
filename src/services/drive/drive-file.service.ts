@@ -49,7 +49,7 @@ export class DriveFileService {
   async getFileMetadata(uuid: string): Promise<DriveFileItem> {
     const storageClient = SdkManager.instance.getStorage(true);
 
-    const [getFileMetadata] = await storageClient.getFile(uuid);
+    const [getFileMetadata] = storageClient.getFile(uuid);
 
     const fileMetadata = await getFileMetadata;
     return {
