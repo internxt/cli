@@ -67,6 +67,17 @@ export class CLIUtils {
       return promptValue;
     }
   };
+
+  static timer() {
+    const start = new Date();
+    return {
+      stop: () => {
+        const end = new Date();
+        const time = end.getTime() - start.getTime();
+        return time;
+      },
+    };
+  }
 }
 
 class NoFlagProvidedError extends Error {

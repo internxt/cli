@@ -1,13 +1,18 @@
 import * as NetworkUpload from '@internxt/sdk/dist/network/upload';
+import * as NetworkDownload from '@internxt/sdk/dist/network/download';
 
 import { NetworkFacade } from '../../../src/services/network/network-facade.service';
 import { SdkManager } from '../../../src/services/sdk-manager.service';
 import path from 'path';
-import { createReadStream } from 'fs';
+import { createReadStream, createWriteStream } from 'fs';
 import sinon, { SinonSandbox } from 'sinon';
 import { expect } from 'chai';
 import { UploadService } from '../../../src/services/network/upload.service';
 import { CryptoService } from '../../../src/services/crypto.service';
+import { DownloadService } from '../../../src/services/network/download.service';
+import { StreamUtils } from '../../../src/utils/stream.utils';
+import { PassThrough, Readable, Writable } from 'stream';
+import { CommonFixture } from '../../fixtures/common.fixture';
 describe('Network Facade Service', () => {
   let networkFacadeSandbox: SinonSandbox;
 
@@ -25,7 +30,12 @@ describe('Network Facade Service', () => {
     });
   };
   it('When a file is prepared to upload, should return an abort controller and a promise to execute the upload', async () => {
-    const sut = new NetworkFacade(getNetworkMock(), UploadService.instance, CryptoService.instance);
+    const sut = new NetworkFacade(
+      getNetworkMock(),
+      UploadService.instance,
+      DownloadService.instance,
+      CryptoService.instance,
+    );
     const file = path.join(process.cwd(), 'test/fixtures/test-content.fixture.txt');
     const readStream = createReadStream(file);
     const options = {
@@ -37,7 +47,7 @@ describe('Network Facade Service', () => {
       'f1858bc9675f9e4f7ab29429',
       'animal fog wink trade december thumb sight cousin crunch plunge captain enforce letter creek text',
       100,
-      readStream,
+      StreamUtils.readStreamToReadableStream(readStream),
       options,
     );
 
@@ -46,7 +56,12 @@ describe('Network Facade Service', () => {
   });
 
   it('When a file is uploaded, should return the fileId', async () => {
-    const sut = new NetworkFacade(getNetworkMock(), UploadService.instance, CryptoService.instance);
+    const sut = new NetworkFacade(
+      getNetworkMock(),
+      UploadService.instance,
+      DownloadService.instance,
+      CryptoService.instance,
+    );
     const file = path.join(process.cwd(), 'test/fixtures/test-content.fixture.txt');
     const readStream = createReadStream(file);
     const options = {
@@ -59,7 +74,7 @@ describe('Network Facade Service', () => {
       'f1858bc9675f9e4f7ab29429',
       'animal fog wink trade december thumb sight cousin crunch plunge captain enforce letter creek text',
       100,
-      readStream,
+      StreamUtils.readStreamToReadableStream(readStream),
       options,
     );
 
@@ -68,48 +83,46 @@ describe('Network Facade Service', () => {
     expect(uploadResult.fileId).to.be.equal('uploaded_file_id');
   });
 
-  it('When a file is uploaded, should return the fileId', async () => {
-    const network = getNetworkMock();
-    const upload = UploadService.instance;
-    const sut = new NetworkFacade(network, upload, CryptoService.instance);
-    const file = path.join(process.cwd(), 'test/fixtures/test-content.fixture.txt');
-    const readStream = createReadStream(file);
-    const options = {
-      progressCallback: sinon.stub(),
-      abortController: new AbortController(),
-    };
+  it.skip('When a file is downloaded, should return write to a stream', async (done) => {
+    const encryptedContent = Buffer.from('encrypted-content');
+    const readableContent = new ReadableStream<Uint8Array>({
+      pull(controller) {
+        controller.enqueue(encryptedContent);
+      },
+    });
 
-    networkFacadeSandbox.stub(upload, 'uploadFile').resolves({ etag: 'file-etag' });
-
-    networkFacadeSandbox.stub(network, 'startUpload').resolves({
-      uploads: [
+    const networkMock = getNetworkMock();
+    sinon.stub(networkMock, 'getDownloadLinks').resolves({
+      index: '4ae6fcc4dd6ebcdb9076f2396d64da48',
+      bucket: CommonFixture.createObjectId(),
+      created: new Date(),
+      size: 100,
+      shards: [
         {
+          url: 'https://stub.com/file',
           index: 0,
-          uuid: 'upload-uuid',
-          url: 'https://example.com/upload-url',
-          urls: [],
+          size: 100,
+          hash: '123456',
         },
       ],
+      version: 2,
     });
+    const downloadServiceStub = DownloadService.instance;
+    sinon.stub(downloadServiceStub, 'downloadFile').resolves(readableContent);
+    const sut = new NetworkFacade(networkMock, UploadService.instance, downloadServiceStub, CryptoService.instance);
 
-    networkFacadeSandbox.stub(network, 'finishUpload').resolves({
-      id: 'uploaded_file_id',
-      index: 'file-index',
-      bucket: 'bucket-id',
-      name: 'test-content',
-      mimetype: 'text/plain',
-      created: new Date(),
-    });
-    const [executeUpload] = await sut.uploadFromStream(
+    const chunks: Uint8Array[] = [];
+
+    const fileToWrite = path.join(process.cwd(), 'test/fixtures/test-writable-network-facade.fixture.txt');
+    const writable = new WritableStream();
+    const [executeDownload] = await sut.downloadToStream(
       'f1858bc9675f9e4f7ab29429',
       'animal fog wink trade december thumb sight cousin crunch plunge captain enforce letter creek text',
-      100,
-      readStream,
-      options,
+      'f1858bc9675f9e4f7ab29429',
+      writable,
     );
 
-    const uploadResult = await executeUpload;
-
-    expect(uploadResult.fileId).to.be.equal('uploaded_file_id');
+    await executeDownload;
+    done();
   });
 });
