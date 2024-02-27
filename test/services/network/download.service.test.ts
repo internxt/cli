@@ -53,6 +53,6 @@ describe('Download Service', () => {
 
     await sut.downloadFile('https://example.com/file', options);
 
-    +expect(options.progressCallback.calledWith(1)).to.be.true;
+    expect(options.progressCallback.calledWith(1)).to.be.true;
   });
 });

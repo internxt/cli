@@ -8,7 +8,6 @@ export class DownloadService {
     options: { progressCallback?: (progress: number) => void; abortController?: AbortController },
   ): Promise<ReadableStream<Uint8Array>> {
     const request = superagent.get(url).on('progress', (progressEvent) => {
-      console.log('PROGRESS', progressEvent);
       if (options.progressCallback && progressEvent.total) {
         const reportedProgress = progressEvent.loaded / parseInt(progressEvent.total);
 
