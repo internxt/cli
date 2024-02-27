@@ -31,11 +31,11 @@ export class NotValidTwoFactorCodeError extends Error {
   }
 }
 
-export class NotValidFolderIdError extends Error {
+export class NotValidFolderUuidError extends Error {
   constructor() {
-    super('Folder id is not valid (it must be a folder id number)');
+    super('Folder UUID is not valid (it must be a valid v4 UUID)');
 
-    Object.setPrototypeOf(this, NotValidFolderIdError.prototype);
+    Object.setPrototypeOf(this, NotValidFolderUuidError.prototype);
   }
 }
 

@@ -1,8 +1,9 @@
 import { Command, Flags, ux } from '@oclif/core';
 import { ConfigService } from '../services/config.service';
-import { DriveService } from '../services/drive/drive.service';
+import { DriveFolderService } from '../services/drive/drive-folder.service';
 import { CLIUtils } from '../utils/cli.utils';
-import { MissingCredentialsError, NotValidFolderIdError } from '../types/command.types';
+import { MissingCredentialsError, NotValidFolderUuidError } from '../types/command.types';
+import { ValidationService } from '../services/validation.service';
 
 export default class List extends Command {
   static readonly args = {};
@@ -12,7 +13,7 @@ export default class List extends Command {
 
   static readonly flags = {
     ...CLIUtils.CommonFlags,
-    'folder-id': Flags.string({
+    'folder-uuid': Flags.string({
       char: 'f',
       description: 'The folder id to list. Leave empty for the root folder.',
       required: false,
@@ -29,30 +30,35 @@ export default class List extends Command {
 
     const userCredentials = await ConfigService.instance.readUser();
     if (!userCredentials) throw new MissingCredentialsError();
-    const root_folder_id = userCredentials.user.root_folder_id;
 
-    let folderId = Number(await this.getFolderId(flags['folder-id'], nonInteractive));
+    let folderUuid = await this.getFolderUuid(flags['folder-uuid'], nonInteractive);
+    let parentFolderName = '';
 
-    if (folderId === 0) {
-      // folderId is empty from flags/prompt
-      folderId = root_folder_id;
+    if (folderUuid.trim().length === 0) {
+      // folderId is empty from flags/prompt, which means we should use RootFolderUuid
+      parentFolderName = 'Root Folder';
+      const rootFolderId = userCredentials.user.root_folder_id;
+      const rootFolderMeta = await DriveFolderService.instance.getFolderMetaById(rootFolderId);
+      this.logJson({ rootFolderMeta });
+      folderUuid = rootFolderMeta.uuid;
+    } else {
+      const folderMeta = await DriveFolderService.instance.getFolderMetaByUuid(folderUuid);
+      parentFolderName = folderMeta.plainName;
     }
 
-    const { children, files, name } = await DriveService.instance.getFolderContent(folderId);
+    const { folders, files } = await DriveFolderService.instance.getFolderContent(folderUuid);
 
     const tree = ux.tree();
-    const folderParent = `🗁  ${folderId === root_folder_id ? 'Root Folder' : name}`;
+    const folderParent = `🗁  ${parentFolderName}`;
     tree.insert(folderParent);
 
-    for (const folder of children) {
+    for (const folder of folders) {
       const subFolder = `🗁  ${folder.plain_name}: [${folder.uuid}]`;
-
       tree.nodes[folderParent].insert(subFolder);
     }
 
     for (const file of files) {
       const subFile = `🗎 ${file.plain_name}: [${file.uuid}]`;
-
       tree.nodes[folderParent].insert(subFile);
     }
     tree.display();
@@ -63,27 +69,28 @@ export default class List extends Command {
     this.exit(1);
   }
 
-  public getFolderId = async (folderIdFlag: string | undefined, nonInteractive: boolean): Promise<string> => {
-    let folderId = CLIUtils.getValueFromFlag(
+  public getFolderUuid = async (folderIdFlag: string | undefined, nonInteractive: boolean): Promise<string> => {
+    let folderUuid = CLIUtils.getValueFromFlag(
       {
         value: folderIdFlag,
-        name: List.flags['folder-id'].name,
-        error: new NotValidFolderIdError(),
+        name: List.flags['folder-uuid'].name,
+        error: new NotValidFolderUuidError(),
+        canBeEmpty: true,
       },
       nonInteractive,
-      (folderId: string) => !isNaN(Number(folderId)),
+      (folderUuid: string) => ValidationService.instance.validateUUIDv4(folderUuid),
     );
-    if (!folderId) {
-      folderId = (await this.getFolderIdInteractively()).trim();
+    if (!folderUuid) {
+      folderUuid = (await this.getFolderUuidInteractively()).trim();
     }
-    return folderId;
+    return folderUuid;
   };
 
-  public getFolderIdInteractively = (): Promise<string> => {
+  public getFolderUuidInteractively = (): Promise<string> => {
     return CLIUtils.prompt({
-      message: 'What is the folder id you want to list? (leave empty for the root folder)',
+      message: 'What is the folder uuid you want to list? (leave empty for the root folder)',
       options: { required: false },
-      error: new NotValidFolderIdError(),
+      error: new NotValidFolderUuidError(),
     });
   };
 }
