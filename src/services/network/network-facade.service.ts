@@ -124,7 +124,7 @@ export class NetworkFacade {
     size: number,
     from: ReadableStream<Uint8Array>,
     options?: UploadOptions,
-  ): Promise<[Promise<{ fileId: string }>, AbortController]> {
+  ): Promise<[Promise<{ fileId: string; hash: Buffer }>, AbortController]> {
     const abortable = options?.abortController ?? new AbortController();
     let fileHash: Buffer;
     let encryptedBlob: Blob;
