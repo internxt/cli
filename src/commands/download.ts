@@ -1,4 +1,4 @@
-import { Args, Command, Flags, ux } from '@oclif/core';
+import { Command, Flags, ux } from '@oclif/core';
 import { DriveFileService } from '../services/drive/drive-file.service';
 import { CLIUtils } from '../utils/cli.utils';
 import { NetworkFacade } from '../services/network/network-facade.service';
@@ -50,7 +50,7 @@ export default class Download extends Command {
   };
 
   public getUser = async (): Promise<UserSettings> => {
-    const { mnemonic } = AuthService.instance.getAuthDetails();
+    const { mnemonic } = await AuthService.instance.getAuthDetails();
     const user = await AuthService.instance.getUser();
 
     return {
