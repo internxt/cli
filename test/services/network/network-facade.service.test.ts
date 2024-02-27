@@ -1,18 +1,16 @@
 import * as NetworkUpload from '@internxt/sdk/dist/network/upload';
-import * as NetworkDownload from '@internxt/sdk/dist/network/download';
 
 import { NetworkFacade } from '../../../src/services/network/network-facade.service';
 import { SdkManager } from '../../../src/services/sdk-manager.service';
 import path from 'path';
-import { createReadStream, createWriteStream, statSync } from 'fs';
+import { createReadStream } from 'fs';
 import sinon, { SinonSandbox } from 'sinon';
 import { expect } from 'chai';
 import { UploadService } from '../../../src/services/network/upload.service';
 import { CryptoService } from '../../../src/services/crypto.service';
 import { DownloadService } from '../../../src/services/network/download.service';
 import { StreamUtils } from '../../../src/utils/stream.utils';
-import { PassThrough, Readable, Writable } from 'stream';
-import { CommonFixture } from '../../fixtures/common.fixture';
+
 describe('Network Facade Service', () => {
   let networkFacadeSandbox: SinonSandbox;
 
