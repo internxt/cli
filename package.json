@@ -39,7 +39,8 @@
     "bip39": "^3.1.0",
     "chalk": "^5.3.0",
     "dotenv": "^16.4.5",
-    "openpgp": "^5.11.0"
+    "openpgp": "^5.11.0",
+    "superagent": "^8.1.2"
   },
   "devDependencies": {
     "@oclif/prettier-config": "^0.2.1",
@@ -49,6 +50,7 @@
     "@types/mocha": "^10",
     "@types/node": "^18",
     "@types/sinon-chai": "^3.2.12",
+    "@types/superagent": "^8.1.3",
     "chai": "^4",
     "eslint": "^8",
     "eslint-config-oclif": "^5",
@@ -57,6 +59,7 @@
     "husky": "^9.0.11",
     "lint-staged": "^15.2.2",
     "mocha": "^10",
+    "nock": "^13.5.3",
     "nyc": "^15.1.0",
     "oclif": "^4.4.16",
     "prettier": "^3.2.5",
