@@ -10,3 +10,4 @@ export interface NetworkOperationBaseOptions {
 }
 
 export type UploadOptions = NetworkOperationBaseOptions;
+export type DownloadOptions = NetworkOperationBaseOptions;

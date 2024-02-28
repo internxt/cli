@@ -10,6 +10,8 @@ import path from 'node:path';
 import { DriveFileService } from '../services/drive/drive-file.service';
 import { UploadService } from '../services/network/upload.service';
 import { CryptoService } from '../services/crypto.service';
+import { DownloadService } from '../services/network/download.service';
+import { StreamUtils } from '../utils/stream.utils';
 
 export default class Upload extends Command {
   static readonly description = 'Upload a file to Internxt Drive';
@@ -21,9 +23,12 @@ export default class Upload extends Command {
     folderId: Flags.integer({ description: 'The folder id to upload the file to', required: false }),
   };
 
-  static readonly args = {};
+  async catch(error: Error) {
+    CLIUtils.error(error.message);
+    this.exit(1);
+  }
 
-  public async run(): Promise<{ fileId: string }> {
+  public async run(): Promise<{ fileId: string; uuid: string }> {
     const { flags } = await this.parse(Upload);
 
     const stat = await fs.stat(flags.file);
@@ -44,22 +49,28 @@ export default class Upload extends Command {
       user: user.bridgeUser,
       pass: user.userId,
     });
-    const networkFacade = new NetworkFacade(networkModule, UploadService.instance, CryptoService.instance);
+    const networkFacade = new NetworkFacade(
+      networkModule,
+      UploadService.instance,
+      DownloadService.instance,
+      CryptoService.instance,
+    );
 
     CLIUtils.done();
 
+    const timer = CLIUtils.timer();
     // 2. Upload file to the Network
     const fileStream = createReadStream(flags.file);
     const progressBar = ux.progress({
       format: 'Uploading file [{bar}] {percentage}%',
       linewrap: true,
     });
-    progressBar.start(100, 0);
+    progressBar.start(1, 0);
     const [uploadPromise, abortable] = await networkFacade.uploadFromStream(
       user.bucket,
       mnemonic,
       stat.size,
-      fileStream,
+      StreamUtils.readStreamToReadableStream(fileStream),
       {
         progressCallback: (progress) => {
           progressBar.update(progress);
@@ -86,10 +97,15 @@ export default class Upload extends Command {
       bucket: user.bucket,
     });
 
+    const uploadTime = timer.stop();
+    this.log('\n');
     CLIUtils.success(
-      `File uploaded, view it at ${ConfigService.instance.get('DRIVE_URL')}/file/${createdDriveFile.uuid}`,
+      `File uploaded in ${uploadTime}ms, view it at ${ConfigService.instance.get('DRIVE_URL')}/file/${createdDriveFile.uuid}`,
     );
 
-    return uploadResult;
+    return {
+      fileId: uploadResult.fileId,
+      uuid: createdDriveFile.uuid,
+    };
   }
 }
