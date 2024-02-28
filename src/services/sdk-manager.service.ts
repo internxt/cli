@@ -109,13 +109,17 @@ export class SdkManager {
   }
 
   /** Storage SDK */
-  getStorage() {
-    const DRIVE_API_URL = ConfigService.instance.get('DRIVE_API_URL');
+  getStorage(useNewApi = false) {
+    const DRIVE_API_URL = useNewApi
+      ? ConfigService.instance.get('DRIVE_NEW_API_URL')
+      : ConfigService.instance.get('DRIVE_API_URL');
 
     const apiSecurity = SdkManager.getApiSecurity();
     const appDetails = SdkManager.getAppDetails();
 
-    return Drive.Storage.client(DRIVE_API_URL, appDetails, apiSecurity);
+    return Drive.Storage.client(DRIVE_API_URL, appDetails, {
+      token: useNewApi ? apiSecurity.newToken : apiSecurity.token,
+    });
   }
 
   /** Trash SDK */

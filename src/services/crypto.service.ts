@@ -1,8 +1,9 @@
 import { CryptoProvider } from '@internxt/sdk';
 import { Keys, Password } from '@internxt/sdk/dist/auth';
-import crypto, { Cipher, createCipheriv, createHash } from 'crypto';
+import crypto, { Cipher, createCipheriv, createDecipheriv, createHash } from 'crypto';
 import { KeysService } from './keys.service';
 import { ConfigService } from '../services/config.service';
+import { StreamUtils } from '../utils/stream.utils';
 
 export class CryptoService {
   public static readonly instance: CryptoService = new CryptoService();
@@ -129,6 +130,35 @@ export class CryptoService {
     });
 
     return encryptedFileReadable;
+  }
+
+  public async decryptStream(inputSlices: ReadableStream<Uint8Array>[], key: Buffer, iv: Buffer) {
+    const decipher = createDecipheriv('aes-256-ctr', key, iv);
+    const encryptedStream = StreamUtils.joinReadableBinaryStreams(inputSlices);
+
+    let keepReading = true;
+
+    const decryptedStream = new ReadableStream({
+      async pull(controller) {
+        if (!keepReading) return;
+
+        const reader = encryptedStream.getReader();
+        const status = await reader.read();
+
+        if (status.done) {
+          controller.close();
+        } else {
+          controller.enqueue(decipher.update(status.value));
+        }
+
+        reader.releaseLock();
+      },
+      cancel() {
+        keepReading = false;
+      },
+    });
+
+    return decryptedStream;
   }
 
   public async encryptStream(

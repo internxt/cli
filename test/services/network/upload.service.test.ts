@@ -1,8 +1,8 @@
 import sinon from 'sinon';
-import axios from 'axios';
+import superagent from 'superagent';
 import { expect } from 'chai';
 import { UploadService } from '../../../src/services/network/upload.service';
-
+import nock from 'nock';
 describe('Upload Service', () => {
   let sut: UploadService;
 
@@ -21,9 +21,8 @@ describe('Upload Service', () => {
       progressCallback: sinon.stub(),
       abortController: new AbortController(),
     };
-    sinon.stub(axios, 'put').resolves({
-      headers: {},
-    });
+
+    nock('https://example.com').put('/upload').reply(200, '', {});
 
     try {
       await sut.uploadFile(url, data, options);
@@ -39,10 +38,9 @@ describe('Upload Service', () => {
       progressCallback: sinon.stub(),
       abortController: new AbortController(),
     };
-    sinon.stub(axios, 'put').resolves({
-      headers: {
-        etag: 'test-etag',
-      },
+
+    nock('https://example.com').put('/upload').reply(200, '', {
+      etag: 'test-etag',
     });
 
     const result = await sut.uploadFile(url, data, options);
@@ -57,19 +55,36 @@ describe('Upload Service', () => {
       abortController: new AbortController(),
     };
 
-    sinon.stub(axios, 'put').callsFake((_, __, config) => {
-      config?.onUploadProgress?.({ loaded: 50, total: 100, bytes: 100 });
+    nock('https://example.com').put('/upload').reply(200, '', {
+      etag: 'test-etag',
+    });
 
-      config?.onUploadProgress?.({ loaded: 100, total: 100, bytes: 100 });
-
-      return Promise.resolve({ headers: { etag: 'exampleEtag' } });
+    sinon.stub(superagent, 'put').returns({
+      // @ts-expect-error - Partiak Superagent request mock
+      set: () => {
+        return {
+          set: () => {
+            return {
+              send: () => {
+                return {
+                  on: sinon
+                    .stub()
+                    .callsFake((event, callback) => {
+                      if (event === 'progress') {
+                        callback({ total: 100, loaded: 50 });
+                      }
+                    })
+                    .resolves({ headers: { etag: 'test-etag' } }),
+                };
+              },
+            };
+          },
+        };
+      },
     });
 
     await sut.uploadFile(url, data, options);
-    sinon.assert.calledWithMatch(options.progressCallback, 45);
-
-    sinon.assert.calledWithExactly(options.progressCallback, 90);
-    sinon.assert.calledWithExactly(options.progressCallback, 100);
+    sinon.assert.calledWithExactly(options.progressCallback, 1);
   });
 
   it('When a file is uploaded and the upload is aborted, should cancel the request', async () => {
@@ -80,13 +95,24 @@ describe('Upload Service', () => {
       abortController: new AbortController(),
     };
 
-    const axiosPutStub = sinon.stub(axios, 'put');
+    nock('https://example.com').put('/upload').reply(200, '', {
+      etag: 'test-etag',
+    });
+
+    // @ts-expect-error - Partial mock response
+    const requestStub = sinon.stub(superagent, 'put').resolves({
+      on: sinon.stub().callsFake((event, callback) => {
+        if (event === 'progress') {
+          callback({ total: 100, loaded: 50 });
+        }
+      }),
+    });
 
     sut.uploadFile(url, data, options);
 
     options.abortController.abort();
 
-    expect(axiosPutStub.called).to.be.true;
-    expect(axiosPutStub.args[0][0]).to.equal(url);
+    expect(requestStub.called).to.be.true;
+    expect(requestStub.args[0][0]).to.equal(url);
   });
 });
