@@ -1267,9 +1267,9 @@
     read-package-json-fast "^2.0.1"
 
 "@oclif/core@^3", "@oclif/core@^3.18.1", "@oclif/core@^3.19.1", "@oclif/core@^3.19.2", "@oclif/core@^3.19.3":
-  version "3.19.3"
-  resolved "https://registry.yarnpkg.com/@oclif/core/-/core-3.19.3.tgz#8ae8c2bd3a95145ce911346855f304a29d6afbac"
-  integrity sha512-pILSMpQ1ltAe51dgGxVsjfEVaZrRSEE3pKBGh/GtUkmVCJCP2MiS4AFg1qiLGrwjks0WrzSii3QdM4jDLyMAAA==
+  version "3.19.6"
+  resolved "https://registry.yarnpkg.com/@oclif/core/-/core-3.19.6.tgz#12e5cb073016d8c32c469d2fec0cd585ac5c1c09"
+  integrity sha512-1ryQWAx7VOf+Wq6pv00uilOo56DrG0drr42crmCQ3eYrPPz252EmNCoFkoOBk7McN6x0f4ega83c0yNNCXmiXw==
   dependencies:
     "@types/cli-progress" "^3.11.5"
     ansi-escapes "^4.3.2"
@@ -6299,10 +6299,10 @@ onetime@^6.0.0:
   dependencies:
     mimic-fn "^4.0.0"
 
-openpgp@^5.11.0:
-  version "5.11.0"
-  resolved "https://registry.yarnpkg.com/openpgp/-/openpgp-5.11.0.tgz#cec5b285d188148f7b5201b9aceb53850cc286a2"
-  integrity sha512-hytHsxIPtRhuh6uAmoBUThHSwHSX3imLu7x4453T+xkVqIw49rl22MRD4KQIAQdCDoVdouejzYgcuLmMA/2OAA==
+openpgp@^5.11.1:
+  version "5.11.1"
+  resolved "https://registry.yarnpkg.com/openpgp/-/openpgp-5.11.1.tgz#97f3a1dfb3d3573a0a73fe2efb29e6b1f8fefb1c"
+  integrity sha512-TynUBPuaSI7dN0gP+A38CjNRLxkOkkptefNanalDQ71BFAKKm+dLbksymSW5bUrB7RcAneMySL/Y+r/TbLpOnQ==
   dependencies:
     asn1.js "^5.0.0"
 
