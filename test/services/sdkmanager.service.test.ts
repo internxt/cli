@@ -220,6 +220,30 @@ describe('SDKManager service', () => {
     expect(newClient).to.eql(client);
   });
 
+  it('When Storage client is requested with useNewApi, then it is generated using internxt sdk using the new API endpoint', () => {
+    const envEndpoint: { key: keyof ConfigKeys; value: string } = {
+      key: 'DRIVE_NEW_API_URL',
+      value: 'test/new-api',
+    };
+    SdkManager.init(apiSecurity);
+
+    const client = Drive.Storage.client(envEndpoint.value, appDetails, apiSecurity);
+
+    const spyConfigService = sdkManagerServiceSandbox
+      .stub(ConfigService.instance, 'get')
+      .withArgs(envEndpoint.key)
+      .returns(envEndpoint.value);
+    sdkManagerServiceSandbox.stub(SdkManager, 'getApiSecurity').returns(apiSecurity);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    sdkManagerServiceSandbox.stub(SdkManager, <any>'getAppDetails').returns(appDetails);
+    sdkManagerServiceSandbox.stub(Drive.Storage, 'client').returns(client);
+
+    const newClient = SdkManager.instance.getStorage(true);
+
+    expect(spyConfigService).to.be.calledWith(envEndpoint.key);
+    expect(newClient).to.eql(client);
+  });
+
   it('When Trash client is requested, then it is generated using internxt sdk', () => {
     const envEndpoint: { key: keyof ConfigKeys; value: string } = {
       key: 'DRIVE_NEW_API_URL',

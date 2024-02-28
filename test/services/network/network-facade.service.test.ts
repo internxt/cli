@@ -8,6 +8,11 @@ import sinon, { SinonSandbox } from 'sinon';
 import { expect } from 'chai';
 import { UploadService } from '../../../src/services/network/upload.service';
 import { CryptoService } from '../../../src/services/crypto.service';
+import { DownloadService } from '../../../src/services/network/download.service';
+import { StreamUtils } from '../../../src/utils/stream.utils';
+import superagent from 'superagent';
+import { Readable } from 'stream';
+
 describe('Network Facade Service', () => {
   let networkFacadeSandbox: SinonSandbox;
 
@@ -25,7 +30,12 @@ describe('Network Facade Service', () => {
     });
   };
   it('When a file is prepared to upload, should return an abort controller and a promise to execute the upload', async () => {
-    const sut = new NetworkFacade(getNetworkMock(), UploadService.instance, CryptoService.instance);
+    const sut = new NetworkFacade(
+      getNetworkMock(),
+      UploadService.instance,
+      DownloadService.instance,
+      CryptoService.instance,
+    );
     const file = path.join(process.cwd(), 'test/fixtures/test-content.fixture.txt');
     const readStream = createReadStream(file);
     const options = {
@@ -37,7 +47,7 @@ describe('Network Facade Service', () => {
       'f1858bc9675f9e4f7ab29429',
       'animal fog wink trade december thumb sight cousin crunch plunge captain enforce letter creek text',
       100,
-      readStream,
+      StreamUtils.readStreamToReadableStream(readStream),
       options,
     );
 
@@ -46,7 +56,12 @@ describe('Network Facade Service', () => {
   });
 
   it('When a file is uploaded, should return the fileId', async () => {
-    const sut = new NetworkFacade(getNetworkMock(), UploadService.instance, CryptoService.instance);
+    const sut = new NetworkFacade(
+      getNetworkMock(),
+      UploadService.instance,
+      DownloadService.instance,
+      CryptoService.instance,
+    );
     const file = path.join(process.cwd(), 'test/fixtures/test-content.fixture.txt');
     const readStream = createReadStream(file);
     const options = {
@@ -59,7 +74,7 @@ describe('Network Facade Service', () => {
       'f1858bc9675f9e4f7ab29429',
       'animal fog wink trade december thumb sight cousin crunch plunge captain enforce letter creek text',
       100,
-      readStream,
+      StreamUtils.readStreamToReadableStream(readStream),
       options,
     );
 
@@ -68,48 +83,155 @@ describe('Network Facade Service', () => {
     expect(uploadResult.fileId).to.be.equal('uploaded_file_id');
   });
 
-  it('When a file is uploaded, should return the fileId', async () => {
-    const network = getNetworkMock();
-    const upload = UploadService.instance;
-    const sut = new NetworkFacade(network, upload, CryptoService.instance);
-    const file = path.join(process.cwd(), 'test/fixtures/test-content.fixture.txt');
-    const readStream = createReadStream(file);
-    const options = {
-      progressCallback: sinon.stub(),
-      abortController: new AbortController(),
-    };
+  it('When a file is downloaded, should write it to a stream', async () => {
+    const encryptedContent = Buffer.from('b6ccfa381c150f3a4b65245bffa4d84087', 'hex');
+    const bucket = 'cd8abd7e8b13081660b58dbe';
+    const readableContent = new ReadableStream<Uint8Array>({
+      pull(controller) {
+        controller.enqueue(encryptedContent);
+        controller.close();
+      },
+    });
 
-    networkFacadeSandbox.stub(upload, 'uploadFile').resolves({ etag: 'file-etag' });
-
-    networkFacadeSandbox.stub(network, 'startUpload').resolves({
-      uploads: [
+    const networkMock = getNetworkMock();
+    networkFacadeSandbox.stub(networkMock, 'getDownloadLinks').resolves({
+      index: '29f07b8914d8353b663ab783f4bbe9950fdde680a69524405790cecca9c549f9',
+      bucket: bucket,
+      created: new Date(),
+      size: 100,
+      shards: [
         {
+          url: 'https://doesnotexists.com/file',
           index: 0,
-          uuid: 'upload-uuid',
-          url: 'https://example.com/upload-url',
-          urls: [],
+          size: 17,
+          hash: 'a4fc32830aee362a407085f3683f20825a2b21ce',
         },
       ],
+      version: 2,
+    });
+    const downloadServiceStub = DownloadService.instance;
+    networkFacadeSandbox.stub(downloadServiceStub, 'downloadFile').resolves(readableContent);
+    const sut = new NetworkFacade(networkMock, UploadService.instance, downloadServiceStub, CryptoService.instance);
+
+    const chunks: Uint8Array[] = [];
+
+    const writable = new WritableStream<Uint8Array>({
+      write(chunk) {
+        chunks.push(chunk);
+      },
     });
 
-    networkFacadeSandbox.stub(network, 'finishUpload').resolves({
-      id: 'uploaded_file_id',
-      index: 'file-index',
-      bucket: 'bucket-id',
-      name: 'test-content',
-      mimetype: 'text/plain',
-      created: new Date(),
-    });
-    const [executeUpload] = await sut.uploadFromStream(
+    const [executeDownload] = await sut.downloadToStream(
+      bucket,
+      'index course habit soon assist dragon tragic helmet salute stuff later twice consider grit pulse cement obvious trick sponsor stereo hello win royal more',
       'f1858bc9675f9e4f7ab29429',
-      'animal fog wink trade december thumb sight cousin crunch plunge captain enforce letter creek text',
-      100,
-      readStream,
+      writable,
+    );
+
+    await executeDownload;
+    const fileContent = Buffer.concat(chunks);
+
+    expect(fileContent.toString('utf-8')).to.equal('encrypted-content');
+  });
+
+  it('When a file download is aborted, should abort the download', async () => {
+    const encryptedContent = Buffer.from('b6ccfa381c150f3a4b65245bffa4d84087', 'hex');
+    const bucket = 'cd8abd7e8b13081660b58dbe';
+    const readableContent = new ReadableStream<Uint8Array>({
+      pull(controller) {
+        controller.enqueue(encryptedContent);
+        controller.close();
+      },
+    });
+
+    const networkMock = getNetworkMock();
+    networkFacadeSandbox.stub(networkMock, 'getDownloadLinks').resolves({
+      index: '29f07b8914d8353b663ab783f4bbe9950fdde680a69524405790cecca9c549f9',
+      bucket: bucket,
+      created: new Date(),
+      size: 100,
+      shards: [
+        {
+          url: 'https://doesnotexists.com/file',
+          index: 0,
+          size: 17,
+          hash: 'a4fc32830aee362a407085f3683f20825a2b21ce',
+        },
+      ],
+      version: 2,
+    });
+    const downloadServiceStub = DownloadService.instance;
+    networkFacadeSandbox.stub(downloadServiceStub, 'downloadFile').resolves(readableContent);
+    const sut = new NetworkFacade(networkMock, UploadService.instance, downloadServiceStub, CryptoService.instance);
+
+    const writable = new WritableStream<Uint8Array>();
+
+    const [executeDownload, abort] = await sut.downloadToStream(
+      bucket,
+      'index course habit soon assist dragon tragic helmet salute stuff later twice consider grit pulse cement obvious trick sponsor stereo hello win royal more',
+      'f1858bc9675f9e4f7ab29429',
+      writable,
+    );
+
+    try {
+      abort.abort();
+      await executeDownload;
+      expect(false).to.be.true;
+    } catch (error) {
+      expect((error as Error).message).to.be.equal('Download aborted');
+    }
+  });
+
+  it('When a file is downloaded, should report progress', async () => {
+    const encryptedContent = Buffer.from('b6ccfa381c150f3a4b65245bffa4d84087', 'hex');
+    const bucket = 'cd8abd7e8b13081660b58dbe';
+
+    const readableContent = new Readable({
+      read() {
+        this.push(encryptedContent);
+        this.push(null);
+      },
+    });
+
+    const networkMock = getNetworkMock();
+    networkFacadeSandbox.stub(networkMock, 'getDownloadLinks').resolves({
+      index: '29f07b8914d8353b663ab783f4bbe9950fdde680a69524405790cecca9c549f9',
+      bucket: bucket,
+      created: new Date(),
+      size: 100,
+      shards: [
+        {
+          url: 'https://doesnotexists.com/file',
+          index: 0,
+          size: 17,
+          hash: 'a4fc32830aee362a407085f3683f20825a2b21ce',
+        },
+      ],
+      version: 2,
+    });
+    const downloadServiceStub = DownloadService.instance;
+
+    const sut = new NetworkFacade(networkMock, UploadService.instance, downloadServiceStub, CryptoService.instance);
+
+    const writable = new WritableStream<Uint8Array>();
+
+    const options = { progressCallback: sinon.stub() };
+
+    // @ts-expect-error - Partial Superagent request mock
+    networkFacadeSandbox.stub(superagent, 'get').returns({
+      on: sinon.stub().withArgs('progress').yields({ total: 100, loaded: 100 }).resolves(readableContent),
+    });
+
+    const [executeDownload] = await sut.downloadToStream(
+      bucket,
+      'index course habit soon assist dragon tragic helmet salute stuff later twice consider grit pulse cement obvious trick sponsor stereo hello win royal more',
+      'f1858bc9675f9e4f7ab29429',
+      writable,
       options,
     );
 
-    const uploadResult = await executeUpload;
+    await executeDownload;
 
-    expect(uploadResult.fileId).to.be.equal('uploaded_file_id');
+    expect(options.progressCallback.calledWith(1)).to.be.true;
   });
 });

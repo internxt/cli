@@ -42,6 +42,26 @@ export class DriveFileService {
       updatedAt: driveFile.updatedAt,
       fileId: payload.fileId,
       id: driveFile.id,
+      type: payload.type,
+    };
+  }
+
+  async getFileMetadata(uuid: string): Promise<DriveFileItem> {
+    const storageClient = SdkManager.instance.getStorage(true);
+
+    const [getFileMetadata] = storageClient.getFile(uuid);
+
+    const fileMetadata = await getFileMetadata;
+    return {
+      uuid,
+      encryptedName: fileMetadata.name,
+      name: fileMetadata.plainName ?? fileMetadata.name,
+      bucket: fileMetadata.bucket,
+      createdAt: fileMetadata.createdAt,
+      updatedAt: fileMetadata.updatedAt,
+      fileId: fileMetadata.fileId,
+      id: fileMetadata.id,
+      type: fileMetadata.type,
     };
   }
 }
