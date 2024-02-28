@@ -21,8 +21,8 @@ export class CLIUtils {
     ux.action.stop(ux.colorize('green', 'done ✓'));
   }
 
-  static getValueFromFlag = (
-    flag: { value: string | undefined; name: string; error: Error },
+  static readonly getValueFromFlag = (
+    flag: { value?: string; name: string; error: Error },
     nonInteractive: boolean,
     validate: (value: string) => boolean,
   ): string | undefined => {
@@ -42,8 +42,8 @@ export class CLIUtils {
     }
   };
 
-  static promptWithAttempts = async (
-    prompt: { message: string; options?: ux.IPromptOptions | undefined; error: Error },
+  static readonly promptWithAttempts = async (
+    prompt: { message: string; options?: ux.IPromptOptions; error: Error },
     maxAttempts: number,
     validate: (value: string) => boolean,
   ): Promise<string> => {
@@ -67,6 +67,17 @@ export class CLIUtils {
       return promptValue;
     }
   };
+
+  static timer() {
+    const start = new Date();
+    return {
+      stop: () => {
+        const end = new Date();
+        const time = end.getTime() - start.getTime();
+        return time;
+      },
+    };
+  }
 }
 
 class NoFlagProvidedError extends Error {
