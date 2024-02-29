@@ -54,3 +54,12 @@ export class MissingCredentialsError extends Error {
     Object.setPrototypeOf(this, MissingCredentialsError.prototype);
   }
 }
+
+export type PaginatedItem = {
+  plainName: string;
+  uuid: string;
+  isFolder: boolean;
+  type: string;
+  size: bigint;
+  updatedAt: Date;
+};

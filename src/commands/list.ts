@@ -2,8 +2,9 @@ import { Command, Flags, ux } from '@oclif/core';
 import { ConfigService } from '../services/config.service';
 import { DriveFolderService } from '../services/drive/drive-folder.service';
 import { CLIUtils } from '../utils/cli.utils';
-import { MissingCredentialsError, NotValidFolderUuidError } from '../types/command.types';
+import { MissingCredentialsError, NotValidFolderUuidError, PaginatedItem } from '../types/command.types';
 import { ValidationService } from '../services/validation.service';
+import { formatDate, humanFileSize } from '../utils/drive.utils';
 
 export default class List extends Command {
   static readonly args = {};
@@ -13,12 +14,13 @@ export default class List extends Command {
 
   static readonly flags = {
     ...CLIUtils.CommonFlags,
-    'folder-uuid': Flags.string({
+    'id': Flags.string({
       char: 'f',
       description: 'The folder id to list. Leave empty for the root folder.',
       required: false,
       parse: async (input: string) => (input.trim().length === 0 ? ' ' : input),
     }),
+    ...ux.table.flags()
   };
 
   static readonly enableJsonFlag = true;
@@ -31,37 +33,66 @@ export default class List extends Command {
     const userCredentials = await ConfigService.instance.readUser();
     if (!userCredentials) throw new MissingCredentialsError();
 
-    let folderUuid = await this.getFolderUuid(flags['folder-uuid'], nonInteractive);
-    let parentFolderName = '';
+    let folderUuid = await this.getFolderUuid(flags['id'], nonInteractive);
 
     if (folderUuid.trim().length === 0) {
-      // folderId is empty from flags/prompt, which means we should use RootFolderUuid
-      parentFolderName = 'Root Folder';
+      // folderId is empty from flags&prompt, which means we should use RootFolderUuid
       const rootFolderId = userCredentials.user.root_folder_id;
       const rootFolderMeta = await DriveFolderService.instance.getFolderMetaById(rootFolderId);
-      this.logJson({ rootFolderMeta });
       folderUuid = rootFolderMeta.uuid;
-    } else {
-      const folderMeta = await DriveFolderService.instance.getFolderMetaByUuid(folderUuid);
-      parentFolderName = folderMeta.plainName;
     }
 
     const { folders, files } = await DriveFolderService.instance.getFolderContent(folderUuid);
 
-    const tree = ux.tree();
-    const folderParent = `🗁  ${parentFolderName}`;
-    tree.insert(folderParent);
-
-    for (const folder of folders) {
-      const subFolder = `🗁  ${folder.plainName}: [${folder.uuid}]`;
-      tree.nodes[folderParent].insert(subFolder);
-    }
-
-    for (const file of files) {
-      const subFile = `🗎 ${file.plainName}.${file.type}: [${file.uuid}]`;
-      tree.nodes[folderParent].insert(subFile);
-    }
-    tree.display();
+    const allItems: PaginatedItem[] = [
+      ...folders.map((folder) => {
+        return {
+          isFolder: true,
+          plainName: folder.plainName,
+          uuid: folder.uuid,
+          type: '',
+          size: BigInt(0),
+          updatedAt: folder.updatedAt,
+        };
+      }),
+      ...files.map((file) => {
+        return {
+          isFolder: false,
+          plainName: file.plainName,
+          uuid: file.uuid,
+          type: file.type,
+          size: file.size,
+          updatedAt: file.updatedAt,
+        };
+      })
+    ];
+    ux.table(allItems, {
+      type: {
+        header: '',
+        get: row => row.isFolder ? '🗁  ' : '🗎 ',
+      },
+      name: {
+        header: 'Name',
+        get: (row) => row.isFolder ? row.plainName : `${row.plainName}.${row.type}`,
+      },
+      updatedAt: {
+        header: 'Modified',
+        get: (row) => formatDate(row.updatedAt),
+        extended: true,
+      },
+      size: {
+        header: 'Size',
+        get: (row) => row.isFolder ? '' : humanFileSize(Number(row.size)),
+        extended: true,
+      },
+      uuid: {
+        header: 'ID',
+        get: row => row.uuid
+      },
+    }, {
+      printLine: this.log.bind(this),
+      ...flags,
+    });
   }
 
   async catch(error: Error) {
@@ -69,18 +100,18 @@ export default class List extends Command {
     this.exit(1);
   }
 
-  public getFolderUuid = async (folderIdFlag: string | undefined, nonInteractive: boolean): Promise<string> => {
+  public getFolderUuid = async (folderUuidFlag: string | undefined, nonInteractive: boolean): Promise<string> => {
     let folderUuid = CLIUtils.getValueFromFlag(
       {
-        value: folderIdFlag,
-        name: List.flags['folder-uuid'].name,
+        value: folderUuidFlag,
+        name: List.flags['id'].name,
         error: new NotValidFolderUuidError(),
         canBeEmpty: true,
       },
       nonInteractive,
       (folderUuid: string) => ValidationService.instance.validateUUIDv4(folderUuid),
     );
-    if (!folderUuid) {
+    if (!folderUuid && folderUuid !== '') {
       folderUuid = (await this.getFolderUuidInteractively()).trim();
     }
     return folderUuid;
@@ -88,7 +119,7 @@ export default class List extends Command {
 
   public getFolderUuidInteractively = (): Promise<string> => {
     return CLIUtils.prompt({
-      message: 'What is the folder uuid you want to list? (leave empty for the root folder)',
+      message: 'What is the folder id you want to list? (leave empty for the root folder)',
       options: { required: false },
       error: new NotValidFolderUuidError(),
     });
