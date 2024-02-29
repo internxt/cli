@@ -33,7 +33,10 @@ export class ConfigService {
    * Clears the authenticated user from file
    * @async
    **/
-  public clearUser = (): Promise<void> => {
+  public clearUser = async (): Promise<void> => {
+    const stat = await fs.stat(CREDENTIALS_FILE);
+
+    if (stat.size === 0) throw new Error('Credentials file is already empty');
     return fs.writeFile(CREDENTIALS_FILE, '', 'utf8');
   };
 

@@ -4,6 +4,7 @@ import { ValidationService } from '../services/validation.service';
 import { EmptyPasswordError, NotValidEmailError, NotValidTwoFactorCodeError } from '../types/login.types';
 import { ConfigService } from '../services/config.service';
 import { CLIUtils } from '../utils/cli.utils';
+import { ErrorUtils } from '../utils/errors.utils';
 
 export default class Login extends Command {
   static readonly args = {};
@@ -61,6 +62,7 @@ export default class Login extends Command {
   }
 
   async catch(error: Error) {
+    ErrorUtils.report(error, { command: this.id });
     CLIUtils.error(error.message);
     this.exit(1);
   }
