@@ -22,8 +22,8 @@ export default class Download extends Command {
 
   static flags = {
     overwrite: Flags.boolean({ description: 'Overwrite the file if it already exists', default: false }),
-    uuid: Flags.string({
-      description: 'The uuid of the file to download. Use <%= config.bin %> list to view your files uuids',
+    id: Flags.string({
+      description: "The id of the file to download. Use <%= config.bin %> list to view your files id's",
       required: true,
     }),
     directory: Flags.string({

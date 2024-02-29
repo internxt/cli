@@ -20,7 +20,7 @@ export default class Upload extends Command {
   static readonly enableJsonFlag = true;
   static readonly flags = {
     file: Flags.string({ description: 'The path to read the file in your system', required: true }),
-    folderId: Flags.integer({ description: 'The folder id to upload the file to', required: false }),
+    id: Flags.integer({ description: 'The folder id to upload the file to', required: false }),
   };
 
   async catch(error: Error) {
