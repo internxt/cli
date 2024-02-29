@@ -21,7 +21,7 @@ export class CLIUtils {
     ux.action.stop(ux.colorize('green', 'done ✓'));
   }
 
-  static CommonFlags = {
+  static readonly CommonFlags = {
     'non-interactive': Flags.boolean({
       char: 'n',
       env: 'INXT_NONINTERACTIVE',
@@ -93,8 +93,8 @@ export class CLIUtils {
     };
   }
 
-  static prompt = async (
-    prompt: { message: string; options?: ux.IPromptOptions | undefined; error: Error },
+  static readonly prompt = async (
+    prompt: { message: string; options?: ux.IPromptOptions; error: Error },
     validate?: (value: string) => boolean,
   ): Promise<string> => {
     const promptValue = await ux.prompt(prompt.message, prompt.options);
