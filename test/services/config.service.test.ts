@@ -117,4 +117,19 @@ describe('Config service', () => {
     expect(readFileStub).to.be.have.been.calledWith(CREDENTIALS_FILE);
     expect(credentialsFileContent).to.be.empty;
   });
+
+  it('When user credentials are cleared and the file is empty, an error is thrown', async () => {
+    configServiceSandbox
+      .stub(fs, 'stat')
+      .withArgs(CREDENTIALS_FILE)
+      // @ts-expect-error - We stub the stat method partially
+      .resolves({ size: 0 });
+
+    try {
+      await ConfigService.instance.clearUser();
+      expect(false).to.be.true;
+    } catch (error) {
+      expect((error as Error).message).to.equal('Credentials file is already empty');
+    }
+  });
 });
