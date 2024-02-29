@@ -58,7 +58,7 @@ export default class List extends Command {
     }
 
     for (const file of files) {
-      const subFile = `🗎 ${file.plainName}: [${file.uuid}]`;
+      const subFile = `🗎 ${file.plainName}.${file.type}: [${file.uuid}]`;
       tree.nodes[folderParent].insert(subFile);
     }
     tree.display();
