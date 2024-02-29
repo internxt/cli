@@ -23,7 +23,7 @@ export default class Download extends Command {
   static flags = {
     overwrite: Flags.boolean({ description: 'Overwrite the file if it already exists', default: false }),
     id: Flags.string({
-      description: "The id of the file to download. Use <%= config.bin %> list to view your files id's",
+      description: 'The id of the file to download. Use <%= config.bin %> list to view your files ids',
       required: true,
     }),
     directory: Flags.string({

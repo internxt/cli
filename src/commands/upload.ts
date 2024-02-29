@@ -37,7 +37,7 @@ export default class Upload extends Command {
       throw new Error('File is empty, cannot upload empty files as is not allowed.');
     }
 
-    if (!flags.folderId) {
+    if (!flags.id) {
       CLIUtils.warning('No folder id provided, uploading to root folder');
     }
 
@@ -92,7 +92,7 @@ export default class Upload extends Command {
       name: fileInfo.name,
       type: fileInfo.ext.replaceAll('.', ''),
       size: stat.size,
-      folderId: flags.folderId ?? user.root_folder_id,
+      folderId: flags.id ?? user.root_folder_id,
       fileId: uploadResult.fileId,
       bucket: user.bucket,
     });
