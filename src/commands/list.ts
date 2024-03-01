@@ -68,14 +68,8 @@ export default class List extends Command {
       allItems,
       {
         type: {
-          header: '',
-          get: (row) => {
-            if (flags.output) {
-              return row.isFolder ? 'folder' : 'file';
-            } else {
-              return row.isFolder ? '🗁  ' : '🗎 ';
-            }
-          },
+          header: 'Type',
+          get: (row) => (row.isFolder ? 'folder' : 'file'),
         },
         name: {
           header: 'Name',
