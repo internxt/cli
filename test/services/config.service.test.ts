@@ -5,7 +5,6 @@ import fs from 'fs/promises';
 import { ConfigService } from '../../src/services/config.service';
 import { CryptoService } from '../../src/services/crypto.service';
 import { LoginCredentials } from '../../src/types/login.types';
-import { CREDENTIALS_FILE } from '../../src/types/config.types';
 import { UserFixture } from '../fixtures/auth.fixture';
 
 import { config } from 'dotenv';
@@ -63,12 +62,12 @@ describe('Config service', () => {
       .returns(encryptedUserCredentials);
     const fsStub = configServiceSandbox
       .stub(fs, 'writeFile')
-      .withArgs(CREDENTIALS_FILE, encryptedUserCredentials)
+      .withArgs(ConfigService.CREDENTIALS_FILE, encryptedUserCredentials)
       .resolves();
 
     await ConfigService.instance.saveUser(userCredentials);
     expect(configServiceStub).to.be.calledWith(stringCredentials);
-    expect(fsStub).to.be.calledWith(CREDENTIALS_FILE, encryptedUserCredentials);
+    expect(fsStub).to.be.calledWith(ConfigService.CREDENTIALS_FILE, encryptedUserCredentials);
   });
 
   it('When user credentials are read, then they are read and decrypted from a file', async () => {
@@ -83,7 +82,7 @@ describe('Config service', () => {
 
     const fsStub = configServiceSandbox
       .stub(fs, 'readFile')
-      .withArgs(CREDENTIALS_FILE)
+      .withArgs(ConfigService.CREDENTIALS_FILE)
       .resolves(encryptedUserCredentials);
     const configServiceStub = configServiceSandbox
       .stub(CryptoService.instance, 'decryptText')
@@ -92,36 +91,42 @@ describe('Config service', () => {
 
     const loginCredentials = await ConfigService.instance.readUser();
     expect(userCredentials).to.be.eql(loginCredentials);
-    expect(fsStub).to.be.calledWith(CREDENTIALS_FILE);
+    expect(fsStub).to.be.calledWith(ConfigService.CREDENTIALS_FILE);
     expect(configServiceStub).to.be.calledWith(encryptedUserCredentials);
   });
 
   it('When user credentials are read but they dont exist, then they are not returned', async () => {
-    const fsStub = configServiceSandbox.stub(fs, 'readFile').withArgs(CREDENTIALS_FILE).rejects();
+    const fsStub = configServiceSandbox.stub(fs, 'readFile').withArgs(ConfigService.CREDENTIALS_FILE).rejects();
     const configServiceStub = configServiceSandbox.stub(CryptoService.instance, 'decryptText');
 
     const loginCredentials = await ConfigService.instance.readUser();
     expect(loginCredentials).to.be.undefined;
-    expect(fsStub).to.be.calledWith(CREDENTIALS_FILE);
+    expect(fsStub).to.be.calledWith(ConfigService.CREDENTIALS_FILE);
     expect(configServiceStub).to.not.be.called;
   });
 
   it('When user credentials are cleared, then they are cleared from file', async () => {
-    const writeFileStub = configServiceSandbox.stub(fs, 'writeFile').withArgs(CREDENTIALS_FILE, '').resolves();
-    const readFileStub = configServiceSandbox.stub(fs, 'readFile').withArgs(CREDENTIALS_FILE).resolves('');
+    const writeFileStub = configServiceSandbox
+      .stub(fs, 'writeFile')
+      .withArgs(ConfigService.CREDENTIALS_FILE, '')
+      .resolves();
+    const readFileStub = configServiceSandbox
+      .stub(fs, 'readFile')
+      .withArgs(ConfigService.CREDENTIALS_FILE)
+      .resolves('');
 
     await ConfigService.instance.clearUser();
-    const credentialsFileContent = await fs.readFile(CREDENTIALS_FILE, 'utf8');
+    const credentialsFileContent = await fs.readFile(ConfigService.CREDENTIALS_FILE, 'utf8');
 
-    expect(writeFileStub).to.be.have.been.calledWith(CREDENTIALS_FILE, '');
-    expect(readFileStub).to.be.have.been.calledWith(CREDENTIALS_FILE);
+    expect(writeFileStub).to.be.have.been.calledWith(ConfigService.CREDENTIALS_FILE, '');
+    expect(readFileStub).to.be.have.been.calledWith(ConfigService.CREDENTIALS_FILE);
     expect(credentialsFileContent).to.be.empty;
   });
 
   it('When user credentials are cleared and the file is empty, an error is thrown', async () => {
     configServiceSandbox
       .stub(fs, 'stat')
-      .withArgs(CREDENTIALS_FILE)
+      .withArgs(ConfigService.CREDENTIALS_FILE)
       // @ts-expect-error - We stub the stat method partially
       .resolves({ size: 0 });
 

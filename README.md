@@ -16,13 +16,13 @@ A CLI tool to interact with yout Internxt encrypted files
 <!-- usage -->
 ```sh-session
 $ npm install -g @internxt/cli
-$ internxt-cli COMMAND
+$ internxt COMMAND
 running command...
-$ internxt-cli (--version)
-@internxt/cli/0.0.1 darwin-arm64 node-v20.10.0
-$ internxt-cli --help [COMMAND]
+$ internxt (--version)
+@internxt/cli/0.0.8 darwin-arm64 node-v20.10.0
+$ internxt --help [COMMAND]
 USAGE
-  $ internxt-cli COMMAND
+  $ internxt COMMAND
 ...
 ```
 <!-- usagestop -->
@@ -30,42 +30,42 @@ USAGE
 # Commands
 
 <!-- commands -->
-* [`internxt-cli download`](#internxt-cli-download)
-* [`internxt-cli login`](#internxt-cli-login)
-* [`internxt-cli logout`](#internxt-cli-logout)
-* [`internxt-cli upload`](#internxt-cli-upload)
-* [`internxt-cli whoami`](#internxt-cli-whoami)
+* [`internxt download`](#internxt-download)
+* [`internxt login`](#internxt-login)
+* [`internxt logout`](#internxt-logout)
+* [`internxt upload`](#internxt-upload)
+* [`internxt whoami`](#internxt-whoami)
 
-## `internxt-cli download`
+## `internxt download`
 
 Download and decrypts a file from Internxt Drive to a directory. The file name will be the same as the file name in your Drive
 
 ```
 USAGE
-  $ internxt-cli download --uuid <value> --directory <value> [--overwrite]
+  $ internxt download --uuid <value> --directory <value> [--overwrite]
 
 FLAGS
   --directory=<value>  (required) The directory to download the file to.
   --overwrite          Overwrite the file if it already exists
-  --uuid=<value>       (required) The uuid of the file to download. Use internxt-cli list to view your files uuids
+  --uuid=<value>       (required) The uuid of the file to download. Use internxt list to view your files uuids
 
 DESCRIPTION
   Download and decrypts a file from Internxt Drive to a directory. The file name will be the same as the file name in
   your Drive
 
 EXAMPLES
-  $ internxt-cli download
+  $ internxt download
 ```
 
-_See code: [src/commands/download.ts](https://github.com/internxt/cli/blob/v0.0.1/src/commands/download.ts)_
+_See code: [src/commands/download.ts](https://github.com/internxt/cli/blob/v0.0.8/src/commands/download.ts)_
 
-## `internxt-cli login`
+## `internxt login`
 
 Logs into an Internxt account. If the account is two-factor protected, then an extra code will be required.
 
 ```
 USAGE
-  $ internxt-cli login [-e <value>] [-p <value>] [-w <value>] [-n]
+  $ internxt login [-e <value>] [-p <value>] [-w <value>] [-n]
 
 FLAGS
   -e, --email=<value>      The email to log in
@@ -80,35 +80,35 @@ DESCRIPTION
   Logs into an Internxt account. If the account is two-factor protected, then an extra code will be required.
 
 EXAMPLES
-  $ internxt-cli login
+  $ internxt login
 ```
 
-_See code: [src/commands/login.ts](https://github.com/internxt/cli/blob/v0.0.1/src/commands/login.ts)_
+_See code: [src/commands/login.ts](https://github.com/internxt/cli/blob/v0.0.8/src/commands/login.ts)_
 
-## `internxt-cli logout`
+## `internxt logout`
 
 Logs out the current internxt user that is logged into the Internxt CLI.
 
 ```
 USAGE
-  $ internxt-cli logout
+  $ internxt logout
 
 DESCRIPTION
   Logs out the current internxt user that is logged into the Internxt CLI.
 
 EXAMPLES
-  $ internxt-cli logout
+  $ internxt logout
 ```
 
-_See code: [src/commands/logout.ts](https://github.com/internxt/cli/blob/v0.0.1/src/commands/logout.ts)_
+_See code: [src/commands/logout.ts](https://github.com/internxt/cli/blob/v0.0.8/src/commands/logout.ts)_
 
-## `internxt-cli upload`
+## `internxt upload`
 
 Upload a file to Internxt Drive
 
 ```
 USAGE
-  $ internxt-cli upload --file <value> [--json] [--folderId <value>]
+  $ internxt upload --file <value> [--json] [--folderId <value>]
 
 FLAGS
   --file=<value>      (required) The path to read the file in your system
@@ -121,25 +121,25 @@ DESCRIPTION
   Upload a file to Internxt Drive
 
 EXAMPLES
-  $ internxt-cli upload
+  $ internxt upload
 ```
 
-_See code: [src/commands/upload.ts](https://github.com/internxt/cli/blob/v0.0.1/src/commands/upload.ts)_
+_See code: [src/commands/upload.ts](https://github.com/internxt/cli/blob/v0.0.8/src/commands/upload.ts)_
 
-## `internxt-cli whoami`
+## `internxt whoami`
 
 Displays the current user logged into the Internxt CLI.
 
 ```
 USAGE
-  $ internxt-cli whoami
+  $ internxt whoami
 
 DESCRIPTION
   Displays the current user logged into the Internxt CLI.
 
 EXAMPLES
-  $ internxt-cli whoami
+  $ internxt whoami
 ```
 
-_See code: [src/commands/whoami.ts](https://github.com/internxt/cli/blob/v0.0.1/src/commands/whoami.ts)_
+_See code: [src/commands/whoami.ts](https://github.com/internxt/cli/blob/v0.0.8/src/commands/whoami.ts)_
 <!-- commandsstop -->
