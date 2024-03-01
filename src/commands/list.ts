@@ -69,7 +69,13 @@ export default class List extends Command {
       {
         type: {
           header: '',
-          get: (row) => (row.isFolder ? '🗁  ' : '🗎 '),
+          get: (row) => {
+            if (flags.output) {
+              return row.isFolder ? 'folder' : 'file';
+            } else {
+              return row.isFolder ? '🗁  ' : '🗎 ';
+            }
+          },
         },
         name: {
           header: 'Name',
@@ -77,12 +83,24 @@ export default class List extends Command {
         },
         updatedAt: {
           header: 'Modified',
-          get: (row) => FormatUtils.formatDate(row.updatedAt),
+          get: (row) => {
+            if (flags.output) {
+              return row.updatedAt;
+            } else {
+              return FormatUtils.formatDate(row.updatedAt);
+            }
+          },
           extended: true,
         },
         size: {
           header: 'Size',
-          get: (row) => (row.isFolder ? '' : FormatUtils.humanFileSize(Number(row.size))),
+          get: (row) => {
+            if (flags.output) {
+              return row.isFolder ? '0' : row.size;
+            } else {
+              return row.isFolder ? '' : FormatUtils.humanFileSize(Number(row.size));
+            }
+          },
           extended: true,
         },
         uuid: {
