@@ -4,7 +4,7 @@ import { DriveFolderService } from '../services/drive/drive-folder.service';
 import { CLIUtils } from '../utils/cli.utils';
 import { MissingCredentialsError, NotValidFolderUuidError, PaginatedItem } from '../types/command.types';
 import { ValidationService } from '../services/validation.service';
-import { formatDate, humanFileSize } from '../utils/drive.utils';
+import { FormatUtils } from '../utils/format.utils';
 
 export default class List extends Command {
   static readonly args = {};
@@ -14,18 +14,16 @@ export default class List extends Command {
 
   static readonly flags = {
     ...CLIUtils.CommonFlags,
-    'id': Flags.string({
+    id: Flags.string({
       char: 'f',
       description: 'The folder id to list. Leave empty for the root folder.',
       required: false,
       parse: async (input: string) => (input.trim().length === 0 ? ' ' : input),
     }),
-    ...ux.table.flags()
+    ...ux.table.flags(),
   };
 
-  static readonly enableJsonFlag = true;
-
-  public async run(): Promise<void> {
+  public async run() {
     const { flags } = await this.parse(List);
 
     const nonInteractive = flags['non-interactive'];
@@ -64,35 +62,39 @@ export default class List extends Command {
           size: file.size,
           updatedAt: file.updatedAt,
         };
-      })
+      }),
     ];
-    ux.table(allItems, {
-      type: {
-        header: '',
-        get: row => row.isFolder ? '🗁  ' : '🗎 ',
+    ux.table(
+      allItems,
+      {
+        type: {
+          header: '',
+          get: (row) => (row.isFolder ? '🗁  ' : '🗎 '),
+        },
+        name: {
+          header: 'Name',
+          get: (row) => (row.isFolder ? row.plainName : `${row.plainName}.${row.type}`),
+        },
+        updatedAt: {
+          header: 'Modified',
+          get: (row) => FormatUtils.formatDate(row.updatedAt),
+          extended: true,
+        },
+        size: {
+          header: 'Size',
+          get: (row) => (row.isFolder ? '' : FormatUtils.humanFileSize(Number(row.size))),
+          extended: true,
+        },
+        uuid: {
+          header: 'ID',
+          get: (row) => row.uuid,
+        },
       },
-      name: {
-        header: 'Name',
-        get: (row) => row.isFolder ? row.plainName : `${row.plainName}.${row.type}`,
+      {
+        printLine: this.log.bind(this),
+        ...flags,
       },
-      updatedAt: {
-        header: 'Modified',
-        get: (row) => formatDate(row.updatedAt),
-        extended: true,
-      },
-      size: {
-        header: 'Size',
-        get: (row) => row.isFolder ? '' : humanFileSize(Number(row.size)),
-        extended: true,
-      },
-      uuid: {
-        header: 'ID',
-        get: row => row.uuid
-      },
-    }, {
-      printLine: this.log.bind(this),
-      ...flags,
-    });
+    );
   }
 
   async catch(error: Error) {
