@@ -41,7 +41,6 @@ export default class Download extends Command {
     CLIUtils.doing('Getting file metadata');
     const driveFile = await DriveFileService.instance.getFileMetadata(uuid);
     CLIUtils.done();
-
     if (!driveFile) {
       throw new Error('File not found');
     }
@@ -104,7 +103,7 @@ export default class Download extends Command {
 
   public async run(): Promise<void> {
     const { flags } = await this.parse(Download);
-    const { directory: downloadDirectory, uuid: fileUuid, overwrite } = flags;
+    const { directory: downloadDirectory, id: fileUuid, overwrite } = flags;
 
     const directoryStat = await fs.stat(downloadDirectory);
 

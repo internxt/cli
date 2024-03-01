@@ -19,7 +19,7 @@ $ npm install -g @internxt/cli
 $ internxt COMMAND
 running command...
 $ internxt (--version)
-@internxt/cli/0.0.8 darwin-arm64 node-v20.10.0
+@internxt/cli/0.0.9 darwin-arm64 node-v20.10.0
 $ internxt --help [COMMAND]
 USAGE
   $ internxt COMMAND
@@ -58,7 +58,7 @@ EXAMPLES
   $ internxt download
 ```
 
-_See code: [src/commands/download.ts](https://github.com/internxt/cli/blob/v0.0.8/src/commands/download.ts)_
+_See code: [src/commands/download.ts](https://github.com/internxt/cli/blob/v0.0.9/src/commands/download.ts)_
 
 ## `internxt list`
 
@@ -92,7 +92,7 @@ EXAMPLES
   $ internxt list
 ```
 
-_See code: [src/commands/list.ts](https://github.com/internxt/cli/blob/v0.0.8/src/commands/list.ts)_
+_See code: [src/commands/list.ts](https://github.com/internxt/cli/blob/v0.0.9/src/commands/list.ts)_
 
 ## `internxt login`
 
@@ -118,7 +118,7 @@ EXAMPLES
   $ internxt login
 ```
 
-_See code: [src/commands/login.ts](https://github.com/internxt/cli/blob/v0.0.8/src/commands/login.ts)_
+_See code: [src/commands/login.ts](https://github.com/internxt/cli/blob/v0.0.9/src/commands/login.ts)_
 
 ## `internxt logout`
 
@@ -135,7 +135,7 @@ EXAMPLES
   $ internxt logout
 ```
 
-_See code: [src/commands/logout.ts](https://github.com/internxt/cli/blob/v0.0.8/src/commands/logout.ts)_
+_See code: [src/commands/logout.ts](https://github.com/internxt/cli/blob/v0.0.9/src/commands/logout.ts)_
 
 ## `internxt upload`
 
@@ -159,7 +159,7 @@ EXAMPLES
   $ internxt upload
 ```
 
-_See code: [src/commands/upload.ts](https://github.com/internxt/cli/blob/v0.0.8/src/commands/upload.ts)_
+_See code: [src/commands/upload.ts](https://github.com/internxt/cli/blob/v0.0.9/src/commands/upload.ts)_
 
 ## `internxt whoami`
 
@@ -176,5 +176,5 @@ EXAMPLES
   $ internxt whoami
 ```
 
-_See code: [src/commands/whoami.ts](https://github.com/internxt/cli/blob/v0.0.8/src/commands/whoami.ts)_
+_See code: [src/commands/whoami.ts](https://github.com/internxt/cli/blob/v0.0.9/src/commands/whoami.ts)_
 <!-- commandsstop -->
