@@ -1,5 +1,3 @@
-import path from 'path';
-
 export interface ConfigKeys {
   readonly DRIVE_URL: string;
   readonly DRIVE_API_URL: string;
@@ -11,9 +9,4 @@ export interface ConfigKeys {
   readonly APP_MAGIC_IV: string;
   readonly APP_MAGIC_SALT: string;
   readonly NETWORK_URL: string;
-  readonly DEV_AUTH_TOKEN: string;
-  readonly DEV_NEW_AUTH_TOKEN: string;
-  readonly DEV_MNEMONIC: string;
 }
-
-export const CREDENTIALS_FILE = path.join(process.cwd(), '/dist/cli.inxt');

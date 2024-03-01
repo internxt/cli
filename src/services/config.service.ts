@@ -1,9 +1,11 @@
-import { CREDENTIALS_FILE, ConfigKeys } from '../types/config.types';
+import { ConfigKeys } from '../types/config.types';
 import { LoginCredentials } from '../types/command.types';
 import fs from 'fs/promises';
 import { CryptoService } from './crypto.service';
+import path from 'path';
 
 export class ConfigService {
+  static readonly CREDENTIALS_FILE = path.join(__dirname, '../cli.inxt');
   public static readonly instance: ConfigService = new ConfigService();
 
   /**
@@ -26,15 +28,18 @@ export class ConfigService {
   public saveUser = async (loginCredentials: LoginCredentials): Promise<void> => {
     const credentialsString = JSON.stringify(loginCredentials);
     const encryptedCredentials = CryptoService.instance.encryptText(credentialsString);
-    await fs.writeFile(CREDENTIALS_FILE, encryptedCredentials, 'utf8');
+    await fs.writeFile(ConfigService.CREDENTIALS_FILE, encryptedCredentials, 'utf8');
   };
 
   /**
    * Clears the authenticated user from file
    * @async
    **/
-  public clearUser = (): Promise<void> => {
-    return fs.writeFile(CREDENTIALS_FILE, '', 'utf8');
+  public clearUser = async (): Promise<void> => {
+    const stat = await fs.stat(ConfigService.CREDENTIALS_FILE);
+
+    if (stat.size === 0) throw new Error('Credentials file is already empty');
+    return fs.writeFile(ConfigService.CREDENTIALS_FILE, '', 'utf8');
   };
 
   /**
@@ -44,7 +49,7 @@ export class ConfigService {
    **/
   public readUser = async (): Promise<LoginCredentials | undefined> => {
     try {
-      const encryptedCredentials = await fs.readFile(CREDENTIALS_FILE, 'utf8');
+      const encryptedCredentials = await fs.readFile(ConfigService.CREDENTIALS_FILE, 'utf8');
       const credentialsString = CryptoService.instance.decryptText(encryptedCredentials);
       const loginCredentials = JSON.parse(credentialsString, (key, value) => {
         if (typeof value === 'string' && key === 'createdAt') {

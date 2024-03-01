@@ -1,6 +1,7 @@
 import { Command } from '@oclif/core';
 import { ConfigService } from '../services/config.service';
 import { CLIUtils } from '../utils/cli.utils';
+import { ErrorUtils } from '../utils/errors.utils';
 
 export default class Whoami extends Command {
   static readonly args = {};
@@ -9,6 +10,12 @@ export default class Whoami extends Command {
   static readonly examples = ['<%= config.bin %> <%= command.id %>'];
 
   static readonly flags = {};
+
+  async catch(error: Error) {
+    ErrorUtils.report(error, { command: this.id });
+    CLIUtils.error(error.message);
+    this.exit(1);
+  }
 
   public async run(): Promise<void> {
     const userCredentials = await ConfigService.instance.readUser();

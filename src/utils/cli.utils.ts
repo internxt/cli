@@ -1,6 +1,11 @@
 import { ux, Flags } from '@oclif/core';
 
 export class CLIUtils {
+  static clearPreviousLine() {
+    process.stdout.write('\x1b[1A');
+    process.stdout.clearLine(0);
+  }
+
   static warning(message: string) {
     ux.log(ux.colorize('#a67805', `⚠ Warning: ${message}`));
   }
@@ -10,7 +15,7 @@ export class CLIUtils {
   }
 
   static doing(message: string) {
-    ux.action.start(message);
+    ux.action.start(message, undefined, {});
   }
 
   static success(message: string) {

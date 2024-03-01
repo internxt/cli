@@ -22,6 +22,7 @@ const hook: Hook<'prerun'> = async function (opts) {
       opts.context.exit(1);
     }
     CLIUtils.done();
+    CLIUtils.clearPreviousLine();
   }
 };
 

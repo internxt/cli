@@ -12,6 +12,7 @@ import { UploadService } from '../services/network/upload.service';
 import { CryptoService } from '../services/crypto.service';
 import { DownloadService } from '../services/network/download.service';
 import { StreamUtils } from '../utils/stream.utils';
+import { ErrorUtils } from '../utils/errors.utils';
 import { DriveFolderService } from '../services/drive/drive-folder.service';
 
 export default class Upload extends Command {
@@ -25,10 +26,10 @@ export default class Upload extends Command {
   };
 
   async catch(error: Error) {
+    ErrorUtils.report(error, { command: this.id });
     CLIUtils.error(error.message);
     this.exit(1);
   }
-
   public async run(): Promise<{ fileId: string; uuid: string }> {
     const { flags } = await this.parse(Upload);
     const folderUuid = flags.id;

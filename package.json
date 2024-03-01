@@ -1,10 +1,7 @@
 {
   "author": "PixoDev",
-  "bin": {
-    "internxt-cli": "./bin/run.js"
-  },
-  "version": "0.0.0",
-  "description": "Internxt CLI to manage your encrypted files",
+  "version": "0.0.8",
+  "description": "Internxt CLI to manage your encrypted storage",
   "scripts": {
     "build": "tsc",
     "lint": "eslint . --ext .ts",
@@ -18,12 +15,12 @@
   "homepage": "https://github.com/internxt/cli",
   "license": "MIT",
   "main": "",
-  "name": "internxt-cli",
+  "name": "@internxt/cli",
   "repository": "https://github.com/internxt/cli",
   "bugs": "https://github.com/internxt/cli",
   "types": "dist/index.d.ts",
-  "exports": "./lib/index.js",
   "files": [
+    ".env",
     "/bin",
     "/dist",
     "/oclif.manifest.json"
@@ -59,6 +56,7 @@
     "eslint-config-prettier": "^9.1.0",
     "husky": "^9.0.11",
     "lint-staged": "^15.2.2",
+    "makensis": "^2.0.8",
     "mocha": "^10",
     "nock": "^13.5.3",
     "nyc": "^15.1.0",
@@ -72,8 +70,16 @@
   "engines": {
     "node": ">=18.0.0"
   },
+  "bin": {
+    "internxt": "./bin/run.js",
+    "inxt": "./bin/run.js"
+  },
   "oclif": {
-    "bin": "internxt-cli",
+    "bin": "internxt",
+    "binAliases": [
+      "internxt",
+      "inxt"
+    ],
     "dirname": "internxt-cli",
     "commands": "./dist/commands",
     "plugins": [],
@@ -81,6 +87,9 @@
     "topics": {},
     "hooks": {
       "prerun": "./dist/hooks/prerun/auth_check"
+    },
+    "macos": {
+      "identifier": "com.internxt.cli"
     }
   },
   "lint-staged": {

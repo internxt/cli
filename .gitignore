@@ -14,3 +14,4 @@ oclif.manifest.json
 *.tsbuildinfo
 .env
 coverage
+cli.inxt
