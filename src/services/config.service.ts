@@ -1,11 +1,12 @@
+import path from 'path';
+import os from 'os';
+import fs from 'fs/promises';
 import { ConfigKeys } from '../types/config.types';
 import { LoginCredentials } from '../types/command.types';
-import fs from 'fs/promises';
 import { CryptoService } from './crypto.service';
-import path from 'path';
 
 export class ConfigService {
-  static readonly CREDENTIALS_FILE = path.join(__dirname, '../cli.inxt');
+  static readonly CREDENTIALS_FILE = path.join(os.homedir(), '.inxtcli');
   public static readonly instance: ConfigService = new ConfigService();
 
   /**
