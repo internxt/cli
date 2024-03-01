@@ -4,7 +4,7 @@ import Sinon, { SinonSandbox } from 'sinon';
 import fs from 'fs/promises';
 import { ConfigService } from '../../src/services/config.service';
 import { CryptoService } from '../../src/services/crypto.service';
-import { LoginCredentials } from '../../src/types/login.types';
+import { LoginCredentials } from '../../src/types/command.types';
 import { UserFixture } from '../fixtures/auth.fixture';
 
 import { config } from 'dotenv';

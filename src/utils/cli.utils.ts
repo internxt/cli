@@ -1,4 +1,4 @@
-import { ux } from '@oclif/core';
+import { ux, Flags } from '@oclif/core';
 
 export class CLIUtils {
   static clearPreviousLine() {
@@ -26,14 +26,28 @@ export class CLIUtils {
     ux.action.stop(ux.colorize('green', 'done ✓'));
   }
 
+  static readonly CommonFlags = {
+    'non-interactive': Flags.boolean({
+      char: 'n',
+      env: 'INXT_NONINTERACTIVE',
+      helpGroup: 'helper',
+      description:
+        'Blocks the cli from being interactive. If passed, the cli will not request data through the console and will throw errors directly',
+      required: false,
+    }),
+  };
+
   static readonly getValueFromFlag = (
-    flag: { value?: string; name: string; error: Error },
+    flag: { value?: string; name: string; error: Error; canBeEmpty?: boolean },
     nonInteractive: boolean,
     validate: (value: string) => boolean,
   ): string | undefined => {
-    // It returns the value passed from the flag if its valid. If its not valid, it will throw an error when nonInteractive mode is active and a warning otherwise
-    // It throws an error if its in nonInteractive mode and no flag value is aquired
+    // It returns the value passed from the flag if it is valid. If it is not valid, it will throw an error when nonInteractive mode is active and a warning otherwise
+    // It throws an error if nonInteractive mode is active and no flag value is aquired
     if (flag.value) {
+      if (flag.value.trim().length === 0 && flag.canBeEmpty) {
+        return '';
+      }
       const isValid = validate(flag.value);
       if (isValid) {
         return flag.value;
@@ -83,6 +97,20 @@ export class CLIUtils {
       },
     };
   }
+
+  static readonly prompt = async (
+    prompt: { message: string; options?: ux.IPromptOptions; error: Error },
+    validate?: (value: string) => boolean,
+  ): Promise<string> => {
+    const promptValue = await ux.prompt(prompt.message, prompt.options);
+    if (validate) {
+      const isValid = validate(promptValue);
+      if (!isValid) {
+        throw prompt.error;
+      }
+    }
+    return promptValue;
+  };
 }
 
 class NoFlagProvidedError extends Error {

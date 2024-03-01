@@ -3,7 +3,7 @@ import { SdkManager } from './sdk-manager.service';
 import { KeysService } from './keys.service';
 import { CryptoService } from './crypto.service';
 import { ConfigService } from './config.service';
-import { LoginCredentials } from '../types/login.types';
+import { LoginCredentials } from '../types/command.types';
 import { ValidationService } from './validation.service';
 
 export class AuthService {

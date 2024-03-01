@@ -1,7 +1,7 @@
 import { Command, Flags } from '@oclif/core';
 import { AuthService } from '../services/auth.service';
 import { ValidationService } from '../services/validation.service';
-import { EmptyPasswordError, NotValidEmailError, NotValidTwoFactorCodeError } from '../types/login.types';
+import { EmptyPasswordError, NotValidEmailError, NotValidTwoFactorCodeError } from '../types/command.types';
 import { ConfigService } from '../services/config.service';
 import { CLIUtils } from '../utils/cli.utils';
 import { ErrorUtils } from '../utils/errors.utils';
@@ -14,32 +14,28 @@ export default class Login extends Command {
   static readonly examples = ['<%= config.bin %> <%= command.id %>'];
 
   static readonly flags = {
+    ...CLIUtils.CommonFlags,
     email: Flags.string({
       char: 'e',
+      aliases: ['mail'],
       env: 'INXT_EMAIL',
       description: 'The email to log in',
       required: false,
     }),
     password: Flags.string({
       char: 'p',
+      aliases: ['pass'],
       env: 'INXT_PASSWORD',
       description: 'The plain password to log in',
       required: false,
     }),
-    'two-factor': Flags.string({
+    twofactor: Flags.string({
       char: 'w',
+      aliases: ['two', 'two-factor'],
       env: 'INXT_TWOFACTORCODE',
       description: 'The two factor auth code (only needed if the account is two-factor protected)',
       required: false,
       helpValue: '123456',
-    }),
-    'non-interactive': Flags.boolean({
-      char: 'n',
-      env: 'INXT_NONINTERACTIVE',
-      helpGroup: 'helper',
-      description:
-        'Blocks the cli from being interactive. If passed, the cli will not request data through the console and will throw errors directly',
-      required: false,
     }),
   };
 
@@ -53,7 +49,7 @@ export default class Login extends Command {
     const is2FANeeded = await AuthService.instance.is2FANeeded(email);
     let twoFactorCode: string | undefined;
     if (is2FANeeded) {
-      twoFactorCode = await this.getTwoFactorCode(flags['two-factor'], nonInteractive);
+      twoFactorCode = await this.getTwoFactorCode(flags['twofactor'], nonInteractive);
     }
 
     const loginCredentials = await AuthService.instance.doLogin(email, password, twoFactorCode);
@@ -103,7 +99,7 @@ export default class Login extends Command {
     let twoFactor = CLIUtils.getValueFromFlag(
       {
         value: twoFactorFlag,
-        name: Login.flags['two-factor'].name,
+        name: Login.flags['twofactor'].name,
         error: new NotValidTwoFactorCodeError(),
       },
       nonInteractive,

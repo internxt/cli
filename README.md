@@ -31,6 +31,7 @@ USAGE
 
 <!-- commands -->
 * [`internxt download`](#internxt-download)
+* [`internxt list`](#internxt-list)
 * [`internxt login`](#internxt-login)
 * [`internxt logout`](#internxt-logout)
 * [`internxt upload`](#internxt-upload)
@@ -42,12 +43,12 @@ Download and decrypts a file from Internxt Drive to a directory. The file name w
 
 ```
 USAGE
-  $ internxt download --uuid <value> --directory <value> [--overwrite]
+  $ internxt download --id <value> --directory <value> [--overwrite]
 
 FLAGS
   --directory=<value>  (required) The directory to download the file to.
+  --id=<value>         (required) The id of the file to download. Use internxt list to view your files ids
   --overwrite          Overwrite the file if it already exists
-  --uuid=<value>       (required) The uuid of the file to download. Use internxt list to view your files uuids
 
 DESCRIPTION
   Download and decrypts a file from Internxt Drive to a directory. The file name will be the same as the file name in
@@ -59,18 +60,52 @@ EXAMPLES
 
 _See code: [src/commands/download.ts](https://github.com/internxt/cli/blob/v0.0.8/src/commands/download.ts)_
 
+## `internxt list`
+
+Lists the content of a folder id.
+
+```
+USAGE
+  $ internxt list [-n] [-f <value>] [--columns <value> | -x] [--filter <value>] [--no-header | [--csv |
+    --no-truncate]] [--output csv|json|yaml |  | ] [--sort <value>]
+
+FLAGS
+  -f, --id=<value>       The folder id to list. Leave empty for the root folder.
+  -x, --extended         show extra columns
+      --columns=<value>  only show provided columns (comma-separated)
+      --csv              output is csv format [alias: --output=csv]
+      --filter=<value>   filter property by partial string matching, ex: name=foo
+      --no-header        hide table header from output
+      --no-truncate      do not truncate output to fit screen
+      --output=<option>  output in a more machine friendly format
+                         <options: csv|json|yaml>
+      --sort=<value>     property to sort by (prepend '-' for descending)
+
+HELPER FLAGS
+  -n, --non-interactive  Blocks the cli from being interactive. If passed, the cli will not request data through the
+                         console and will throw errors directly
+
+DESCRIPTION
+  Lists the content of a folder id.
+
+EXAMPLES
+  $ internxt list
+```
+
+_See code: [src/commands/list.ts](https://github.com/internxt/cli/blob/v0.0.8/src/commands/list.ts)_
+
 ## `internxt login`
 
 Logs into an Internxt account. If the account is two-factor protected, then an extra code will be required.
 
 ```
 USAGE
-  $ internxt login [-e <value>] [-p <value>] [-w <value>] [-n]
+  $ internxt login [-n] [-e <value>] [-p <value>] [-w <value>]
 
 FLAGS
-  -e, --email=<value>      The email to log in
-  -p, --password=<value>   The plain password to log in
-  -w, --two-factor=123456  The two factor auth code (only needed if the account is two-factor protected)
+  -e, --email=<value>     The email to log in
+  -p, --password=<value>  The plain password to log in
+  -w, --twofactor=123456  The two factor auth code (only needed if the account is two-factor protected)
 
 HELPER FLAGS
   -n, --non-interactive  Blocks the cli from being interactive. If passed, the cli will not request data through the
@@ -108,11 +143,11 @@ Upload a file to Internxt Drive
 
 ```
 USAGE
-  $ internxt upload --file <value> [--json] [--folderId <value>]
+  $ internxt upload --file <value> [--json] [--id <value>]
 
 FLAGS
-  --file=<value>      (required) The path to read the file in your system
-  --folderId=<value>  The folder id to upload the file to
+  --file=<value>  (required) The path to read the file in your system
+  --id=<value>    The folder id to upload the file to
 
 GLOBAL FLAGS
   --json  Format output as json.

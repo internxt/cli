@@ -30,3 +30,36 @@ export class NotValidTwoFactorCodeError extends Error {
     Object.setPrototypeOf(this, NotValidTwoFactorCodeError.prototype);
   }
 }
+
+export class NotValidFolderUuidError extends Error {
+  constructor() {
+    super('Folder UUID is not valid (it must be a valid v4 UUID)');
+
+    Object.setPrototypeOf(this, NotValidFolderUuidError.prototype);
+  }
+}
+
+export class NoRootFolderIdFoundError extends Error {
+  constructor() {
+    super('No root folder id found on your account');
+
+    Object.setPrototypeOf(this, NoRootFolderIdFoundError.prototype);
+  }
+}
+
+export class MissingCredentialsError extends Error {
+  constructor() {
+    super('Missing credentials, login first');
+
+    Object.setPrototypeOf(this, MissingCredentialsError.prototype);
+  }
+}
+
+export type PaginatedItem = {
+  plainName: string;
+  uuid: string;
+  isFolder: boolean;
+  type: string;
+  size: bigint;
+  updatedAt: Date;
+};

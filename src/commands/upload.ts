@@ -13,6 +13,7 @@ import { CryptoService } from '../services/crypto.service';
 import { DownloadService } from '../services/network/download.service';
 import { StreamUtils } from '../utils/stream.utils';
 import { ErrorUtils } from '../utils/errors.utils';
+import { DriveFolderService } from '../services/drive/drive-folder.service';
 
 export default class Upload extends Command {
   static readonly description = 'Upload a file to Internxt Drive';
@@ -21,7 +22,7 @@ export default class Upload extends Command {
   static readonly enableJsonFlag = true;
   static readonly flags = {
     file: Flags.string({ description: 'The path to read the file in your system', required: true }),
-    folderId: Flags.integer({ description: 'The folder id to upload the file to', required: false }),
+    id: Flags.string({ description: 'The folder id to upload the file to', required: false }),
   };
 
   async catch(error: Error) {
@@ -31,6 +32,8 @@ export default class Upload extends Command {
   }
   public async run(): Promise<{ fileId: string; uuid: string }> {
     const { flags } = await this.parse(Upload);
+    const folderUuid = flags.id;
+    let folderId: number | undefined;
 
     const stat = await fs.stat(flags.file);
 
@@ -38,8 +41,10 @@ export default class Upload extends Command {
       throw new Error('File is empty, cannot upload empty files as is not allowed.');
     }
 
-    if (!flags.folderId) {
+    if (!folderUuid || folderUuid.trim().length === 0) {
       CLIUtils.warning('No folder id provided, uploading to root folder');
+    } else {
+      folderId = (await DriveFolderService.instance.getFolderMetaByUuid(folderUuid)).id;
     }
 
     // 1. Prepare the network
@@ -93,7 +98,7 @@ export default class Upload extends Command {
       name: fileInfo.name,
       type: fileInfo.ext.replaceAll('.', ''),
       size: stat.size,
-      folderId: flags.folderId ?? user.root_folder_id,
+      folderId: folderId ?? user.root_folder_id,
       fileId: uploadResult.fileId,
       bucket: user.bucket,
     });
