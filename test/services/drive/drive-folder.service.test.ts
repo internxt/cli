@@ -21,8 +21,6 @@ describe('Drive folder Service', () => {
   it('When folder metadata is requested by UUID, it is aquired correctly', async () => {
     const expectedFolderMeta = newFolder();
 
-    console.error({ expectedFolderMeta });
-
     const spy = sandbox.stub(Storage.prototype, 'getFolderMeta').resolves(expectedFolderMeta);
     sandbox.stub(SdkManager.instance, 'getStorage').returns(Storage.prototype);
 
