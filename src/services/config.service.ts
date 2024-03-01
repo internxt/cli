@@ -5,7 +5,7 @@ import { CryptoService } from './crypto.service';
 import path from 'path';
 
 export class ConfigService {
-  static CREDENTIALS_FILE = path.join(__dirname, '../cli.inxt');
+  static readonly CREDENTIALS_FILE = path.join(__dirname, '../cli.inxt');
   public static readonly instance: ConfigService = new ConfigService();
 
   /**
