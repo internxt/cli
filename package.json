@@ -1,10 +1,7 @@
 {
   "author": "PixoDev",
-  "bin": {
-    "internxt-cli": "./bin/run.js"
-  },
-  "version": "0.0.1",
-  "description": "Internxt CLI to manage your encrypted files",
+  "version": "0.0.8",
+  "description": "Internxt CLI to manage your encrypted storage",
   "scripts": {
     "build": "tsc",
     "lint": "eslint . --ext .ts",
@@ -23,6 +20,7 @@
   "bugs": "https://github.com/internxt/cli",
   "types": "dist/index.d.ts",
   "files": [
+    ".env",
     "/bin",
     "/dist",
     "/oclif.manifest.json"
@@ -71,8 +69,16 @@
   "engines": {
     "node": ">=18.0.0"
   },
+  "bin": {
+    "internxt": "./bin/run.js",
+    "inxt": "./bin/run.js"
+  },
   "oclif": {
-    "bin": "internxt-cli",
+    "bin": "internxt",
+    "binAliases": [
+      "internxt",
+      "inxt"
+    ],
     "dirname": "internxt-cli",
     "commands": "./dist/commands",
     "plugins": [],
