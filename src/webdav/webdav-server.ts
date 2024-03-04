@@ -1,4 +1,4 @@
-import express from 'express';
+import { Express } from 'express';
 import { ConfigService } from '../services/config.service';
 import { OPTIONSRequestHandler } from './handlers/OPTIONS.handler';
 import { PROPFINDRequestHandler } from './handlers/PROPFIND.handler';
@@ -8,9 +8,14 @@ import { SdkManager } from '../services/sdk-manager.service';
 import { DriveFolderService } from '../services/drive/drive-folder.service';
 
 export class WebDavServer {
-  private app = express();
+  constructor(
+    private app: Express,
+    private configService: ConfigService,
+    private driveFolderService: DriveFolderService,
+  ) {}
+
   private initUserCredentials = async () => {
-    const credentials = await ConfigService.instance.readUser();
+    const credentials = await this.configService.readUser();
     if (!credentials) throw new Error('Missing credentials, cannot init WebDav server');
     SdkManager.init({
       token: credentials?.token,
@@ -29,15 +34,15 @@ export class WebDavServer {
       new PROPFINDRequestHandler(
         { debug: true },
         {
-          driveFolderService: DriveFolderService.instance,
-          configService: ConfigService.instance,
+          driveFolderService: this.driveFolderService,
+          configService: this.configService,
         },
       ).handle,
     );
   };
 
   async start() {
-    const port = ConfigService.instance.get('WEBDAV_SERVER_PORT');
+    const port = this.configService.get('WEBDAV_SERVER_PORT');
     await this.initUserCredentials();
     this.app.disable('x-powered-by');
 

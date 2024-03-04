@@ -9,7 +9,7 @@ import { newFolder, newPaginatedFolder } from '../../fixtures/drive.fixture';
 
 describe('PROPFIND request handler', () => {
   const sandbox = sinon.createSandbox();
-  beforeEach(() => {
+  afterEach(() => {
     sandbox.restore();
   });
 
