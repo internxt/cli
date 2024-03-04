@@ -1,6 +1,6 @@
 {
   "author": "PixoDev",
-  "version": "0.0.9",
+  "version": "0.0.12",
   "description": "Internxt CLI to manage your encrypted storage",
   "scripts": {
     "build": "tsc",
@@ -71,15 +71,10 @@
     "node": ">=18.0.0"
   },
   "bin": {
-    "internxt": "./bin/run.js",
-    "inxt": "./bin/run.js"
+    "internxt": "./bin/run.js"
   },
   "oclif": {
     "bin": "internxt",
-    "binAliases": [
-      "internxt",
-      "inxt"
-    ],
     "dirname": "internxt-cli",
     "commands": "./dist/commands",
     "plugins": [],
