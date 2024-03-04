@@ -13,15 +13,9 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
     private options: WebDavMethodHandlerOptions = { debug: false },
     private dependencies: { driveFolderService: DriveFolderService; configService: ConfigService },
   ) {}
-  handle = async (req: Request, res: Response) => {
+  handle = async (_: Request, res: Response) => {
     const { driveFolderService, configService } = this.dependencies;
     try {
-      if (this.options.debug) {
-        webdavLogger.info('Received PROPFIND request');
-        webdavLogger.info('Request headers: ', req.headers);
-        webdavLogger.info('Request body: ', XMLUtils.toJSON(req.body));
-      }
-
       const credentials = await configService.readUser();
       if (!credentials) throw new Error('Missing credentials');
       const rootFolder = await driveFolderService.getFolderMetaById(credentials?.user.root_folder_id);
@@ -44,7 +38,6 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
       });
 
       const responseXml = `<?xml version="1.0" encoding="utf-8" ?><D:multistatus xmlns:D="DAV:">${xml}</D:multistatus>`;
-      console.log('RESPONSE', responseXml);
       res.status(200).send(responseXml);
     } catch (error) {
       webdavLogger.error('Error replying to PROPFIND request: ', error);
