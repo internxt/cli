@@ -11,4 +11,6 @@ export class OPTIONSRequestHandler implements WebDavMethodHandler {
     res.header('DAV', '1, 2, ordered-collections');
     res.status(200).send();
   }
+
+  async toXML() {}
 }

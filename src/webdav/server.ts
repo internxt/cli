@@ -6,6 +6,7 @@ import { PROPFINDRequestHandler } from './handlers/PROPFIND.handler';
 import { webdavLogger } from '../utils/logger.utils';
 import bodyParser from 'body-parser';
 import { SdkManager } from '../services/sdk-manager.service';
+import { DriveFolderService } from '../services/drive/drive-folder.service';
 dotenv.config();
 
 const initUserCredentials = async () => {
@@ -21,10 +22,21 @@ export const startWebDavServer = async () => {
 
   const port = ConfigService.instance.get('WEBDAV_SERVER_PORT');
   const app = express();
+  app.disable('x-powered-by');
 
   app.use(bodyParser.text({ type: ['application/xml', 'text/xml'] }));
+
   app.options('/webdav', new OPTIONSRequestHandler({ debug: true }).handle);
-  app.propfind('/webdav', new PROPFINDRequestHandler({ debug: true }).handle);
+  app.propfind(
+    '/webdav',
+    new PROPFINDRequestHandler(
+      { debug: true },
+      {
+        driveFolderService: DriveFolderService.instance,
+        configService: ConfigService.instance,
+      },
+    ).handle,
+  );
 
   app.listen(port, () => {
     webdavLogger.info(`WebDAV server listening at http://localhost:${port}`);

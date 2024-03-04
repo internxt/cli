@@ -9,11 +9,12 @@ import { webdavLogger } from '../../utils/logger.utils';
 import { FormatUtils } from '../../utils/format.utils';
 
 export class PROPFINDRequestHandler implements WebDavMethodHandler {
-  private options: WebDavMethodHandlerOptions;
-  constructor(options: WebDavMethodHandlerOptions = { debug: false }) {
-    this.options = options;
-  }
+  constructor(
+    private options: WebDavMethodHandlerOptions = { debug: false },
+    private dependencies: { driveFolderService: DriveFolderService; configService: ConfigService },
+  ) {}
   handle = async (req: Request, res: Response) => {
+    const { driveFolderService, configService } = this.dependencies;
     try {
       if (this.options.debug) {
         webdavLogger.info('Received PROPFIND request');
@@ -21,11 +22,11 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
         webdavLogger.info('Request body: ', XMLUtils.toJSON(req.body));
       }
 
-      const credentials = await ConfigService.instance.readUser();
+      const credentials = await configService.readUser();
       if (!credentials) throw new Error('Missing credentials');
-      const rootFolder = await DriveFolderService.instance.getFolderMetaById(credentials?.user.root_folder_id);
+      const rootFolder = await driveFolderService.getFolderMetaById(credentials?.user.root_folder_id);
 
-      const folderContent = await DriveFolderService.instance.getFolderContent(rootFolder.uuid);
+      const folderContent = await driveFolderService.getFolderContent(rootFolder.uuid);
 
       const foldersXML = folderContent.folders.map((folder) =>
         this.driveFolderItemToXMLNode({
@@ -39,14 +40,15 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
         }),
       );
       const xml = XMLUtils.toXML([...foldersXML], {
-        format: true,
         arrayNodeName: 'D:response',
       });
 
-      res.status(200).send(`<?xml version="1.0" encoding="utf-8" ?>
-      <D:multistatus xmlns:D="DAV:">${xml}</D:multistatus>`);
+      const responseXml = `<?xml version="1.0" encoding="utf-8" ?><D:multistatus xmlns:D="DAV:">${xml}</D:multistatus>`;
+      console.log('RESPONSE', responseXml);
+      res.status(200).send(responseXml);
     } catch (error) {
       webdavLogger.error('Error replying to PROPFIND request: ', error);
+      res.status(500).send('Internal server error');
     }
   };
 
