@@ -9,7 +9,7 @@ describe('XML utils', () => {
 
   it('When providing an object, it should return an XML', () => {
     const object = { root: { child: 'value' } };
-    const result = XMLUtils.toXML(object);
+    const result = XMLUtils.toXML(object, { format: false });
     expect(result).to.be.eq('<root><child>value</child></root>');
   });
 });
