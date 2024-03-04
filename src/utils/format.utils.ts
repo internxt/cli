@@ -9,4 +9,8 @@ export class FormatUtils {
   static readonly formatDate = (date: string | Date) => {
     return dayjs(date).format('D MMMM, YYYY [at] HH:mm');
   };
+
+  static readonly formatDateForWebDav = (date: string | Date) => {
+    return dayjs(date).format('ddd, DD MMM YYYY HH:mm:ss [GMT]');
+  };
 }
