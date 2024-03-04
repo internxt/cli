@@ -1,5 +1,7 @@
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
 
+dayjs.extend(utc);
 export class FormatUtils {
   static readonly humanFileSize = (size: number) => {
     const i = size == 0 ? 0 : Math.floor(Math.log(size) / Math.log(1024));
@@ -11,6 +13,6 @@ export class FormatUtils {
   };
 
   static readonly formatDateForWebDav = (date: string | Date) => {
-    return dayjs(date).format('ddd, DD MMM YYYY HH:mm:ss [GMT]');
+    return dayjs.utc(date).format('ddd, DD MMM YYYY HH:mm:ss [GMT]');
   };
 }
