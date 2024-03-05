@@ -7,7 +7,7 @@ describe('OPTIONS request handler', () => {
     sandbox.restore();
   });
   it('When a WebDav client sends an OPTIONS request, it should return the allowed methods', async () => {
-    const requestHandler = new OPTIONSRequestHandler({ debug: true });
+    const requestHandler = new OPTIONSRequestHandler();
 
     const request = mockReq({
       method: 'OPTIONS',

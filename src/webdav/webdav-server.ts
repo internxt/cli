@@ -28,7 +28,7 @@ export class WebDavServer {
   };
 
   private registerHandlers = () => {
-    this.app.options('/webdav', new OPTIONSRequestHandler({ debug: true }).handle);
+    this.app.options('/webdav', new OPTIONSRequestHandler().handle);
     this.app.propfind(
       '/webdav',
       new PROPFINDRequestHandler(
