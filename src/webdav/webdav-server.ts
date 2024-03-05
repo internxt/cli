@@ -50,7 +50,7 @@ export class WebDavServer {
     this.registerHandlers();
 
     this.app.listen(port, () => {
-      webdavLogger.info(`WebDAV server listening at http://localhost:${port}`);
+      webdavLogger.info(`Internxt WebDav server listening at http://localhost:${port}`);
     });
   }
 }
