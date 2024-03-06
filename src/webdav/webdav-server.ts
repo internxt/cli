@@ -6,6 +6,8 @@ import { webdavLogger } from '../utils/logger.utils';
 import bodyParser from 'body-parser';
 import { SdkManager } from '../services/sdk-manager.service';
 import { DriveFolderService } from '../services/drive/drive-folder.service';
+import { AuthMiddleware } from './middewares/auth.middleware';
+import { RequestLoggerMiddleware } from './middewares/request-logger.middleware';
 
 export class WebDavServer {
   constructor(
@@ -25,6 +27,8 @@ export class WebDavServer {
 
   private registerMiddlewares = () => {
     this.app.use(bodyParser.text({ type: ['application/xml', 'text/xml'] }));
+    this.app.use(RequestLoggerMiddleware({}));
+    this.app.use(AuthMiddleware(ConfigService.instance));
   };
 
   private registerHandlers = () => {
@@ -35,7 +39,6 @@ export class WebDavServer {
         { debug: true },
         {
           driveFolderService: this.driveFolderService,
-          configService: this.configService,
         },
       ).handle,
     );

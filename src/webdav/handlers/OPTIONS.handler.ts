@@ -1,6 +1,5 @@
-import { Request, Response } from 'express';
 import { WebDavMethodHandler } from '../../types/webdav.types';
-
+import { Request, Response } from 'express';
 export class OPTIONSRequestHandler implements WebDavMethodHandler {
   async handle(_: Request, res: Response) {
     res.header('Allow', 'OPTIONS, GET, HEAD, POST, PUT, DELETE, PROPFIND, PROPPATCH, MKCOL, COPY, MOVE, LOCK, UNLOCK');

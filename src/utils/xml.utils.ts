@@ -10,4 +10,9 @@ export class XMLUtils {
     const builder = new XMLBuilder(options);
     return builder.build(object);
   }
+
+  static toWebDavXML(object: Record<string, any>, options: XmlBuilderOptions) {
+    const xmlContent = this.toXML(object, options);
+    return `<?xml version="1.0" encoding="utf-8" ?><D:multistatus xmlns:D="DAV:">${xmlContent}</D:multistatus>`;
+  }
 }

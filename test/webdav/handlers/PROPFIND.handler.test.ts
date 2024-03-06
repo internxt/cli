@@ -1,11 +1,11 @@
 import sinon from 'sinon';
 import { PROPFINDRequestHandler } from '../../../src/webdav/handlers/PROPFIND.handler';
 
-import { mockReq, mockRes } from 'sinon-express-mock';
 import { ConfigService } from '../../../src/services/config.service';
 import { DriveFolderService } from '../../../src/services/drive/drive-folder.service';
 import { UserSettingsFixture } from '../../fixtures/auth.fixture';
 import { newFolder, newPaginatedFolder } from '../../fixtures/drive.fixture';
+import { createWebDavRequestFixture, createWebDavResponseFixture } from '../../fixtures/webdav.fixture';
 
 describe('PROPFIND request handler', () => {
   const sandbox = sinon.createSandbox();
@@ -13,7 +13,7 @@ describe('PROPFIND request handler', () => {
     sandbox.restore();
   });
 
-  it('When a WebDav client sends a PROPFIND request, and there is no content, should return the correct XML', async () => {
+  it('When a WebDav client sends a PROPFIND request for the root folder, and there is no content, should return the correct XML', async () => {
     const configService = ConfigService.instance;
     const driveFolderService = DriveFolderService.instance;
 
@@ -29,16 +29,19 @@ describe('PROPFIND request handler', () => {
     const requestHandler = new PROPFINDRequestHandler(
       { debug: true },
       {
-        configService,
         driveFolderService,
       },
     );
-    const request = mockReq({
+
+    const request = createWebDavRequestFixture({
+      url: '/webdav',
       method: 'PROPFIND',
+      user: UserSettingsFixture,
     });
 
     const sendStub = sandbox.stub();
-    const response = mockRes({
+
+    const response = createWebDavResponseFixture({
       status: sandbox.stub().returns({ send: sendStub }),
     });
 
@@ -50,7 +53,7 @@ describe('PROPFIND request handler', () => {
     );
   });
 
-  it('When a WebDav client sends a PROPFIND request, and there is content, should return the correct XML', async () => {
+  it('When a WebDav client sends a PROPFIND request for the root folder, and there is content, should return the correct XML', async () => {
     const configService = ConfigService.instance;
     const driveFolderService = DriveFolderService.instance;
 
@@ -75,16 +78,17 @@ describe('PROPFIND request handler', () => {
     const requestHandler = new PROPFINDRequestHandler(
       { debug: true },
       {
-        configService,
         driveFolderService,
       },
     );
-    const request = mockReq({
+
+    const request = createWebDavRequestFixture({
+      url: '/webdav',
       method: 'PROPFIND',
     });
 
     const sendStub = sandbox.stub();
-    const response = mockRes({
+    const response = createWebDavResponseFixture({
       status: sandbox.stub().returns({ send: sendStub }),
     });
 
