@@ -18,24 +18,22 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
   ) {}
 
   handle = async (req: Request, res: Response) => {
-    const resource = this.extractRequestedResource(req);
-    if (resource.type === 'root') {
-      res.status(200).send(await this.getRootFolderContentXML(req.user));
-      return;
-    }
+    const resource = this.getRequestedResource(req);
 
-    if (resource.type === 'file') {
-      res.status(200).send(await this.getFileMetaXML(resource));
-      return;
-    }
-
-    if (resource.type === 'folder') {
-      res.status(200).send(await this.getFolderMetaXML(resource));
-      return;
+    switch (resource.type) {
+      case 'root':
+        res.status(200).send(await this.getRootFolderContentXML(req.user));
+        break;
+      case 'file':
+        res.status(200).send(await this.getFileMetaXML(resource));
+        break;
+      case 'folder':
+        res.status(200).send(await this.getFolderMetaXML(resource));
+        break;
     }
   };
 
-  private extractRequestedResource(req: Request): WebDavRequestedResource {
+  private getRequestedResource(req: Request): WebDavRequestedResource {
     const parsedPath = path.parse(req.url);
     // This is the root of the WebDav folder
     if (req.url === '/webdav' || req.url === '/webdav/') {
@@ -65,7 +63,7 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
 
   private async getFileMetaXML(resource: WebDavRequestedResource): Promise<string> {
     // For now this is mocked data
-    const driveFile = await this.driveFileItemToXMLNode({
+    const driveFile = this.driveFileItemToXMLNode({
       name: resource.path.name,
       type: resource.path.ext.slice(1),
       bucket: '',
@@ -84,7 +82,7 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
 
   private async getFolderMetaXML(resource: WebDavRequestedResource): Promise<string> {
     // For now this is mocked data
-    const driveFile = await this.driveFolderItemToXMLNode({
+    const driveFile = this.driveFolderItemToXMLNode({
       name: resource.name,
       bucket: '',
       createdAt: new Date(),
@@ -157,7 +155,7 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
   }
 
   private driveFileItemToXMLNode(driveFileItem: DriveFileItem): object {
-    const displayName = `${driveFileItem.name}${driveFileItem.type ? `.${driveFileItem.type}` : ''}`;
+    const displayName = driveFileItem.type ? `${driveFileItem.name}.${driveFileItem.type}` : driveFileItem.name;
 
     const driveFileXML = {
       'D:href': path.join('/webdav', encodeURIComponent(displayName)),
