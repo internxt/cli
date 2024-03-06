@@ -1,10 +1,16 @@
 import { WebDavMethodHandler, WebDavMethodHandlerOptions } from '../../types/webdav.types';
 import { XMLUtils } from '../../utils/xml.utils';
 import { DriveFileItem, DriveFolderItem } from '../../types/drive.types';
-import path from 'path';
+import path, { ParsedPath } from 'path';
 import { DriveFolderService } from '../../services/drive/drive-folder.service';
 import { FormatUtils } from '../../utils/format.utils';
 import { Request, Response } from 'express';
+
+export type WebDavRequestedResource = {
+  type: 'file' | 'folder' | 'root';
+  name: string;
+  path: ParsedPath;
+};
 export class PROPFINDRequestHandler implements WebDavMethodHandler {
   constructor(
     private options: WebDavMethodHandlerOptions = { debug: false },
@@ -12,54 +18,87 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
   ) {}
 
   handle = async (req: Request, res: Response) => {
-    const { resourceType } = this.extractRequestedResource(req);
-    if (resourceType === 'root') {
-      res.status(200).send(await this.getRootFolderContent(req.user));
+    const resource = this.extractRequestedResource(req);
+    if (resource.type === 'root') {
+      res.status(200).send(await this.getRootFolderContentXML(req.user));
       return;
     }
 
-    if (resourceType === 'file') {
-      // TODO: Implement get file meta
-
+    if (resource.type === 'file') {
+      res.status(200).send(await this.getFileMetaXML(resource));
       return;
     }
 
-    if (resourceType === 'folder') {
-      // TODO: Implement get folder meta
+    if (resource.type === 'folder') {
+      res.status(200).send(await this.getFolderMetaXML(resource));
       return;
     }
   };
 
-  private extractRequestedResource(req: Request): {
-    resourceType: 'file' | 'folder' | 'root';
-    resourceName: string;
-  } {
+  private extractRequestedResource(req: Request): WebDavRequestedResource {
+    const parsedPath = path.parse(req.url);
     // This is the root of the WebDav folder
     if (req.url === '/webdav' || req.url === '/webdav/') {
       return {
-        resourceType: 'root',
-        resourceName: 'root',
+        type: 'root',
+        name: 'root',
+        path: parsedPath,
       };
     }
 
-    const parsedUrl = path.parse(req.url);
-
     // Assume this is a file
-    if (parsedUrl.ext) {
+    if (parsedPath.ext) {
       return {
-        resourceType: 'file',
-        resourceName: parsedUrl.name,
+        type: 'file',
+        name: parsedPath.name,
+        path: parsedPath,
       };
       // Otherwise, this is a folder
     } else {
       return {
-        resourceType: 'folder',
-        resourceName: parsedUrl.name,
+        type: 'folder',
+        name: parsedPath.name,
+        path: parsedPath,
       };
     }
   }
 
-  private async getRootFolderContent(user: Request['user']) {
+  private async getFileMetaXML(resource: WebDavRequestedResource): Promise<string> {
+    // For now this is mocked data
+    const driveFile = await this.driveFileItemToXMLNode({
+      name: resource.path.name,
+      type: resource.path.ext.slice(1),
+      bucket: '',
+      id: 0,
+      uuid: '',
+      fileId: '',
+      encryptedName: '',
+      size: 0,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+    return XMLUtils.toWebDavXML([driveFile], {
+      arrayNodeName: 'D:response',
+    });
+  }
+
+  private async getFolderMetaXML(resource: WebDavRequestedResource): Promise<string> {
+    // For now this is mocked data
+    const driveFile = await this.driveFolderItemToXMLNode({
+      name: resource.name,
+      bucket: '',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      id: 0,
+      encryptedName: '',
+      uuid: '',
+    });
+    return XMLUtils.toWebDavXML([driveFile], {
+      arrayNodeName: 'D:response',
+    });
+  }
+
+  private async getRootFolderContentXML(user: Request['user']) {
     const { driveFolderService } = this.dependencies;
     const rootFolder = await driveFolderService.getFolderMetaById(user.rootFolderId);
 
