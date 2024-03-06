@@ -11,7 +11,7 @@ export const AuthMiddleware = (configService: ConfigService): RequestHandler => 
       };
       next();
     } catch (error) {
-      res.status(401).send({ error: (error as Error).message ?? 'Unauthorized' });
+      res.status(401).send({ error: (error as Error).message });
     }
   };
 };
