@@ -4,7 +4,6 @@ import { OPTIONSRequestHandler } from './handlers/OPTIONS.handler';
 import { PROPFINDRequestHandler } from './handlers/PROPFIND.handler';
 import { webdavLogger } from '../utils/logger.utils';
 import bodyParser from 'body-parser';
-import { SdkManager } from '../services/sdk-manager.service';
 import { DriveFolderService } from '../services/drive/drive-folder.service';
 import { AuthMiddleware } from './middewares/auth.middleware';
 import { RequestLoggerMiddleware } from './middewares/request-logger.middleware';
