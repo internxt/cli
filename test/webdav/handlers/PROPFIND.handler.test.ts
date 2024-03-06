@@ -6,6 +6,7 @@ import { DriveFolderService } from '../../../src/services/drive/drive-folder.ser
 import { UserSettingsFixture } from '../../fixtures/auth.fixture';
 import { newFolder, newPaginatedFolder } from '../../fixtures/drive.fixture';
 import { createWebDavRequestFixture, createWebDavResponseFixture } from '../../fixtures/webdav.fixture';
+import path from 'path';
 
 describe('PROPFIND request handler', () => {
   const sandbox = sinon.createSandbox();
@@ -96,7 +97,7 @@ describe('PROPFIND request handler', () => {
     sinon.assert.calledWith(response.status, 200);
     sinon.assert.calledWith(
       sendStub,
-      '<?xml version="1.0" encoding="utf-8" ?><D:multistatus xmlns:D="DAV:"><D:response><D:href>/webdav/folder_1</D:href><D:propstat><D:status>HTTP/1.1 200 OK</D:status><D:prop><D:displayname>folder_1</D:displayname><D:getlastmodified>Mon, 04 Mar 2024 15:11:01 GMT</D:getlastmodified><D:getcontentlength>0</D:getcontentlength><D:resourcetype><D:collection></D:collection></D:resourcetype></D:prop></D:propstat></D:response></D:multistatus>',
+      `<?xml version="1.0" encoding="utf-8" ?><D:multistatus xmlns:D="DAV:"><D:response><D:href>${path.join('/webdav', 'folder_1')}</D:href><D:propstat><D:status>HTTP/1.1 200 OK</D:status><D:prop><D:displayname>folder_1</D:displayname><D:getlastmodified>Mon, 04 Mar 2024 15:11:01 GMT</D:getlastmodified><D:getcontentlength>0</D:getcontentlength><D:resourcetype><D:collection></D:collection></D:resourcetype></D:prop></D:propstat></D:response></D:multistatus>`,
     );
   });
 
