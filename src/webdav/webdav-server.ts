@@ -16,15 +16,6 @@ export class WebDavServer {
     private driveFolderService: DriveFolderService,
   ) {}
 
-  private initUserCredentials = async () => {
-    const credentials = await this.configService.readUser();
-    if (!credentials) throw new Error('Missing credentials, cannot init WebDav server');
-    SdkManager.init({
-      token: credentials?.token,
-      newToken: credentials?.newToken,
-    });
-  };
-
   private registerMiddlewares = () => {
     this.app.use(bodyParser.text({ type: ['application/xml', 'text/xml'] }));
     this.app.use(RequestLoggerMiddleware({}));
@@ -46,7 +37,6 @@ export class WebDavServer {
 
   async start() {
     const port = this.configService.get('WEBDAV_SERVER_PORT');
-    await this.initUserCredentials();
     this.app.disable('x-powered-by');
 
     this.registerMiddlewares();
