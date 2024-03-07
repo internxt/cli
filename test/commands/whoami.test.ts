@@ -1,22 +1,16 @@
 import { expect } from 'chai';
 import test from '@oclif/test';
 import { ConfigService } from '../../src/services/config.service';
-import { UserFixture } from '../fixtures/auth.fixture';
+import { UserCredentialsFixture } from '../fixtures/login.fixture';
 
 describe('Whoami Command', () => {
   describe('When user is logged in and whoami is called, then the current user logged in is printed', () => {
-    const userCredentials = {
-      user: UserFixture,
-      token: 'test_auth_token',
-      newToken: 'test_new_auth_token',
-      mnemonic: 'test_mnemonic',
-    };
     test
       .stdout()
-      .stub(ConfigService.instance, 'readUser', (stub) => stub.resolves(userCredentials))
+      .stub(ConfigService.instance, 'readUser', (stub) => stub.resolves(UserCredentialsFixture))
       .command(['whoami'])
       .it('runs whoami and expects user to be logged in', (ctx) => {
-        expect(ctx.stdout).to.be.equal(`✓ You are logged in with: ${userCredentials.user.email}\n`);
+        expect(ctx.stdout).to.be.equal(`✓ You are logged in with: ${UserCredentialsFixture.user.email}\n`);
       });
   });
 
