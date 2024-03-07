@@ -1271,7 +1271,7 @@
   resolved "https://registry.yarnpkg.com/@nsis/language-data/-/language-data-0.9.2.tgz#a704c15fe6d40fd65f32627ce6e1c4f8bb12c785"
   integrity sha512-uFms/pMkAbHoxhcSH2NR/7LMAxlbECcnkq08/wBppNIKB3mRwasqWhBfA827LdvYFEW5vJBPMbT1dkyh9+X+zA==
 
-"@oclif/core@^3", "@oclif/core@^3.18.1", "@oclif/core@^3.19.1", "@oclif/core@^3.19.2", "@oclif/core@^3.19.3":
+"@oclif/core@^3", "@oclif/core@^3.18.1", "@oclif/core@^3.19.2", "@oclif/core@^3.19.3":
   version "3.19.6"
   resolved "https://registry.yarnpkg.com/@oclif/core/-/core-3.19.6.tgz#12e5cb073016d8c32c469d2fec0cd585ac5c1c09"
   integrity sha512-1ryQWAx7VOf+Wq6pv00uilOo56DrG0drr42crmCQ3eYrPPz252EmNCoFkoOBk7McN6x0f4ega83c0yNNCXmiXw==
@@ -1337,13 +1337,13 @@
   integrity sha512-XB8kwQj8zynXjIIWRm+6gO/r8Qft2xKtwBMSmq1JRqtA6TpwpqECqiu8LosBCyg2JBXuUy2lU23/L98KIR7FrQ==
 
 "@oclif/test@^3":
-  version "3.1.16"
-  resolved "https://registry.yarnpkg.com/@oclif/test/-/test-3.1.16.tgz#acb66688a0caf08b5089da3d8f05201e1cf75819"
-  integrity sha512-LeoojG2tD8XDN9HzEt1j+JUKSyYz7qGp55SfvnXCa8d7k4Hq9jTzTiubu+s2mE4Nq9Ns5X40NZNSm85COxbsqw==
+  version "3.2.1"
+  resolved "https://registry.yarnpkg.com/@oclif/test/-/test-3.2.1.tgz#a2854c585bf0008ee91eb7e35d90ee1beeb7e719"
+  integrity sha512-FMUR1ziZd9FRknk4R9jis8ermiHQadyCWtmtAOL4n9qfnIh4R8qs3wbH1qAg2p+R0VA0+t3jMSSEcPFGmghBQw==
   dependencies:
-    "@oclif/core" "^3.19.1"
+    "@oclif/core" "^3.19.2"
     chai "^4.4.1"
-    fancy-test "^3.0.10"
+    fancy-test "^3.0.11"
 
 "@octokit/auth-token@^2.4.4":
   version "2.5.0"
@@ -4317,10 +4317,10 @@ external-editor@^3.0.3:
     iconv-lite "^0.4.24"
     tmp "^0.0.33"
 
-fancy-test@^3.0.10:
-  version "3.0.10"
-  resolved "https://registry.yarnpkg.com/fancy-test/-/fancy-test-3.0.10.tgz#341be69e6eb35fcf1be33c041bed978837502e84"
-  integrity sha512-6pwRQ7gqW57FKoTyRPPmcZktHLvrX+LS5ZQdXvQTMAq6vOVGCUrtJ4WP2BD4sZisRBnasaT4981L/8Q+qfh3wg==
+fancy-test@^3.0.11:
+  version "3.0.12"
+  resolved "https://registry.yarnpkg.com/fancy-test/-/fancy-test-3.0.12.tgz#919482bd63ab949aec4a51690c857f8c125383b3"
+  integrity sha512-pboHMxTnbD72FBl/fgYAmBb6AjiF0OgI1osAnnzzuFgBrzbFQj5so3XlknKC9k3HFJIy0HerCTyDjz/YZ6aBIg==
   dependencies:
     "@types/chai" "*"
     "@types/lodash" "*"
@@ -4328,7 +4328,7 @@ fancy-test@^3.0.10:
     "@types/sinon" "*"
     lodash "^4.17.13"
     mock-stdin "^1.0.0"
-    nock "^13.5.1"
+    nock "^13.5.4"
     sinon "^16.1.3"
     stdout-stderr "^0.1.9"
 
@@ -6298,19 +6298,19 @@ no-case@^3.0.4:
     lower-case "^2.0.2"
     tslib "^2.0.3"
 
-nock@^13.5.1:
-  version "13.5.1"
-  resolved "https://registry.yarnpkg.com/nock/-/nock-13.5.1.tgz#4e40f9877ad0d43b7cdb474261c190f3715dd806"
-  integrity sha512-+s7b73fzj5KnxbKH4Oaqz07tQ8degcMilU4rrmnKvI//b0JMBU4wEXFQ8zqr+3+L4eWSfU3H/UoIVGUV0tue1Q==
+nock@^13.5.3:
+  version "13.5.3"
+  resolved "https://registry.yarnpkg.com/nock/-/nock-13.5.3.tgz#9858adf5b840696a410baf98bda720d5fad4f075"
+  integrity sha512-2NlGmHIK2rTeyy7UaY1ZNg0YZfEJMxghXgZi0b4DBsUyoDNTTxZeCSG1nmirAWF44RkkoV8NnegLVQijgVapNQ==
   dependencies:
     debug "^4.1.0"
     json-stringify-safe "^5.0.1"
     propagate "^2.0.0"
 
-nock@^13.5.3:
-  version "13.5.3"
-  resolved "https://registry.yarnpkg.com/nock/-/nock-13.5.3.tgz#9858adf5b840696a410baf98bda720d5fad4f075"
-  integrity sha512-2NlGmHIK2rTeyy7UaY1ZNg0YZfEJMxghXgZi0b4DBsUyoDNTTxZeCSG1nmirAWF44RkkoV8NnegLVQijgVapNQ==
+nock@^13.5.4:
+  version "13.5.4"
+  resolved "https://registry.yarnpkg.com/nock/-/nock-13.5.4.tgz#8918f0addc70a63736170fef7106a9721e0dc479"
+  integrity sha512-yAyTfdeNJGGBFxWdzSKCBYxs5FxLbCg5X5Q4ets974hcQzG1+qCxvIyOo4j2Ry6MUlhWVMX4OoYDefAIIwupjw==
   dependencies:
     debug "^4.1.0"
     json-stringify-safe "^5.0.1"
