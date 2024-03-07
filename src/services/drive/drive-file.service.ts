@@ -34,12 +34,13 @@ export class DriveFileService {
     });
 
     return {
+      size: driveFile.size,
       uuid: driveFile.uuid,
       encryptedName,
       name: payload.name,
       bucket: payload.bucket,
-      createdAt: driveFile.createdAt,
-      updatedAt: driveFile.updatedAt,
+      createdAt: new Date(driveFile.createdAt),
+      updatedAt: new Date(driveFile.updatedAt),
       fileId: payload.fileId,
       id: driveFile.id,
       type: payload.type,
@@ -54,11 +55,12 @@ export class DriveFileService {
     const fileMetadata = await getFileMetadata;
     return {
       uuid,
+      size: fileMetadata.size,
       encryptedName: fileMetadata.name,
       name: fileMetadata.plainName ?? fileMetadata.name,
       bucket: fileMetadata.bucket,
-      createdAt: fileMetadata.createdAt,
-      updatedAt: fileMetadata.updatedAt,
+      createdAt: new Date(fileMetadata.createdAt),
+      updatedAt: new Date(fileMetadata.updatedAt),
       fileId: fileMetadata.fileId,
       id: fileMetadata.id,
       type: fileMetadata.type,

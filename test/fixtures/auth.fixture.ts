@@ -1,3 +1,4 @@
+import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
 import crypto from 'crypto';
 
 export const UserFixture = {
@@ -24,4 +25,30 @@ export const UserFixture = {
   createdAt: new Date(),
   avatar: crypto.randomBytes(16).toString('hex'),
   emailVerified: true,
+};
+
+export const UserSettingsFixture: UserSettings = {
+  userId: UserFixture.userId,
+  email: UserFixture.email,
+  name: UserFixture.name,
+  lastname: UserFixture.lastname,
+  username: UserFixture.username,
+  bridgeUser: UserFixture.bridgeUser,
+  bucket: UserFixture.bucket,
+  backupsBucket: UserFixture.backupsBucket,
+  root_folder_id: UserFixture.root_folder_id,
+  sharedWorkspace: UserFixture.sharedWorkspace,
+  credit: UserFixture.credit,
+  mnemonic: UserFixture.mnemonic,
+  privateKey: UserFixture.privateKey,
+  publicKey: UserFixture.publicKey,
+  revocationKey: UserFixture.revocationKey,
+  teams: UserFixture.teams,
+  appSumoDetails: UserFixture.appSumoDetails,
+  registerCompleted: UserFixture.registerCompleted,
+  hasReferralsProgram: UserFixture.hasReferralsProgram,
+  createdAt: UserFixture.createdAt,
+  avatar: UserFixture.avatar,
+  emailVerified: UserFixture.emailVerified,
+  uuid: UserFixture.uuid,
 };

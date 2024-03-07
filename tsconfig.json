@@ -10,7 +10,8 @@
     "composite": true,
     "resolveJsonModule": true,
     "removeComments": true,
-    "esModuleInterop": true,
+    "esModuleInterop": true
   },
-  "include": ["./src/**/*"]
+  "files": ["src/types/index.d.ts"],
+  "include": ["./src/**/*", "src/types/index.d.ts"]
 }
