@@ -15,3 +15,4 @@ oclif.manifest.json
 .env
 coverage
 cli.inxt
+*.log
