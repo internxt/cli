@@ -114,12 +114,18 @@ describe('Config service', () => {
       .stub(fs, 'readFile')
       .withArgs(ConfigService.CREDENTIALS_FILE)
       .resolves('');
+    const existFileStub = configServiceSandbox
+      .stub(fs, 'stat')
+      .withArgs(ConfigService.CREDENTIALS_FILE)
+      // @ts-expect-error - We stub the stat method partially
+      .resolves({ size: BigInt(crypto.randomInt(1, 100000)) });
 
     await ConfigService.instance.clearUser();
     const credentialsFileContent = await fs.readFile(ConfigService.CREDENTIALS_FILE, 'utf8');
 
-    expect(writeFileStub).to.be.have.been.calledWith(ConfigService.CREDENTIALS_FILE, '');
-    expect(readFileStub).to.be.have.been.calledWith(ConfigService.CREDENTIALS_FILE);
+    expect(writeFileStub).to.have.been.calledWith(ConfigService.CREDENTIALS_FILE, '');
+    expect(readFileStub).to.have.been.calledWith(ConfigService.CREDENTIALS_FILE);
+    expect(existFileStub).to.have.been.calledWith(ConfigService.CREDENTIALS_FILE);
     expect(credentialsFileContent).to.be.empty;
   });
 

@@ -3,6 +3,7 @@ import { test } from '@oclif/test';
 import { ux } from '@oclif/core';
 import { ValidationService } from '../../src/services/validation.service';
 import { AuthService } from '../../src/services/auth.service';
+import { ConfigService } from '../../src/services/config.service';
 import { UserCredentialsFixture, UserLoginFixture } from '../fixtures/login.fixture';
 
 describe('Login Command', () => {
@@ -13,6 +14,7 @@ describe('Login Command', () => {
       .stub(ValidationService.instance, 'validate2FA', (stub) => stub.returns(true))
       .stub(AuthService.instance, 'is2FANeeded', (stub) => stub.resolves(true))
       .stub(AuthService.instance, 'doLogin', (stub) => stub.resolves(UserCredentialsFixture))
+      .stub(ConfigService.instance, 'saveUser', (stub) => stub.resolves())
       .command([
         'login',
         `-e ${UserLoginFixture.email}`,
@@ -28,6 +30,7 @@ describe('Login Command', () => {
       .stub(ValidationService.instance, 'validateEmail', (stub) => stub.returns(true))
       .stub(AuthService.instance, 'is2FANeeded', (stub) => stub.resolves(false))
       .stub(AuthService.instance, 'doLogin', (stub) => stub.resolves(UserCredentialsFixture))
+      .stub(ConfigService.instance, 'saveUser', (stub) => stub.resolves())
       .command(['login', `-e ${UserLoginFixture.email}`, `-p ${UserLoginFixture.password}`])
       .it('runs login without 2fa using flags', (ctx) => {
         expect(ctx.stdout).to.be.equal(`✓ Succesfully logged in to: ${UserLoginFixture.email}\n`);
@@ -41,6 +44,7 @@ describe('Login Command', () => {
       .stub(ValidationService.instance, 'validate2FA', (stub) => stub.returns(true))
       .stub(AuthService.instance, 'is2FANeeded', (stub) => stub.resolves(true))
       .stub(AuthService.instance, 'doLogin', (stub) => stub.resolves(UserCredentialsFixture))
+      .stub(ConfigService.instance, 'saveUser', (stub) => stub.resolves())
       .command([
         'login',
         '-n',
@@ -56,12 +60,14 @@ describe('Login Command', () => {
   describe('When user logs in forcing non-interactive flags but any param is missing, then an error is thrown', () => {
     test
       .stdout()
+      .stub(ConfigService.instance, 'saveUser', (stub) => stub.resolves())
       .command(['login', '-n', `-p ${UserLoginFixture.password}`, `-w ${UserLoginFixture.twoFactor}`])
       .exit(1)
       .it('runs login forcing non-interactive flags without email and expects an error');
 
     test
       .stdout()
+      .stub(ConfigService.instance, 'saveUser', (stub) => stub.resolves())
       .command(['login', '-n', `-e ${UserLoginFixture.email}`, `-w ${UserLoginFixture.twoFactor}`])
       .exit(1)
       .it('runs login forcing non-interactive flags without password and expects an error');
@@ -71,6 +77,7 @@ describe('Login Command', () => {
       .stub(ValidationService.instance, 'validateEmail', (stub) => stub.returns(true))
       .stub(AuthService.instance, 'is2FANeeded', (stub) => stub.resolves(true))
       .stub(AuthService.instance, 'doLogin', (stub) => stub.resolves(UserCredentialsFixture))
+      .stub(ConfigService.instance, 'saveUser', (stub) => stub.resolves())
       .command(['login', '-n', `-e ${UserLoginFixture.email}`, `-p ${UserLoginFixture.password}`])
       .exit(1)
       .it('runs login forcing non-interactive flags without 2fa and expects an error');
@@ -83,6 +90,7 @@ describe('Login Command', () => {
       .stub(ValidationService.instance, 'validate2FA', (stub) => stub.returns(true))
       .stub(AuthService.instance, 'is2FANeeded', (stub) => stub.resolves(true))
       .stub(AuthService.instance, 'doLogin', (stub) => stub.resolves(UserCredentialsFixture))
+      .stub(ConfigService.instance, 'saveUser', (stub) => stub.resolves())
       .stub(ux, 'prompt', (stub) => stub.resolves('any input'))
       // commented because is not working, but i wish it would
       //.stub(ux, 'prompt', (stub) => stub.withArgs('What is your email?').resolves(UserLogin.email))
@@ -99,6 +107,7 @@ describe('Login Command', () => {
       .stdout()
       .stub(ValidationService.instance, 'validateEmail', (stub) => stub.returns(false))
       .stub(ux, 'prompt', (stub) => stub.returns('any input'))
+      .stub(ConfigService.instance, 'saveUser', (stub) => stub.resolves())
       .command(['login'])
       .exit(1)
       .it('runs login interactively and expects error (app exit with code 1)');
@@ -109,6 +118,7 @@ describe('Login Command', () => {
       .stdout()
       .stub(ValidationService.instance, 'validateEmail', (stub) => stub.returns(true))
       .stub(ux, 'prompt', (stub) => stub.returns(''))
+      .stub(ConfigService.instance, 'saveUser', (stub) => stub.resolves())
       .command(['login'])
       .exit(1)
       .it('runs login interactively and expects error (app exit with code 1)');
@@ -120,6 +130,7 @@ describe('Login Command', () => {
       .stub(ValidationService.instance, 'validateEmail', (stub) => stub.returns(true))
       .stub(ValidationService.instance, 'validate2FA', (stub) => stub.returns(false))
       .stub(ux, 'prompt', (stub) => stub.returns('any input'))
+      .stub(ConfigService.instance, 'saveUser', (stub) => stub.resolves())
       .command(['login'])
       .exit(1)
       .it('runs login interactively and expects error (app exit with code 1)');
