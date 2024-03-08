@@ -7,6 +7,7 @@ import { CryptoService } from './crypto.service';
 
 export class ConfigService {
   static readonly CREDENTIALS_FILE = path.join(os.homedir(), '.inxtcli');
+  static readonly DRIVE_REALM_FILE = path.join(os.homedir(), 'internxt-cli-drive.realm');
   public static readonly instance: ConfigService = new ConfigService();
 
   /**

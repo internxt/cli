@@ -43,6 +43,7 @@
     "express-basic-auth": "^1.2.1",
     "fast-xml-parser": "^4.3.5",
     "openpgp": "^5.11.1",
+    "realm": "^12.6.2",
     "superagent": "^8.1.2",
     "winston": "^3.12.0"
   },

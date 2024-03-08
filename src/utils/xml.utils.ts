@@ -13,6 +13,6 @@ export class XMLUtils {
 
   static toWebDavXML(object: Record<string, any>, options: XmlBuilderOptions) {
     const xmlContent = this.toXML(object, options);
-    return `<?xml version="1.0" encoding="utf-8" ?><D:multistatus xmlns:D="DAV:">${xmlContent}</D:multistatus>`;
+    return `<?xml version="1.0" encoding="utf-8" ?><multistatus xmlns:D="DAV:">${xmlContent}</multistatus>`;
   }
 }

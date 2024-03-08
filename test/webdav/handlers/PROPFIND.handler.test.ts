@@ -7,9 +7,16 @@ import { UserSettingsFixture } from '../../fixtures/auth.fixture';
 import { newFolder, newPaginatedFolder } from '../../fixtures/drive.fixture';
 import { createWebDavRequestFixture, createWebDavResponseFixture } from '../../fixtures/webdav.fixture';
 import path from 'path';
+import {
+  getDriveFileRealmSchemaFixture,
+  getDriveFolderRealmSchemaFixture,
+  getDriveRealmManager,
+} from '../../fixtures/drive-realm.fixture';
+import { get } from 'http';
 
 describe('PROPFIND request handler', () => {
   const sandbox = sinon.createSandbox();
+
   afterEach(() => {
     sandbox.restore();
   });
@@ -31,11 +38,12 @@ describe('PROPFIND request handler', () => {
       { debug: true },
       {
         driveFolderService,
+        driveRealmManager: getDriveRealmManager(),
       },
     );
 
     const request = createWebDavRequestFixture({
-      url: '/webdav',
+      url: '/',
       method: 'PROPFIND',
       user: UserSettingsFixture,
     });
@@ -50,7 +58,7 @@ describe('PROPFIND request handler', () => {
     sinon.assert.calledWith(response.status, 200);
     sinon.assert.calledWith(
       sendStub,
-      '<?xml version="1.0" encoding="utf-8" ?><D:multistatus xmlns:D="DAV:"></D:multistatus>',
+      '<?xml version="1.0" encoding="utf-8" ?><multistatus xmlns:D="DAV:"></multistatus>',
     );
   });
 
@@ -80,11 +88,12 @@ describe('PROPFIND request handler', () => {
       { debug: true },
       {
         driveFolderService,
+        driveRealmManager: getDriveRealmManager(),
       },
     );
 
     const request = createWebDavRequestFixture({
-      url: '/webdav',
+      url: '/',
       method: 'PROPFIND',
     });
 
@@ -97,7 +106,7 @@ describe('PROPFIND request handler', () => {
     sinon.assert.calledWith(response.status, 200);
     sinon.assert.calledWith(
       sendStub,
-      `<?xml version="1.0" encoding="utf-8" ?><D:multistatus xmlns:D="DAV:"><D:response><D:href>${path.join('/webdav', 'folder_1')}</D:href><D:propstat><D:status>HTTP/1.1 200 OK</D:status><D:prop><D:displayname>folder_1</D:displayname><D:getlastmodified>Mon, 04 Mar 2024 15:11:01 GMT</D:getlastmodified><D:getcontentlength>0</D:getcontentlength><D:resourcetype><D:collection></D:collection></D:resourcetype></D:prop></D:propstat></D:response></D:multistatus>`,
+      `<?xml version="1.0" encoding="utf-8" ?><multistatus xmlns:D="DAV:"><response><href>${path.join('/', 'folder_1', '/')}</href><propstat><status>HTTP/1.1 200 OK</status><prop><displayname>folder_1</displayname><getlastmodified>Mon, 04 Mar 2024 15:11:01 GMT</getlastmodified><getcontentlength>0</getcontentlength><resourcetype><collection></collection></resourcetype></prop></propstat></response></multistatus>`,
     );
   });
 
@@ -109,15 +118,19 @@ describe('PROPFIND request handler', () => {
       .stub(configService, 'readUser')
       .resolves({ user: UserSettingsFixture, token: 'TOKEN', newToken: 'NEW_TOKEN', mnemonic: 'MNEMONIC' });
 
+    const driveRealmManager = getDriveRealmManager();
+    sandbox.stub(driveRealmManager, 'findByRelativePath').resolves(getDriveFolderRealmSchemaFixture());
+
     const requestHandler = new PROPFINDRequestHandler(
       { debug: true },
       {
         driveFolderService,
+        driveRealmManager,
       },
     );
 
     const request = createWebDavRequestFixture({
-      url: '/webdav/file.png',
+      url: '/file.png',
       method: 'PROPFIND',
     });
 
@@ -139,15 +152,18 @@ describe('PROPFIND request handler', () => {
       .stub(configService, 'readUser')
       .resolves({ user: UserSettingsFixture, token: 'TOKEN', newToken: 'NEW_TOKEN', mnemonic: 'MNEMONIC' });
 
+    const driveRealmManager = getDriveRealmManager();
+    sandbox.stub(driveRealmManager, 'findByRelativePath').resolves(getDriveFolderRealmSchemaFixture());
     const requestHandler = new PROPFINDRequestHandler(
       { debug: true },
       {
         driveFolderService,
+        driveRealmManager,
       },
     );
 
     const request = createWebDavRequestFixture({
-      url: '/webdav/folder_a',
+      url: '/folder_a',
       method: 'PROPFIND',
     });
 
