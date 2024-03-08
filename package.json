@@ -9,7 +9,7 @@
     "posttest": "yarn lint",
     "prepack": "yarn build && oclif manifest && oclif readme",
     "prepare": "husky",
-    "test:unit": "nyc --reporter=lcov --reporter=text mocha \"test/**/*.test.ts\"",
+    "test:unit": "nyc --reporter=lcov --reporter=text mocha \"test/**/*.test.ts\" --exit",
     "dev:webdav": "nodemon -e ts --exec 'ts-node src/webdav/index.ts'",
     "version": "oclif readme && git add README.md"
   },
