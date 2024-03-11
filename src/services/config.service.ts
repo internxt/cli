@@ -29,6 +29,7 @@ export class ConfigService {
    * @async
    **/
   public saveUser = async (loginCredentials: LoginCredentials): Promise<void> => {
+    await this.ensureInternxtCliDataDirExists();
     const credentialsString = JSON.stringify(loginCredentials);
     const encryptedCredentials = CryptoService.instance.encryptText(credentialsString);
     await fs.writeFile(ConfigService.CREDENTIALS_FILE, encryptedCredentials, 'utf8');
@@ -63,6 +64,14 @@ export class ConfigService {
       return loginCredentials;
     } catch {
       return;
+    }
+  };
+
+  ensureInternxtCliDataDirExists = async () => {
+    try {
+      await fs.access(ConfigService.INTERNXT_CLI_DATA_DIR);
+    } catch {
+      await fs.mkdir(ConfigService.INTERNXT_CLI_DATA_DIR);
     }
   };
 }
