@@ -52,6 +52,7 @@ export class DriveFoldersRealm {
       if (exists) {
         this.realm.delete(exists);
       }
+
       this.realm.create<DriveFolderRealmSchema>('DriveFolder', {
         id: driveFolder.id,
         name: driveFolder.name,

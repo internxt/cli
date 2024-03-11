@@ -1,4 +1,4 @@
-import sinon, { SinonStubbedInstance } from 'sinon';
+import sinon from 'sinon';
 import { DriveFileRealmSchema, DriveFilesRealm } from '../../../src/services/realms/drive-files.realm';
 import { Realm } from 'realm';
 import { expect } from 'chai';
