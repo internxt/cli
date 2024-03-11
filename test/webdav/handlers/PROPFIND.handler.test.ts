@@ -7,12 +7,7 @@ import { UserSettingsFixture } from '../../fixtures/auth.fixture';
 import { newFolder, newPaginatedFolder } from '../../fixtures/drive.fixture';
 import { createWebDavRequestFixture, createWebDavResponseFixture } from '../../fixtures/webdav.fixture';
 import path from 'path';
-import {
-  getDriveFileRealmSchemaFixture,
-  getDriveFolderRealmSchemaFixture,
-  getDriveRealmManager,
-} from '../../fixtures/drive-realm.fixture';
-import { get } from 'http';
+import { getDriveFolderRealmSchemaFixture, getDriveRealmManager } from '../../fixtures/drive-realm.fixture';
 
 describe('PROPFIND request handler', () => {
   const sandbox = sinon.createSandbox();
@@ -175,5 +170,37 @@ describe('PROPFIND request handler', () => {
     await requestHandler.handle(request, response);
     sinon.assert.calledWith(response.status, 200);
     // TODO: Test the XML response
+  });
+
+  it('When a WebDav client sends a PROPFIND request for a folder and it does not exists, should return a 404', async () => {
+    const configService = ConfigService.instance;
+    const driveFolderService = DriveFolderService.instance;
+
+    sandbox
+      .stub(configService, 'readUser')
+      .resolves({ user: UserSettingsFixture, token: 'TOKEN', newToken: 'NEW_TOKEN', mnemonic: 'MNEMONIC' });
+
+    const driveRealmManager = getDriveRealmManager();
+    sandbox.stub(driveRealmManager, 'findByRelativePath').resolves(null);
+    const requestHandler = new PROPFINDRequestHandler(
+      { debug: true },
+      {
+        driveFolderService,
+        driveRealmManager,
+      },
+    );
+
+    const request = createWebDavRequestFixture({
+      url: '/folder_a',
+      method: 'PROPFIND',
+    });
+
+    const sendStub = sandbox.stub();
+    const response = createWebDavResponseFixture({
+      status: sandbox.stub().returns({ send: sendStub }),
+    });
+
+    await requestHandler.handle(request, response);
+    sinon.assert.calledWith(response.status, 404);
   });
 });
