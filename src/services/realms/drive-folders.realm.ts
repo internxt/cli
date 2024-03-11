@@ -64,7 +64,5 @@ export class DriveFoldersRealm {
         relative_path: relativePath,
       });
     });
-
-    return;
   }
 }
