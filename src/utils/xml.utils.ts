@@ -6,12 +6,12 @@ export class XMLUtils {
     return parser.parse(xml);
   }
 
-  static toXML(object: Record<string, any>, options: XmlBuilderOptions = { format: true }) {
+  static toXML(object: object, options: XmlBuilderOptions = { format: true }) {
     const builder = new XMLBuilder(options);
     return builder.build(object);
   }
 
-  static toWebDavXML(object: Record<string, any>, options: XmlBuilderOptions) {
+  static toWebDavXML(object: object, options: XmlBuilderOptions) {
     const xmlContent = this.toXML(object, options);
     return `<?xml version="1.0" encoding="utf-8" ?><multistatus xmlns:D="DAV:">${xmlContent}</multistatus>`;
   }

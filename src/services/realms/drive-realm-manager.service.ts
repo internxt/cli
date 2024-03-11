@@ -1,5 +1,5 @@
 import path from 'path';
-import { DriveFileItem, DriveFolderItem } from '../../types/drive.types';
+import { DriveFolderItem } from '../../types/drive.types';
 import { DriveFilesRealm } from './drive-files.realm';
 import { DriveFoldersRealm } from './drive-folders.realm';
 
