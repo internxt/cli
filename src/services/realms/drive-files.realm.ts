@@ -38,7 +38,7 @@ export class DriveFileRealmSchema extends Realm.Object<DriveFileRealmSchema> {
 export class DriveFilesRealm {
   constructor(private realm: Realm) {}
 
-  async getByRelativePath(relativePath: string): Promise<DriveFileRealmSchema | null> {
+  async findByRelativePath(relativePath: string): Promise<DriveFileRealmSchema | null> {
     const object = this.realm
       .objects<DriveFileRealmSchema>('DriveFile')
       .filtered('relative_path = $0', relativePath)

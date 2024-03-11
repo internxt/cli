@@ -32,7 +32,7 @@ describe('Drive files realm', () => {
     // @ts-expect-error - Partial mock
     realmMock.objects.withArgs('DriveFile').returns({ filtered: sinon.stub().returns([mockFile]) });
 
-    const result = await driveFilesRealm.getByRelativePath(relativePath);
+    const result = await driveFilesRealm.findByRelativePath(relativePath);
 
     expect(result).to.deep.equal(mockFile);
     realmMock.close();

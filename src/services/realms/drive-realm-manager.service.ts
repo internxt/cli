@@ -1,7 +1,7 @@
 import path from 'path';
 import { DriveFolderItem } from '../../types/drive.types';
-import { DriveFilesRealm } from './drive-files.realm';
-import { DriveFoldersRealm } from './drive-folders.realm';
+import { DriveFileRealmSchema, DriveFilesRealm } from './drive-files.realm';
+import { DriveFolderRealmSchema, DriveFoldersRealm } from './drive-folders.realm';
 
 export class DriveRealmManager {
   constructor(
@@ -9,8 +9,8 @@ export class DriveRealmManager {
     private driveFoldersRealm: DriveFoldersRealm,
   ) {}
 
-  async findByRelativePath(relativePath: string) {
-    const driveFile = await this.driveFilesRealm.getByRelativePath(relativePath);
+  async findByRelativePath(relativePath: string): Promise<DriveFolderRealmSchema | DriveFileRealmSchema | null> {
+    const driveFile = await this.driveFilesRealm.findByRelativePath(relativePath);
 
     if (driveFile) return driveFile;
 
@@ -38,6 +38,4 @@ export class DriveRealmManager {
 
     return path.join(parentPath, folderName, '/');
   }
-
-  async close() {}
 }

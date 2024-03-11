@@ -3,7 +3,7 @@ import { DriveFileRealmSchema, DriveFilesRealm } from '../../src/services/realms
 import { DriveFolderRealmSchema, DriveFoldersRealm } from '../../src/services/realms/drive-folders.realm';
 import { DriveRealmManager } from '../../src/services/realms/drive-realm-manager.service';
 
-export const getDriveFileRealmSchemaFixture = (payload: Partial<DriveFileRealmSchema> = {}): DriveFolderRealmSchema => {
+export const getDriveFileRealmSchemaFixture = (payload: Partial<DriveFileRealmSchema> = {}): DriveFileRealmSchema => {
   // @ts-expect-error - We only mock the properties we need
   const object: DriveFileRealmSchema = {
     id: new Date().getTime(),
@@ -51,7 +51,7 @@ export const getDriveFolderRealmSchemaFixture = (
 export const getDriveRealmManager = (): DriveRealmManager => {
   // @ts-expect-error - We only mock the properties we need
   const driveFilesRealm: DriveFilesRealm = {
-    getByRelativePath: sinon.stub(),
+    findByRelativePath: sinon.stub(),
   };
 
   // @ts-expect-error - We only mock the properties we need
