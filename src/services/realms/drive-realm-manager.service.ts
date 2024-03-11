@@ -24,7 +24,7 @@ export class DriveRealmManager {
   async createFolder(driveFolder: DriveFolderItem) {
     const relativePath = await this.buildRelativePathForFolder(driveFolder.name, driveFolder.parentId ?? null);
 
-    return this.driveFoldersRealm.create(driveFolder, relativePath);
+    return this.driveFoldersRealm.createOrReplace(driveFolder, relativePath);
   }
 
   async buildRelativePathForFolder(folderName: string, parentId: number | null): Promise<string> {

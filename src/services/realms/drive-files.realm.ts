@@ -14,7 +14,7 @@ export class DriveFileRealmSchema extends Realm.Object<DriveFileRealmSchema> {
   updated_at!: Date;
   size!: number;
   status!: 'EXISTS' | 'REMOVED' | 'TRASHED';
-  static schema: ObjectSchema = {
+  static readonly schema: ObjectSchema = {
     name: 'DriveFile',
     properties: {
       id: 'int',

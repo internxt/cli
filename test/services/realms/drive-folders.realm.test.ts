@@ -5,6 +5,7 @@ import { DriveFolderRealmSchema, DriveFoldersRealm } from '../../../src/services
 import { Realm } from 'realm';
 import { expect } from 'chai';
 import { DriveFolderItem } from '../../../src/types/drive.types';
+import { getDriveFolderRealmSchemaFixture } from '../../fixtures/drive-realm.fixture';
 describe('Drive folders realm', () => {
   const sandbox = sinon.createSandbox();
 
@@ -12,8 +13,8 @@ describe('Drive folders realm', () => {
     sandbox.restore();
   });
   it('When findByRelativePath is called, should return the correct object', async () => {
-    const realmMock = sandbox.createStubInstance(Realm);
-    const driveFolderRealm = new DriveFoldersRealm(realmMock);
+    const realmStub = sandbox.createStubInstance(Realm);
+    const driveFolderRealm = new DriveFoldersRealm(realmStub);
     const relativePath = 'folder1/folder_a/';
 
     // @ts-expect-error - Partial mock
@@ -28,17 +29,17 @@ describe('Drive folders realm', () => {
     };
 
     // @ts-expect-error - Partial mock
-    realmMock.objects.withArgs('DriveFolder').returns({ filtered: sinon.stub().returns([mockFolder]) });
+    realmStub.objects.withArgs('DriveFolder').returns({ filtered: sinon.stub().returns([mockFolder]) });
 
     const result = await driveFolderRealm.findByRelativePath(relativePath);
 
     expect(result).to.deep.equal(mockFolder);
-    realmMock.close();
+    realmStub.close();
   });
 
   it('When create is called, should create the correct object', async () => {
-    const realmMock = sandbox.createStubInstance(Realm);
-    const driveFolderRealm = new DriveFoldersRealm(realmMock);
+    const realmStub = sandbox.createStubInstance(Realm);
+    const driveFolderRealm = new DriveFoldersRealm(realmStub);
     const relativePath = '/folder1/file.png';
 
     const driveFolder: DriveFolderItem = {
@@ -52,12 +53,31 @@ describe('Drive folders realm', () => {
       encryptedName: 'encrypted-name',
     };
 
-    realmMock.objectForPrimaryKey.withArgs('DriveFolder', driveFolder.id).returns(null);
+    realmStub.objectForPrimaryKey.withArgs('DriveFolder', driveFolder.id).returns(null);
 
-    await driveFolderRealm.create(driveFolder, relativePath);
+    await driveFolderRealm.createOrReplace(driveFolder, relativePath);
 
-    expect(realmMock.objectForPrimaryKey.calledWith('DriveFolder', driveFolder.id)).to.be.true;
+    expect(realmStub.objectForPrimaryKey.calledWith('DriveFolder', driveFolder.id)).to.be.true;
 
-    realmMock.close();
+    realmStub.close();
+  });
+
+  it('When findByParentId is called, should return the object with the same parentid', async () => {
+    const realmStub = sandbox.createStubInstance(Realm);
+
+    const parentId = 1;
+    const parentFolder: DriveFolderRealmSchema = getDriveFolderRealmSchemaFixture({
+      parent_id: parentId,
+    });
+
+    const driveFolderRealm = new DriveFoldersRealm(realmStub);
+
+    realmStub.objectForPrimaryKey.withArgs('DriveFolder', parentId ?? -1).returns(parentFolder);
+
+    const result = await driveFolderRealm.findByParentId(parentId);
+
+    expect(realmStub.objectForPrimaryKey.calledWith('DriveFolder', parentId ?? -1)).to.be.true;
+
+    expect(result).to.equal(parentFolder);
   });
 });

@@ -58,7 +58,7 @@ export const getDriveRealmManager = (): DriveRealmManager => {
   const driveFoldersRealm: DriveFoldersRealm = {
     findByRelativePath: sinon.stub(),
     findByParentId: async () => null,
-    create: async () => {
+    createOrReplace: async () => {
       return;
     },
   };

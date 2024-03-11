@@ -10,7 +10,7 @@ export class DriveFolderRealmSchema extends Realm.Object<DriveFolderRealmSchema>
   created_at!: Date;
   updated_at!: Date;
   status!: 'EXISTS' | 'REMOVED' | 'TRASHED';
-  static schema: ObjectSchema = {
+  static readonly schema: ObjectSchema = {
     name: 'DriveFolder',
     properties: {
       id: 'int',
@@ -45,12 +45,12 @@ export class DriveFoldersRealm {
     return parentFolder;
   }
 
-  async create(driveFolder: DriveFolderItem, relativePath: string) {
-    const exists = this.realm.objectForPrimaryKey<DriveFolderRealmSchema>('DriveFolder', driveFolder.id);
+  async createOrReplace(driveFolder: DriveFolderItem, relativePath: string) {
+    const existingObject = this.realm.objectForPrimaryKey<DriveFolderRealmSchema>('DriveFolder', driveFolder.id);
 
     this.realm.write(() => {
-      if (exists) {
-        this.realm.delete(exists);
+      if (existingObject) {
+        this.realm.delete(existingObject);
       }
 
       this.realm.create<DriveFolderRealmSchema>('DriveFolder', {
