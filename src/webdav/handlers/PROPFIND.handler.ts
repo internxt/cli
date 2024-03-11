@@ -23,11 +23,6 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
     const resource = this.getRequestedResource(req);
 
     switch (resource.type) {
-      case 'root': {
-        const rootFolder = await this.dependencies.driveFolderService.getFolderMetaById(req.user.rootFolderId);
-        res.status(200).send(await this.getFolderContentXML('/', rootFolder.uuid));
-        break;
-      }
       case 'file': {
         const folderPath = path.join(path.dirname(resource.url), '/');
         const driveParentFolder = await this.dependencies.driveRealmManager.findByRelativePath(
@@ -44,6 +39,12 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
       }
 
       case 'folder': {
+        if (resource.url === '/') {
+          const rootFolder = await this.dependencies.driveFolderService.getFolderMetaById(req.user.rootFolderId);
+          res.status(200).send(await this.getFolderContentXML('/', rootFolder.uuid));
+          break;
+        }
+
         const driveParentFolder = await this.dependencies.driveRealmManager.findByRelativePath(
           decodeURIComponent(resource.url),
         );
@@ -61,16 +62,6 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
 
   private getRequestedResource(req: Request): WebDavRequestedResource {
     const parsedPath = path.parse(req.url);
-
-    // This is the root of the WebDav folder
-    if (req.url === '/') {
-      return {
-        type: 'root',
-        name: 'root',
-        url: req.url,
-        path: parsedPath,
-      };
-    }
 
     if (req.url.endsWith('/')) {
       return {

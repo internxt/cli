@@ -148,6 +148,10 @@ describe('PROPFIND request handler', () => {
       .resolves({ user: UserSettingsFixture, token: 'TOKEN', newToken: 'NEW_TOKEN', mnemonic: 'MNEMONIC' });
 
     const driveRealmManager = getDriveRealmManager();
+    sandbox.stub(driveFolderService, 'getFolderContent').resolves({
+      files: [],
+      folders: [newPaginatedFolder()],
+    });
     sandbox.stub(driveRealmManager, 'findByRelativePath').resolves(getDriveFolderRealmSchemaFixture());
     const requestHandler = new PROPFINDRequestHandler(
       { debug: true },
@@ -158,7 +162,7 @@ describe('PROPFIND request handler', () => {
     );
 
     const request = createWebDavRequestFixture({
-      url: '/folder_a',
+      url: '/folder_a/',
       method: 'PROPFIND',
     });
 
@@ -191,7 +195,7 @@ describe('PROPFIND request handler', () => {
     );
 
     const request = createWebDavRequestFixture({
-      url: '/folder_a',
+      url: '/folder_a/',
       method: 'PROPFIND',
     });
 
