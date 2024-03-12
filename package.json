@@ -10,7 +10,7 @@
     "prepack": "yarn build && oclif manifest && oclif readme",
     "prepare": "husky",
     "test:unit": "nyc --reporter=lcov --reporter=text mocha \"test/**/*.test.ts\" --exit",
-    "dev:webdav": "nodemon -e ts --exec 'ts-node src/webdav/index.ts'",
+    "dev:webdav": "nodemon -e ts --exec ts-node src/webdav/index.ts",
     "version": "oclif readme && git add README.md"
   },
   "homepage": "https://github.com/internxt/cli",
@@ -44,6 +44,7 @@
     "fast-xml-parser": "^4.3.5",
     "openpgp": "^5.11.1",
     "realm": "^12.6.2",
+    "selfsigned": "^2.4.1",
     "superagent": "^8.1.2",
     "winston": "^3.12.0"
   },
