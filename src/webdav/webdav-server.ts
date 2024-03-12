@@ -43,7 +43,7 @@ export class WebDavServer {
     );
   };
 
-  start() {
+  async start() {
     const port = this.configService.get('WEBDAV_SERVER_PORT');
     this.app.disable('x-powered-by');
 
