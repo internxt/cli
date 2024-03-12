@@ -7,7 +7,7 @@ export type DriveFileItem = Pick<DriveFileData, 'name' | 'bucket' | 'fileId' | '
   updatedAt: Date;
 };
 
-export type DriveFolderItem = Pick<DriveFolderData, 'name' | 'bucket' | 'id'> & {
+export type DriveFolderItem = Pick<DriveFolderData, 'name' | 'bucket' | 'id' | 'parentId'> & {
   encryptedName: string;
   uuid: string;
   createdAt: Date;

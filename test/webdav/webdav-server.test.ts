@@ -4,6 +4,7 @@ import sinon from 'sinon';
 import { ConfigService } from '../../src/services/config.service';
 import { DriveFolderService } from '../../src/services/drive/drive-folder.service';
 import { WebDavServer } from '../../src/webdav/webdav-server';
+import { getDriveRealmManager } from '../fixtures/drive-realm.fixture';
 describe('WebDav server', () => {
   const sandbox = sinon.createSandbox();
 
@@ -13,7 +14,7 @@ describe('WebDav server', () => {
 
   it('When the WebDav server is started, should listen on the specified port', () => {
     const app = express();
-    const server = new WebDavServer(app, ConfigService.instance, DriveFolderService.instance);
+    const server = new WebDavServer(app, ConfigService.instance, DriveFolderService.instance, getDriveRealmManager());
 
     // @ts-expect-error - We are faking partially the listen method
     const listenStub = sandbox.stub(app, 'listen').callsFake((callback) => {

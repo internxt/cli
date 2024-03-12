@@ -6,7 +6,9 @@ import { LoginCredentials } from '../types/command.types';
 import { CryptoService } from './crypto.service';
 
 export class ConfigService {
-  static readonly CREDENTIALS_FILE = path.join(os.homedir(), '.inxtcli');
+  static readonly INTERNXT_CLI_DATA_DIR = path.join(os.homedir(), '.internxt-cli');
+  static readonly CREDENTIALS_FILE = path.join(this.INTERNXT_CLI_DATA_DIR, '.inxtcli');
+  static readonly DRIVE_REALM_FILE = path.join(this.INTERNXT_CLI_DATA_DIR, 'internxt-cli-drive.realm');
   public static readonly instance: ConfigService = new ConfigService();
 
   /**
@@ -27,6 +29,7 @@ export class ConfigService {
    * @async
    **/
   public saveUser = async (loginCredentials: LoginCredentials): Promise<void> => {
+    await this.ensureInternxtCliDataDirExists();
     const credentialsString = JSON.stringify(loginCredentials);
     const encryptedCredentials = CryptoService.instance.encryptText(credentialsString);
     await fs.writeFile(ConfigService.CREDENTIALS_FILE, encryptedCredentials, 'utf8');
@@ -61,6 +64,14 @@ export class ConfigService {
       return loginCredentials;
     } catch {
       return;
+    }
+  };
+
+  ensureInternxtCliDataDirExists = async () => {
+    try {
+      await fs.access(ConfigService.INTERNXT_CLI_DATA_DIR);
+    } catch {
+      await fs.mkdir(ConfigService.INTERNXT_CLI_DATA_DIR);
     }
   };
 }

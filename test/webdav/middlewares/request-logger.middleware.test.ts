@@ -17,7 +17,7 @@ describe('Request logger middleware', () => {
     const next = sandbox.spy();
     const infoStub = sandbox.stub(webdavLogger, 'info');
 
-    const middleware = RequestLoggerMiddleware({ methods: ['PROPFIND'] });
+    const middleware = RequestLoggerMiddleware({ methods: ['PROPFIND'], enable: true });
     middleware(req, createWebDavResponseFixture({}), next);
 
     expect(infoStub.calledOnce).to.be.true;
@@ -33,7 +33,7 @@ describe('Request logger middleware', () => {
     const next = sandbox.spy();
     const infoStub = sandbox.stub(webdavLogger, 'info');
 
-    const middleware = RequestLoggerMiddleware({ methods: ['PROPFIND'] });
+    const middleware = RequestLoggerMiddleware({ methods: ['PROPFIND'], enable: true });
     middleware(req, createWebDavResponseFixture({}), next);
 
     expect(infoStub.notCalled).to.be.true;

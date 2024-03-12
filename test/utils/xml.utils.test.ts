@@ -12,4 +12,10 @@ describe('XML utils', () => {
     const result = XMLUtils.toXML(object, { format: false });
     expect(result).to.be.eq('<root><child>value</child></root>');
   });
+
+  it('When providing an object, it should return a formatted XML', () => {
+    const object = { root: { child: 'value' } };
+    const result = XMLUtils.toXML(object);
+    expect(result.replace(/\s/g, '')).to.be.eq('<root><child>value</child></root>');
+  });
 });
