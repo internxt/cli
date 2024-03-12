@@ -1,4 +1,6 @@
 import { Express } from 'express';
+import https from 'https';
+import selfsigned from 'selfsigned';
 import { ConfigService } from '../services/config.service';
 import { OPTIONSRequestHandler } from './handlers/OPTIONS.handler';
 import { PROPFINDRequestHandler } from './handlers/PROPFIND.handler';
@@ -41,15 +43,26 @@ export class WebDavServer {
     );
   };
 
-  async start() {
+  start() {
     const port = this.configService.get('WEBDAV_SERVER_PORT');
     this.app.disable('x-powered-by');
 
     this.registerMiddlewares();
     this.registerHandlers();
 
-    this.app.listen(port, () => {
-      webdavLogger.info(`Internxt WebDav server listening at http://localhost:${port}`);
-    });
+    const attrs = [{ name: 'internxt-cli', value: 'Internxt CLI', type: 'commonName' }];
+    const pems = selfsigned.generate(attrs, { days: 365, algorithm: 'sha256', keySize: 2048 });
+
+    https
+      .createServer(
+        {
+          cert: pems.cert,
+          key: pems.private,
+        },
+        this.app,
+      )
+      .listen(port, () => {
+        webdavLogger.info(`Internxt WebDav server listening at https://localhost:${port}`);
+      });
   }
 }
