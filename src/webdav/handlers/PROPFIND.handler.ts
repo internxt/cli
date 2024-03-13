@@ -1,7 +1,6 @@
 import { WebDavMethodHandler, WebDavMethodHandlerOptions, WebDavRequestedResource } from '../../types/webdav.types';
 import { XMLUtils } from '../../utils/xml.utils';
 import { DriveFileItem, DriveFolderItem } from '../../types/drive.types';
-import path from 'path';
 import { DriveFolderService } from '../../services/drive/drive-folder.service';
 import { FormatUtils } from '../../utils/format.utils';
 import { Request, Response } from 'express';
@@ -87,7 +86,7 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
     const folderContent = await driveFolderService.getFolderContent(folderUuid);
 
     const foldersXML = folderContent.folders.map((folder) => {
-      const folderRelativePath = path.join(relativePath, folder.plainName, '/');
+      const folderRelativePath = WebDavUtils.getHref(relativePath, folder.plainName, '/');
 
       return this.driveFolderItemToXMLNode(
         {
@@ -115,7 +114,10 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
     );
 
     const filesXML = folderContent.files.map((file) => {
-      const fileRelativePath = path.join(relativePath, file.type ? `${file.plainName}.${file.type}` : file.plainName);
+      const fileRelativePath = WebDavUtils.getHref(
+        relativePath,
+        file.type ? `${file.plainName}.${file.type}` : file.plainName,
+      );
       return this.driveFileItemToXMLNode(
         {
           name: file.plainName,

@@ -105,7 +105,7 @@ describe('PROPFIND request handler', () => {
     sinon.assert.calledWith(response.status, 200);
     sinon.assert.calledWith(
       sendStub,
-      `<?xml version="1.0" encoding="utf-8" ?><multistatus xmlns:D="DAV:"><response><href>${path.join('/', 'folder_1', '/')}</href><propstat><status>HTTP/1.1 200 OK</status><prop><displayname>folder_1</displayname><getlastmodified>Mon, 04 Mar 2024 15:11:01 GMT</getlastmodified><getcontentlength>0</getcontentlength><resourcetype><collection></collection></resourcetype></prop></propstat></response></multistatus>`,
+      '<?xml version="1.0" encoding="utf-8" ?><multistatus xmlns:D="DAV:"><response><href>/folder_1/</href><propstat><status>HTTP/1.1 200 OK</status><prop><displayname>folder_1</displayname><getlastmodified>Mon, 04 Mar 2024 15:11:01 GMT</getlastmodified><getcontentlength>0</getcontentlength><resourcetype><collection></collection></resourcetype></prop></propstat></response></multistatus>',
     );
   });
 
