@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { ErrorHandlingMiddleware } from '../../../src/webdav/middewares/errors.middleware';
 import sinon from 'sinon';
 import { createWebDavRequestFixture, createWebDavResponseFixture } from '../../fixtures/webdav.fixture';
-import { NotFoundError } from '../../../src/utils/errors.utils';
+import { BadRequestError, NotFoundError, NotImplementedError } from '../../../src/utils/errors.utils';
 
 describe('Error handling middleware', () => {
   const sandbox = sinon.createSandbox();
@@ -21,6 +21,40 @@ describe('Error handling middleware', () => {
       res.send.calledOnceWithExactly({
         error: {
           message: 'Item not found',
+        },
+      }),
+    ).to.be.true;
+  });
+
+  it('When a bad request error is received, should respond with a 400', () => {
+    const error = new BadRequestError('Missing property "size"');
+    const res = createWebDavResponseFixture({});
+    const req = createWebDavRequestFixture({});
+
+    ErrorHandlingMiddleware(error, req, res, () => {});
+
+    expect(res.status.calledOnceWithExactly(400)).to.be.true;
+    expect(
+      res.send.calledOnceWithExactly({
+        error: {
+          message: 'Missing property "size"',
+        },
+      }),
+    ).to.be.true;
+  });
+
+  it('When a not implement error is received, should respond with a 501', () => {
+    const error = new NotImplementedError('Content-range is not supported');
+    const res = createWebDavResponseFixture({});
+    const req = createWebDavRequestFixture({});
+
+    ErrorHandlingMiddleware(error, req, res, () => {});
+
+    expect(res.status.calledOnceWithExactly(501)).to.be.true;
+    expect(
+      res.send.calledOnceWithExactly({
+        error: {
+          message: 'Content-range is not supported',
         },
       }),
     ).to.be.true;
