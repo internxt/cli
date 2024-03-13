@@ -2,6 +2,7 @@ import sinon from 'sinon';
 import { DriveFileRealmSchema, DriveFilesRealm } from '../../../src/services/realms/drive-files.realm';
 import { Realm } from 'realm';
 import { expect } from 'chai';
+import { DriveFileItem } from '../../../src/types/drive.types';
 describe('Drive files realm', () => {
   const sandbox = sinon.createSandbox();
 
@@ -35,5 +36,33 @@ describe('Drive files realm', () => {
 
     expect(result).to.deep.equal(mockFile);
     realmMock.close();
+  });
+
+  it('When create is called, should create the correct object', async () => {
+    const realmStub = sandbox.createStubInstance(Realm);
+    const driveFileRealm = new DriveFilesRealm(realmStub);
+    const relativePath = '/folder1/file.png';
+
+    const driveFile: DriveFileItem = {
+      id: 1,
+      name: 'file',
+      uuid: 'uuid_1',
+      size: 1024,
+      status: 'EXISTS',
+      fileId: 'file_id',
+      folderId: 123,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      bucket: 'test-bucket',
+      encryptedName: 'encrypted-name',
+    };
+
+    realmStub.objectForPrimaryKey.withArgs('DriveFile', driveFile.id).returns(null);
+
+    await driveFileRealm.createOrReplace(driveFile, relativePath);
+
+    expect(realmStub.objectForPrimaryKey.calledWith('DriveFile', driveFile.id)).to.be.true;
+
+    realmStub.close();
   });
 });

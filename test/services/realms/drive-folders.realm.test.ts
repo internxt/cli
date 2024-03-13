@@ -40,7 +40,7 @@ describe('Drive folders realm', () => {
   it('When create is called, should create the correct object', async () => {
     const realmStub = sandbox.createStubInstance(Realm);
     const driveFolderRealm = new DriveFoldersRealm(realmStub);
-    const relativePath = '/folder1/file.png';
+    const relativePath = '/folder1/';
 
     const driveFolder: DriveFolderItem = {
       id: 1,
