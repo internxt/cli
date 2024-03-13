@@ -6,7 +6,6 @@ import { DriveFolderService } from '../../../src/services/drive/drive-folder.ser
 import { UserSettingsFixture } from '../../fixtures/auth.fixture';
 import { newFolder, newPaginatedFolder } from '../../fixtures/drive.fixture';
 import { createWebDavRequestFixture, createWebDavResponseFixture } from '../../fixtures/webdav.fixture';
-import path from 'path';
 import {
   getDriveFileRealmSchemaFixture,
   getDriveFolderRealmSchemaFixture,
