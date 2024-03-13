@@ -1,6 +1,5 @@
 import { DownloadService } from '../../../src/services/network/download.service';
 import sinon from 'sinon';
-import superagent from 'superagent';
 import { Readable } from 'stream';
 import { expect } from 'chai';
 import axios from 'axios';

@@ -10,7 +10,6 @@ import { UploadService } from '../../../src/services/network/upload.service';
 import { CryptoService } from '../../../src/services/crypto.service';
 import { DownloadService } from '../../../src/services/network/download.service';
 import { StreamUtils } from '../../../src/utils/stream.utils';
-import superagent from 'superagent';
 import { Readable } from 'stream';
 import axios from 'axios';
 
