@@ -3,7 +3,6 @@ import { Request, Response } from 'express';
 import { WebDavUtils } from '../../utils/webdav.utils';
 import { DriveFileService } from '../../services/drive/drive-file.service';
 import { DriveRealmManager } from '../../services/realms/drive-realm-manager.service';
-import { SdkManager } from '../../services/sdk-manager.service';
 import { NetworkFacade } from '../../services/network/network-facade.service';
 import { UploadService } from '../../services/network/upload.service';
 import { DownloadService } from '../../services/network/download.service';
@@ -22,6 +21,7 @@ export class GETRequestHandler implements WebDavMethodHandler {
       downloadService: DownloadService;
       cryptoService: CryptoService;
       authService: AuthService;
+      networkFacade: NetworkFacade;
     },
   ) {}
   handle = async (req: Request, res: Response) => {
@@ -44,7 +44,6 @@ export class GETRequestHandler implements WebDavMethodHandler {
     res.set('Content-length', driveFile.size.toString());
 
     const { mnemonic } = await this.dependencies.authService.getAuthDetails();
-    const network = await this.getNetwork();
     webdavLogger.info('✅ Network ready for download');
 
     const writable = new WritableStream({
@@ -56,11 +55,17 @@ export class GETRequestHandler implements WebDavMethodHandler {
       },
     });
 
-    const [executeDownload] = await network.downloadToStream(driveFile.bucket, mnemonic, driveFile.file_id, writable, {
-      progressCallback: (progress) => {
-        webdavLogger.info(`Download progress for file ${resource.name}: ${progress}%`);
+    const [executeDownload] = await this.dependencies.networkFacade.downloadToStream(
+      driveFile.bucket,
+      mnemonic,
+      driveFile.file_id,
+      writable,
+      {
+        progressCallback: (progress) => {
+          webdavLogger.info(`Download progress for file ${resource.name}: ${progress}%`);
+        },
       },
-    });
+    );
     webdavLogger.info('✅ Download prepared, executing...');
     res.status(200);
 
@@ -69,16 +74,6 @@ export class GETRequestHandler implements WebDavMethodHandler {
     webdavLogger.info('✅ Download ready, replying to client');
   };
 
-  private async getNetwork() {
-    const { uploadService, downloadService, cryptoService, authService } = this.dependencies;
-    const user = await authService.getUser();
-    const networkModule = SdkManager.instance.getNetwork({
-      user: user.bridgeUser,
-      pass: user.userId,
-    });
-
-    return new NetworkFacade(networkModule, uploadService, downloadService, cryptoService);
-  }
   private async getDriveFileRealmObject(resource: WebDavRequestedResource) {
     const { driveRealmManager } = this.dependencies;
 

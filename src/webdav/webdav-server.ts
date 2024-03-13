@@ -17,6 +17,8 @@ import { AuthService } from '../services/auth.service';
 import { CryptoService } from '../services/crypto.service';
 import { ErrorHandlingMiddleware } from './middewares/errors.middleware';
 import asyncHandler from 'express-async-handler';
+import { SdkManager } from '../services/sdk-manager.service';
+import { NetworkFacade } from '../services/network/network-facade.service';
 
 export class WebDavServer {
   constructor(
@@ -31,6 +33,16 @@ export class WebDavServer {
     private cryptoService: CryptoService,
   ) {}
 
+  private async getNetwork() {
+    const credentials = await this.configService.readUser();
+    if (!credentials) throw new Error('Credentials not found in Config service, cannot create network');
+    const networkModule = SdkManager.instance.getNetwork({
+      user: credentials.user.bridgeUser,
+      pass: credentials.user.userId,
+    });
+
+    return new NetworkFacade(networkModule, this.uploadService, this.downloadService, this.cryptoService);
+  }
   private registerMiddlewares = () => {
     this.app.use(bodyParser.text({ type: ['application/xml', 'text/xml'] }));
     this.app.use(ErrorHandlingMiddleware);
@@ -42,7 +54,7 @@ export class WebDavServer {
     this.app.use(AuthMiddleware(ConfigService.instance));
   };
 
-  private registerHandlers = () => {
+  private registerHandlers = async () => {
     this.app.head('*', asyncHandler(new HEADRequestHandler().handle));
     this.app.get(
       '*',
@@ -54,6 +66,7 @@ export class WebDavServer {
           downloadService: this.downloadService,
           cryptoService: this.cryptoService,
           authService: this.authService,
+          networkFacade: await this.getNetwork(),
         }).handle,
       ),
     );
