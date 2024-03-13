@@ -92,4 +92,38 @@ describe('DriveRealmManager service', () => {
 
     expect(relativePath).to.be.equal(path.join('/', 'folderA', 'folderB', 'folderC', 'folderD', '/'));
   });
+
+  it('When a file is created, should build the correct relative path', async () => {
+    // @ts-expect-error - We only mock the properties we need
+    const driveFilesRealm: DriveFilesRealm = {
+      findByRelativePath: sandbox.stub(),
+    };
+
+    // @ts-expect-error - We only mock the properties we need
+    const driveFoldersRealm: DriveFoldersRealm = {
+      findByRelativePath: sandbox.stub(),
+      findByParentId: async () => null,
+    };
+
+    sandbox.stub(driveFoldersRealm, 'findByParentId').callsFake(async (parentId: number | null) => {
+      if (parentId === 1) {
+        return getDriveFolderRealmSchemaFixture({ id: parentId, name: 'folderC', parent_id: 2 });
+      }
+
+      if (parentId === 2) {
+        return getDriveFolderRealmSchemaFixture({ id: parentId, name: 'folderB', parent_id: 3 });
+      }
+
+      if (parentId === 3) {
+        return getDriveFolderRealmSchemaFixture({ id: parentId, name: 'folderA', parent_id: undefined });
+      }
+      return null;
+    });
+
+    const sut = new DriveRealmManager(driveFilesRealm, driveFoldersRealm);
+
+    const relativePath = await sut.buildRelativePathForFile('file.png', 1);
+
+    expect(relativePath).to.be.equal(path.join('/', 'folderA', 'folderB', 'folderC', 'file.png'));
+  });
 });

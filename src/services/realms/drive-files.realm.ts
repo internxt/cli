@@ -1,13 +1,13 @@
 import Realm, { ObjectSchema } from 'realm';
+import { DriveFileItem } from '../../types/drive.types';
 
 export class DriveFileRealmSchema extends Realm.Object<DriveFileRealmSchema> {
   id!: number;
   name!: string;
   type?: string;
   uuid!: string;
-  fileId!: string;
+  file_id!: string;
   folder_id!: number;
-  folder_uuid!: string;
   bucket!: string;
   relative_path!: string;
   created_at!: Date;
@@ -23,7 +23,6 @@ export class DriveFileRealmSchema extends Realm.Object<DriveFileRealmSchema> {
       uuid: { type: 'string', indexed: true },
       file_id: 'string',
       folder_id: 'int',
-      folder_uuid: 'string',
       bucket: 'string',
       relative_path: { type: 'string', indexed: true },
       created_at: 'date',
@@ -45,5 +44,30 @@ export class DriveFilesRealm {
       .find((file) => file.relative_path === relativePath);
 
     return object ?? null;
+  }
+
+  async createOrReplace(driveFile: DriveFileItem, relativePath: string) {
+    const existingObject = this.realm.objectForPrimaryKey<DriveFileRealmSchema>('DriveFile', driveFile.id);
+
+    this.realm.write(() => {
+      if (existingObject) {
+        this.realm.delete(existingObject);
+      }
+
+      this.realm.create<DriveFileRealmSchema>('DriveFile', {
+        id: driveFile.id,
+        name: driveFile.name,
+        type: driveFile.type,
+        uuid: driveFile.uuid,
+        file_id: driveFile.fileId,
+        folder_id: driveFile.folderId,
+        bucket: driveFile.bucket,
+        relative_path: relativePath,
+        created_at: driveFile.createdAt,
+        updated_at: driveFile.updatedAt,
+        size: driveFile.size,
+        status: 'EXISTS',
+      });
+    });
   }
 }

@@ -20,7 +20,7 @@ describe('Whoami Command', () => {
       .stub(ConfigService.instance, 'readUser', (stub) => stub.resolves(undefined))
       .command(['whoami'])
       .it('runs whoami and expects user to not be logged', (ctx) => {
-        expect(ctx.stdout).to.be.equal('✓ You are not logged in\n');
+        expect(ctx.stdout).to.be.equal('⚠ Error: You are not logged in\n');
       });
   });
 });
