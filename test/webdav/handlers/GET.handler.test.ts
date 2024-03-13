@@ -2,7 +2,7 @@ import sinon from 'sinon';
 import { createWebDavRequestFixture, createWebDavResponseFixture } from '../../fixtures/webdav.fixture';
 import { GETRequestHandler } from '../../../src/webdav/handlers/GET.handler';
 import { DriveFileService } from '../../../src/services/drive/drive-file.service';
-import { getDriveRealmManager } from '../../fixtures/drive-realm.fixture';
+import { getDriveFileRealmSchemaFixture, getDriveRealmManager } from '../../fixtures/drive-realm.fixture';
 import { CryptoService } from '../../../src/services/crypto.service';
 import { DownloadService } from '../../../src/services/network/download.service';
 import { UploadService } from '../../../src/services/network/upload.service';
@@ -95,5 +95,44 @@ describe('GET request handler', () => {
     } catch (error) {
       expect(error).to.be.instanceOf(NotFoundError);
     }
+  });
+
+  it('When a WebDav client sends a GET request, and the Drive file is found, should write a response with the content', async () => {
+    const driveRealmManager = getDriveRealmManager();
+    const downloadService = DownloadService.instance;
+    const uploadService = UploadService.instance;
+    const cryptoService = CryptoService.instance;
+    const authService = AuthService.instance;
+    const networkFacade = new NetworkFacade(getNetworkMock(), uploadService, downloadService, cryptoService);
+    const sut = new GETRequestHandler({
+      driveFileService: DriveFileService.instance,
+      uploadService,
+      downloadService,
+      driveRealmManager,
+      authService,
+      cryptoService,
+      networkFacade,
+    });
+
+    const request = createWebDavRequestFixture({
+      method: 'GET',
+      url: '/file.txt',
+      headers: {},
+    });
+
+    const driveFileRealmObject = getDriveFileRealmSchemaFixture({});
+
+    sandbox.stub(driveRealmManager, 'findByRelativePath').resolves(driveFileRealmObject);
+    sandbox
+      .stub(authService, 'getAuthDetails')
+      .resolves({ mnemonic: 'MNEMONIC', token: 'TOKEN', newToken: 'NEW_TOKEN' });
+
+    sandbox.stub(networkFacade, 'downloadToStream').resolves([Promise.resolve(), new AbortController()]);
+    const response = createWebDavResponseFixture({
+      status: sandbox.stub().returns({ send: sandbox.stub() }),
+    });
+
+    await sut.handle(request, response);
+    expect(response.status.calledWith(200)).to.be.true;
   });
 });
