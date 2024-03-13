@@ -7,7 +7,11 @@ import { UserSettingsFixture } from '../../fixtures/auth.fixture';
 import { newFolder, newPaginatedFolder } from '../../fixtures/drive.fixture';
 import { createWebDavRequestFixture, createWebDavResponseFixture } from '../../fixtures/webdav.fixture';
 import path from 'path';
-import { getDriveFolderRealmSchemaFixture, getDriveRealmManager } from '../../fixtures/drive-realm.fixture';
+import {
+  getDriveFileRealmSchemaFixture,
+  getDriveFolderRealmSchemaFixture,
+  getDriveRealmManager,
+} from '../../fixtures/drive-realm.fixture';
 
 describe('PROPFIND request handler', () => {
   const sandbox = sinon.createSandbox();
@@ -114,7 +118,7 @@ describe('PROPFIND request handler', () => {
       .resolves({ user: UserSettingsFixture, token: 'TOKEN', newToken: 'NEW_TOKEN', mnemonic: 'MNEMONIC' });
 
     const driveRealmManager = getDriveRealmManager();
-    sandbox.stub(driveRealmManager, 'findByRelativePath').resolves(getDriveFolderRealmSchemaFixture());
+    sandbox.stub(driveRealmManager, 'findByRelativePath').resolves(getDriveFileRealmSchemaFixture());
 
     const requestHandler = new PROPFINDRequestHandler(
       { debug: true },

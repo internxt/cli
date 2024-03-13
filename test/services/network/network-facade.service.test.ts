@@ -12,6 +12,7 @@ import { DownloadService } from '../../../src/services/network/download.service'
 import { StreamUtils } from '../../../src/utils/stream.utils';
 import superagent from 'superagent';
 import { Readable } from 'stream';
+import axios from 'axios';
 
 describe('Network Facade Service', () => {
   let networkFacadeSandbox: SinonSandbox;
@@ -217,10 +218,13 @@ describe('Network Facade Service', () => {
 
     const options = { progressCallback: sinon.stub() };
 
-    // @ts-expect-error - Partial Superagent request mock
-    networkFacadeSandbox.stub(superagent, 'get').returns({
-      on: sinon.stub().withArgs('progress').yields({ total: 100, loaded: 100 }).resolves(readableContent),
+    networkFacadeSandbox.stub(axios, 'get').callsFake((_, config) => {
+      config?.onDownloadProgress?.({ loaded: 100, total: 100, bytes: 100 });
+      return Promise.resolve({ data: readableContent });
     });
+    /* networkFacadeSandbox.stub(superagent, 'get').returns({
+      on: sinon.stub().withArgs('progress').yields({ total: 100, loaded: 100 }).resolves(readableContent),
+    }); */
 
     const [executeDownload] = await sut.downloadToStream(
       bucket,

@@ -13,9 +13,8 @@ export const getDriveFileRealmSchemaFixture = (payload: Partial<DriveFileRealmSc
     created_at: new Date(),
     updated_at: new Date(),
     status: 'EXISTS',
-    fileId: `file_id_${new Date().getTime().toString()}`,
+    file_id: `file_id_${new Date().getTime().toString()}`,
     folder_id: 0,
-    folder_uuid: `folder_uuid_${new Date().getTime().toString()}`,
     bucket: new Date().getTime().toString(),
     size: 0,
   };
