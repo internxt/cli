@@ -149,12 +149,7 @@ describe('Config service', () => {
 
     const stubMkdir = configServiceSandbox.stub(fs, 'mkdir').withArgs(ConfigService.WEBDAV_SSL_CERTS_DIR).resolves();
 
-    try {
-      await ConfigService.instance.ensureWebdavCertsDirExists();
-      expect(false).to.be.true;
-    } catch {
-      /*noop*/
-    }
+    await ConfigService.instance.ensureWebdavCertsDirExists();
 
     expect(stubMkdir).to.be.calledOnceWith(ConfigService.WEBDAV_SSL_CERTS_DIR);
   });
