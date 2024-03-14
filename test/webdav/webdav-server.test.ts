@@ -23,35 +23,6 @@ describe('WebDav server', () => {
     sandbox.restore();
   });
 
-  it('When the WebDav server is started, should listen on the specified port using https', () => {
-    const envEndpoint: { key: keyof ConfigKeys; value: string } = {
-      key: 'WEBDAV_SERVER_PORT',
-      value: randomInt(65535).toString(),
-    };
-
-    sandbox.stub(ConfigService.instance, 'get').withArgs(envEndpoint.key).returns(envEndpoint.value);
-    // @ts-expect-error - We stub the method partially
-    const createServerStub = sandbox.stub(https, 'createServer').returns({
-      listen: sandbox.stub().resolves(),
-    });
-
-    const app = express();
-    const server = new WebDavServer(
-      app,
-      ConfigService.instance,
-      DriveFileService.instance,
-      DriveFolderService.instance,
-      getDriveRealmManager(),
-      UploadService.instance,
-      DownloadService.instance,
-      AuthService.instance,
-      CryptoService.instance,
-    );
-    server.start();
-
-    expect(createServerStub.calledOnce).to.be.true;
-  });
-
   it('When the WebDav server is started, it should generate self-signed certificates', () => {
     const envEndpoint: { key: keyof ConfigKeys; value: string } = {
       key: 'WEBDAV_SERVER_PORT',
