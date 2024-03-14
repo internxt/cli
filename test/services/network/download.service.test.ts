@@ -1,8 +1,8 @@
 import { DownloadService } from '../../../src/services/network/download.service';
 import sinon from 'sinon';
-import superagent from 'superagent';
 import { Readable } from 'stream';
 import { expect } from 'chai';
+import axios from 'axios';
 
 describe('Download Service', () => {
   const sut = DownloadService.instance;
@@ -20,11 +20,7 @@ describe('Download Service', () => {
       },
     });
 
-    // @ts-expect-error - Partial Superagent request mock
-    sandbox.stub(superagent, 'get').returns({
-      on: sandbox.stub().resolves(readableContent),
-    });
-
+    sandbox.stub(axios, 'get').resolves({ data: readableContent });
     const readable = await sut.downloadFile('https://example.com/file', {});
 
     const reader = readable.getReader();
@@ -46,9 +42,9 @@ describe('Download Service', () => {
       },
     });
 
-    // @ts-expect-error - Partial Superagent request mock
-    sandbox.stub(superagent, 'get').returns({
-      on: sinon.stub().withArgs('progress').yields({ total: 100, loaded: 100 }).resolves(readableContent),
+    sandbox.stub(axios, 'get').callsFake((_, config) => {
+      config?.onDownloadProgress?.({ loaded: 100, total: 100, bytes: 100 });
+      return Promise.resolve({ data: readableContent });
     });
 
     await sut.downloadFile('https://example.com/file', options);

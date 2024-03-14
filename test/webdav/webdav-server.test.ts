@@ -8,6 +8,11 @@ import { ConfigService } from '../../src/services/config.service';
 import { DriveFolderService } from '../../src/services/drive/drive-folder.service';
 import { WebDavServer } from '../../src/webdav/webdav-server';
 import { getDriveRealmManager } from '../fixtures/drive-realm.fixture';
+import { UploadService } from '../../src/services/network/upload.service';
+import { DriveFileService } from '../../src/services/drive/drive-file.service';
+import { DownloadService } from '../../src/services/network/download.service';
+import { AuthService } from '../../src/services/auth.service';
+import { CryptoService } from '../../src/services/crypto.service';
 import { ConfigKeys } from '../../src/types/config.types';
 
 describe('WebDav server', () => {
@@ -30,7 +35,17 @@ describe('WebDav server', () => {
     });
 
     const app = express();
-    const server = new WebDavServer(app, ConfigService.instance, DriveFolderService.instance, getDriveRealmManager());
+    const server = new WebDavServer(
+      app,
+      ConfigService.instance,
+      DriveFileService.instance,
+      DriveFolderService.instance,
+      getDriveRealmManager(),
+      UploadService.instance,
+      DownloadService.instance,
+      AuthService.instance,
+      CryptoService.instance,
+    );
     server.start();
 
     expect(createServerStub.calledOnce).to.be.true;
@@ -57,7 +72,17 @@ describe('WebDav server', () => {
     sandbox.stub(selfsigned, 'generate').returns(sslSelfSigned);
 
     const app = express();
-    const server = new WebDavServer(app, ConfigService.instance, DriveFolderService.instance, getDriveRealmManager());
+    const server = new WebDavServer(
+      app,
+      ConfigService.instance,
+      DriveFileService.instance,
+      DriveFolderService.instance,
+      getDriveRealmManager(),
+      UploadService.instance,
+      DownloadService.instance,
+      AuthService.instance,
+      CryptoService.instance,
+    );
     server.start();
 
     expect(createServerStub).to.be.calledOnceWith({ cert: sslSelfSigned.cert, key: sslSelfSigned.private });

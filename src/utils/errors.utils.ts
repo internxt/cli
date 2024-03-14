@@ -9,3 +9,33 @@ export class ErrorUtils {
     }
   }
 }
+
+export class NotFoundError extends Error {
+  public statusCode = 404;
+
+  constructor(message: string) {
+    super(message);
+    this.name = 'NotFoundError';
+    Object.setPrototypeOf(this, NotFoundError.prototype);
+  }
+}
+
+export class BadRequestError extends Error {
+  public statusCode = 400;
+
+  constructor(message: string) {
+    super(message);
+    this.name = 'BadRequestError';
+    Object.setPrototypeOf(this, BadRequestError.prototype);
+  }
+}
+
+export class NotImplementedError extends Error {
+  public statusCode = 501;
+
+  constructor(message: string) {
+    super(message);
+    this.name = 'NotImplementedError';
+    Object.setPrototypeOf(this, NotImplementedError.prototype);
+  }
+}

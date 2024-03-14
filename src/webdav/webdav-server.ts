@@ -10,17 +10,44 @@ import { DriveFolderService } from '../services/drive/drive-folder.service';
 import { AuthMiddleware } from './middewares/auth.middleware';
 import { RequestLoggerMiddleware } from './middewares/request-logger.middleware';
 import { DriveRealmManager } from '../services/realms/drive-realm-manager.service';
+import { GETRequestHandler } from './handlers/GET.handler';
+import { HEADRequestHandler } from './handlers/HEAD.handler';
+import { DriveFileService } from '../services/drive/drive-file.service';
+import { UploadService } from '../services/network/upload.service';
+import { DownloadService } from '../services/network/download.service';
+import { AuthService } from '../services/auth.service';
+import { CryptoService } from '../services/crypto.service';
+import { ErrorHandlingMiddleware } from './middewares/errors.middleware';
+import asyncHandler from 'express-async-handler';
+import { SdkManager } from '../services/sdk-manager.service';
+import { NetworkFacade } from '../services/network/network-facade.service';
 
 export class WebDavServer {
   constructor(
     private app: Express,
     private configService: ConfigService,
+    private driveFileService: DriveFileService,
     private driveFolderService: DriveFolderService,
     private driveRealmManager: DriveRealmManager,
+    private uploadService: UploadService,
+    private downloadService: DownloadService,
+    private authService: AuthService,
+    private cryptoService: CryptoService,
   ) {}
 
+  private async getNetwork() {
+    const credentials = await this.configService.readUser();
+    if (!credentials) throw new Error('Credentials not found in Config service, cannot create network');
+    const networkModule = SdkManager.instance.getNetwork({
+      user: credentials.user.bridgeUser,
+      pass: credentials.user.userId,
+    });
+
+    return new NetworkFacade(networkModule, this.uploadService, this.downloadService, this.cryptoService);
+  }
   private registerMiddlewares = () => {
     this.app.use(bodyParser.text({ type: ['application/xml', 'text/xml'] }));
+    this.app.use(ErrorHandlingMiddleware);
     this.app.use(
       RequestLoggerMiddleware({
         enable: false,
@@ -29,17 +56,34 @@ export class WebDavServer {
     this.app.use(AuthMiddleware(ConfigService.instance));
   };
 
-  private registerHandlers = () => {
-    this.app.options('*', new OPTIONSRequestHandler().handle);
+  private registerHandlers = async () => {
+    this.app.head('*', asyncHandler(new HEADRequestHandler().handle));
+    this.app.get(
+      '*',
+      asyncHandler(
+        new GETRequestHandler({
+          driveFileService: this.driveFileService,
+          driveRealmManager: this.driveRealmManager,
+          uploadService: this.uploadService,
+          downloadService: this.downloadService,
+          cryptoService: this.cryptoService,
+          authService: this.authService,
+          networkFacade: await this.getNetwork(),
+        }).handle,
+      ),
+    );
+    this.app.options('*', asyncHandler(new OPTIONSRequestHandler().handle));
     this.app.propfind(
       '*',
-      new PROPFINDRequestHandler(
-        { debug: true },
-        {
-          driveFolderService: this.driveFolderService,
-          driveRealmManager: this.driveRealmManager,
-        },
-      ).handle,
+      asyncHandler(
+        new PROPFINDRequestHandler(
+          { debug: true },
+          {
+            driveFolderService: this.driveFolderService,
+            driveRealmManager: this.driveRealmManager,
+          },
+        ).handle,
+      ),
     );
   };
 
