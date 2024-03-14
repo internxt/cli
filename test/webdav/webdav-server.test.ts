@@ -14,6 +14,7 @@ import { DownloadService } from '../../src/services/network/download.service';
 import { AuthService } from '../../src/services/auth.service';
 import { CryptoService } from '../../src/services/crypto.service';
 import { ConfigKeys } from '../../src/types/config.types';
+import { NetworkUtils } from '../../src/utils/network.utils';
 
 describe('WebDav server', () => {
   const sandbox = sinon.createSandbox();
@@ -68,8 +69,7 @@ describe('WebDav server', () => {
     const createServerStub = sandbox.stub(https, 'createServer').returns({
       listen: sandbox.stub().resolves(),
     });
-    // @ts-expect-error - We only mock the properties we need
-    sandbox.stub(selfsigned, 'generate').returns(sslSelfSigned);
+    sandbox.stub(NetworkUtils, 'getWebdavSSLCerts').returns({ cert: sslSelfSigned.cert, key: sslSelfSigned.private });
 
     const app = express();
     const server = new WebDavServer(

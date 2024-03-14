@@ -1,6 +1,5 @@
 import { Express } from 'express';
 import https from 'https';
-import selfsigned from 'selfsigned';
 import { ConfigService } from '../services/config.service';
 import { OPTIONSRequestHandler } from './handlers/OPTIONS.handler';
 import { PROPFINDRequestHandler } from './handlers/PROPFIND.handler';
@@ -21,6 +20,7 @@ import { ErrorHandlingMiddleware } from './middewares/errors.middleware';
 import asyncHandler from 'express-async-handler';
 import { SdkManager } from '../services/sdk-manager.service';
 import { NetworkFacade } from '../services/network/network-facade.service';
+import { NetworkUtils } from '../utils/network.utils';
 
 export class WebDavServer {
   constructor(
@@ -94,19 +94,8 @@ export class WebDavServer {
     this.registerMiddlewares();
     this.registerHandlers();
 
-    const attrs = [{ name: 'internxt-cli', value: 'Internxt CLI', type: 'commonName' }];
-    const pems = selfsigned.generate(attrs, { days: 365, algorithm: 'sha256', keySize: 2048 });
-
-    https
-      .createServer(
-        {
-          cert: pems.cert,
-          key: pems.private,
-        },
-        this.app,
-      )
-      .listen(port, () => {
-        webdavLogger.info(`Internxt WebDav server listening at https://localhost:${port}`);
-      });
+    https.createServer(NetworkUtils.getWebdavSSLCerts(), this.app).listen(port, () => {
+      webdavLogger.info(`Internxt WebDav server listening at https://localhost:${port}`);
+    });
   }
 }
