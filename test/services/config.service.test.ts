@@ -129,7 +129,7 @@ describe('Config service', () => {
     expect(credentialsFileContent).to.be.empty;
   });
 
-  it('When user credentials are cleared and the file is empty, an error is thrown', async () => {
+  it('When user credentials are cleared and the file is empty, then an error is thrown', async () => {
     configServiceSandbox
       .stub(fs, 'stat')
       .withArgs(ConfigService.CREDENTIALS_FILE)
@@ -142,5 +142,15 @@ describe('Config service', () => {
     } catch (error) {
       expect((error as Error).message).to.equal('Credentials file is already empty');
     }
+  });
+
+  it('When webdav certs directory is required to exist, then it is created', async () => {
+    configServiceSandbox.stub(fs, 'access').withArgs(ConfigService.WEBDAV_SSL_CERTS_DIR).rejects();
+
+    const stubMkdir = configServiceSandbox.stub(fs, 'mkdir').withArgs(ConfigService.WEBDAV_SSL_CERTS_DIR).resolves();
+
+    await ConfigService.instance.ensureWebdavCertsDirExists();
+
+    expect(stubMkdir).to.be.calledOnceWith(ConfigService.WEBDAV_SSL_CERTS_DIR);
   });
 });

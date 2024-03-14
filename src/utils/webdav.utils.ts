@@ -1,10 +1,12 @@
 import { Request } from 'express';
 import path from 'path';
 import { WebDavRequestedResource } from '../types/webdav.types';
+
 export class WebDavUtils {
-  static getHref(...pathComponents: string[]): string {
+  static joinURL(...pathComponents: string[]): string {
     return path.posix.join(...pathComponents);
   }
+
   static getRequestedResource(req: Request): WebDavRequestedResource {
     const decodedUrl = decodeURI(req.url);
     const parsedPath = path.parse(decodedUrl);

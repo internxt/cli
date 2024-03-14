@@ -1,15 +1,21 @@
 import { expect } from 'chai';
-import { CryptoUtils } from '../../src/utils/crypto.utils';
 import sinon from 'sinon';
+import crypto from 'node:crypto';
+import { CryptoUtils } from '../../src/utils/crypto.utils';
 import { ConfigService } from '../../src/services/config.service';
 import { AesInit } from '../../src/types/keys.types';
-import crypto from 'node:crypto';
+
 describe('Crypto utils', () => {
   const sandbox = sinon.createSandbox();
   const aesInit: AesInit = {
     iv: crypto.randomBytes(16).toString('hex'),
     salt: crypto.randomBytes(64).toString('hex'),
   };
+
+  afterEach(() => {
+    sandbox.restore();
+  });
+
   it('When Magic IV or Magic Salt are missing should throw an error', async () => {
     try {
       CryptoUtils.getAesInit();

@@ -1,4 +1,5 @@
 import { Express } from 'express';
+import https from 'https';
 import { ConfigService } from '../services/config.service';
 import { OPTIONSRequestHandler } from './handlers/OPTIONS.handler';
 import { PROPFINDRequestHandler } from './handlers/PROPFIND.handler';
@@ -19,6 +20,7 @@ import { ErrorHandlingMiddleware } from './middewares/errors.middleware';
 import asyncHandler from 'express-async-handler';
 import { SdkManager } from '../services/sdk-manager.service';
 import { NetworkFacade } from '../services/network/network-facade.service';
+import { NetworkUtils } from '../utils/network.utils';
 
 export class WebDavServer {
   constructor(
@@ -92,8 +94,8 @@ export class WebDavServer {
     this.registerMiddlewares();
     this.registerHandlers();
 
-    this.app.listen(port, () => {
-      webdavLogger.info(`Internxt WebDav server listening at http://localhost:${port}`);
+    https.createServer(NetworkUtils.getWebdavSSLCerts(), this.app).listen(port, () => {
+      webdavLogger.info(`Internxt WebDav server listening at https://localhost:${port}`);
     });
   }
 }
