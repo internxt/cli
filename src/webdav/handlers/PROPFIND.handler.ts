@@ -86,7 +86,7 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
     const folderContent = await driveFolderService.getFolderContent(folderUuid);
 
     const foldersXML = folderContent.folders.map((folder) => {
-      const folderRelativePath = WebDavUtils.joinPath(relativePath, folder.plainName, '/');
+      const folderRelativePath = WebDavUtils.joinURL(relativePath, folder.plainName, '/');
 
       return this.driveFolderItemToXMLNode(
         {
@@ -114,7 +114,7 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
     );
 
     const filesXML = folderContent.files.map((file) => {
-      const fileRelativePath = WebDavUtils.joinPath(
+      const fileRelativePath = WebDavUtils.joinURL(
         relativePath,
         file.type ? `${file.plainName}.${file.type}` : file.plainName,
       );

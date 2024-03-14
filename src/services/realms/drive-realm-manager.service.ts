@@ -40,23 +40,23 @@ export class DriveRealmManager {
     const parentFolder = await this.driveFoldersRealm.findByParentId(parentId);
 
     if (!parentFolder) {
-      return WebDavUtils.joinPath('/', fileName);
+      return WebDavUtils.joinURL('/', fileName);
     }
 
     const parentPath = await this.buildRelativePathForFile(parentFolder.name, parentFolder.parent_id ?? null);
 
-    return WebDavUtils.joinPath(parentPath, fileName);
+    return WebDavUtils.joinURL(parentPath, fileName);
   }
 
   async buildRelativePathForFolder(folderName: string, parentId: number | null): Promise<string> {
     const parentFolder = await this.driveFoldersRealm.findByParentId(parentId);
 
     if (!parentFolder) {
-      return WebDavUtils.joinPath('/', folderName, '/');
+      return WebDavUtils.joinURL('/', folderName, '/');
     }
 
     const parentPath = await this.buildRelativePathForFolder(parentFolder.name, parentFolder.parent_id ?? null);
 
-    return WebDavUtils.joinPath(parentPath, folderName, '/');
+    return WebDavUtils.joinURL(parentPath, folderName, '/');
   }
 }

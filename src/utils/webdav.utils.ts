@@ -3,7 +3,7 @@ import path from 'path';
 import { WebDavRequestedResource } from '../types/webdav.types';
 
 export class WebDavUtils {
-  static joinPath(...pathComponents: string[]): string {
+  static joinURL(...pathComponents: string[]): string {
     return path.posix.join(...pathComponents);
   }
 
