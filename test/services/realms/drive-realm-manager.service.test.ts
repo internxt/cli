@@ -90,7 +90,7 @@ describe('DriveRealmManager service', () => {
 
     const relativePath = await sut.buildRelativePathForFolder('folderD', 1);
 
-    expect(relativePath).to.be.equal(path.join('/', 'folderA', 'folderB', 'folderC', 'folderD', '/'));
+    expect(relativePath).to.be.equal(path.posix.join('/', 'folderA', 'folderB', 'folderC', 'folderD', '/'));
   });
 
   it('When a file is created, should build the correct relative path', async () => {
@@ -124,6 +124,6 @@ describe('DriveRealmManager service', () => {
 
     const relativePath = await sut.buildRelativePathForFile('file.png', 1);
 
-    expect(relativePath).to.be.equal(path.join('/', 'folderA', 'folderB', 'folderC', 'file.png'));
+    expect(relativePath).to.be.equal(path.posix.join('/', 'folderA', 'folderB', 'folderC', 'file.png'));
   });
 });

@@ -1,7 +1,7 @@
-import path from 'path';
 import { DriveFileItem, DriveFolderItem } from '../../types/drive.types';
 import { DriveFileRealmSchema, DriveFilesRealm } from './drive-files.realm';
 import { DriveFolderRealmSchema, DriveFoldersRealm } from './drive-folders.realm';
+import { WebDavUtils } from '../../utils/webdav.utils';
 
 export class DriveRealmManager {
   constructor(
@@ -40,23 +40,23 @@ export class DriveRealmManager {
     const parentFolder = await this.driveFoldersRealm.findByParentId(parentId);
 
     if (!parentFolder) {
-      return path.join('/', fileName);
+      return WebDavUtils.joinPath('/', fileName);
     }
 
     const parentPath = await this.buildRelativePathForFile(parentFolder.name, parentFolder.parent_id ?? null);
 
-    return path.join(parentPath, fileName);
+    return WebDavUtils.joinPath(parentPath, fileName);
   }
 
   async buildRelativePathForFolder(folderName: string, parentId: number | null): Promise<string> {
     const parentFolder = await this.driveFoldersRealm.findByParentId(parentId);
 
     if (!parentFolder) {
-      return path.join('/', folderName, '/');
+      return WebDavUtils.joinPath('/', folderName, '/');
     }
 
     const parentPath = await this.buildRelativePathForFolder(parentFolder.name, parentFolder.parent_id ?? null);
 
-    return path.join(parentPath, folderName, '/');
+    return WebDavUtils.joinPath(parentPath, folderName, '/');
   }
 }
