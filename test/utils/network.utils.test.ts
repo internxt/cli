@@ -49,4 +49,24 @@ describe('Network utils', () => {
     expect(stubGerateSelfsignedCerts.calledOnce).to.be.true;
     expect(stubSaveCerts.calledTwice).to.be.true;
   });
+
+  it('When webdav ssl certs are required but they exist, then they are read from the files', async () => {
+    const sslMock = {
+      private: randomBytes(8).toString('hex'),
+      cert: randomBytes(8).toString('hex'),
+    };
+    networkUtilsSandbox.stub(fs, 'existsSync').returns(true);
+    networkUtilsSandbox.stub(fs, 'writeFileSync').rejects();
+
+    networkUtilsSandbox
+      .stub(fs, 'readFileSync')
+      .withArgs(NetworkUtils.WEBDAV_SSL_CERTS_PATH.cert)
+      .returns(sslMock.cert)
+      .withArgs(NetworkUtils.WEBDAV_SSL_CERTS_PATH.privateKey)
+      .returns(sslMock.private);
+
+    const result = NetworkUtils.getWebdavSSLCerts();
+
+    expect(result).to.deep.equal({ cert: sslMock.cert, key: sslMock.private });
+  });
 });
