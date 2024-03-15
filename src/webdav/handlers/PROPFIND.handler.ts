@@ -25,7 +25,7 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
       case 'folder': {
         if (resource.url === '/') {
           const rootFolder = await this.dependencies.driveFolderService.getFolderMetaById(req.user.rootFolderId);
-          await this.dependencies.driveRealmManager.createFolder({
+          this.dependencies.driveRealmManager.createFolder({
             name: '',
             encryptedName: rootFolder.name,
             bucket: rootFolder.bucket,
@@ -39,7 +39,7 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
           break;
         }
 
-        const driveParentFolder = await this.dependencies.driveRealmManager.findByRelativePath(resource.url);
+        const driveParentFolder = this.dependencies.driveRealmManager.findByRelativePath(resource.url);
 
         if (!driveParentFolder) {
           res.status(404).send();
@@ -103,15 +103,13 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
       );
     });
 
-    await Promise.all(
-      folderContent.folders.map(async (folder) => {
-        return driveRealmManager.createFolder({
-          ...folder,
-          name: folder.plainName,
-          encryptedName: folder.name,
-        });
-      }),
-    );
+    folderContent.folders.map((folder) => {
+      return driveRealmManager.createFolder({
+        ...folder,
+        name: folder.plainName,
+        encryptedName: folder.name,
+      });
+    });
 
     const filesXML = folderContent.files.map((file) => {
       const fileRelativePath = WebDavUtils.joinURL(
@@ -137,17 +135,15 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
       );
     });
 
-    await Promise.all(
-      folderContent.files.map(async (file) => {
-        return driveRealmManager.createFile({
-          ...file,
-          name: file.plainName,
-          fileId: file.fileId,
-          size: Number(file.size),
-          encryptedName: file.name,
-        });
-      }),
-    );
+    folderContent.files.map((file) => {
+      return driveRealmManager.createFile({
+        ...file,
+        name: file.plainName,
+        fileId: file.fileId,
+        size: Number(file.size),
+        encryptedName: file.name,
+      });
+    });
 
     const xml = XMLUtils.toWebDavXML(foldersXML.concat(filesXML), {
       arrayNodeName: 'response',

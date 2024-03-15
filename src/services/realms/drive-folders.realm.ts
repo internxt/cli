@@ -29,7 +29,7 @@ export class DriveFolderRealmSchema extends Realm.Object<DriveFolderRealmSchema>
 export class DriveFoldersRealm {
   constructor(private realm: Realm) {}
 
-  async findByRelativePath(relativePath: string): Promise<DriveFolderRealmSchema | null> {
+  findByRelativePath(relativePath: string): DriveFolderRealmSchema | null {
     const object = this.realm
       .objects<DriveFolderRealmSchema>('DriveFolder')
       .filtered('relative_path = $0', relativePath)
@@ -38,15 +38,15 @@ export class DriveFoldersRealm {
     return object ?? null;
   }
 
-  async findByParentId(parentId: number | null): Promise<DriveFolderRealmSchema | null> {
+  findByParentId(parentId: number | null): DriveFolderRealmSchema | null {
     // -1 is root as we cannot index null fields
     const parentFolder = this.realm.objectForPrimaryKey<DriveFolderRealmSchema>('DriveFolder', parentId ?? -1);
 
     return parentFolder;
   }
 
-  async createOrReplace(driveFolder: DriveFolderItem, relativePath: string) {
-    const existingObject = this.realm.objectForPrimaryKey<DriveFolderRealmSchema>('DriveFolder', driveFolder.id);
+  createOrReplace(driveFolder: DriveFolderItem, relativePath: string) {
+    const existingObject = this.findByRelativePath(relativePath);
 
     this.realm.write(() => {
       if (existingObject) {

@@ -37,7 +37,7 @@ export class DriveFileRealmSchema extends Realm.Object<DriveFileRealmSchema> {
 export class DriveFilesRealm {
   constructor(private realm: Realm) {}
 
-  async findByRelativePath(relativePath: string): Promise<DriveFileRealmSchema | null> {
+  findByRelativePath(relativePath: string): DriveFileRealmSchema | null {
     const object = this.realm
       .objects<DriveFileRealmSchema>('DriveFile')
       .filtered('relative_path = $0', relativePath)
@@ -46,8 +46,8 @@ export class DriveFilesRealm {
     return object ?? null;
   }
 
-  async createOrReplace(driveFile: DriveFileItem, relativePath: string) {
-    const existingObject = this.realm.objectForPrimaryKey<DriveFileRealmSchema>('DriveFile', driveFile.id);
+  createOrReplace(driveFile: DriveFileItem, relativePath: string) {
+    const existingObject = this.findByRelativePath(relativePath);
 
     this.realm.write(() => {
       if (existingObject) {

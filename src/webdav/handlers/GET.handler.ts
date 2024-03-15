@@ -77,7 +77,7 @@ export class GETRequestHandler implements WebDavMethodHandler {
   private async getDriveFileRealmObject(resource: WebDavRequestedResource) {
     const { driveRealmManager } = this.dependencies;
 
-    const result = await driveRealmManager.findByRelativePath(resource.url);
+    const result = driveRealmManager.findByRelativePath(resource.url);
 
     return result as DriveFileRealmSchema | null;
   }
