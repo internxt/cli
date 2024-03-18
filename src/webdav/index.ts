@@ -18,11 +18,13 @@ dotenv.config();
 const init = async () => {
   await ConfigService.instance.ensureInternxtCliDataDirExists();
   await ConfigService.instance.ensureWebdavCertsDirExists();
+  await ConfigService.instance.ensureInternxtLogsDirExists();
   const realm = await Realm.open({
     path: ConfigService.DRIVE_REALM_FILE,
     schema: [DriveFileRealmSchema, DriveFolderRealmSchema],
     deleteRealmIfMigrationNeeded: true,
   });
+
   new WebDavServer(
     express(),
     ConfigService.instance,
