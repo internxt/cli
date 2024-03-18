@@ -57,7 +57,7 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
   };
 
   private async getFileMetaXML(resource: WebDavRequestedResource): Promise<string> {
-    const driveFileItem = await this.dependencies.driveRealmManager.findByRelativePath(resource.url);
+    const driveFileItem = this.dependencies.driveRealmManager.findByRelativePath(resource.url);
 
     if (!driveFileItem || !('size' in driveFileItem)) throw new NotFoundError('File not found');
     const driveFile = this.driveFileItemToXMLNode(

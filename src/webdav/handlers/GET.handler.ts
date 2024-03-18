@@ -10,6 +10,7 @@ import { CryptoService } from '../../services/crypto.service';
 import { AuthService } from '../../services/auth.service';
 import { DriveFileRealmSchema } from '../../services/realms/drive-files.realm';
 import { NotFoundError, NotImplementedError } from '../../utils/errors.utils';
+import { webdavLogger } from '../../utils/logger.utils';
 
 export class GETRequestHandler implements WebDavMethodHandler {
   constructor(

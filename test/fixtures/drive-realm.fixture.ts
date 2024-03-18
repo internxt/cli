@@ -56,8 +56,8 @@ export const getDriveRealmManager = (): DriveRealmManager => {
   // @ts-expect-error - We only mock the properties we need
   const driveFoldersRealm: DriveFoldersRealm = {
     findByRelativePath: sinon.stub(),
-    findByParentId: async () => null,
-    createOrReplace: async () => {
+    findByParentId: () => null,
+    createOrReplace: () => {
       return;
     },
   };
