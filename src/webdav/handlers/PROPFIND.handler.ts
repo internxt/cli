@@ -88,21 +88,21 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
     let XMLNodes: object[] = [];
 
     switch (depth) {
-      default:
-      case '1':
-        if (isRootFolder) {
-          XMLNodes.push(await this.getFolderRootXMLNode(relativePath, folderUuid));
-          XMLNodes = XMLNodes.concat(await this.getFolderChildsXMLNode(relativePath, folderUuid));
-        } else {
-          XMLNodes.push(await this.getFolderXMLNode(relativePath, folderUuid));
-          XMLNodes = XMLNodes.concat(await this.getFolderChildsXMLNode(relativePath, folderUuid));
-        }
-        break;
       case '0':
         if (isRootFolder) {
           XMLNodes.push(await this.getFolderRootXMLNode(relativePath, folderUuid));
         } else {
           XMLNodes.push(await this.getFolderXMLNode(relativePath, folderUuid));
+        }
+        break;
+      case '1':
+      default:
+        if (isRootFolder) {
+          XMLNodes.push(await this.getFolderRootXMLNode(relativePath, folderUuid));
+          XMLNodes = XMLNodes.concat(await this.getFolderChildsXMLNode(relativePath, folderUuid));
+        } else {
+          XMLNodes.push(await this.getFolderXMLNode(relativePath, folderUuid));
+          XMLNodes = XMLNodes.concat(await this.getFolderChildsXMLNode(relativePath, folderUuid));
         }
         break;
     }
