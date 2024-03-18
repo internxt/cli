@@ -44,6 +44,8 @@ export class DriveFileService {
       fileId: payload.fileId,
       id: driveFile.id,
       type: payload.type,
+      status: driveFile.status,
+      folderId: driveFile.folderId,
     };
   }
 
@@ -55,6 +57,8 @@ export class DriveFileService {
     const fileMetadata = await getFileMetadata;
     return {
       uuid,
+      status: fileMetadata.status,
+      folderId: fileMetadata.folder_id,
       size: fileMetadata.size,
       encryptedName: fileMetadata.name,
       name: fileMetadata.plainName ?? fileMetadata.name,

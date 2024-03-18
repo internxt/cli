@@ -1,13 +1,17 @@
 import sinon from 'sinon';
 import { PROPFINDRequestHandler } from '../../../src/webdav/handlers/PROPFIND.handler';
-
 import { ConfigService } from '../../../src/services/config.service';
 import { DriveFolderService } from '../../../src/services/drive/drive-folder.service';
 import { UserSettingsFixture } from '../../fixtures/auth.fixture';
 import { newFolder, newPaginatedFolder } from '../../fixtures/drive.fixture';
 import { createWebDavRequestFixture, createWebDavResponseFixture } from '../../fixtures/webdav.fixture';
-import path from 'path';
-import { getDriveFolderRealmSchemaFixture, getDriveRealmManager } from '../../fixtures/drive-realm.fixture';
+import {
+  getDriveFileRealmSchemaFixture,
+  getDriveFolderRealmSchemaFixture,
+  getDriveRealmManager,
+} from '../../fixtures/drive-realm.fixture';
+import { FormatUtils } from '../../../src/utils/format.utils';
+import { randomInt } from 'crypto';
 
 describe('PROPFIND request handler', () => {
   const sandbox = sinon.createSandbox();
@@ -28,6 +32,7 @@ describe('PROPFIND request handler', () => {
       id: UserSettingsFixture.root_folder_id,
     });
     sandbox.stub(driveFolderService, 'getFolderMetaById').resolves(folderFixture);
+    sandbox.stub(driveFolderService, 'getFolderMetaByUuid').resolves(folderFixture);
     sandbox.stub(driveFolderService, 'getFolderContent').resolves({ folders: [], files: [] });
     const requestHandler = new PROPFINDRequestHandler(
       { debug: true },
@@ -53,7 +58,7 @@ describe('PROPFIND request handler', () => {
     sinon.assert.calledWith(response.status, 200);
     sinon.assert.calledWith(
       sendStub,
-      '<?xml version="1.0" encoding="utf-8" ?><multistatus xmlns:D="DAV:"></multistatus>',
+      `<?xml version="1.0" encoding="utf-8" ?><D:multistatus xmlns:D="DAV:"><D:response><D:href>/</D:href><D:propstat><D:status>HTTP/1.1 200 OK</D:status><D:prop><D:getcontenttype>application/octet-stream</D:getcontenttype><x1:lastmodified xmlns:x1="SAR:">${FormatUtils.formatDateForWebDav(folderFixture.updatedAt)}</x1:lastmodified><x2:executable xmlns:x2="http://apache.org/dav/props/">F</x2:executable><x3:Win32FileAttributes xmlns:x3="urn:schemas-microsoft-com:">00000030</x3:Win32FileAttributes><D:resourcetype><D:collection/></D:resourcetype></D:prop></D:propstat></D:response></D:multistatus>`,
     );
   });
 
@@ -75,6 +80,7 @@ describe('PROPFIND request handler', () => {
     });
 
     sandbox.stub(driveFolderService, 'getFolderMetaById').resolves(folderFixture);
+    sandbox.stub(driveFolderService, 'getFolderMetaByUuid').resolves(folderFixture);
     sandbox.stub(driveFolderService, 'getFolderContent').resolves({
       folders: [paginatedFolder1],
       files: [],
@@ -101,7 +107,7 @@ describe('PROPFIND request handler', () => {
     sinon.assert.calledWith(response.status, 200);
     sinon.assert.calledWith(
       sendStub,
-      `<?xml version="1.0" encoding="utf-8" ?><multistatus xmlns:D="DAV:"><response><href>${path.join('/', 'folder_1', '/')}</href><propstat><status>HTTP/1.1 200 OK</status><prop><displayname>folder_1</displayname><getlastmodified>Mon, 04 Mar 2024 15:11:01 GMT</getlastmodified><getcontentlength>0</getcontentlength><resourcetype><collection></collection></resourcetype></prop></propstat></response></multistatus>`,
+      `<?xml version="1.0" encoding="utf-8" ?><D:multistatus xmlns:D="DAV:"><D:response><D:href>/</D:href><D:propstat><D:status>HTTP/1.1 200 OK</D:status><D:prop><D:getcontenttype>application/octet-stream</D:getcontenttype><x1:lastmodified xmlns:x1="SAR:">${FormatUtils.formatDateForWebDav(folderFixture.updatedAt)}</x1:lastmodified><x2:executable xmlns:x2="http://apache.org/dav/props/">F</x2:executable><x3:Win32FileAttributes xmlns:x3="urn:schemas-microsoft-com:">00000030</x3:Win32FileAttributes><D:resourcetype><D:collection/></D:resourcetype></D:prop></D:propstat></D:response><D:response><D:href>/${paginatedFolder1.plainName}/</D:href><D:propstat><D:status>HTTP/1.1 200 OK</D:status><D:prop><D:displayname>${paginatedFolder1.plainName}</D:displayname><D:getlastmodified>${FormatUtils.formatDateForWebDav(paginatedFolder1.updatedAt)}</D:getlastmodified><D:getcontentlength>0</D:getcontentlength><D:resourcetype><D:collection/></D:resourcetype></D:prop></D:propstat></D:response></D:multistatus>`,
     );
   });
 
@@ -114,7 +120,7 @@ describe('PROPFIND request handler', () => {
       .resolves({ user: UserSettingsFixture, token: 'TOKEN', newToken: 'NEW_TOKEN', mnemonic: 'MNEMONIC' });
 
     const driveRealmManager = getDriveRealmManager();
-    sandbox.stub(driveRealmManager, 'findByRelativePath').resolves(getDriveFolderRealmSchemaFixture());
+    sandbox.stub(driveRealmManager, 'findByRelativePath').returns(getDriveFileRealmSchemaFixture());
 
     const requestHandler = new PROPFINDRequestHandler(
       { debug: true },
@@ -148,11 +154,17 @@ describe('PROPFIND request handler', () => {
       .resolves({ user: UserSettingsFixture, token: 'TOKEN', newToken: 'NEW_TOKEN', mnemonic: 'MNEMONIC' });
 
     const driveRealmManager = getDriveRealmManager();
+    const paginatedFolder1 = newPaginatedFolder();
     sandbox.stub(driveFolderService, 'getFolderContent').resolves({
       files: [],
-      folders: [newPaginatedFolder()],
+      folders: [paginatedFolder1],
     });
-    sandbox.stub(driveRealmManager, 'findByRelativePath').resolves(getDriveFolderRealmSchemaFixture());
+    const folderFixture = newFolder({
+      id: randomInt(999),
+      plainName: 'folder_a',
+    });
+    sandbox.stub(driveFolderService, 'getFolderMetaByUuid').resolves(folderFixture);
+    sandbox.stub(driveRealmManager, 'findByRelativePath').returns(getDriveFolderRealmSchemaFixture());
     const requestHandler = new PROPFINDRequestHandler(
       { debug: true },
       {
@@ -185,7 +197,7 @@ describe('PROPFIND request handler', () => {
       .resolves({ user: UserSettingsFixture, token: 'TOKEN', newToken: 'NEW_TOKEN', mnemonic: 'MNEMONIC' });
 
     const driveRealmManager = getDriveRealmManager();
-    sandbox.stub(driveRealmManager, 'findByRelativePath').resolves(null);
+    sandbox.stub(driveRealmManager, 'findByRelativePath').returns(null);
     const requestHandler = new PROPFINDRequestHandler(
       { debug: true },
       {

@@ -22,7 +22,7 @@ export default class Whoami extends Command {
     if (userCredentials?.user?.email) {
       CLIUtils.success(`You are logged in with: ${userCredentials.user.email}`);
     } else {
-      CLIUtils.success('You are not logged in');
+      CLIUtils.error('You are not logged in');
     }
   }
 }

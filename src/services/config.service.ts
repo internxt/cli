@@ -7,8 +7,11 @@ import { CryptoService } from './crypto.service';
 
 export class ConfigService {
   static readonly INTERNXT_CLI_DATA_DIR = path.join(os.homedir(), '.internxt-cli');
+  static readonly INTERNXT_TMP_DIR = os.tmpdir();
   static readonly CREDENTIALS_FILE = path.join(this.INTERNXT_CLI_DATA_DIR, '.inxtcli');
   static readonly DRIVE_REALM_FILE = path.join(this.INTERNXT_CLI_DATA_DIR, 'internxt-cli-drive.realm');
+  static readonly WEBDAV_SSL_CERTS_DIR = path.join(this.INTERNXT_CLI_DATA_DIR, 'certs');
+  static readonly WEBDAV_LOCAL_URL = 'webdav.local.internxt.com';
   public static readonly instance: ConfigService = new ConfigService();
 
   /**
@@ -72,6 +75,14 @@ export class ConfigService {
       await fs.access(ConfigService.INTERNXT_CLI_DATA_DIR);
     } catch {
       await fs.mkdir(ConfigService.INTERNXT_CLI_DATA_DIR);
+    }
+  };
+
+  ensureWebdavCertsDirExists = async () => {
+    try {
+      await fs.access(ConfigService.WEBDAV_SSL_CERTS_DIR);
+    } catch {
+      await fs.mkdir(ConfigService.WEBDAV_SSL_CERTS_DIR);
     }
   };
 }

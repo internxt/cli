@@ -1,4 +1,4 @@
-import superagent from 'superagent';
+import axios from 'axios';
 
 export class DownloadService {
   static readonly instance = new DownloadService();
@@ -7,22 +7,23 @@ export class DownloadService {
     url: string,
     options: { progressCallback?: (progress: number) => void; abortController?: AbortController },
   ): Promise<ReadableStream<Uint8Array>> {
-    const request = superagent.get(url).on('progress', (progressEvent) => {
-      if (options.progressCallback && progressEvent.total) {
-        const reportedProgress = progressEvent.loaded / parseInt(progressEvent.total);
+    const response = await axios.get(url, {
+      responseType: 'stream',
+      onDownloadProgress(progressEvent) {
+        if (options.progressCallback && progressEvent.total) {
+          const reportedProgress = progressEvent.loaded / progressEvent.total;
 
-        options.progressCallback(reportedProgress);
-      }
+          options.progressCallback(reportedProgress);
+        }
+      },
     });
-
-    const response = await request;
 
     const readable = new ReadableStream<Uint8Array>({
       start(controller) {
-        response.on('data', (chunk: Uint8Array) => {
+        response.data.on('data', (chunk: Uint8Array) => {
           controller.enqueue(chunk);
         });
-        response.on('end', () => {
+        response.data.on('end', () => {
           controller.close();
         });
       },
