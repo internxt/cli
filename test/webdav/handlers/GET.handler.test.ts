@@ -84,7 +84,7 @@ describe('GET request handler', () => {
       headers: {},
     });
 
-    sandbox.stub(driveRealmManager, 'findByRelativePath').resolves(null);
+    sandbox.stub(driveRealmManager, 'findByRelativePath').returns(null);
     const response = createWebDavResponseFixture({
       status: sandbox.stub().returns({ send: sandbox.stub() }),
     });
@@ -122,7 +122,7 @@ describe('GET request handler', () => {
 
     const driveFileRealmObject = getDriveFileRealmSchemaFixture({});
 
-    sandbox.stub(driveRealmManager, 'findByRelativePath').resolves(driveFileRealmObject);
+    sandbox.stub(driveRealmManager, 'findByRelativePath').returns(driveFileRealmObject);
     sandbox
       .stub(authService, 'getAuthDetails')
       .resolves({ mnemonic: 'MNEMONIC', token: 'TOKEN', newToken: 'NEW_TOKEN' });
