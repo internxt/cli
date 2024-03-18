@@ -7,6 +7,7 @@ import { CryptoService } from './crypto.service';
 
 export class ConfigService {
   static readonly INTERNXT_CLI_DATA_DIR = path.join(os.homedir(), '.internxt-cli');
+  static readonly INTERNXT_CLI_LOGS_DIR = path.join(this.INTERNXT_CLI_DATA_DIR, 'logs');
   static readonly INTERNXT_TMP_DIR = os.tmpdir();
   static readonly CREDENTIALS_FILE = path.join(this.INTERNXT_CLI_DATA_DIR, '.inxtcli');
   static readonly DRIVE_REALM_FILE = path.join(this.INTERNXT_CLI_DATA_DIR, 'internxt-cli-drive.realm');

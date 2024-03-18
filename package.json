@@ -1,6 +1,6 @@
 {
   "author": "PixoDev",
-  "version": "0.0.12",
+  "version": "0.0.18",
   "description": "Internxt CLI to manage your encrypted storage",
   "scripts": {
     "build": "tsc",
@@ -45,6 +45,7 @@
     "fast-xml-parser": "^4.3.5",
     "mime-types": "^2.1.35",
     "openpgp": "^5.11.1",
+    "pm2": "^5.3.1",
     "realm": "^12.6.2",
     "selfsigned": "^2.4.1",
     "superagent": "^8.1.2",

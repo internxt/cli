@@ -23,6 +23,7 @@ const init = async () => {
     schema: [DriveFileRealmSchema, DriveFolderRealmSchema],
     deleteRealmIfMigrationNeeded: true,
   });
+
   new WebDavServer(
     express(),
     ConfigService.instance,
