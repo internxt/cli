@@ -74,7 +74,7 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
       encodeURI(resource.url),
     );
     const xml = XMLUtils.toWebDavXML([driveFile], {
-      arrayNodeName: 'response',
+      arrayNodeName: XMLUtils.addDefaultNamespace('response'),
     });
 
     return xml;
@@ -156,15 +156,15 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
     const displayName = `${driveFolderItem.name}`;
 
     const driveFolderXML = {
-      href: relativePath,
-      propstat: {
-        status: 'HTTP/1.1 200 OK',
-        prop: {
-          displayname: displayName,
-          getlastmodified: FormatUtils.formatDateForWebDav(driveFolderItem.updatedAt),
-          getcontentlength: 0,
-          resourcetype: {
-            collection: '',
+      [XMLUtils.addDefaultNamespace('href')]: relativePath,
+      [XMLUtils.addDefaultNamespace('propstat')]: {
+        [XMLUtils.addDefaultNamespace('status')]: 'HTTP/1.1 200 OK',
+        [XMLUtils.addDefaultNamespace('prop')]: {
+          [XMLUtils.addDefaultNamespace('displayname')]: displayName,
+          [XMLUtils.addDefaultNamespace('getlastmodified')]: FormatUtils.formatDateForWebDav(driveFolderItem.updatedAt),
+          [XMLUtils.addDefaultNamespace('getcontentlength')]: 0,
+          [XMLUtils.addDefaultNamespace('resourcetype')]: {
+            [XMLUtils.addDefaultNamespace('collection')]: '',
           },
         },
       },
@@ -177,13 +177,16 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
     const displayName = driveFileItem.type ? `${driveFileItem.name}.${driveFileItem.type}` : driveFileItem.name;
 
     const driveFileXML = {
-      href: relativePath,
-      propstat: {
-        status: 'HTTP/1.1 200 OK',
-        prop: {
-          displayname: displayName,
-          getlastmodified: FormatUtils.formatDateForWebDav(driveFileItem.updatedAt),
-          getcontentlength: driveFileItem.size,
+      [XMLUtils.addDefaultNamespace('href')]: relativePath,
+      [XMLUtils.addDefaultNamespace('propstat')]: {
+        [XMLUtils.addDefaultNamespace('status')]: 'HTTP/1.1 200 OK',
+        [XMLUtils.addDefaultNamespace('prop')]: {
+          [XMLUtils.addDefaultNamespace('resourcetype')]: '',
+          [XMLUtils.addDefaultNamespace('getetag')]: '"' + randomUUID().replaceAll('-', '') + '"',
+          [XMLUtils.addDefaultNamespace('displayname')]: displayName,
+          [XMLUtils.addDefaultNamespace('getcontenttype')]: mime.lookup(displayName) || 'application/octet-stream',
+          [XMLUtils.addDefaultNamespace('getlastmodified')]: FormatUtils.formatDateForWebDav(driveFileItem.updatedAt),
+          [XMLUtils.addDefaultNamespace('getcontentlength')]: driveFileItem.size,
         },
       },
     };
