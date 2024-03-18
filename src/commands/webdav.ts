@@ -25,7 +25,7 @@ export default class Webdav extends Command {
     if (status === 'online') {
       ux.log(`\nWebDav server status: ${ux.colorize('green', 'online')}\n`);
       CLIUtils.success(
-        `Internxt WebDav server started successfully on http://webdav.local.internxt.com:${process.env.WEBDAV_SERVER_PORT}`,
+        `Internxt WebDav server started successfully on https://webdav.local.internxt.com:${process.env.WEBDAV_SERVER_PORT}`,
       );
     } else {
       ux.log(`WebDav server status: ${ux.colorize('red', status)}`);
