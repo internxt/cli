@@ -17,7 +17,7 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
   ) {}
 
   handle = async (req: Request, res: Response) => {
-    const resource = WebDavUtils.getRequestedResource(req);
+    const resource = WebDavUtils.getRequestedResource(req, this.dependencies.driveRealmManager);
     const depth = req.header('depth') ?? '1';
 
     switch (resource.type) {

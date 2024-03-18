@@ -14,7 +14,9 @@ export class DriveRealmManager {
 
     if (driveFile) return driveFile;
 
-    const driveFolder = this.driveFoldersRealm.findByRelativePath(relativePath);
+    let folderRelativePath = relativePath;
+    if (!relativePath.endsWith('/')) folderRelativePath = relativePath.concat('/');
+    const driveFolder = this.driveFoldersRealm.findByRelativePath(folderRelativePath);
 
     if (driveFolder) return driveFolder;
 
