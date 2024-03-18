@@ -95,7 +95,7 @@ export class WebDavServer {
     this.registerHandlers();
 
     https.createServer(NetworkUtils.getWebdavSSLCerts(), this.app).listen(port, () => {
-      webdavLogger.info(`Internxt WebDav server listening at https://localhost:${port}`);
+      webdavLogger.info(`Internxt WebDav server listening at https://${ConfigService.WEBDAV_LOCAL_URL}:${port}`);
     });
   }
 }

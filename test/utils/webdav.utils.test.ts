@@ -1,6 +1,7 @@
 import { expect } from 'chai';
 import { WebDavUtils } from '../../src/utils/webdav.utils';
 import { createWebDavRequestFixture } from '../fixtures/webdav.fixture';
+import { getDriveRealmManager } from '../fixtures/drive-realm.fixture';
 
 describe('Webdav utils', () => {
   it('When a list of path components are given, should generate a correct href', () => {
@@ -17,7 +18,7 @@ describe('Webdav utils', () => {
     const request = createWebDavRequestFixture({
       url: '/url/to/folder/',
     });
-    const resource = WebDavUtils.getRequestedResource(request);
+    const resource = WebDavUtils.getRequestedResource(request, getDriveRealmManager());
     expect(resource).to.deep.equal({
       url: '/url/to/folder/',
       type: 'folder',

@@ -9,7 +9,8 @@ describe('Drive files realm', () => {
   afterEach(() => {
     sandbox.restore();
   });
-  it('When getByRelativePath is called, should return the correct object', async () => {
+
+  it('When getByRelativePath is called, should return the correct object', () => {
     const realmMock = sandbox.createStubInstance(Realm);
     const driveFilesRealm = new DriveFilesRealm(realmMock);
     const relativePath = 'existing/path';
@@ -32,13 +33,13 @@ describe('Drive files realm', () => {
     // @ts-expect-error - Partial mock
     realmMock.objects.withArgs('DriveFile').returns({ filtered: sinon.stub().returns([mockFile]) });
 
-    const result = await driveFilesRealm.findByRelativePath(relativePath);
+    const result = driveFilesRealm.findByRelativePath(relativePath);
 
     expect(result).to.deep.equal(mockFile);
     realmMock.close();
   });
 
-  it('When create is called, should create the correct object', async () => {
+  it('When create is called, should create the correct object', () => {
     const realmStub = sandbox.createStubInstance(Realm);
     const driveFileRealm = new DriveFilesRealm(realmStub);
     const relativePath = '/folder1/file.png';
@@ -57,11 +58,12 @@ describe('Drive files realm', () => {
       encryptedName: 'encrypted-name',
     };
 
-    realmStub.objectForPrimaryKey.withArgs('DriveFile', driveFile.id).returns(null);
+    // @ts-expect-error - Partial mock
+    realmStub.objects.withArgs('DriveFile').returns({ filtered: sinon.stub().returns([]) });
 
-    await driveFileRealm.createOrReplace(driveFile, relativePath);
+    driveFileRealm.createOrReplace(driveFile, relativePath);
 
-    expect(realmStub.objectForPrimaryKey.calledWith('DriveFile', driveFile.id)).to.be.true;
+    expect(realmStub.objects.calledWith('DriveFile')).to.be.true;
 
     realmStub.close();
   });

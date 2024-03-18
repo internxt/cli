@@ -40,7 +40,7 @@ export class NetworkUtils {
   }
 
   static generateSelfSignedSSLCerts(): selfsigned.GenerateResult {
-    const attrs = [{ name: 'internxt-cli', value: 'Internxt CLI', type: 'commonName' }];
+    const attrs = [{ name: 'commonName', value: ConfigService.WEBDAV_LOCAL_URL }];
     const pems = selfsigned.generate(attrs, { days: 365, algorithm: 'sha256', keySize: 2048 });
     return pems;
   }

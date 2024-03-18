@@ -24,8 +24,9 @@ export class GETRequestHandler implements WebDavMethodHandler {
       networkFacade: NetworkFacade;
     },
   ) {}
+
   handle = async (req: Request, res: Response) => {
-    const resource = WebDavUtils.getRequestedResource(req);
+    const resource = WebDavUtils.getRequestedResource(req, this.dependencies.driveRealmManager);
 
     if (req.headers['content-range'] || req.headers['range'])
       throw new NotImplementedError('Range requests not supported');
@@ -77,7 +78,7 @@ export class GETRequestHandler implements WebDavMethodHandler {
   private async getDriveFileRealmObject(resource: WebDavRequestedResource) {
     const { driveRealmManager } = this.dependencies;
 
-    const result = await driveRealmManager.findByRelativePath(resource.url);
+    const result = driveRealmManager.findByRelativePath(resource.url);
 
     return result as DriveFileRealmSchema | null;
   }
