@@ -86,4 +86,12 @@ export class ConfigService {
       await fs.mkdir(ConfigService.WEBDAV_SSL_CERTS_DIR);
     }
   };
+
+  ensureInternxtLogsDirExists = async () => {
+    try {
+      await fs.access(ConfigService.INTERNXT_CLI_LOGS_DIR);
+    } catch {
+      await fs.mkdir(ConfigService.INTERNXT_CLI_LOGS_DIR);
+    }
+  };
 }
