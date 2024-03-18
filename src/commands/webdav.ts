@@ -1,7 +1,6 @@
 import { Args, Command, ux } from '@oclif/core';
 import { PM2Utils } from '../utils/pm2.utils';
 import { CLIUtils } from '../utils/cli.utils';
-import { CommandError } from '@oclif/core/lib/interfaces';
 export default class Webdav extends Command {
   static readonly description = 'Enable or disable the Internxt CLI WebDav server';
 
@@ -57,7 +56,11 @@ export default class Webdav extends Command {
         }
       }
     } catch (error) {
-      CLIUtils.error(error as any);
+      if (error instanceof Error) {
+        CLIUtils.error(error.message);
+      } else {
+        CLIUtils.error(JSON.stringify(error));
+      }
     }
 
     this.exit(0);
