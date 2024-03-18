@@ -1,6 +1,7 @@
 import { Args, Command, ux } from '@oclif/core';
 import { PM2Utils } from '../utils/pm2.utils';
 import { CLIUtils } from '../utils/cli.utils';
+import { ConfigService } from '../services/config.service';
 export default class Webdav extends Command {
   static readonly description = 'Enable or disable the Internxt CLI WebDav server';
 
@@ -25,7 +26,7 @@ export default class Webdav extends Command {
     if (status === 'online') {
       ux.log(`\nWebDav server status: ${ux.colorize('green', 'online')}\n`);
       CLIUtils.success(
-        `Internxt WebDav server started successfully on https://webdav.local.internxt.com:${process.env.WEBDAV_SERVER_PORT}`,
+        `Internxt WebDav server started successfully on https://${ConfigService.WEBDAV_LOCAL_URL}:${process.env.WEBDAV_SERVER_PORT}`,
       );
     } else {
       ux.log(`WebDav server status: ${ux.colorize('red', status)}`);
