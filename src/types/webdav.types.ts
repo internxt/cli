@@ -10,7 +10,7 @@ export type WebDavMethodHandlerOptions = {
 };
 
 export type WebDavRequestedResource = {
-  type: 'file' | 'folder' | 'root';
+  type: 'file' | 'folder';
   url: string;
   name: string;
   path: ParsedPath;
