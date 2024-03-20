@@ -35,7 +35,7 @@ export class PUTRequestHandler implements WebDavMethodHandler {
     const resource = WebDavUtils.getRequestedResource(req, this.dependencies.driveRealmManager);
     const driveFolder = await this.getDriveFolderRealmObject(resource);
 
-    if (resource.type === 'file' || !driveFolder) {
+    if (!driveFolder) {
       //TODO maybe we should call/make the 'propfind' logic here if destination folder has not been found on realm database
       throw new NotFoundError('Drive destination folder not found');
     }
