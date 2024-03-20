@@ -1,3 +1,4 @@
+import { Request } from 'express';
 import { ReadStream, WriteStream } from 'fs';
 
 export class StreamUtils {
@@ -62,5 +63,20 @@ export class StreamUtils {
     });
 
     return stream;
+  }
+
+  static requestToReadableStream(request: Request): ReadableStream<Uint8Array> {
+    const readable = new ReadableStream<Uint8Array>({
+      async start(controller) {
+        request.on('data', (chunk) => {
+          controller.enqueue(Buffer.from(chunk));
+        });
+
+        request.on('end', () => {
+          controller.close();
+        });
+      },
+    });
+    return readable;
   }
 }
