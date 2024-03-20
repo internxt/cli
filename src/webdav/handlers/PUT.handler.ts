@@ -12,6 +12,7 @@ import { WebDavMethodHandler, WebDavRequestedResource } from '../../types/webdav
 import { NotFoundError, UnsupportedMediaTypeError } from '../../utils/errors.utils';
 import { StreamUtils } from '../../utils/stream.utils';
 import { WebDavUtils } from '../../utils/webdav.utils';
+import { webdavLogger } from '../../utils/logger.utils';
 
 export class PUTRequestHandler implements WebDavMethodHandler {
   constructor(
@@ -27,7 +28,7 @@ export class PUTRequestHandler implements WebDavMethodHandler {
   ) {}
 
   handle = async (req: Request, res: Response) => {
-    const contentLength = req.header('content-length') ? Number(req.header('content-length')) : undefined;
+    const contentLength = Number(req.headers['content-length']);
     if (!contentLength || isNaN(contentLength) || contentLength <= 0) {
       throw new UnsupportedMediaTypeError('Empty files are not supported');
     }
@@ -35,6 +36,7 @@ export class PUTRequestHandler implements WebDavMethodHandler {
     const resource = WebDavUtils.getRequestedResource(req, this.dependencies.driveRealmManager);
     const driveFolder = await this.getDriveFolderRealmObject(resource);
 
+    webdavLogger.info(`PUT request received for uploading file '${resource.name}' to '${resource.path.dir}'`);
     if (!driveFolder) {
       //TODO maybe we should call/make the 'propfind' logic here if destination folder has not been found on realm database
       throw new NotFoundError('Drive destination folder not found');
@@ -47,9 +49,16 @@ export class PUTRequestHandler implements WebDavMethodHandler {
       mnemonic,
       contentLength,
       StreamUtils.requestToReadableStream(req),
+      {
+        progressCallback: (progress) => {
+          webdavLogger.info(`Upload progress for file ${resource.name}: ${progress}%`);
+        },
+      },
     );
 
     const uploadResult = await uploadPromise;
+
+    webdavLogger.info('✅ File uploaded to network');
 
     const fileInfo = path.parse(decodeURI(req.url));
 
@@ -61,6 +70,8 @@ export class PUTRequestHandler implements WebDavMethodHandler {
       fileId: uploadResult.fileId,
       bucket: user.bucket,
     });
+
+    webdavLogger.info('✅ File uploaded to internxt drive');
 
     res.status(200);
     res.send();
