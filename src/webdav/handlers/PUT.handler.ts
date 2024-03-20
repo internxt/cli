@@ -38,7 +38,6 @@ export class PUTRequestHandler implements WebDavMethodHandler {
 
     webdavLogger.info(`PUT request received for uploading file '${resource.name}' to '${resource.path.dir}'`);
     if (!driveFolder) {
-      //TODO maybe we should call/make the 'propfind' logic here if destination folder has not been found on realm database
       throw new NotFoundError('Drive destination folder not found');
     }
 
