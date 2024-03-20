@@ -59,11 +59,9 @@ export class PUTRequestHandler implements WebDavMethodHandler {
 
     webdavLogger.info('✅ File uploaded to network');
 
-    const fileInfo = path.parse(decodeURI(req.url));
-
     const file = await DriveFileService.instance.createFile({
-      name: fileInfo.name,
-      type: fileInfo.ext.replaceAll('.', ''),
+      name: resource.path.name,
+      type: resource.path.ext.replaceAll('.', ''),
       size: contentLength,
       folderId: driveFolder.id,
       fileId: uploadResult.fileId,
