@@ -11,6 +11,7 @@ import { expect } from 'chai';
 import { NotFoundError, NotImplementedError } from '../../../src/utils/errors.utils';
 import { SdkManager } from '../../../src/services/sdk-manager.service';
 import { NetworkFacade } from '../../../src/services/network/network-facade.service';
+import { UserFixture } from '../../fixtures/auth.fixture';
 
 describe('GET request handler', () => {
   const sandbox = sinon.createSandbox();
@@ -125,7 +126,7 @@ describe('GET request handler', () => {
     sandbox.stub(driveRealmManager, 'findByRelativePath').returns(driveFileRealmObject);
     sandbox
       .stub(authService, 'getAuthDetails')
-      .resolves({ mnemonic: 'MNEMONIC', token: 'TOKEN', newToken: 'NEW_TOKEN' });
+      .resolves({ mnemonic: 'MNEMONIC', token: 'TOKEN', newToken: 'NEW_TOKEN', user: UserFixture });
 
     sandbox.stub(networkFacade, 'downloadToStream').resolves([Promise.resolve(), new AbortController()]);
     const response = createWebDavResponseFixture({
