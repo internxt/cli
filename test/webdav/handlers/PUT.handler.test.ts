@@ -146,6 +146,7 @@ describe('PUT request handler', () => {
       .stub(networkFacade, 'uploadFromStream')
       .resolves([Promise.resolve({ fileId: '09218313209', hash: Buffer.from('test') }), new AbortController()]);
     sandbox.stub(DriveFileService.instance, 'createFile').resolves();
+    sandbox.stub(driveRealmManager, 'createFile').resolves();
 
     const response = createWebDavResponseFixture({
       status: sandbox.stub().returns({ send: sandbox.stub() }),

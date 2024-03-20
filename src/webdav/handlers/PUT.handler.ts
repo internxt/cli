@@ -61,7 +61,7 @@ export class PUTRequestHandler implements WebDavMethodHandler {
 
     const fileInfo = path.parse(decodeURI(req.url));
 
-    await DriveFileService.instance.createFile({
+    const file = await DriveFileService.instance.createFile({
       name: fileInfo.name,
       type: fileInfo.ext.replaceAll('.', ''),
       size: contentLength,
@@ -71,6 +71,8 @@ export class PUTRequestHandler implements WebDavMethodHandler {
     });
 
     webdavLogger.info('✅ File uploaded to internxt drive');
+
+    this.dependencies.driveRealmManager.createFile(file);
 
     res.status(200);
     res.send();

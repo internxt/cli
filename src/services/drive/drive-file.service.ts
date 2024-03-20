@@ -34,7 +34,7 @@ export class DriveFileService {
     });
 
     return {
-      size: driveFile.size,
+      size: Number(driveFile.size),
       uuid: driveFile.uuid,
       encryptedName,
       name: payload.name,
