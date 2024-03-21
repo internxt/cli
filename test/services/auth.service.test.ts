@@ -118,6 +118,7 @@ describe('Auth service', () => {
       token: 'test_auth_token',
       newToken: 'test_new_auth_token',
       mnemonic: 'test_mnemonic',
+      user: UserFixture,
     });
   });
 

@@ -22,7 +22,7 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
 
     switch (resource.type) {
       case 'file': {
-        res.status(200).send(await this.getFileMetaXML(resource));
+        res.status(207).send(await this.getFileMetaXML(resource));
         break;
       }
 
@@ -39,7 +39,7 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
             createdAt: new Date(rootFolder.createdAt),
             updatedAt: new Date(rootFolder.updatedAt),
           });
-          res.status(200).send(await this.getFolderContentXML('/', rootFolder.uuid, depth, true));
+          res.status(207).send(await this.getFolderContentXML('/', rootFolder.uuid, depth, true));
           break;
         }
 
@@ -50,7 +50,7 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
           return;
         }
 
-        res.status(200).send(await this.getFolderContentXML(resource.url, driveParentFolder.uuid, depth));
+        res.status(207).send(await this.getFolderContentXML(resource.url, driveParentFolder.uuid, depth));
         break;
       }
     }

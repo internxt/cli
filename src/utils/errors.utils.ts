@@ -30,6 +30,16 @@ export class BadRequestError extends Error {
   }
 }
 
+export class UnsupportedMediaTypeError extends Error {
+  public statusCode = 415;
+
+  constructor(message: string) {
+    super(message);
+    this.name = 'UnsupportedMediaTypeError';
+    Object.setPrototypeOf(this, UnsupportedMediaTypeError.prototype);
+  }
+}
+
 export class NotImplementedError extends Error {
   public statusCode = 501;
 
