@@ -127,7 +127,7 @@ describe('Crypto service', () => {
     const file = path.join(process.cwd(), 'test/fixtures/test-content.fixture.txt');
     const readStream = createReadStream(file);
 
-    const result = await CryptoService.instance.encryptStream(
+    const result = await CryptoService.instance.encryptStreamToFile(
       StreamUtils.readStreamToReadableStream(readStream),
       key,
       iv,
