@@ -72,7 +72,7 @@ export default class Upload extends Command {
       linewrap: true,
     });
     progressBar.start(1, 0);
-    const [uploadPromise, abortable] = await networkFacade.uploadFromStream(
+    const [uploadPromise, abortable] = await networkFacade.uploadFromStreamUsingBlob(
       user.bucket,
       mnemonic,
       stat.size,

@@ -1,10 +1,9 @@
 import { Network } from '@internxt/sdk';
 import * as NetworkUpload from '@internxt/sdk/dist/network/upload';
 import * as NetworkDownload from '@internxt/sdk/dist/network/download';
-
 import { Environment } from '@internxt/inxt-js';
-import crypto from 'crypto';
-import { DownloadOptions, UploadOptions, UploadProgressCallback } from '../../types/network.types';
+import crypto, { createCipheriv } from 'crypto';
+import { DownloadOptions, UploadOptions, ProgressCallback } from '../../types/network.types';
 import {
   DecryptFileFunction,
   DownloadFileFunction,
@@ -58,7 +57,7 @@ export class NetworkFacade {
     let fileStream: ReadableStream<Uint8Array>;
     const abortable = options?.abortController ?? new AbortController();
 
-    const onProgress: UploadProgressCallback = (progress: number) => {
+    const onProgress: ProgressCallback = (progress: number) => {
       if (!options?.progressCallback) return;
       options.progressCallback(progress);
     };
@@ -118,7 +117,7 @@ export class NetworkFacade {
    * @param options The upload options
    * @returns A promise to execute the upload and an abort controller to cancel the upload
    */
-  async uploadFromStream(
+  async uploadFromStreamUsingBlob(
     bucketId: string,
     mnemonic: string,
     size: number,
@@ -129,7 +128,7 @@ export class NetworkFacade {
     let fileHash: Buffer;
     let encryptedBlob: Blob;
 
-    const onProgress: UploadProgressCallback = (progress: number) => {
+    const onProgress: ProgressCallback = (progress: number) => {
       if (!options?.progressCallback) return;
       options.progressCallback(progress);
     };
@@ -139,7 +138,7 @@ export class NetworkFacade {
     };
 
     const encryptFile: EncryptFileFunction = async (_, key, iv) => {
-      const { blob, hash } = await this.cryptoService.encryptStream(
+      const { blob, hash } = await this.cryptoService.encryptStreamToFile(
         from,
         Buffer.from(key as ArrayBuffer),
         Buffer.from(iv as ArrayBuffer),
@@ -157,6 +156,72 @@ export class NetworkFacade {
 
       return fileHash.toString('hex');
     };
+    const uploadOperation = async () => {
+      const uploadResult = await NetworkUpload.uploadFile(
+        this.network,
+        this.cryptoLib,
+        bucketId,
+        mnemonic,
+        size,
+        encryptFile,
+        uploadFile,
+      );
+
+      onProgress(1);
+      return {
+        fileId: uploadResult,
+        hash: fileHash,
+      };
+    };
+
+    return [uploadOperation(), abortable];
+  }
+
+  /**
+   * Performs an upload encrypting the stream content
+   *
+   * @param bucketId The bucket where the file will be uploaded
+   * @param mnemonic The plain mnemonic of the user
+   * @param size The total size of the stream content
+   * @param type The mime type of the stream content
+   * @param from The source ReadStream to upload from
+   * @param options The upload options
+   * @returns A promise to execute the upload and an abort controller to cancel the upload
+   */
+  async uploadFromStreamUsingStream(
+    bucketId: string,
+    mnemonic: string,
+    size: number,
+    from: ReadableStream<Uint8Array>,
+    options?: UploadOptions,
+  ): Promise<[Promise<{ fileId: string; hash: Buffer }>, AbortController]> {
+    const abortable = options?.abortController ?? new AbortController();
+    let encryptedStream: ReadableStream<Uint8Array>;
+    let fileHash: Buffer;
+
+    const onProgress: ProgressCallback = (progress: number) => {
+      if (!options?.progressCallback) return;
+      options.progressCallback(progress);
+    };
+
+    const onUploadProgress = (progress: number) => {
+      onProgress(progress);
+    };
+
+    const encryptFile: EncryptFileFunction = async (algorithm, key, iv) => {
+      const cipher = createCipheriv('aes-256-ctr', key as Buffer, iv as Buffer);
+      encryptedStream = this.cryptoService.encryptReadable(from, cipher);
+    };
+
+    const uploadFile: UploadFileFunction = async (url) => {
+      const { hash } = await this.uploadService.uploadReadableStream(url, size, encryptedStream, {
+        abortController: abortable,
+        progressCallback: onUploadProgress,
+      });
+      fileHash = hash;
+      return fileHash.toString('hex');
+    };
+
     const uploadOperation = async () => {
       const uploadResult = await NetworkUpload.uploadFile(
         this.network,
