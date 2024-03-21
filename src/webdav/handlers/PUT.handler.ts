@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import path from 'path';
 import { DriveFileService } from '../../services/drive/drive-file.service';
 import { DriveRealmManager } from '../../services/realms/drive-realm-manager.service';
 import { NetworkFacade } from '../../services/network/network-facade.service';
@@ -42,7 +43,7 @@ export class PUTRequestHandler implements WebDavMethodHandler {
 
     const { user, mnemonic } = await this.dependencies.authService.getAuthDetails();
 
-    const [uploadPromise, _] = await this.dependencies.networkFacade.uploadFromStreamUsingStream(
+    const [uploadPromise] = await this.dependencies.networkFacade.uploadFromStream(
       user.bucket,
       mnemonic,
       contentLength,
@@ -53,7 +54,8 @@ export class PUTRequestHandler implements WebDavMethodHandler {
         },
       },
     );
-    const { fileId } = await uploadPromise;
+
+    const uploadResult = await uploadPromise;
 
     webdavLogger.info('✅ File uploaded to network');
 
@@ -62,7 +64,7 @@ export class PUTRequestHandler implements WebDavMethodHandler {
       type: resource.path.ext.replaceAll('.', ''),
       size: contentLength,
       folderId: driveFolder.id,
-      fileId: fileId,
+      fileId: uploadResult.fileId,
       bucket: user.bucket,
     });
 

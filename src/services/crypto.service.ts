@@ -109,7 +109,7 @@ export class CryptoService {
     return Buffer.concat([decipher.update(contentsToDecrypt), decipher.final()]).toString('utf8');
   };
 
-  public encryptReadable(readable: ReadableStream<Uint8Array>, cipher: Cipher): ReadableStream<Uint8Array> {
+  private encryptReadable(readable: ReadableStream<Uint8Array>, cipher: Cipher): ReadableStream<Uint8Array> {
     const reader = readable.getReader();
 
     const encryptedFileReadable = new ReadableStream({
@@ -161,7 +161,7 @@ export class CryptoService {
     return decryptedStream;
   }
 
-  public async encryptStreamToFile(
+  public async encryptStream(
     input: ReadableStream<Uint8Array>,
     key: Buffer,
     iv: Buffer,
@@ -189,20 +189,6 @@ export class CryptoService {
       blob: new Blob(blobParts, { type: 'application/octet-stream' }),
       hash: createHash('ripemd160').update(Buffer.from(hasher.digest())).digest(),
     };
-  }
-
-  public async readableToHash(readable: ReadableStream<Uint8Array>): Promise<Buffer> {
-    const reader = readable.getReader();
-    const hasher = crypto.createHash('sha256');
-    let done = false;
-    while (!done) {
-      const status = await reader.read();
-      if (!status.done) {
-        hasher.update(status.value);
-      }
-      done = status.done;
-    }
-    return createHash('ripemd160').update(hasher.digest()).digest();
   }
 
   /**
