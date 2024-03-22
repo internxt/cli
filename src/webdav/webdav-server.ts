@@ -50,7 +50,7 @@ export class WebDavServer {
     this.app.use(ErrorHandlingMiddleware);
     this.app.use(
       RequestLoggerMiddleware({
-        enable: false,
+        enable: true,
       }),
     );
     this.app.use(AuthMiddleware(ConfigService.instance));

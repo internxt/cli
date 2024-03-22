@@ -1,4 +1,3 @@
-import { randomUUID } from 'crypto';
 import { aes } from '@internxt/lib';
 import { StorageTypes } from '@internxt/sdk/dist/drive';
 import { EncryptionVersion } from '@internxt/sdk/dist/drive/storage/types';
