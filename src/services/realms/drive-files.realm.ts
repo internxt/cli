@@ -47,7 +47,7 @@ export class DriveFilesRealm {
   }
 
   createOrReplace(driveFile: DriveFileItem, relativePath: string) {
-    const existingObject = this.findByRelativePath(relativePath);
+    const existingObject = this.realm.objectForPrimaryKey<DriveFileRealmSchema>('DriveFile', driveFile.id);
 
     this.realm.write(() => {
       if (existingObject) {
