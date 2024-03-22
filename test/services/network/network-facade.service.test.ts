@@ -43,7 +43,7 @@ describe('Network Facade Service', () => {
       abortController: new AbortController(),
     };
 
-    const result = await sut.uploadFromStream(
+    const result = await sut.uploadFromStreamUsingBlob(
       'f1858bc9675f9e4f7ab29429',
       'animal fog wink trade december thumb sight cousin crunch plunge captain enforce letter creek text',
       100,
@@ -70,7 +70,7 @@ describe('Network Facade Service', () => {
     };
 
     networkFacadeSandbox.stub(NetworkUpload, 'uploadFile').resolves('uploaded_file_id');
-    const [executeUpload] = await sut.uploadFromStream(
+    const [executeUpload] = await sut.uploadFromStreamUsingBlob(
       'f1858bc9675f9e4f7ab29429',
       'animal fog wink trade december thumb sight cousin crunch plunge captain enforce letter creek text',
       100,

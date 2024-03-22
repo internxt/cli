@@ -1,6 +1,5 @@
-import { UploadOptions } from '../../types/network.types';
 import superagent from 'superagent';
-
+import { UploadOptions } from '../../types/network.types';
 export class UploadService {
   public static readonly instance: UploadService = new UploadService();
 

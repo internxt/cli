@@ -132,6 +132,28 @@ export class CryptoService {
     return encryptedFileReadable;
   }
 
+  /**
+   * Given a stream and a cipher, encrypt its content on pull
+   * @param readable Readable stream
+   * @param cipher Cipher used to encrypt the content
+   * @returns A readable whose output is the encrypted content of the source stream
+   */
+  public encryptReadableOnPull(readable: ReadableStream<Uint8Array>, cipher: Cipher): ReadableStream<Uint8Array> {
+    const reader = readable.getReader();
+
+    return new ReadableStream({
+      async pull(controller) {
+        const status = await reader.read();
+
+        if (!status.done) {
+          controller.enqueue(cipher.update(status.value));
+        } else {
+          controller.close();
+        }
+      },
+    });
+  }
+
   public async decryptStream(inputSlices: ReadableStream<Uint8Array>[], key: Buffer, iv: Buffer) {
     const decipher = createDecipheriv('aes-256-ctr', key, iv);
     const encryptedStream = StreamUtils.joinReadableBinaryStreams(inputSlices);
@@ -161,7 +183,7 @@ export class CryptoService {
     return decryptedStream;
   }
 
-  public async encryptStream(
+  public async encryptStreamToFile(
     input: ReadableStream<Uint8Array>,
     key: Buffer,
     iv: Buffer,
@@ -189,6 +211,43 @@ export class CryptoService {
       blob: new Blob(blobParts, { type: 'application/octet-stream' }),
       hash: createHash('ripemd160').update(Buffer.from(hasher.digest())).digest(),
     };
+  }
+
+  public async processEveryFileBlobReturnHash(
+    chunkedFileReadable: ReadableStream<Uint8Array>,
+    onEveryBlob: (blob: Blob) => Promise<void>,
+  ): Promise<string> {
+    const reader = chunkedFileReadable.getReader();
+    const hasher = crypto.createHash('sha256');
+
+    let done = false;
+
+    while (!done) {
+      const status = await reader.read();
+      if (!status.done) {
+        const value = status.value;
+        hasher.update(value);
+        const blob = new Blob([value], { type: 'application/octet-stream' });
+        await onEveryBlob(blob);
+      }
+      done = status.done;
+    }
+
+    return createHash('ripemd160').update(hasher.digest()).digest('hex');
+  }
+
+  public encryptStreamInParts(
+    stream: ReadableStream<Uint8Array>,
+    size: number,
+    cipher: Cipher,
+    parts: number,
+  ): ReadableStream<Uint8Array> {
+    // We include a marginChunkSize because if we split the chunk directly, there will always be one more chunk left, this will cause a mismatch with the urls provided
+    const marginChunkSize = 1024;
+    const chunkSize = size / parts + marginChunkSize;
+    const readableFileChunks = StreamUtils.streamReadableIntoChunks(stream, chunkSize);
+
+    return this.encryptReadableOnPull(readableFileChunks, cipher);
   }
 
   /**
