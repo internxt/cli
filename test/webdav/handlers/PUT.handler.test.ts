@@ -143,7 +143,7 @@ describe('PUT request handler', () => {
       .resolves({ mnemonic: 'MNEMONIC', token: 'TOKEN', newToken: 'NEW_TOKEN', user: UserFixture });
 
     sandbox
-      .stub(networkFacade, 'uploadFromStreamUsingStream')
+      .stub(networkFacade, 'uploadFromStreamUsingBlob')
       .resolves([Promise.resolve({ fileId: '09218313209', hash: Buffer.from('test') }), new AbortController()]);
     sandbox.stub(DriveFileService.instance, 'createFile').resolves();
     sandbox.stub(driveRealmManager, 'createFile').resolves();

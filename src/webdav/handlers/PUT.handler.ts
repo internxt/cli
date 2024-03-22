@@ -42,18 +42,38 @@ export class PUTRequestHandler implements WebDavMethodHandler {
 
     const { user, mnemonic } = await this.dependencies.authService.getAuthDetails();
 
-    const [uploadPromise, _] = await this.dependencies.networkFacade.uploadFromStreamUsingStream(
-      user.bucket,
-      mnemonic,
-      contentLength,
-      StreamUtils.requestToReadableStream(req),
-      {
-        progressCallback: (progress) => {
-          webdavLogger.info(`Upload progress for file ${resource.name}: ${progress}%`);
+    const minimumMultipartThreshold = 100 * 1024 * 1024;
+    const useMultipart = contentLength > minimumMultipartThreshold;
+    const partSize = 30 * 1024 * 1024;
+    let fileId: string;
+
+    if (useMultipart) {
+      fileId = await this.dependencies.networkFacade.uploadMultipart(
+        user.bucket,
+        mnemonic,
+        contentLength,
+        StreamUtils.requestToReadableStream(req),
+        {
+          parts: Math.ceil(contentLength / partSize),
+          uploadingCallback: (progress) => {
+            webdavLogger.info(`Upload progress for file ${resource.name}: ${progress * 100}%`);
+          },
         },
-      },
-    );
-    const { fileId } = await uploadPromise;
+      );
+    } else {
+      const [uploadPromise] = await this.dependencies.networkFacade.uploadFromStreamUsingBlob(
+        user.bucket,
+        mnemonic,
+        contentLength,
+        StreamUtils.requestToReadableStream(req),
+        {
+          progressCallback: (progress) => {
+            webdavLogger.info(`Upload progress for file ${resource.name}: ${progress * 100}%`);
+          },
+        },
+      );
+      fileId = (await uploadPromise).fileId;
+    }
 
     webdavLogger.info('✅ File uploaded to network');
 
