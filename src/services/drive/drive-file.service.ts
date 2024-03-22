@@ -1,6 +1,8 @@
+import { randomUUID } from 'crypto';
+import { aes } from '@internxt/lib';
+import { StorageTypes } from '@internxt/sdk/dist/drive';
 import { EncryptionVersion } from '@internxt/sdk/dist/drive/storage/types';
 import { SdkManager } from '../sdk-manager.service';
-import { aes } from '@internxt/lib';
 import { ConfigService } from '../config.service';
 import { CryptoUtils } from '../../utils/crypto.utils';
 import { DriveFileItem } from '../../types/drive.types';
@@ -8,14 +10,14 @@ import { DriveFileItem } from '../../types/drive.types';
 export class DriveFileService {
   static readonly instance = new DriveFileService();
 
-  async createFile(payload: {
+  public createFile = async (payload: {
     name: string;
     type: string;
     size: number;
     folderId: number;
     fileId: string;
     bucket: string;
-  }): Promise<DriveFileItem> {
+  }): Promise<DriveFileItem> => {
     const storageClient = SdkManager.instance.getStorage();
     const encryptedName = aes.encrypt(
       payload.name,
@@ -47,9 +49,9 @@ export class DriveFileService {
       status: driveFile.status,
       folderId: driveFile.folderId,
     };
-  }
+  };
 
-  async getFileMetadata(uuid: string): Promise<DriveFileItem> {
+  public getFileMetadata = async (uuid: string): Promise<DriveFileItem> => {
     const storageClient = SdkManager.instance.getStorage(true);
 
     const [getFileMetadata] = storageClient.getFile(uuid);
@@ -69,5 +71,10 @@ export class DriveFileService {
       id: fileMetadata.id,
       type: fileMetadata.type,
     };
-  }
+  };
+
+  public moveFile = (payload: StorageTypes.MoveFileUuidPayload): Promise<StorageTypes.FileMeta> => {
+    const storageClient = SdkManager.instance.getStorage(true);
+    return storageClient.moveFileByUuid(payload);
+  };
 }

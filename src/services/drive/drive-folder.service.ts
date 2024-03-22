@@ -1,6 +1,6 @@
 import { FetchPaginatedFile, FetchPaginatedFolder, FolderMeta } from '@internxt/sdk/dist/drive/storage/types';
 import { SdkManager } from '../sdk-manager.service';
-import { Storage } from '@internxt/sdk/dist/drive';
+import { Storage, StorageTypes } from '@internxt/sdk/dist/drive';
 
 export class DriveFolderService {
   static readonly instance = new DriveFolderService();
@@ -50,5 +50,10 @@ export class DriveFolderService {
     } else {
       return files;
     }
+  };
+
+  public moveFolder = (payload: StorageTypes.MoveFolderUuidPayload): Promise<StorageTypes.FolderMeta> => {
+    const storageClient = SdkManager.instance.getStorage(true);
+    return storageClient.moveFolderByUuid(payload);
   };
 }
