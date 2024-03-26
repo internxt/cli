@@ -7,6 +7,10 @@ export interface LoginCredentials {
   mnemonic: string;
 }
 
+export interface ExtendedLoginCredentials extends LoginCredentials {
+  root_folder_uuid: string;
+}
+
 export class NotValidEmailError extends Error {
   constructor() {
     super('Email is not valid');

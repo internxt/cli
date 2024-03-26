@@ -1,10 +1,10 @@
 import { expect } from 'chai';
-import crypto from 'crypto';
+import crypto, { randomUUID } from 'crypto';
 import Sinon, { SinonSandbox } from 'sinon';
 import fs from 'fs/promises';
 import { ConfigService } from '../../src/services/config.service';
 import { CryptoService } from '../../src/services/crypto.service';
-import { LoginCredentials } from '../../src/types/command.types';
+import { ExtendedLoginCredentials, LoginCredentials } from '../../src/types/command.types';
 import { UserFixture } from '../fixtures/auth.fixture';
 
 import { config } from 'dotenv';
@@ -47,8 +47,9 @@ describe('Config service', () => {
   });
 
   it('When user credentials are saved, then they are written encrypted to a file', async () => {
-    const userCredentials: LoginCredentials = {
+    const userCredentials: ExtendedLoginCredentials = {
       user: UserFixture,
+      root_folder_uuid: randomUUID(),
       token: crypto.randomBytes(16).toString('hex'),
       newToken: crypto.randomBytes(16).toString('hex'),
       mnemonic: crypto.randomBytes(16).toString('hex'),

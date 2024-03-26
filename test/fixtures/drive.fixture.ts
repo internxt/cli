@@ -8,11 +8,44 @@ import {
 } from '@internxt/sdk/dist/drive/storage/types';
 import { getDefaultWordlist, wordlists } from 'bip39';
 import crypto, { randomInt, randomUUID } from 'crypto';
+import { DriveFileItem, DriveFolderItem } from '../../src/types/drive.types';
 
 const wordlist = wordlists[getDefaultWordlist()];
 const fileTypes = ['png', 'jpg', 'docx', 'pdf', 'mp4', 'mp3'];
 
-export const newFolder = (attributes?: Partial<FolderMeta>): FolderMeta => {
+export const newFolderItem = (attributes?: Partial<DriveFolderItem>): DriveFolderItem => {
+  const folder: DriveFolderItem = {
+    id: randomInt(1, 100000),
+    uuid: randomUUID(),
+    parentId: randomInt(1, 100000),
+    bucket: crypto.randomBytes(16).toString('hex'),
+    name: wordlist[randomInt(wordlist.length)],
+    encryptedName: crypto.randomBytes(16).toString('hex'),
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+  return { ...folder, ...attributes };
+};
+
+export const newFileItem = (attributes?: Partial<DriveFileItem>): DriveFileItem => {
+  const file: DriveFileItem = {
+    id: randomInt(1, 100000),
+    uuid: crypto.randomBytes(16).toString('hex'),
+    fileId: crypto.randomBytes(16).toString('hex'),
+    folderId: randomInt(1, 100000),
+    bucket: crypto.randomBytes(16).toString('hex'),
+    name: wordlist[randomInt(wordlist.length)],
+    encryptedName: crypto.randomBytes(16).toString('hex'),
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    size: randomInt(1, 10000),
+    type: fileTypes[randomInt(fileTypes.length)],
+    status: FileStatus.EXISTS,
+  };
+  return { ...file, ...attributes };
+};
+
+export const newFolderMeta = (attributes?: Partial<FolderMeta>): FolderMeta => {
   const folder: FolderMeta = {
     bucket: crypto.randomBytes(16).toString('hex'),
     createdAt: new Date().toString(),
@@ -36,7 +69,7 @@ export const newFolder = (attributes?: Partial<FolderMeta>): FolderMeta => {
   return { ...folder, ...attributes };
 };
 
-export const newFile = (attributes?: Partial<FileMeta>): FileMeta => {
+export const newFileMeta = (attributes?: Partial<FileMeta>): FileMeta => {
   const file: FileMeta = {
     bucket: crypto.randomBytes(16).toString('hex'),
     createdAt: new Date().toString(),

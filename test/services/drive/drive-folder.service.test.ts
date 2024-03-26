@@ -4,7 +4,8 @@ import { randomUUID } from 'crypto';
 import { Storage } from '@internxt/sdk/dist/drive';
 import { DriveFolderService } from '../../../src/services/drive/drive-folder.service';
 import { SdkManager } from '../../../src/services/sdk-manager.service';
-import { generateSubcontent, newFolder } from '../../fixtures/drive.fixture';
+import { DriveUtils } from '../../../src/utils/drive.utils';
+import { generateSubcontent, newFolderMeta } from '../../fixtures/drive.fixture';
 
 describe('Drive folder Service', () => {
   let sut: DriveFolderService;
@@ -19,26 +20,28 @@ describe('Drive folder Service', () => {
   });
 
   it('When folder metadata is requested by UUID, it is aquired correctly', async () => {
-    const expectedFolderMeta = newFolder();
+    const expectedFolderMeta = newFolderMeta();
+    const expectedFolderItem = DriveUtils.driveFolderMetaToItem(expectedFolderMeta);
 
     const spy = sandbox.stub(Storage.prototype, 'getFolderMeta').resolves(expectedFolderMeta);
     sandbox.stub(SdkManager.instance, 'getStorage').returns(Storage.prototype);
 
     const resultMetadata = await sut.getFolderMetaByUuid(expectedFolderMeta.uuid);
 
-    expect(expectedFolderMeta).to.deep.equal(resultMetadata);
+    expect(resultMetadata).to.deep.equal(expectedFolderItem);
     expect(spy).to.be.calledWith(expectedFolderMeta.uuid);
   });
 
   it('When folder metadata is requested by ID, it is aquired correctly', async () => {
-    const expectedFolderMeta = newFolder();
+    const expectedFolderMeta = newFolderMeta();
+    const expectedFolderItem = DriveUtils.driveFolderMetaToItem(expectedFolderMeta);
 
     const spy = sandbox.stub(Storage.prototype, 'getFolderMetaById').resolves(expectedFolderMeta);
     sandbox.stub(SdkManager.instance, 'getStorage').returns(Storage.prototype);
 
     const resultMetadata = await sut.getFolderMetaById(expectedFolderMeta.id);
 
-    expect(expectedFolderMeta).to.deep.equal(resultMetadata);
+    expect(resultMetadata).to.deep.equal(expectedFolderItem);
     expect(spy).to.be.calledWith(expectedFolderMeta.id);
   });
 

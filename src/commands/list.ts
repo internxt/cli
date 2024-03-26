@@ -36,9 +36,7 @@ export default class List extends Command {
 
     if (folderUuid.trim().length === 0) {
       // folderId is empty from flags&prompt, which means we should use RootFolderUuid
-      const rootFolderId = userCredentials.user.root_folder_id;
-      const rootFolderMeta = await DriveFolderService.instance.getFolderMetaById(rootFolderId);
-      folderUuid = rootFolderMeta.uuid;
+      folderUuid = userCredentials.root_folder_uuid;
     }
 
     const { folders, files } = await DriveFolderService.instance.getFolderContent(folderUuid);
