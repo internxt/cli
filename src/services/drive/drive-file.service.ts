@@ -5,6 +5,7 @@ import { SdkManager } from '../sdk-manager.service';
 import { ConfigService } from '../config.service';
 import { CryptoUtils } from '../../utils/crypto.utils';
 import { DriveFileItem } from '../../types/drive.types';
+import { DriveUtils } from '../../utils/drive.utils';
 
 export class DriveFileService {
   static readonly instance = new DriveFileService();
@@ -56,20 +57,7 @@ export class DriveFileService {
     const [getFileMetadata] = storageClient.getFile(uuid);
 
     const fileMetadata = await getFileMetadata;
-    return {
-      uuid,
-      status: fileMetadata.status,
-      folderId: fileMetadata.folder_id,
-      size: fileMetadata.size,
-      encryptedName: fileMetadata.name,
-      name: fileMetadata.plainName ?? fileMetadata.name,
-      bucket: fileMetadata.bucket,
-      createdAt: new Date(fileMetadata.createdAt),
-      updatedAt: new Date(fileMetadata.updatedAt),
-      fileId: fileMetadata.fileId,
-      id: fileMetadata.id,
-      type: fileMetadata.type,
-    };
+    return DriveUtils.driveFileMetaToItem(fileMetadata);
   };
 
   public moveFile = (payload: StorageTypes.MoveFileUuidPayload): Promise<StorageTypes.FileMeta> => {
