@@ -43,6 +43,22 @@ export class NotValidFolderUuidError extends Error {
   }
 }
 
+export class NotValidItemUuidError extends Error {
+  constructor() {
+    super('Item UUID is not valid (it must be a valid v4 UUID)');
+
+    Object.setPrototypeOf(this, NotValidItemUuidError.prototype);
+  }
+}
+
+export class ItemNotFoundError extends Error {
+  constructor() {
+    super('Item not found');
+
+    Object.setPrototypeOf(this, ItemNotFoundError.prototype);
+  }
+}
+
 export class NoRootFolderIdFoundError extends Error {
   constructor() {
     super('No root folder id found on your account');
