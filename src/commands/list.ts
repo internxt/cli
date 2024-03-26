@@ -5,6 +5,7 @@ import { CLIUtils } from '../utils/cli.utils';
 import { MissingCredentialsError, NotValidFolderUuidError, PaginatedItem } from '../types/command.types';
 import { ValidationService } from '../services/validation.service';
 import { FormatUtils } from '../utils/format.utils';
+import { ErrorUtils } from '../utils/errors.utils';
 
 export default class List extends Command {
   static readonly args = {};
@@ -18,7 +19,7 @@ export default class List extends Command {
       char: 'f',
       description: 'The folder id to list. Leave empty for the root folder.',
       required: false,
-      parse: async (input: string) => (input.trim().length === 0 ? ' ' : input),
+      parse: CLIUtils.parseEmpty,
     }),
     ...ux.table.flags(),
   };
@@ -110,6 +111,7 @@ export default class List extends Command {
   }
 
   async catch(error: Error) {
+    ErrorUtils.report(error, { command: this.id });
     CLIUtils.error(error.message);
     this.exit(1);
   }
