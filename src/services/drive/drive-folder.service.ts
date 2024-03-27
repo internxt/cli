@@ -1,18 +1,22 @@
-import { FetchPaginatedFile, FetchPaginatedFolder, FolderMeta } from '@internxt/sdk/dist/drive/storage/types';
+import { FetchPaginatedFile, FetchPaginatedFolder } from '@internxt/sdk/dist/drive/storage/types';
 import { SdkManager } from '../sdk-manager.service';
-import { Storage } from '@internxt/sdk/dist/drive';
+import { Storage, StorageTypes } from '@internxt/sdk/dist/drive';
+import { DriveFolderItem } from '../../types/drive.types';
+import { DriveUtils } from '../../utils/drive.utils';
 
 export class DriveFolderService {
   static readonly instance = new DriveFolderService();
 
-  public getFolderMetaByUuid = async (uuid: string): Promise<FolderMeta> => {
+  public getFolderMetaByUuid = async (uuid: string): Promise<DriveFolderItem> => {
     const storageClient = SdkManager.instance.getStorage(true);
-    return await storageClient.getFolderMeta(uuid);
+    const folderMeta = await storageClient.getFolderMeta(uuid);
+    return DriveUtils.driveFolderMetaToItem(folderMeta);
   };
 
-  public getFolderMetaById = async (id: number): Promise<FolderMeta> => {
+  public getFolderMetaById = async (id: number): Promise<DriveFolderItem> => {
     const storageClient = SdkManager.instance.getStorage(true);
-    return await storageClient.getFolderMetaById(id);
+    const folderMeta = await storageClient.getFolderMetaById(id);
+    return DriveUtils.driveFolderMetaToItem(folderMeta);
   };
 
   public getFolderContent = async (folderUuid: string) => {
@@ -50,5 +54,10 @@ export class DriveFolderService {
     } else {
       return files;
     }
+  };
+
+  public moveFolder = (payload: StorageTypes.MoveFolderUuidPayload): Promise<StorageTypes.FolderMeta> => {
+    const storageClient = SdkManager.instance.getStorage(true);
+    return storageClient.moveFolderByUuid(payload);
   };
 }

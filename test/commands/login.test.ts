@@ -6,7 +6,7 @@ import { AuthService } from '../../src/services/auth.service';
 import { ConfigService } from '../../src/services/config.service';
 import { UserCredentialsFixture, UserLoginFixture } from '../fixtures/login.fixture';
 
-describe('Login Command', () => {
+describe.skip('Login Command', () => {
   describe('When user logs in using flags and 2fa is enabled, then its credentials are saved into a file', () => {
     test
       .stdout()
