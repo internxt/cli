@@ -2,7 +2,7 @@ import { SdkManager } from './sdk-manager.service';
 
 export class UsageService {
   public static readonly instance: UsageService = new UsageService();
-  public static readonly INFINITE_LIMIT = 108851651149824;
+  public static readonly INFINITE_LIMIT = 99 * Math.pow(1024, 4);
 
   public fetchTotalUsage = async (): Promise<number> => {
     const storageClient = SdkManager.instance.getStorage();
