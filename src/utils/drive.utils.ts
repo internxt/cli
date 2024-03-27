@@ -4,7 +4,7 @@ import { DriveFileItem, DriveFolderItem } from '../types/drive.types';
 export class DriveUtils {
   static driveFileMetaToItem(fileMeta: FileMeta): DriveFileItem {
     return {
-      uuid: fileMeta.uuid || '',
+      uuid: fileMeta.uuid ?? '',
       status: fileMeta.status,
       folderId: fileMeta.folder_id,
       size: fileMeta.size,

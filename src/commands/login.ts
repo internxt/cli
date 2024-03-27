@@ -61,10 +61,9 @@ export default class Login extends Command {
       newToken: loginCredentials.newToken,
     });
 
-    const root_folder_uuid = (await DriveFolderService.instance.getFolderMetaById(loginCredentials.user.root_folder_id))
-      .uuid;
+    const rootMeta = await DriveFolderService.instance.getFolderMetaById(loginCredentials.user.root_folder_id);
 
-    await ConfigService.instance.saveUser(Object.assign(loginCredentials, { root_folder_uuid }));
+    await ConfigService.instance.saveUser(Object.assign(loginCredentials, { root_folder_uuid: rootMeta.uuid }));
 
     CLIUtils.success(`Succesfully logged in to: ${loginCredentials.user.email} `);
   }
