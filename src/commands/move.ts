@@ -21,7 +21,7 @@ export default class Move extends Command {
 
   static readonly flags = {
     ...CLIUtils.CommonFlags,
-    item: Flags.string({
+    id: Flags.string({
       char: 'i',
       description: 'The item id to be moved (it can be a file id or a folder id).',
       required: false,
@@ -41,7 +41,7 @@ export default class Move extends Command {
     const userCredentials = await ConfigService.instance.readUser();
     if (!userCredentials) throw new MissingCredentialsError();
 
-    const itemUuid = await this.getItemUuid(flags['item'], nonInteractive);
+    const itemUuid = await this.getItemUuid(flags['id'], nonInteractive);
     const destinationFolderUuid = await this.getDestinationFolderUuid(flags['destination'], nonInteractive);
 
     let item: DriveFileItem | DriveFolderItem | undefined;
@@ -83,7 +83,7 @@ export default class Move extends Command {
     let itemUuid = CLIUtils.getValueFromFlag(
       {
         value: itemUuidFlag,
-        name: Move.flags['item'].name,
+        name: Move.flags['id'].name,
         error: new NotValidItemUuidError(),
         canBeEmpty: true,
       },
