@@ -4,7 +4,7 @@ import Sinon, { SinonSandbox } from 'sinon';
 import fs from 'fs/promises';
 import { ConfigService } from '../../src/services/config.service';
 import { CryptoService } from '../../src/services/crypto.service';
-import { ExtendedLoginCredentials, LoginCredentials } from '../../src/types/command.types';
+import { CLICredentials, LoginCredentials } from '../../src/types/command.types';
 import { UserFixture } from '../fixtures/auth.fixture';
 
 import { config } from 'dotenv';
@@ -47,7 +47,7 @@ describe('Config service', () => {
   });
 
   it('When user credentials are saved, then they are written encrypted to a file', async () => {
-    const userCredentials: ExtendedLoginCredentials = {
+    const userCredentials: CLICredentials = {
       user: UserFixture,
       root_folder_uuid: randomUUID(),
       token: crypto.randomBytes(16).toString('hex'),

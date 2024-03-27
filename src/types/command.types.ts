@@ -7,7 +7,7 @@ export interface LoginCredentials {
   mnemonic: string;
 }
 
-export interface ExtendedLoginCredentials extends LoginCredentials {
+export interface CLICredentials extends LoginCredentials {
   root_folder_uuid: string;
 }
 
