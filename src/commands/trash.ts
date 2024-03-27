@@ -93,7 +93,7 @@ export default class Trash extends Command {
   public getItemUuidInteractively = (): Promise<string> => {
     return CLIUtils.promptWithAttempts(
       {
-        message: 'What is the item id you want to move?',
+        message: 'What is the item id you want to trash?',
         options: { required: true },
         error: new NotValidItemUuidError(),
       },
