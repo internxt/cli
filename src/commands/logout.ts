@@ -2,7 +2,6 @@ import { Command } from '@oclif/core';
 import { ConfigService } from '../services/config.service';
 import { CLIUtils } from '../utils/cli.utils';
 import { ErrorUtils } from '../utils/errors.utils';
-import { DriveRealmManager } from '../services/realms/drive-realm-manager.service';
 
 export default class Logout extends Command {
   static readonly args = {};
@@ -14,8 +13,6 @@ export default class Logout extends Command {
 
   public async run(): Promise<void> {
     const user = await ConfigService.instance.readUser();
-    const realm = await DriveRealmManager.getRealm();
-    realm.write(() => realm.deleteAll());
     if (user) {
       await ConfigService.instance.clearUser();
       CLIUtils.success('User logged out correctly');
