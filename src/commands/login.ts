@@ -67,7 +67,7 @@ export default class Login extends Command {
     await ConfigService.instance.saveUser(Object.assign(loginCredentials, { root_folder_uuid: rootMeta.uuid }));
 
     const realm = await DriveRealmManager.getRealm();
-    realm.write(realm.deleteAll);
+    realm.write(() => realm.deleteAll());
 
     CLIUtils.success(`Succesfully logged in to: ${loginCredentials.user.email} `);
   }
