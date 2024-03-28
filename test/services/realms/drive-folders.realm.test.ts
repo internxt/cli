@@ -53,12 +53,11 @@ describe('Drive folders realm', () => {
       encryptedName: 'encrypted-name',
     };
 
-    // @ts-expect-error - Partial mock
-    realmStub.objects.withArgs('DriveFolder').returns({ filtered: sinon.stub().returns([]) });
+    realmStub.objectForPrimaryKey.withArgs('DriveFolder', driveFolder.id).returns(null);
 
     driveFolderRealm.createOrReplace(driveFolder, relativePath);
 
-    expect(realmStub.objects.calledWith('DriveFolder')).to.be.true;
+    expect(realmStub.objectForPrimaryKey.calledWith('DriveFolder', driveFolder.id)).to.be.true;
 
     realmStub.close();
   });

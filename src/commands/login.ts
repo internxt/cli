@@ -1,8 +1,9 @@
 import { Command, Flags } from '@oclif/core';
-import { AuthService } from '../services/auth.service';
-import { ValidationService } from '../services/validation.service';
 import { EmptyPasswordError, NotValidEmailError, NotValidTwoFactorCodeError } from '../types/command.types';
+import { AuthService } from '../services/auth.service';
 import { ConfigService } from '../services/config.service';
+import { ValidationService } from '../services/validation.service';
+import { DriveRealmManager } from '../services/realms/drive-realm-manager.service';
 import { CLIUtils } from '../utils/cli.utils';
 import { ErrorUtils } from '../utils/errors.utils';
 import { DriveFolderService } from '../services/drive/drive-folder.service';
@@ -64,6 +65,9 @@ export default class Login extends Command {
     const rootMeta = await DriveFolderService.instance.getFolderMetaById(loginCredentials.user.root_folder_id);
 
     await ConfigService.instance.saveUser(Object.assign(loginCredentials, { root_folder_uuid: rootMeta.uuid }));
+
+    const realm = await DriveRealmManager.getRealm();
+    realm.write(realm.deleteAll);
 
     CLIUtils.success(`Succesfully logged in to: ${loginCredentials.user.email} `);
   }

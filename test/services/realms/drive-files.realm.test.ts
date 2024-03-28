@@ -58,12 +58,10 @@ describe('Drive files realm', () => {
       encryptedName: 'encrypted-name',
     };
 
-    // @ts-expect-error - Partial mock
-    realmStub.objects.withArgs('DriveFile').returns({ filtered: sinon.stub().returns([]) });
-
+    realmStub.objectForPrimaryKey.withArgs('DriveFile', driveFile.id).returns(null);
     driveFileRealm.createOrReplace(driveFile, relativePath);
 
-    expect(realmStub.objects.calledWith('DriveFile')).to.be.true;
+    expect(realmStub.objectForPrimaryKey.calledWith('DriveFile', driveFile.id)).to.be.true;
 
     realmStub.close();
   });

@@ -2,12 +2,21 @@ import { DriveFileItem, DriveFolderItem } from '../../types/drive.types';
 import { DriveFileRealmSchema, DriveFilesRealm } from './drive-files.realm';
 import { DriveFolderRealmSchema, DriveFoldersRealm } from './drive-folders.realm';
 import { WebDavUtils } from '../../utils/webdav.utils';
-
+import { ConfigService } from '../config.service';
+import Realm from 'realm';
 export class DriveRealmManager {
   constructor(
     private driveFilesRealm: DriveFilesRealm,
     private driveFoldersRealm: DriveFoldersRealm,
   ) {}
+
+  static getRealm() {
+    return Realm.open({
+      path: ConfigService.DRIVE_REALM_FILE,
+      schema: [DriveFileRealmSchema, DriveFolderRealmSchema],
+      deleteRealmIfMigrationNeeded: true,
+    });
+  }
 
   findByRelativePath(relativePath: string): DriveFolderRealmSchema | DriveFileRealmSchema | null {
     const driveFile = this.driveFilesRealm.findByRelativePath(relativePath);
