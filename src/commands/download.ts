@@ -13,6 +13,7 @@ import { DriveFileItem } from '../types/drive.types';
 import fs from 'fs/promises';
 import path from 'path';
 import { StreamUtils } from '../utils/stream.utils';
+import { ErrorUtils } from '../utils/errors.utils';
 
 export default class Download extends Command {
   static description =
@@ -33,6 +34,7 @@ export default class Download extends Command {
   };
 
   async catch(error: Error) {
+    ErrorUtils.report(error, { command: this.id });
     CLIUtils.error(error.message);
     this.exit(1);
   }

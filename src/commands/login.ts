@@ -5,6 +5,8 @@ import { EmptyPasswordError, NotValidEmailError, NotValidTwoFactorCodeError } fr
 import { ConfigService } from '../services/config.service';
 import { CLIUtils } from '../utils/cli.utils';
 import { ErrorUtils } from '../utils/errors.utils';
+import { DriveFolderService } from '../services/drive/drive-folder.service';
+import { SdkManager } from '../services/sdk-manager.service';
 
 export default class Login extends Command {
   static readonly args = {};
@@ -53,8 +55,17 @@ export default class Login extends Command {
     }
 
     const loginCredentials = await AuthService.instance.doLogin(email, password, twoFactorCode);
-    await ConfigService.instance.saveUser(loginCredentials);
-    CLIUtils.success(`Succesfully logged in to: ${loginCredentials.user.email}`);
+
+    SdkManager.init({
+      token: loginCredentials.token,
+      newToken: loginCredentials.newToken,
+    });
+
+    const rootMeta = await DriveFolderService.instance.getFolderMetaById(loginCredentials.user.root_folder_id);
+
+    await ConfigService.instance.saveUser(Object.assign(loginCredentials, { root_folder_uuid: rootMeta.uuid }));
+
+    CLIUtils.success(`Succesfully logged in to: ${loginCredentials.user.email} `);
   }
 
   async catch(error: Error) {

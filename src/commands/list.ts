@@ -5,6 +5,7 @@ import { CLIUtils } from '../utils/cli.utils';
 import { MissingCredentialsError, NotValidFolderUuidError, PaginatedItem } from '../types/command.types';
 import { ValidationService } from '../services/validation.service';
 import { FormatUtils } from '../utils/format.utils';
+import { ErrorUtils } from '../utils/errors.utils';
 
 export default class List extends Command {
   static readonly args = {};
@@ -18,7 +19,7 @@ export default class List extends Command {
       char: 'f',
       description: 'The folder id to list. Leave empty for the root folder.',
       required: false,
-      parse: async (input: string) => (input.trim().length === 0 ? ' ' : input),
+      parse: CLIUtils.parseEmpty,
     }),
     ...ux.table.flags(),
   };
@@ -35,9 +36,7 @@ export default class List extends Command {
 
     if (folderUuid.trim().length === 0) {
       // folderId is empty from flags&prompt, which means we should use RootFolderUuid
-      const rootFolderId = userCredentials.user.root_folder_id;
-      const rootFolderMeta = await DriveFolderService.instance.getFolderMetaById(rootFolderId);
-      folderUuid = rootFolderMeta.uuid;
+      folderUuid = userCredentials.root_folder_uuid;
     }
 
     const { folders, files } = await DriveFolderService.instance.getFolderContent(folderUuid);
@@ -110,6 +109,7 @@ export default class List extends Command {
   }
 
   async catch(error: Error) {
+    ErrorUtils.report(error, { command: this.id });
     CLIUtils.error(error.message);
     this.exit(1);
   }
