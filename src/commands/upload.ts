@@ -11,7 +11,6 @@ import { DriveFileService } from '../services/drive/drive-file.service';
 import { UploadService } from '../services/network/upload.service';
 import { CryptoService } from '../services/crypto.service';
 import { DownloadService } from '../services/network/download.service';
-import { StreamUtils } from '../utils/stream.utils';
 import { ErrorUtils } from '../utils/errors.utils';
 import { DriveFolderService } from '../services/drive/drive-folder.service';
 
@@ -76,7 +75,7 @@ export default class Upload extends Command {
       user.bucket,
       mnemonic,
       stat.size,
-      StreamUtils.readStreamToReadableStream(fileStream),
+      fileStream,
       {
         progressCallback: (progress) => {
           progressBar.update(progress);

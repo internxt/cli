@@ -110,29 +110,6 @@ export class CryptoService {
     return Buffer.concat([decipher.update(contentsToDecrypt), decipher.final()]).toString('utf8');
   };
 
-  private encryptReadable(readable: ReadableStream<Uint8Array>, cipher: Cipher): ReadableStream<Uint8Array> {
-    const reader = readable.getReader();
-
-    const encryptedFileReadable = new ReadableStream({
-      async start(controller) {
-        let done = false;
-
-        while (!done) {
-          const status = await reader.read();
-
-          if (!status.done) {
-            controller.enqueue(cipher.update(status.value));
-          }
-
-          done = status.done;
-        }
-        controller.close();
-      },
-    });
-
-    return encryptedFileReadable;
-  }
-
   public async decryptStream(inputSlices: ReadableStream<Uint8Array>[], key: Buffer, iv: Buffer) {
     const decipher = createDecipheriv('aes-256-ctr', key, iv);
     const encryptedStream = StreamUtils.joinReadableBinaryStreams(inputSlices);
