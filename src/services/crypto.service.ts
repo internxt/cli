@@ -1,9 +1,10 @@
 import { CryptoProvider } from '@internxt/sdk';
 import { Keys, Password } from '@internxt/sdk/dist/auth';
-import crypto, { Cipher, createCipheriv, createDecipheriv, createHash } from 'crypto';
+import crypto, { Cipher, createCipheriv, createDecipheriv } from 'crypto';
 import { KeysService } from './keys.service';
 import { ConfigService } from '../services/config.service';
 import { StreamUtils } from '../utils/stream.utils';
+import { Transform } from 'stream';
 
 export class CryptoService {
   public static readonly instance: CryptoService = new CryptoService();
@@ -161,36 +162,11 @@ export class CryptoService {
     return decryptedStream;
   }
 
-  public async encryptStream(
-    input: ReadableStream<Uint8Array>,
-    key: Buffer,
-    iv: Buffer,
-  ): Promise<{ blob: Blob; hash: Buffer }> {
+  public async getEncryptionTransform(key: Buffer, iv: Buffer): Promise<Transform> {
     const cipher = createCipheriv('aes-256-ctr', key, iv);
 
-    const readable = this.encryptReadable(input, cipher).getReader();
-    const hasher = createHash('sha256');
-    const blobParts: ArrayBuffer[] = [];
-
-    let done = false;
-
-    while (!done) {
-      const status = await readable.read();
-
-      if (!status.done) {
-        hasher.update(status.value);
-        blobParts.push(status.value);
-      }
-
-      done = status.done;
-    }
-
-    return {
-      blob: new Blob(blobParts, { type: 'application/octet-stream' }),
-      hash: createHash('ripemd160').update(Buffer.from(hasher.digest())).digest(),
-    };
+    return cipher;
   }
-
   /**
    * Generates the key and the iv by transforming a secret and a salt.
    * It will generate the same key and iv if the same secret and salt is used.

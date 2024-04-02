@@ -15,6 +15,9 @@ import { CryptoService } from '../crypto.service';
 import { UploadService } from './upload.service';
 import { DownloadService } from './download.service';
 import { ValidationService } from '../validation.service';
+import { Readable } from 'node:stream';
+import { Transform } from 'stream';
+import { HashStream } from '../../utils/hash.utils';
 
 export class NetworkFacade {
   private readonly cryptoLib: Network.Crypto;
@@ -122,12 +125,13 @@ export class NetworkFacade {
     bucketId: string,
     mnemonic: string,
     size: number,
-    from: ReadableStream<Uint8Array>,
+    from: Readable,
     options?: UploadOptions,
   ): Promise<[Promise<{ fileId: string; hash: Buffer }>, AbortController]> {
+    const hashStream = new HashStream();
     const abortable = options?.abortController ?? new AbortController();
     let fileHash: Buffer;
-    let encryptedBlob: Blob;
+    let encryptionTransform: Transform;
 
     const onProgress: UploadProgressCallback = (progress: number) => {
       if (!options?.progressCallback) return;
@@ -139,23 +143,23 @@ export class NetworkFacade {
     };
 
     const encryptFile: EncryptFileFunction = async (_, key, iv) => {
-      const { blob, hash } = await this.cryptoService.encryptStream(
-        from,
-        Buffer.from(key as ArrayBuffer),
-        Buffer.from(iv as ArrayBuffer),
-      );
-
-      fileHash = hash;
-      encryptedBlob = blob;
+      encryptionTransform = from
+        .pipe(
+          await this.cryptoService.getEncryptionTransform(
+            Buffer.from(key as ArrayBuffer),
+            Buffer.from(iv as ArrayBuffer),
+          ),
+        )
+        .pipe(hashStream);
     };
 
     const uploadFile: UploadFileFunction = async (url) => {
-      await this.uploadService.uploadFile(url, encryptedBlob, {
+      await this.uploadService.uploadFile(url, encryptionTransform, {
         abortController: abortable,
         progressCallback: onUploadProgress,
       });
 
-      return fileHash.toString('hex');
+      return hashStream.getHash().toString('hex');
     };
     const uploadOperation = async () => {
       const uploadResult = await NetworkUpload.uploadFile(

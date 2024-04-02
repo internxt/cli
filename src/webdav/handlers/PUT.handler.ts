@@ -1,5 +1,4 @@
 import { Request, Response } from 'express';
-import path from 'path';
 import { DriveFileService } from '../../services/drive/drive-file.service';
 import { DriveRealmManager } from '../../services/realms/drive-realm-manager.service';
 import { NetworkFacade } from '../../services/network/network-facade.service';
@@ -10,7 +9,6 @@ import { AuthService } from '../../services/auth.service';
 import { DriveFolderRealmSchema } from '../../services/realms/drive-folders.realm';
 import { WebDavMethodHandler, WebDavRequestedResource } from '../../types/webdav.types';
 import { NotFoundError, UnsupportedMediaTypeError } from '../../utils/errors.utils';
-import { StreamUtils } from '../../utils/stream.utils';
 import { WebDavUtils } from '../../utils/webdav.utils';
 import { webdavLogger } from '../../utils/logger.utils';
 
@@ -47,7 +45,7 @@ export class PUTRequestHandler implements WebDavMethodHandler {
       user.bucket,
       mnemonic,
       contentLength,
-      StreamUtils.requestToReadableStream(req),
+      req,
       {
         progressCallback: (progress) => {
           webdavLogger.info(`Upload progress for file ${resource.name}: ${progress}%`);
