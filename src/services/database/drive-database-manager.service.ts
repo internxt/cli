@@ -1,23 +1,29 @@
+import { Sequelize } from 'sequelize-typescript';
 import { DriveFileItem, DriveFolderItem } from '../../types/drive.types';
-import { DriveFileModelSchema, DriveFilesModel } from './drive-files.model';
-import { DriveFolderModelSchema, DriveFoldersModel } from './drive-folders.model';
 import { WebDavUtils } from '../../utils/webdav.utils';
-import { Sequelize } from 'sequelize';
 import { ConfigService } from '../config.service';
+import { DriveFileRepository } from './drive-file/drive-file.repository';
+import { DriveFolderRepository } from './drive-folder/drive-folder.repository';
+import { DriveFile } from './drive-file/drive-file.domain';
+import { DriveFolder } from './drive-folder/drive-folder.domain';
+
 export class DriveDatabaseManager {
-  private sequelize?: Sequelize;
+  private static sequelize: Sequelize;
+  public static readonly DB_NAME = 'inxt';
 
   constructor(
-    private driveFilesModel: DriveFilesModel,
-    private driveFoldersModel: DriveFoldersModel,
+    private driveFileRepository: DriveFileRepository,
+    private driveFolderRepository: DriveFolderRepository,
   ) {}
 
-  init() {
-    this.sequelize = new Sequelize({
+  static init = () => {
+    DriveDatabaseManager.sequelize = new Sequelize({
+      database: DriveDatabaseManager.DB_NAME,
       dialect: 'sqlite',
       storage: ConfigService.DRIVE_SQLITE_FILE,
+      models: [__dirname + '/**/*.model.ts'],
     });
-  }
+  };
 
   static clean() {}
 
