@@ -17,7 +17,7 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
   ) {}
 
   handle = async (req: Request, res: Response) => {
-    const resource = WebDavUtils.getRequestedResource(req, this.dependencies.driveDatabaseManager);
+    const resource = await WebDavUtils.getRequestedResource(req, this.dependencies.driveDatabaseManager);
     const depth = req.header('depth') ?? '1';
 
     switch (resource.type) {
@@ -29,7 +29,7 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
       case 'folder': {
         if (resource.url === '/') {
           const rootFolder = await this.dependencies.driveFolderService.getFolderMetaById(req.user.rootFolderId);
-          this.dependencies.driveDatabaseManager.createFolder({
+          await this.dependencies.driveDatabaseManager.createFolder({
             name: '',
             encryptedName: rootFolder.name,
             bucket: rootFolder.bucket,
@@ -43,7 +43,7 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
           break;
         }
 
-        const driveParentFolder = this.dependencies.driveDatabaseManager.findByRelativePath(resource.url);
+        const driveParentFolder = await this.dependencies.driveDatabaseManager.findByRelativePath(resource.url);
 
         if (!driveParentFolder) {
           res.status(404).send();
@@ -57,7 +57,7 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
   };
 
   private async getFileMetaXML(resource: WebDavRequestedResource): Promise<string> {
-    const driveFileItem = this.dependencies.driveDatabaseManager.findByRelativePath(resource.url);
+    const driveFileItem = await this.dependencies.driveDatabaseManager.findByRelativePath(resource.url);
 
     if (!driveFileItem || !('size' in driveFileItem)) throw new NotFoundError('File not found');
     const driveFile = this.driveFileItemToXMLNode(
@@ -67,13 +67,13 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
         bucket: driveFileItem.bucket,
         id: driveFileItem.id,
         uuid: driveFileItem.uuid,
-        fileId: driveFileItem.file_id,
+        fileId: driveFileItem.fileId,
         encryptedName: driveFileItem.name,
         size: driveFileItem.size,
-        createdAt: driveFileItem.created_at,
-        updatedAt: driveFileItem.updated_at,
+        createdAt: driveFileItem.createdAt,
+        updatedAt: driveFileItem.updatedAt,
         status: driveFileItem.status,
-        folderId: driveFileItem.folder_id,
+        folderId: driveFileItem.folderId,
       },
       encodeURI(resource.url),
     );
@@ -138,8 +138,8 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
       );
     });
 
-    folderContent.folders.map((folder) => {
-      return driveDatabaseManager.createFolder({
+    folderContent.folders.map(async (folder) => {
+      return await driveDatabaseManager.createFolder({
         ...folder,
         name: folder.plainName,
         encryptedName: folder.name,
@@ -170,8 +170,8 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
       );
     });
 
-    folderContent.files.map((file) => {
-      return driveDatabaseManager.createFile({
+    folderContent.files.map(async (file) => {
+      return await driveDatabaseManager.createFile({
         ...file,
         name: file.plainName,
         fileId: file.fileId,

@@ -8,7 +8,7 @@ import { UploadService } from '../../services/network/upload.service';
 import { DownloadService } from '../../services/network/download.service';
 import { CryptoService } from '../../services/crypto.service';
 import { AuthService } from '../../services/auth.service';
-import { DriveFileModelSchema } from '../../services/database/drive-files.model';
+import { DriveFile } from '../../services/database/drive-file/drive-file.domain';
 import { NotFoundError, NotImplementedError } from '../../utils/errors.utils';
 import { webdavLogger } from '../../utils/logger.utils';
 
@@ -26,14 +26,14 @@ export class GETRequestHandler implements WebDavMethodHandler {
   ) {}
 
   handle = async (req: Request, res: Response) => {
-    const resource = WebDavUtils.getRequestedResource(req, this.dependencies.driveDatabaseManager);
+    const resource = await WebDavUtils.getRequestedResource(req, this.dependencies.driveDatabaseManager);
 
     if (req.headers['content-range'] || req.headers['range'])
       throw new NotImplementedError('Range requests not supported');
     if (resource.name.startsWith('._')) throw new NotFoundError('File not found');
 
     webdavLogger.info(`GET request received for file at ${resource.url}`);
-    const driveFile = await this.getDriveFileRealmObject(resource);
+    const driveFile = await this.getDriveFileDatabaseObject(resource);
 
     if (!driveFile) {
       throw new NotFoundError('Drive file not found');
@@ -59,7 +59,7 @@ export class GETRequestHandler implements WebDavMethodHandler {
     const [executeDownload] = await this.dependencies.networkFacade.downloadToStream(
       driveFile.bucket,
       mnemonic,
-      driveFile.file_id,
+      driveFile.fileId,
       writable,
       {
         progressCallback: (progress) => {
@@ -75,11 +75,10 @@ export class GETRequestHandler implements WebDavMethodHandler {
     webdavLogger.info('✅ Download ready, replying to client');
   };
 
-  private async getDriveFileRealmObject(resource: WebDavRequestedResource) {
+  private async getDriveFileDatabaseObject(resource: WebDavRequestedResource) {
     const { driveDatabaseManager } = this.dependencies;
 
-    const result = driveDatabaseManager.findByRelativePath(resource.url);
-
-    return result as DriveFileModelSchema | null;
+    const result = await driveDatabaseManager.findByRelativePath(resource.url);
+    return result as DriveFile | null;
   }
 }

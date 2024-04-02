@@ -25,58 +25,67 @@ export class DriveDatabaseManager {
     });
   };
 
-  static clean() {}
+  static clean = async () => {
+    await DriveFileRepository.clean();
+    await DriveFolderRepository.clean();
+  };
 
-  findByRelativePath(relativePath: string): DriveFolderModelSchema | DriveFileModelSchema | null {
-    const driveFile = this.driveFilesRealm.findByRelativePath(relativePath);
+  findByRelativePath = async (relativePath: string): Promise<DriveFolder | DriveFile | null> => {
+    const driveFile = await this.driveFileRepository.findByRelativePath(relativePath);
 
     if (driveFile) return driveFile;
 
     let folderRelativePath = relativePath;
     if (!relativePath.endsWith('/')) folderRelativePath = relativePath.concat('/');
-    const driveFolder = this.driveFoldersRealm.findByRelativePath(folderRelativePath);
+    const driveFolder = await this.driveFolderRepository.findByRelativePath(folderRelativePath);
 
     if (driveFolder) return driveFolder;
 
     return null;
-  }
+  };
 
-  createFolder(driveFolder: DriveFolderItem) {
-    const relativePath = this.buildRelativePathForFolder(driveFolder.name, driveFolder.parentId ?? null);
+  createFolder = async (driveFolder: DriveFolderItem) => {
+    const relativePath = await this.buildRelativePathForFolder(driveFolder.name, driveFolder.parentId ?? null);
 
-    return this.driveFoldersRealm.createOrReplace(driveFolder, relativePath);
-  }
+    const existingObject = await this.driveFolderRepository.findById(driveFolder.id);
+    if (existingObject) await this.driveFolderRepository.deleteById(existingObject.id);
 
-  createFile(driveFile: DriveFileItem) {
-    const relativePath = this.buildRelativePathForFile(
+    return await this.driveFolderRepository.createFolder(driveFolder, relativePath);
+  };
+
+  createFile = async (driveFile: DriveFileItem) => {
+    const relativePath = await this.buildRelativePathForFile(
       driveFile.type ? `${driveFile.name}.${driveFile.type}` : driveFile.name,
       driveFile.folderId,
     );
 
-    return this.driveFilesRealm.createOrReplace(driveFile, relativePath);
-  }
+    const existingObject = await this.driveFileRepository.findById(driveFile.id);
+    if (existingObject) await this.driveFileRepository.deleteById(existingObject.id);
 
-  buildRelativePathForFile(fileName: string, parentId: number | null): string {
-    const parentFolder = this.driveFoldersRealm.findByParentId(parentId);
+    return this.driveFileRepository.createFile(driveFile, relativePath);
+  };
+
+  buildRelativePathForFile = async (fileName: string, parentId: number | null): Promise<string> => {
+    const parentFolder = await this.driveFolderRepository.findByParentId(parentId);
 
     if (!parentFolder) {
       return WebDavUtils.joinURL('/', fileName);
     }
 
-    const parentPath = this.buildRelativePathForFile(parentFolder.name, parentFolder.parent_id ?? null);
+    const parentPath = await this.buildRelativePathForFile(parentFolder.name, parentFolder.parentId ?? null);
 
     return WebDavUtils.joinURL(parentPath, fileName);
-  }
+  };
 
-  buildRelativePathForFolder(folderName: string, parentId: number | null): string {
-    const parentFolder = this.driveFoldersRealm.findByParentId(parentId);
+  buildRelativePathForFolder = async (folderName: string, parentId: number | null): Promise<string> => {
+    const parentFolder = await this.driveFolderRepository.findByParentId(parentId);
 
     if (!parentFolder) {
       return WebDavUtils.joinURL('/', folderName, '/');
     }
 
-    const parentPath = this.buildRelativePathForFolder(parentFolder.name, parentFolder.parent_id ?? null);
+    const parentPath = await this.buildRelativePathForFolder(parentFolder.name, parentFolder.parentId ?? null);
 
     return WebDavUtils.joinURL(parentPath, folderName, '/');
-  }
+  };
 }
