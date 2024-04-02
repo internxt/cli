@@ -6,7 +6,7 @@ import https from 'https';
 import { ConfigService } from '../../src/services/config.service';
 import { DriveFolderService } from '../../src/services/drive/drive-folder.service';
 import { WebDavServer } from '../../src/webdav/webdav-server';
-import { getDriveRealmManager } from '../fixtures/drive-realm.fixture';
+import { getDriveDatabaseManager } from '../fixtures/drive-database.fixture';
 import { UploadService } from '../../src/services/network/upload.service';
 import { DriveFileService } from '../../src/services/drive/drive-file.service';
 import { DownloadService } from '../../src/services/network/download.service';
@@ -47,7 +47,7 @@ describe('WebDav server', () => {
       ConfigService.instance,
       DriveFileService.instance,
       DriveFolderService.instance,
-      getDriveRealmManager(),
+      getDriveDatabaseManager(),
       UploadService.instance,
       DownloadService.instance,
       AuthService.instance,

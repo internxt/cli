@@ -4,7 +4,7 @@ import { ux } from '@oclif/core';
 import { ValidationService } from '../../src/services/validation.service';
 import { AuthService } from '../../src/services/auth.service';
 import { ConfigService } from '../../src/services/config.service';
-import { DriveRealmManager } from '../../src/services/realms/drive-realm-manager.service';
+import { DriveDatabaseManager } from '../../src/services/database/drive-database-manager.service';
 import { UserCredentialsFixture, UserLoginFixture } from '../fixtures/login.fixture';
 
 describe.skip('Login Command', () => {
@@ -16,7 +16,7 @@ describe.skip('Login Command', () => {
       .stub(AuthService.instance, 'is2FANeeded', (stub) => stub.resolves(true))
       .stub(AuthService.instance, 'doLogin', (stub) => stub.resolves(UserCredentialsFixture))
       .stub(ConfigService.instance, 'saveUser', (stub) => stub.resolves())
-      .stub(DriveRealmManager, 'getRealm', (stub) => stub.resolves({ write: () => ({ deleteAll: () => null }) }))
+      .stub(DriveDatabaseManager, 'clean', (stub) => stub.resolves())
       .command([
         'login',
         `-e ${UserLoginFixture.email}`,
@@ -33,7 +33,7 @@ describe.skip('Login Command', () => {
       .stub(AuthService.instance, 'is2FANeeded', (stub) => stub.resolves(false))
       .stub(AuthService.instance, 'doLogin', (stub) => stub.resolves(UserCredentialsFixture))
       .stub(ConfigService.instance, 'saveUser', (stub) => stub.resolves())
-      .stub(DriveRealmManager, 'getRealm', (stub) => stub.resolves({ write: () => ({ deleteAll: () => null }) }))
+      .stub(DriveDatabaseManager, 'clean', (stub) => stub.resolves())
       .command(['login', `-e ${UserLoginFixture.email}`, `-p ${UserLoginFixture.password}`])
       .it('runs login without 2fa using flags', (ctx) => {
         expect(ctx.stdout).to.be.equal(`✓ Succesfully logged in to: ${UserLoginFixture.email}\n`);
@@ -48,7 +48,7 @@ describe.skip('Login Command', () => {
       .stub(AuthService.instance, 'is2FANeeded', (stub) => stub.resolves(true))
       .stub(AuthService.instance, 'doLogin', (stub) => stub.resolves(UserCredentialsFixture))
       .stub(ConfigService.instance, 'saveUser', (stub) => stub.resolves())
-      .stub(DriveRealmManager, 'getRealm', (stub) => stub.resolves({ write: () => ({ deleteAll: () => null }) }))
+      .stub(DriveDatabaseManager, 'clean', (stub) => stub.resolves())
       .command([
         'login',
         '-n',
@@ -65,7 +65,7 @@ describe.skip('Login Command', () => {
     test
       .stdout()
       .stub(ConfigService.instance, 'saveUser', (stub) => stub.resolves())
-      .stub(DriveRealmManager, 'getRealm', (stub) => stub.resolves({ write: () => ({ deleteAll: () => null }) }))
+      .stub(DriveDatabaseManager, 'clean', (stub) => stub.resolves())
       .command(['login', '-n', `-p ${UserLoginFixture.password}`, `-w ${UserLoginFixture.twoFactor}`])
       .exit(1)
       .it('runs login forcing non-interactive flags without email and expects an error');
@@ -73,7 +73,7 @@ describe.skip('Login Command', () => {
     test
       .stdout()
       .stub(ConfigService.instance, 'saveUser', (stub) => stub.resolves())
-      .stub(DriveRealmManager, 'getRealm', (stub) => stub.resolves({ write: () => ({ deleteAll: () => null }) }))
+      .stub(DriveDatabaseManager, 'clean', (stub) => stub.resolves())
       .command(['login', '-n', `-e ${UserLoginFixture.email}`, `-w ${UserLoginFixture.twoFactor}`])
       .exit(1)
       .it('runs login forcing non-interactive flags without password and expects an error');
@@ -84,7 +84,7 @@ describe.skip('Login Command', () => {
       .stub(AuthService.instance, 'is2FANeeded', (stub) => stub.resolves(true))
       .stub(AuthService.instance, 'doLogin', (stub) => stub.resolves(UserCredentialsFixture))
       .stub(ConfigService.instance, 'saveUser', (stub) => stub.resolves())
-      .stub(DriveRealmManager, 'getRealm', (stub) => stub.resolves({ write: () => ({ deleteAll: () => null }) }))
+      .stub(DriveDatabaseManager, 'clean', (stub) => stub.resolves())
       .command(['login', '-n', `-e ${UserLoginFixture.email}`, `-p ${UserLoginFixture.password}`])
       .exit(1)
       .it('runs login forcing non-interactive flags without 2fa and expects an error');
@@ -98,7 +98,7 @@ describe.skip('Login Command', () => {
       .stub(AuthService.instance, 'is2FANeeded', (stub) => stub.resolves(true))
       .stub(AuthService.instance, 'doLogin', (stub) => stub.resolves(UserCredentialsFixture))
       .stub(ConfigService.instance, 'saveUser', (stub) => stub.resolves())
-      .stub(DriveRealmManager, 'getRealm', (stub) => stub.resolves({ write: () => ({ deleteAll: () => null }) }))
+      .stub(DriveDatabaseManager, 'clean', (stub) => stub.resolves())
       .stub(ux, 'prompt', (stub) => stub.resolves('any input'))
       // commented because is not working, but i wish it would
       //.stub(ux, 'prompt', (stub) => stub.withArgs('What is your email?').resolves(UserLogin.email))
@@ -116,7 +116,7 @@ describe.skip('Login Command', () => {
       .stub(ValidationService.instance, 'validateEmail', (stub) => stub.returns(false))
       .stub(ux, 'prompt', (stub) => stub.returns('any input'))
       .stub(ConfigService.instance, 'saveUser', (stub) => stub.resolves())
-      .stub(DriveRealmManager, 'getRealm', (stub) => stub.resolves({ write: () => ({ deleteAll: () => null }) }))
+      .stub(DriveDatabaseManager, 'clean', (stub) => stub.resolves())
       .command(['login'])
       .exit(1)
       .it('runs login interactively and expects error (app exit with code 1)');
@@ -128,7 +128,7 @@ describe.skip('Login Command', () => {
       .stub(ValidationService.instance, 'validateEmail', (stub) => stub.returns(true))
       .stub(ux, 'prompt', (stub) => stub.returns(''))
       .stub(ConfigService.instance, 'saveUser', (stub) => stub.resolves())
-      .stub(DriveRealmManager, 'getRealm', (stub) => stub.resolves({ write: () => ({ deleteAll: () => null }) }))
+      .stub(DriveDatabaseManager, 'clean', (stub) => stub.resolves())
       .command(['login'])
       .exit(1)
       .it('runs login interactively and expects error (app exit with code 1)');
@@ -141,7 +141,7 @@ describe.skip('Login Command', () => {
       .stub(ValidationService.instance, 'validate2FA', (stub) => stub.returns(false))
       .stub(ux, 'prompt', (stub) => stub.returns('any input'))
       .stub(ConfigService.instance, 'saveUser', (stub) => stub.resolves())
-      .stub(DriveRealmManager, 'getRealm', (stub) => stub.resolves({ write: () => ({ deleteAll: () => null }) }))
+      .stub(DriveDatabaseManager, 'clean', (stub) => stub.resolves())
       .command(['login'])
       .exit(1)
       .it('runs login interactively and expects error (app exit with code 1)');

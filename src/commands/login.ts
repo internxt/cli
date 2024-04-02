@@ -3,7 +3,6 @@ import { EmptyPasswordError, NotValidEmailError, NotValidTwoFactorCodeError } fr
 import { AuthService } from '../services/auth.service';
 import { ConfigService } from '../services/config.service';
 import { ValidationService } from '../services/validation.service';
-import { DriveRealmManager } from '../services/realms/drive-realm-manager.service';
 import { CLIUtils } from '../utils/cli.utils';
 import { ErrorUtils } from '../utils/errors.utils';
 import { DriveFolderService } from '../services/drive/drive-folder.service';
