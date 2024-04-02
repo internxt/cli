@@ -19,7 +19,7 @@ $ npm install -g @internxt/cli
 $ internxt COMMAND
 running command...
 $ internxt (--version)
-@internxt/cli/0.1.3 darwin-arm64 node-v18.16.1
+@internxt/cli/0.1.4 darwin-arm64 node-v20.10.0
 $ internxt --help [COMMAND]
 USAGE
   $ internxt COMMAND
@@ -69,7 +69,7 @@ EXAMPLES
   $ internxt config
 ```
 
-_See code: [src/commands/config.ts](https://github.com/internxt/cli/blob/v0.1.3/src/commands/config.ts)_
+_See code: [src/commands/config.ts](https://github.com/internxt/cli/blob/v0.1.4/src/commands/config.ts)_
 
 ## `internxt download`
 
@@ -92,7 +92,7 @@ EXAMPLES
   $ internxt download
 ```
 
-_See code: [src/commands/download.ts](https://github.com/internxt/cli/blob/v0.1.3/src/commands/download.ts)_
+_See code: [src/commands/download.ts](https://github.com/internxt/cli/blob/v0.1.4/src/commands/download.ts)_
 
 ## `internxt list`
 
@@ -126,7 +126,7 @@ EXAMPLES
   $ internxt list
 ```
 
-_See code: [src/commands/list.ts](https://github.com/internxt/cli/blob/v0.1.3/src/commands/list.ts)_
+_See code: [src/commands/list.ts](https://github.com/internxt/cli/blob/v0.1.4/src/commands/list.ts)_
 
 ## `internxt login`
 
@@ -152,7 +152,7 @@ EXAMPLES
   $ internxt login
 ```
 
-_See code: [src/commands/login.ts](https://github.com/internxt/cli/blob/v0.1.3/src/commands/login.ts)_
+_See code: [src/commands/login.ts](https://github.com/internxt/cli/blob/v0.1.4/src/commands/login.ts)_
 
 ## `internxt logout`
 
@@ -169,7 +169,7 @@ EXAMPLES
   $ internxt logout
 ```
 
-_See code: [src/commands/logout.ts](https://github.com/internxt/cli/blob/v0.1.3/src/commands/logout.ts)_
+_See code: [src/commands/logout.ts](https://github.com/internxt/cli/blob/v0.1.4/src/commands/logout.ts)_
 
 ## `internxt logs`
 
@@ -186,7 +186,7 @@ EXAMPLES
   $ internxt logs
 ```
 
-_See code: [src/commands/logs.ts](https://github.com/internxt/cli/blob/v0.1.3/src/commands/logs.ts)_
+_See code: [src/commands/logs.ts](https://github.com/internxt/cli/blob/v0.1.4/src/commands/logs.ts)_
 
 ## `internxt move`
 
@@ -211,7 +211,7 @@ EXAMPLES
   $ internxt move
 ```
 
-_See code: [src/commands/move.ts](https://github.com/internxt/cli/blob/v0.1.3/src/commands/move.ts)_
+_See code: [src/commands/move.ts](https://github.com/internxt/cli/blob/v0.1.4/src/commands/move.ts)_
 
 ## `internxt trash`
 
@@ -235,7 +235,7 @@ EXAMPLES
   $ internxt trash
 ```
 
-_See code: [src/commands/trash.ts](https://github.com/internxt/cli/blob/v0.1.3/src/commands/trash.ts)_
+_See code: [src/commands/trash.ts](https://github.com/internxt/cli/blob/v0.1.4/src/commands/trash.ts)_
 
 ## `internxt upload`
 
@@ -259,7 +259,7 @@ EXAMPLES
   $ internxt upload
 ```
 
-_See code: [src/commands/upload.ts](https://github.com/internxt/cli/blob/v0.1.3/src/commands/upload.ts)_
+_See code: [src/commands/upload.ts](https://github.com/internxt/cli/blob/v0.1.4/src/commands/upload.ts)_
 
 ## `internxt webdav ACTION`
 
@@ -276,7 +276,7 @@ EXAMPLES
   $ internxt webdav
 ```
 
-_See code: [src/commands/webdav.ts](https://github.com/internxt/cli/blob/v0.1.3/src/commands/webdav.ts)_
+_See code: [src/commands/webdav.ts](https://github.com/internxt/cli/blob/v0.1.4/src/commands/webdav.ts)_
 
 ## `internxt whoami`
 
@@ -293,5 +293,5 @@ EXAMPLES
   $ internxt whoami
 ```
 
-_See code: [src/commands/whoami.ts](https://github.com/internxt/cli/blob/v0.1.3/src/commands/whoami.ts)_
+_See code: [src/commands/whoami.ts](https://github.com/internxt/cli/blob/v0.1.4/src/commands/whoami.ts)_
 <!-- commandsstop -->

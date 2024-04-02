@@ -2,13 +2,13 @@ import { WebDavMethodHandler, WebDavRequestedResource } from '../../types/webdav
 import { Request, Response } from 'express';
 import { WebDavUtils } from '../../utils/webdav.utils';
 import { DriveFileService } from '../../services/drive/drive-file.service';
-import { DriveRealmManager } from '../../services/realms/drive-realm-manager.service';
+import { DriveDatabaseManager } from '../../services/database/drive-database-manager.service';
 import { NetworkFacade } from '../../services/network/network-facade.service';
 import { UploadService } from '../../services/network/upload.service';
 import { DownloadService } from '../../services/network/download.service';
 import { CryptoService } from '../../services/crypto.service';
 import { AuthService } from '../../services/auth.service';
-import { DriveFileRealmSchema } from '../../services/realms/drive-files.realm';
+import { DriveFileModelSchema } from '../../services/database/drive-files.model';
 import { NotFoundError, NotImplementedError } from '../../utils/errors.utils';
 import { webdavLogger } from '../../utils/logger.utils';
 
@@ -16,7 +16,7 @@ export class GETRequestHandler implements WebDavMethodHandler {
   constructor(
     private dependencies: {
       driveFileService: DriveFileService;
-      driveRealmManager: DriveRealmManager;
+      driveDatabaseManager: DriveDatabaseManager;
       uploadService: UploadService;
       downloadService: DownloadService;
       cryptoService: CryptoService;
@@ -26,7 +26,7 @@ export class GETRequestHandler implements WebDavMethodHandler {
   ) {}
 
   handle = async (req: Request, res: Response) => {
-    const resource = WebDavUtils.getRequestedResource(req, this.dependencies.driveRealmManager);
+    const resource = WebDavUtils.getRequestedResource(req, this.dependencies.driveDatabaseManager);
 
     if (req.headers['content-range'] || req.headers['range'])
       throw new NotImplementedError('Range requests not supported');
@@ -76,10 +76,10 @@ export class GETRequestHandler implements WebDavMethodHandler {
   };
 
   private async getDriveFileRealmObject(resource: WebDavRequestedResource) {
-    const { driveRealmManager } = this.dependencies;
+    const { driveDatabaseManager } = this.dependencies;
 
-    const result = driveRealmManager.findByRelativePath(resource.url);
+    const result = driveDatabaseManager.findByRelativePath(resource.url);
 
-    return result as DriveFileRealmSchema | null;
+    return result as DriveFileModelSchema | null;
   }
 }

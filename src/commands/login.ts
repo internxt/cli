@@ -8,6 +8,7 @@ import { CLIUtils } from '../utils/cli.utils';
 import { ErrorUtils } from '../utils/errors.utils';
 import { DriveFolderService } from '../services/drive/drive-folder.service';
 import { SdkManager } from '../services/sdk-manager.service';
+import { DriveDatabaseManager } from '../services/database/drive-database-manager.service';
 
 export default class Login extends Command {
   static readonly args = {};
@@ -66,8 +67,7 @@ export default class Login extends Command {
 
     await ConfigService.instance.saveUser(Object.assign(loginCredentials, { root_folder_uuid: rootMeta.uuid }));
 
-    const realm = await DriveRealmManager.getRealm();
-    realm.write(() => realm.deleteAll());
+    await DriveDatabaseManager.clean();
 
     CLIUtils.success(`Succesfully logged in to: ${loginCredentials.user.email} `);
   }

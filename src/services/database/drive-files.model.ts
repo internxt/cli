@@ -1,7 +1,6 @@
-import Realm, { ObjectSchema } from 'realm';
 import { DriveFileItem } from '../../types/drive.types';
 
-export class DriveFileRealmSchema extends Realm.Object<DriveFileRealmSchema> {
+export class DriveFileModelSchema {
   id!: number;
   name!: string;
   type?: string;
@@ -14,30 +13,12 @@ export class DriveFileRealmSchema extends Realm.Object<DriveFileRealmSchema> {
   updated_at!: Date;
   size!: number;
   status!: 'EXISTS' | 'REMOVED' | 'TRASHED';
-  static readonly schema: ObjectSchema = {
-    name: 'DriveFile',
-    properties: {
-      id: 'int',
-      name: 'string',
-      type: 'string?',
-      uuid: { type: 'string', indexed: true },
-      file_id: 'string',
-      folder_id: 'int',
-      bucket: 'string',
-      relative_path: { type: 'string', indexed: true },
-      created_at: 'date',
-      updated_at: 'date',
-      size: 'int',
-      status: 'string',
-    },
-    primaryKey: 'id',
-  };
 }
 
-export class DriveFilesRealm {
-  constructor(private realm: Realm) {}
+export class DriveFilesModel {
+  constructor() {}
 
-  findByRelativePath(relativePath: string): DriveFileRealmSchema | null {
+  findByRelativePath(relativePath: string): DriveFileModelSchema | null {
     const object = this.realm
       .objects<DriveFileRealmSchema>('DriveFile')
       .filtered('relative_path = $0', relativePath)

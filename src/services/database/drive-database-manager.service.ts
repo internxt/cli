@@ -1,24 +1,27 @@
 import { DriveFileItem, DriveFolderItem } from '../../types/drive.types';
-import { DriveFileRealmSchema, DriveFilesRealm } from './drive-files.realm';
-import { DriveFolderRealmSchema, DriveFoldersRealm } from './drive-folders.realm';
+import { DriveFileModelSchema, DriveFilesModel } from './drive-files.model';
+import { DriveFolderModelSchema, DriveFoldersModel } from './drive-folders.model';
 import { WebDavUtils } from '../../utils/webdav.utils';
+import { Sequelize } from 'sequelize';
 import { ConfigService } from '../config.service';
-import Realm from 'realm';
-export class DriveRealmManager {
+export class DriveDatabaseManager {
+  private sequelize?: Sequelize;
+
   constructor(
-    private driveFilesRealm: DriveFilesRealm,
-    private driveFoldersRealm: DriveFoldersRealm,
+    private driveFilesModel: DriveFilesModel,
+    private driveFoldersModel: DriveFoldersModel,
   ) {}
 
-  static getRealm() {
-    return Realm.open({
-      path: ConfigService.DRIVE_REALM_FILE,
-      schema: [DriveFileRealmSchema, DriveFolderRealmSchema],
-      deleteRealmIfMigrationNeeded: true,
+  init() {
+    this.sequelize = new Sequelize({
+      dialect: 'sqlite',
+      storage: ConfigService.DRIVE_SQLITE_FILE,
     });
   }
 
-  findByRelativePath(relativePath: string): DriveFolderRealmSchema | DriveFileRealmSchema | null {
+  static clean() {}
+
+  findByRelativePath(relativePath: string): DriveFolderModelSchema | DriveFileModelSchema | null {
     const driveFile = this.driveFilesRealm.findByRelativePath(relativePath);
 
     if (driveFile) return driveFile;

@@ -3,9 +3,9 @@ import { WebDavServer } from './webdav-server';
 import express from 'express';
 import { ConfigService } from '../services/config.service';
 import { DriveFolderService } from '../services/drive/drive-folder.service';
-import { DriveRealmManager } from '../services/realms/drive-realm-manager.service';
-import { DriveFilesRealm } from '../services/realms/drive-files.realm';
-import { DriveFoldersRealm } from '../services/realms/drive-folders.realm';
+import { DriveDatabaseManager } from '../services/database/drive-database-manager.service';
+import { DriveFilesModel } from '../services/database/drive-files.model';
+import { DriveFoldersModel } from '../services/database/drive-folders.model';
 import { DriveFileService } from '../services/drive/drive-file.service';
 import { UploadService } from '../services/network/upload.service';
 import { DownloadService } from '../services/network/download.service';
@@ -18,14 +18,13 @@ const init = async () => {
   await ConfigService.instance.ensureInternxtCliDataDirExists();
   await ConfigService.instance.ensureWebdavCertsDirExists();
   await ConfigService.instance.ensureInternxtLogsDirExists();
-  const realm = await DriveRealmManager.getRealm();
 
   new WebDavServer(
     express(),
     ConfigService.instance,
     DriveFileService.instance,
     DriveFolderService.instance,
-    new DriveRealmManager(new DriveFilesRealm(realm), new DriveFoldersRealm(realm)),
+    new DriveDatabaseManager(new DriveFilesModel(), new DriveFoldersModel()),
     UploadService.instance,
     DownloadService.instance,
     AuthService.instance,

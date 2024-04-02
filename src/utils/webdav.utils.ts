@@ -1,9 +1,9 @@
 import { Request } from 'express';
 import path from 'path';
 import { WebDavRequestedResource } from '../types/webdav.types';
-import { DriveRealmManager } from '../services/realms/drive-realm-manager.service';
-import { DriveFolderRealmSchema } from '../services/realms/drive-folders.realm';
-import { DriveFileRealmSchema } from '../services/realms/drive-files.realm';
+import { DriveRealmManager } from '../services/database/drive-database-manager.service';
+import { DriveFolderRealmSchema } from '../services/database/drive-folders.model';
+import { DriveFileRealmSchema } from '../services/database/drive-files.model';
 
 export class WebDavUtils {
   static joinURL(...pathComponents: string[]): string {

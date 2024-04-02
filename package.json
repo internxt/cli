@@ -1,6 +1,6 @@
 {
   "author": "PixoDev",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Internxt CLI to manage your encrypted storage",
   "scripts": {
     "build": "tsc",
@@ -47,8 +47,9 @@
     "node-fetch": "2",
     "openpgp": "^5.11.1",
     "pm2": "^5.3.1",
-    "realm": "^12.6.2",
     "selfsigned": "^2.4.1",
+    "sequelize": "^6.37.2",
+    "sqlite3": "^5.1.7",
     "superagent": "^8.1.2",
     "winston": "^3.12.0"
   },
