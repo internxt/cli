@@ -11,7 +11,9 @@
     "prepare": "husky",
     "test:unit": "nyc --reporter=lcov --reporter=text mocha \"test/**/*.test.ts\" --exit",
     "dev:webdav": "nodemon -e ts --exec ts-node src/webdav/index.ts",
-    "version": "oclif readme && git add README.md"
+    "version": "oclif readme && git add README.md",
+    "migrate": "sequelize db:migrate",
+    "migrate:undo": "sequelize db:migrate:undo"
   },
   "homepage": "https://github.com/internxt/cli",
   "license": "MIT",
