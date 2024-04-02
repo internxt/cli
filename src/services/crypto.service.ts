@@ -1,6 +1,6 @@
 import { CryptoProvider } from '@internxt/sdk';
 import { Keys, Password } from '@internxt/sdk/dist/auth';
-import crypto, { Cipher, createCipheriv, createDecipheriv } from 'crypto';
+import crypto, { createCipheriv, createDecipheriv } from 'node:crypto';
 import { KeysService } from './keys.service';
 import { ConfigService } from '../services/config.service';
 import { StreamUtils } from '../utils/stream.utils';
