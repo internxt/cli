@@ -10,7 +10,9 @@
     "composite": true,
     "resolveJsonModule": true,
     "removeComments": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
   },
   "files": ["src/types/index.d.ts"],
   "include": ["./src/**/*", "src/types/index.d.ts"]
