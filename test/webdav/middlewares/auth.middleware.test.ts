@@ -11,6 +11,7 @@ describe('Auth middleware', () => {
   afterEach(() => {
     sandbox.restore();
   });
+
   it('When a request is made to the WebDav server, and the user is not authenticated, should return 401', async () => {
     const req = createWebDavRequestFixture({
       user: null,
@@ -37,6 +38,7 @@ describe('Auth middleware', () => {
     const userFixture = UserSettingsFixture;
     sandbox.stub(ConfigService.instance, 'readUser').resolves({
       user: userFixture,
+      root_folder_uuid: 'test_root_folder_uuid',
       mnemonic: 'MNEMONIC',
       newToken: 'NEW_TOKEN',
       token: 'TOKEN',

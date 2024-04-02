@@ -13,7 +13,6 @@ export default class Logout extends Command {
 
   public async run(): Promise<void> {
     const user = await ConfigService.instance.readUser();
-
     if (user) {
       await ConfigService.instance.clearUser();
       CLIUtils.success('User logged out correctly');

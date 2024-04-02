@@ -113,6 +113,8 @@ export class CLIUtils {
     }
     return promptValue;
   };
+
+  static readonly parseEmpty = async (input: string) => (input.trim().length === 0 ? ' ' : input);
 }
 
 class NoFlagProvidedError extends Error {

@@ -5,7 +5,7 @@ import { ErrorUtils } from '../utils/errors.utils';
 
 export default class Whoami extends Command {
   static readonly args = {};
-  static readonly description = 'Displays the current user logged into the Internxt CLI.';
+  static readonly description = 'Display the current user logged into the Internxt CLI.';
 
   static readonly examples = ['<%= config.bin %> <%= command.id %>'];
 

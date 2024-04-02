@@ -7,6 +7,10 @@ export interface LoginCredentials {
   mnemonic: string;
 }
 
+export interface CLICredentials extends LoginCredentials {
+  root_folder_uuid: string;
+}
+
 export class NotValidEmailError extends Error {
   constructor() {
     super('Email is not valid');
@@ -36,6 +40,22 @@ export class NotValidFolderUuidError extends Error {
     super('Folder UUID is not valid (it must be a valid v4 UUID)');
 
     Object.setPrototypeOf(this, NotValidFolderUuidError.prototype);
+  }
+}
+
+export class NotValidItemUuidError extends Error {
+  constructor() {
+    super('Item UUID is not valid (it must be a valid v4 UUID)');
+
+    Object.setPrototypeOf(this, NotValidItemUuidError.prototype);
+  }
+}
+
+export class ItemNotFoundError extends Error {
+  constructor() {
+    super('Item not found');
+
+    Object.setPrototypeOf(this, ItemNotFoundError.prototype);
   }
 }
 

@@ -1,6 +1,6 @@
 {
   "author": "PixoDev",
-  "version": "0.0.19",
+  "version": "0.1.3",
   "description": "Internxt CLI to manage your encrypted storage",
   "scripts": {
     "build": "tsc",
@@ -31,7 +31,7 @@
     "@internxt/inxt-js": "^2.0.9",
     "@internxt/lib": "^1.2.0",
     "@internxt/prettier-config": "^1.0.2",
-    "@internxt/sdk": "^1.4.72",
+    "@internxt/sdk": "^1.4.76",
     "@oclif/core": "^3",
     "axios": "^1.6.7",
     "bip39": "^3.1.0",

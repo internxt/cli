@@ -3,7 +3,7 @@ import { PROPFINDRequestHandler } from '../../../src/webdav/handlers/PROPFIND.ha
 import { ConfigService } from '../../../src/services/config.service';
 import { DriveFolderService } from '../../../src/services/drive/drive-folder.service';
 import { UserSettingsFixture } from '../../fixtures/auth.fixture';
-import { newFolder, newPaginatedFolder } from '../../fixtures/drive.fixture';
+import { newFolderItem, newPaginatedFolder } from '../../fixtures/drive.fixture';
 import { createWebDavRequestFixture, createWebDavResponseFixture } from '../../fixtures/webdav.fixture';
 import {
   getDriveFileRealmSchemaFixture,
@@ -11,7 +11,6 @@ import {
   getDriveRealmManager,
 } from '../../fixtures/drive-realm.fixture';
 import { FormatUtils } from '../../../src/utils/format.utils';
-import { randomInt } from 'crypto';
 
 describe('PROPFIND request handler', () => {
   const sandbox = sinon.createSandbox();
@@ -24,11 +23,15 @@ describe('PROPFIND request handler', () => {
     const configService = ConfigService.instance;
     const driveFolderService = DriveFolderService.instance;
 
-    sandbox
-      .stub(configService, 'readUser')
-      .resolves({ user: UserSettingsFixture, token: 'TOKEN', newToken: 'NEW_TOKEN', mnemonic: 'MNEMONIC' });
+    sandbox.stub(configService, 'readUser').resolves({
+      user: UserSettingsFixture,
+      root_folder_uuid: 'test_root_folder_uuid',
+      token: 'TOKEN',
+      newToken: 'NEW_TOKEN',
+      mnemonic: 'MNEMONIC',
+    });
 
-    const folderFixture = newFolder({
+    const folderFixture = newFolderItem({
       id: UserSettingsFixture.root_folder_id,
     });
     sandbox.stub(driveFolderService, 'getFolderMetaById').resolves(folderFixture);
@@ -66,11 +69,15 @@ describe('PROPFIND request handler', () => {
     const configService = ConfigService.instance;
     const driveFolderService = DriveFolderService.instance;
 
-    sandbox
-      .stub(configService, 'readUser')
-      .resolves({ user: UserSettingsFixture, token: 'TOKEN', newToken: 'NEW_TOKEN', mnemonic: 'MNEMONIC' });
+    sandbox.stub(configService, 'readUser').resolves({
+      user: UserSettingsFixture,
+      root_folder_uuid: 'test_root_folder_uuid',
+      token: 'TOKEN',
+      newToken: 'NEW_TOKEN',
+      mnemonic: 'MNEMONIC',
+    });
 
-    const folderFixture = newFolder({
+    const folderFixture = newFolderItem({
       id: UserSettingsFixture.root_folder_id,
     });
     const paginatedFolder1 = newPaginatedFolder({
@@ -115,9 +122,13 @@ describe('PROPFIND request handler', () => {
     const configService = ConfigService.instance;
     const driveFolderService = DriveFolderService.instance;
 
-    sandbox
-      .stub(configService, 'readUser')
-      .resolves({ user: UserSettingsFixture, token: 'TOKEN', newToken: 'NEW_TOKEN', mnemonic: 'MNEMONIC' });
+    sandbox.stub(configService, 'readUser').resolves({
+      user: UserSettingsFixture,
+      root_folder_uuid: 'test_root_folder_uuid',
+      token: 'TOKEN',
+      newToken: 'NEW_TOKEN',
+      mnemonic: 'MNEMONIC',
+    });
 
     const driveRealmManager = getDriveRealmManager();
     sandbox.stub(driveRealmManager, 'findByRelativePath').returns(getDriveFileRealmSchemaFixture());
@@ -149,9 +160,13 @@ describe('PROPFIND request handler', () => {
     const configService = ConfigService.instance;
     const driveFolderService = DriveFolderService.instance;
 
-    sandbox
-      .stub(configService, 'readUser')
-      .resolves({ user: UserSettingsFixture, token: 'TOKEN', newToken: 'NEW_TOKEN', mnemonic: 'MNEMONIC' });
+    sandbox.stub(configService, 'readUser').resolves({
+      user: UserSettingsFixture,
+      root_folder_uuid: 'test_root_folder_uuid',
+      token: 'TOKEN',
+      newToken: 'NEW_TOKEN',
+      mnemonic: 'MNEMONIC',
+    });
 
     const driveRealmManager = getDriveRealmManager();
     const paginatedFolder1 = newPaginatedFolder();
@@ -159,10 +174,7 @@ describe('PROPFIND request handler', () => {
       files: [],
       folders: [paginatedFolder1],
     });
-    const folderFixture = newFolder({
-      id: randomInt(999),
-      plainName: 'folder_a',
-    });
+    const folderFixture = newFolderItem();
     sandbox.stub(driveFolderService, 'getFolderMetaByUuid').resolves(folderFixture);
     sandbox.stub(driveRealmManager, 'findByRelativePath').returns(getDriveFolderRealmSchemaFixture());
     const requestHandler = new PROPFINDRequestHandler(
@@ -192,9 +204,13 @@ describe('PROPFIND request handler', () => {
     const configService = ConfigService.instance;
     const driveFolderService = DriveFolderService.instance;
 
-    sandbox
-      .stub(configService, 'readUser')
-      .resolves({ user: UserSettingsFixture, token: 'TOKEN', newToken: 'NEW_TOKEN', mnemonic: 'MNEMONIC' });
+    sandbox.stub(configService, 'readUser').resolves({
+      user: UserSettingsFixture,
+      root_folder_uuid: 'test_root_folder_uuid',
+      token: 'TOKEN',
+      newToken: 'NEW_TOKEN',
+      mnemonic: 'MNEMONIC',
+    });
 
     const driveRealmManager = getDriveRealmManager();
     sandbox.stub(driveRealmManager, 'findByRelativePath').returns(null);

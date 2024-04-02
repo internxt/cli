@@ -187,19 +187,7 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
     const { driveFolderService } = this.dependencies;
 
     const folderMeta = await driveFolderService.getFolderMetaByUuid(folderUuid);
-    const folderXML = this.driveFolderRootStatsToXMLNode(
-      {
-        name: folderMeta.plainName,
-        bucket: folderMeta.bucket,
-        createdAt: new Date(folderMeta.createdAt),
-        updatedAt: new Date(folderMeta.updatedAt),
-        id: folderMeta.id,
-        encryptedName: folderMeta.name,
-        uuid: folderMeta.uuid,
-        parentId: null,
-      },
-      encodeURI(relativePath),
-    );
+    const folderXML = this.driveFolderRootStatsToXMLNode(folderMeta, encodeURI(relativePath));
     return folderXML;
   }
 
@@ -207,19 +195,7 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
     const { driveFolderService } = this.dependencies;
 
     const folderMeta = await driveFolderService.getFolderMetaByUuid(folderUuid);
-    const folderXML = this.driveFolderItemToXMLNode(
-      {
-        name: folderMeta.plainName,
-        bucket: folderMeta.bucket,
-        createdAt: new Date(folderMeta.createdAt),
-        updatedAt: new Date(folderMeta.updatedAt),
-        id: folderMeta.id,
-        encryptedName: folderMeta.name,
-        uuid: folderMeta.uuid,
-        parentId: null,
-      },
-      encodeURI(relativePath),
-    );
+    const folderXML = this.driveFolderItemToXMLNode(folderMeta, encodeURI(relativePath));
     return folderXML;
   }
 
