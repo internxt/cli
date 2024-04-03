@@ -8,8 +8,11 @@ import { DriveFile } from './drive-file/drive-file.domain';
 import { DriveFolder } from './drive-folder/drive-folder.domain';
 
 export class DriveDatabaseManager {
-  private static sequelize: Sequelize;
-  public static readonly DB_NAME = 'inxt';
+  private static readonly sequelize: Sequelize = new Sequelize({
+    dialect: 'sqlite',
+    storage: ConfigService.DRIVE_SQLITE_FILE,
+    models: [__dirname + '/**/*.model.ts'],
+  });
 
   constructor(
     private driveFileRepository: DriveFileRepository,
