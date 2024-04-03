@@ -13,7 +13,7 @@ import { DriveFolderAttributes } from './drive-folder.attributes';
 
 @Table({
   underscored: true,
-  tableName: 'files',
+  tableName: 'folders',
 })
 export class DriveFolderModel extends Model implements DriveFolderAttributes {
   @PrimaryKey
