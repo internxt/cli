@@ -60,7 +60,7 @@ export class DriveDatabaseManager {
     const existingObject = await this.driveFileRepository.findById(driveFile.id);
     if (existingObject) await this.driveFileRepository.deleteById(existingObject.id);
 
-    return this.driveFileRepository.createFile(driveFile, relativePath);
+    return await this.driveFileRepository.createFile(driveFile, relativePath);
   };
 
   buildRelativePathForFile = async (fileName: string, parentId: number | null): Promise<string> => {
@@ -70,7 +70,7 @@ export class DriveDatabaseManager {
       return WebDavUtils.joinURL('/', fileName);
     }
 
-    const parentPath = await this.buildRelativePathForFile(parentFolder.name, parentFolder.parentId ?? null);
+    const parentPath = await this.buildRelativePathForFile(parentFolder.name, parentFolder.parentId);
 
     return WebDavUtils.joinURL(parentPath, fileName);
   };
@@ -82,7 +82,7 @@ export class DriveDatabaseManager {
       return WebDavUtils.joinURL('/', folderName, '/');
     }
 
-    const parentPath = await this.buildRelativePathForFolder(parentFolder.name, parentFolder.parentId ?? null);
+    const parentPath = await this.buildRelativePathForFolder(parentFolder.name, parentFolder.parentId);
 
     return WebDavUtils.joinURL(parentPath, folderName, '/');
   };
