@@ -37,7 +37,7 @@ export class DriveFolderRepository {
     return driveFolder;
   };
 
-  static clean = (): Promise<void> => {
+  static readonly clean = (): Promise<void> => {
     return DriveFolderModel.truncate();
   };
 }

@@ -19,11 +19,11 @@ export class DriveDatabaseManager {
     private driveFolderRepository: DriveFolderRepository,
   ) {}
 
-  static init = async () => {
+  static readonly init = async () => {
     await DriveDatabaseManager.sequelize.sync();
   };
 
-  static clean = async () => {
+  static readonly clean = async () => {
     await DriveFileRepository.clean();
     await DriveFolderRepository.clean();
   };

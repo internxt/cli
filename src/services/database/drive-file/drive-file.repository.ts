@@ -3,8 +3,6 @@ import { DriveFileModel } from './drive-file.model';
 import { DriveFile } from './drive-file.domain';
 
 export class DriveFileRepository {
-  constructor() {}
-
   findByRelativePath = async (relativePath: DriveFile['relativePath']): Promise<DriveFile | null> => {
     const file = await DriveFileModel.findOne({
       where: {
@@ -39,7 +37,7 @@ export class DriveFileRepository {
     return driveFile;
   };
 
-  static clean = (): Promise<void> => {
+  static readonly clean = (): Promise<void> => {
     return DriveFileModel.truncate();
   };
 }
