@@ -13,11 +13,7 @@ export class DriveFolderRepository {
   };
 
   findById = async (id: DriveFolder['id']): Promise<DriveFolder | null> => {
-    const folder = await DriveFolderModel.findOne({
-      where: {
-        id,
-      },
-    });
+    const folder = await DriveFolderModel.findByPk(id);
     return folder ? this.toDomain(folder) : null;
   };
 

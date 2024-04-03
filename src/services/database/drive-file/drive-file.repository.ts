@@ -15,11 +15,7 @@ export class DriveFileRepository {
   };
 
   findById = async (id: DriveFile['id']): Promise<DriveFile | null> => {
-    const file = await DriveFileModel.findOne({
-      where: {
-        id,
-      },
-    });
+    const file = await DriveFileModel.findByPk(id);
     return file ? this.toDomain(file) : null;
   };
 
