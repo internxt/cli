@@ -50,7 +50,7 @@ module.exports = {
       },
     });
   },
-  async down(queryInterface: QueryInterface, Sequelize: typeof DataTypes) {
+  async down(queryInterface: QueryInterface) {
     await queryInterface.dropTable('files');
   },
 };
