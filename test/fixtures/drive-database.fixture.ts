@@ -57,7 +57,6 @@ export const getDriveDatabaseManager = (): DriveDatabaseManager => {
   const driveFolderRepository: DriveFolderRepository = {
     findById: sinon.stub(),
     findByRelativePath: sinon.stub(),
-    findByParentId: sinon.stub(),
     createFolder: sinon.stub(),
   };
   return new DriveDatabaseManager(driveFileRepository, driveFolderRepository);

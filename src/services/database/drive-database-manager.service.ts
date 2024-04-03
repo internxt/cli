@@ -64,7 +64,7 @@ export class DriveDatabaseManager {
   };
 
   buildRelativePathForFile = async (fileName: string, parentId: number | null): Promise<string> => {
-    const parentFolder = await this.driveFolderRepository.findByParentId(parentId);
+    const parentFolder = await this.driveFolderRepository.findById(parentId ?? -1);
 
     if (!parentFolder) {
       return WebDavUtils.joinURL('/', fileName);
@@ -76,7 +76,7 @@ export class DriveDatabaseManager {
   };
 
   buildRelativePathForFolder = async (folderName: string, parentId: number | null): Promise<string> => {
-    const parentFolder = await this.driveFolderRepository.findByParentId(parentId);
+    const parentFolder = await this.driveFolderRepository.findById(parentId ?? -1);
 
     if (!parentFolder) {
       return WebDavUtils.joinURL('/', folderName, '/');

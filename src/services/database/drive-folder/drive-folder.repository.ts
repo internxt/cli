@@ -21,15 +21,6 @@ export class DriveFolderRepository {
     return folder ? this.toDomain(folder) : null;
   };
 
-  findByParentId = async (parentId: number | null): Promise<DriveFolder | null> => {
-    const parentFolder = await DriveFolderModel.findOne({
-      where: {
-        parentId: parentId ?? -1, // -1 is root as we cannot index null fields
-      },
-    });
-    return parentFolder ? this.toDomain(parentFolder) : null;
-  };
-
   deleteById = (id: DriveFolder['id']): Promise<number> => {
     return DriveFolderModel.destroy({ where: { id } });
   };
