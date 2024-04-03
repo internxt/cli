@@ -5,6 +5,7 @@ import { CryptoService } from './crypto.service';
 import { ConfigService } from './config.service';
 import { LoginCredentials } from '../types/command.types';
 import { ValidationService } from './validation.service';
+import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
 
 export class AuthService {
   public static readonly instance: AuthService = new AuthService();
@@ -88,7 +89,12 @@ export class AuthService {
    *
    * @returns The user plain mnemonic and the auth tokens
    */
-  public getAuthDetails = async (): Promise<{ token: string; newToken: string; mnemonic: string }> => {
+  public getAuthDetails = async (): Promise<{
+    token: string;
+    newToken: string;
+    mnemonic: string;
+    user: UserSettings;
+  }> => {
     const loginCredentials = await ConfigService.instance.readUser();
     if (!loginCredentials) {
       throw new Error('Credentials not found, please login first');
@@ -116,6 +122,7 @@ export class AuthService {
       token,
       newToken,
       mnemonic,
+      user: loginCredentials.user,
     };
   };
 }

@@ -58,7 +58,7 @@ describe('PROPFIND request handler', () => {
     });
 
     await requestHandler.handle(request, response);
-    sinon.assert.calledWith(response.status, 200);
+    sinon.assert.calledWith(response.status, 207);
     sinon.assert.calledWith(
       sendStub,
       `<?xml version="1.0" encoding="utf-8" ?><D:multistatus xmlns:D="DAV:"><D:response><D:href>/</D:href><D:propstat><D:status>HTTP/1.1 200 OK</D:status><D:prop><D:getcontenttype>application/octet-stream</D:getcontenttype><x1:lastmodified xmlns:x1="SAR:">${FormatUtils.formatDateForWebDav(folderFixture.updatedAt)}</x1:lastmodified><x2:executable xmlns:x2="http://apache.org/dav/props/">F</x2:executable><x3:Win32FileAttributes xmlns:x3="urn:schemas-microsoft-com:">00000030</x3:Win32FileAttributes><D:resourcetype><D:collection/></D:resourcetype></D:prop></D:propstat></D:response></D:multistatus>`,
@@ -111,7 +111,7 @@ describe('PROPFIND request handler', () => {
     });
 
     await requestHandler.handle(request, response);
-    sinon.assert.calledWith(response.status, 200);
+    sinon.assert.calledWith(response.status, 207);
     sinon.assert.calledWith(
       sendStub,
       `<?xml version="1.0" encoding="utf-8" ?><D:multistatus xmlns:D="DAV:"><D:response><D:href>/</D:href><D:propstat><D:status>HTTP/1.1 200 OK</D:status><D:prop><D:getcontenttype>application/octet-stream</D:getcontenttype><x1:lastmodified xmlns:x1="SAR:">${FormatUtils.formatDateForWebDav(folderFixture.updatedAt)}</x1:lastmodified><x2:executable xmlns:x2="http://apache.org/dav/props/">F</x2:executable><x3:Win32FileAttributes xmlns:x3="urn:schemas-microsoft-com:">00000030</x3:Win32FileAttributes><D:resourcetype><D:collection/></D:resourcetype></D:prop></D:propstat></D:response><D:response><D:href>/${paginatedFolder1.plainName}/</D:href><D:propstat><D:status>HTTP/1.1 200 OK</D:status><D:prop><D:displayname>${paginatedFolder1.plainName}</D:displayname><D:getlastmodified>${FormatUtils.formatDateForWebDav(paginatedFolder1.updatedAt)}</D:getlastmodified><D:getcontentlength>0</D:getcontentlength><D:resourcetype><D:collection/></D:resourcetype></D:prop></D:propstat></D:response></D:multistatus>`,
@@ -152,7 +152,7 @@ describe('PROPFIND request handler', () => {
     });
 
     await requestHandler.handle(request, response);
-    sinon.assert.calledWith(response.status, 200);
+    sinon.assert.calledWith(response.status, 207);
     // TODO: Test the XML response
   });
 
@@ -196,7 +196,7 @@ describe('PROPFIND request handler', () => {
     });
 
     await requestHandler.handle(request, response);
-    sinon.assert.calledWith(response.status, 200);
+    sinon.assert.calledWith(response.status, 207);
     // TODO: Test the XML response
   });
 

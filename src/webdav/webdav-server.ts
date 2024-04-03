@@ -21,6 +21,7 @@ import asyncHandler from 'express-async-handler';
 import { SdkManager } from '../services/sdk-manager.service';
 import { NetworkFacade } from '../services/network/network-facade.service';
 import { NetworkUtils } from '../utils/network.utils';
+import { PUTRequestHandler } from './handlers/PUT.handler';
 
 export class WebDavServer {
   constructor(
@@ -83,6 +84,20 @@ export class WebDavServer {
             driveRealmManager: this.driveRealmManager,
           },
         ).handle,
+      ),
+    );
+    this.app.put(
+      '*',
+      asyncHandler(
+        new PUTRequestHandler({
+          driveFileService: this.driveFileService,
+          driveRealmManager: this.driveRealmManager,
+          uploadService: this.uploadService,
+          downloadService: this.downloadService,
+          cryptoService: this.cryptoService,
+          authService: this.authService,
+          networkFacade: await this.getNetwork(),
+        }).handle,
       ),
     );
   };

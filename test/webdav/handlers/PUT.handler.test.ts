@@ -1,19 +1,23 @@
 import sinon from 'sinon';
 import { createWebDavRequestFixture, createWebDavResponseFixture } from '../../fixtures/webdav.fixture';
-import { GETRequestHandler } from '../../../src/webdav/handlers/GET.handler';
 import { DriveFileService } from '../../../src/services/drive/drive-file.service';
-import { getDriveFileRealmSchemaFixture, getDriveRealmManager } from '../../fixtures/drive-realm.fixture';
+import {
+  getDriveFileRealmSchemaFixture,
+  getDriveFolderRealmSchemaFixture,
+  getDriveRealmManager,
+} from '../../fixtures/drive-realm.fixture';
 import { CryptoService } from '../../../src/services/crypto.service';
 import { DownloadService } from '../../../src/services/network/download.service';
 import { UploadService } from '../../../src/services/network/upload.service';
 import { AuthService } from '../../../src/services/auth.service';
 import { expect } from 'chai';
-import { NotFoundError, NotImplementedError } from '../../../src/utils/errors.utils';
+import { NotFoundError, UnsupportedMediaTypeError } from '../../../src/utils/errors.utils';
 import { SdkManager } from '../../../src/services/sdk-manager.service';
 import { NetworkFacade } from '../../../src/services/network/network-facade.service';
 import { UserFixture } from '../../fixtures/auth.fixture';
+import { PUTRequestHandler } from '../../../src/webdav/handlers/PUT.handler';
 
-describe('GET request handler', () => {
+describe('PUT request handler', () => {
   const sandbox = sinon.createSandbox();
   const getNetworkMock = () => {
     return SdkManager.instance.getNetwork({
@@ -26,14 +30,14 @@ describe('GET request handler', () => {
     sandbox.restore();
   });
 
-  it('When a WebDav client sends a GET request, and it contains a content-range header, should throw a NotImplementedError ', async () => {
+  it('When a WebDav client sends a PUT request and it contains a content-length of 0, then it should throw an UnsupportedMediaTypeError', async () => {
     const networkFacade = new NetworkFacade(
       getNetworkMock(),
       UploadService.instance,
       DownloadService.instance,
       CryptoService.instance,
     );
-    const sut = new GETRequestHandler({
+    const sut = new PUTRequestHandler({
       driveFileService: DriveFileService.instance,
       uploadService: UploadService.instance,
       downloadService: DownloadService.instance,
@@ -44,10 +48,10 @@ describe('GET request handler', () => {
     });
 
     const request = createWebDavRequestFixture({
-      method: 'GET',
+      method: 'PUT',
       url: '/file.txt',
       headers: {
-        'content-range': 'bytes 0-100/200',
+        'content-length': '0',
       },
     });
 
@@ -59,17 +63,17 @@ describe('GET request handler', () => {
       await sut.handle(request, response);
       expect(true).to.be.false;
     } catch (error) {
-      expect(error).to.be.instanceOf(NotImplementedError);
+      expect(error).to.be.instanceOf(UnsupportedMediaTypeError);
     }
   });
 
-  it('When a WebDav client sends a GET request, and the Drive file is not found, should throw a NotFoundError', async () => {
+  it('When a WebDav client sends a PUT request, and the Drive destination folder is not found, then it should throw a NotFoundError', async () => {
     const driveRealmManager = getDriveRealmManager();
     const downloadService = DownloadService.instance;
     const uploadService = UploadService.instance;
     const cryptoService = CryptoService.instance;
     const networkFacade = new NetworkFacade(getNetworkMock(), uploadService, downloadService, cryptoService);
-    const sut = new GETRequestHandler({
+    const sut = new PUTRequestHandler({
       driveFileService: DriveFileService.instance,
       uploadService,
       downloadService,
@@ -80,9 +84,11 @@ describe('GET request handler', () => {
     });
 
     const request = createWebDavRequestFixture({
-      method: 'GET',
+      method: 'PUT',
       url: '/file.txt',
-      headers: {},
+      headers: {
+        'content-length': '100',
+      },
     });
 
     sandbox.stub(driveRealmManager, 'findByRelativePath').returns(null);
@@ -98,14 +104,14 @@ describe('GET request handler', () => {
     }
   });
 
-  it('When a WebDav client sends a GET request, and the Drive file is found, should write a response with the content', async () => {
+  it('When a WebDav client sends a PUT request, and the Drive destination folder is found, then it should upload the file to the folder', async () => {
     const driveRealmManager = getDriveRealmManager();
     const downloadService = DownloadService.instance;
     const uploadService = UploadService.instance;
     const cryptoService = CryptoService.instance;
     const authService = AuthService.instance;
     const networkFacade = new NetworkFacade(getNetworkMock(), uploadService, downloadService, cryptoService);
-    const sut = new GETRequestHandler({
+    const sut = new PUTRequestHandler({
       driveFileService: DriveFileService.instance,
       uploadService,
       downloadService,
@@ -116,19 +122,32 @@ describe('GET request handler', () => {
     });
 
     const request = createWebDavRequestFixture({
-      method: 'GET',
+      method: 'PUT',
       url: '/file.txt',
-      headers: {},
+      headers: {
+        'content-length': '150',
+      },
     });
 
-    const driveFileRealmObject = getDriveFileRealmSchemaFixture({});
+    const driveFileRealmObject = getDriveFileRealmSchemaFixture({ name: 'file' });
+    const driveFolderRealmObject = getDriveFolderRealmSchemaFixture({});
 
-    sandbox.stub(driveRealmManager, 'findByRelativePath').returns(driveFileRealmObject);
+    sandbox
+      .stub(driveRealmManager, 'findByRelativePath')
+      .withArgs('/file.txt')
+      .returns(driveFileRealmObject)
+      .withArgs('/')
+      .returns(driveFolderRealmObject);
     sandbox
       .stub(authService, 'getAuthDetails')
       .resolves({ mnemonic: 'MNEMONIC', token: 'TOKEN', newToken: 'NEW_TOKEN', user: UserFixture });
 
-    sandbox.stub(networkFacade, 'downloadToStream').resolves([Promise.resolve(), new AbortController()]);
+    sandbox
+      .stub(networkFacade, 'uploadFromStream')
+      .resolves([Promise.resolve({ fileId: '09218313209', hash: Buffer.from('test') }), new AbortController()]);
+    sandbox.stub(DriveFileService.instance, 'createFile').resolves();
+    sandbox.stub(driveRealmManager, 'createFile').resolves();
+
     const response = createWebDavResponseFixture({
       status: sandbox.stub().returns({ send: sandbox.stub() }),
     });

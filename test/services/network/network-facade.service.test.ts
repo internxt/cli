@@ -9,7 +9,6 @@ import { expect } from 'chai';
 import { UploadService } from '../../../src/services/network/upload.service';
 import { CryptoService } from '../../../src/services/crypto.service';
 import { DownloadService } from '../../../src/services/network/download.service';
-import { StreamUtils } from '../../../src/utils/stream.utils';
 import { Readable } from 'stream';
 import axios from 'axios';
 
@@ -47,7 +46,7 @@ describe('Network Facade Service', () => {
       'f1858bc9675f9e4f7ab29429',
       'animal fog wink trade december thumb sight cousin crunch plunge captain enforce letter creek text',
       100,
-      StreamUtils.readStreamToReadableStream(readStream),
+      readStream,
       options,
     );
 
@@ -74,7 +73,7 @@ describe('Network Facade Service', () => {
       'f1858bc9675f9e4f7ab29429',
       'animal fog wink trade december thumb sight cousin crunch plunge captain enforce letter creek text',
       100,
-      StreamUtils.readStreamToReadableStream(readStream),
+      readStream,
       options,
     );
 
