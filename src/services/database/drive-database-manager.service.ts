@@ -19,13 +19,8 @@ export class DriveDatabaseManager {
     private driveFolderRepository: DriveFolderRepository,
   ) {}
 
-  static init = () => {
-    DriveDatabaseManager.sequelize = new Sequelize({
-      database: DriveDatabaseManager.DB_NAME,
-      dialect: 'sqlite',
-      storage: ConfigService.DRIVE_SQLITE_FILE,
-      models: [__dirname + '/**/*.model.ts'],
-    });
+  static init = async () => {
+    await DriveDatabaseManager.sequelize.sync();
   };
 
   static clean = async () => {

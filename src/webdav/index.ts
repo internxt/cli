@@ -19,7 +19,7 @@ const init = async () => {
   await ConfigService.instance.ensureWebdavCertsDirExists();
   await ConfigService.instance.ensureInternxtLogsDirExists();
 
-  DriveDatabaseManager.init();
+  await DriveDatabaseManager.init();
 
   new WebDavServer(
     express(),
