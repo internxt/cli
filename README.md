@@ -19,7 +19,7 @@ $ npm install -g @internxt/cli
 $ internxt COMMAND
 running command...
 $ internxt (--version)
-@internxt/cli/0.1.4 darwin-arm64 node-v20.10.0
+@internxt/cli/0.1.4 darwin-arm64 node-v18.16.1
 $ internxt --help [COMMAND]
 USAGE
   $ internxt COMMAND

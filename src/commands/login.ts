@@ -65,7 +65,7 @@ export default class Login extends Command {
     const rootMeta = await DriveFolderService.instance.getFolderMetaById(loginCredentials.user.root_folder_id);
 
     await ConfigService.instance.saveUser(Object.assign(loginCredentials, { root_folder_uuid: rootMeta.uuid }));
-
+    await DriveDatabaseManager.init();
     await DriveDatabaseManager.clean();
 
     CLIUtils.success(`Succesfully logged in to: ${loginCredentials.user.email} `);

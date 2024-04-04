@@ -6,12 +6,14 @@ import { DriveFileRepository } from './drive-file/drive-file.repository';
 import { DriveFolderRepository } from './drive-folder/drive-folder.repository';
 import { DriveFile } from './drive-file/drive-file.domain';
 import { DriveFolder } from './drive-folder/drive-folder.domain';
+import DriveFileModel from './drive-file/drive-file.model';
+import DriveFolderModel from './drive-folder/drive-folder.model';
 
 export class DriveDatabaseManager {
   private static readonly sequelize: Sequelize = new Sequelize({
     dialect: 'sqlite',
     storage: ConfigService.DRIVE_SQLITE_FILE,
-    models: [__dirname + '/**/*.model.ts'],
+    models: [DriveFileModel, DriveFolderModel],
   });
 
   constructor(
