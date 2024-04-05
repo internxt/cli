@@ -18,6 +18,7 @@ import { ValidationService } from '../validation.service';
 import { Readable } from 'node:stream';
 import { Transform } from 'stream';
 import { HashStream } from '../../utils/hash.utils';
+import { ProgressTransform } from '../../utils/stream.utils';
 
 export class NetworkFacade {
   private readonly cryptoLib: Network.Crypto;
@@ -132,14 +133,16 @@ export class NetworkFacade {
     const abortable = options?.abortController ?? new AbortController();
     let fileHash: Buffer;
     let encryptionTransform: Transform;
+    const progressTransform = new ProgressTransform({ totalBytes: size }, (progress) => {
+      if (options?.progressCallback) {
+        options.progressCallback(progress * 0.95);
+      }
+      //console.log('Progress', progress);
+    });
 
     const onProgress: UploadProgressCallback = (progress: number) => {
       if (!options?.progressCallback) return;
       options.progressCallback(progress);
-    };
-
-    const onUploadProgress = (progress: number) => {
-      onProgress(progress * 0.9);
     };
 
     const encryptFile: EncryptFileFunction = async (_, key, iv) => {
@@ -154,9 +157,11 @@ export class NetworkFacade {
     };
 
     const uploadFile: UploadFileFunction = async (url) => {
-      await this.uploadService.uploadFile(url, encryptionTransform, {
+      await this.uploadService.uploadFile(url, encryptionTransform.pipe(progressTransform), {
         abortController: abortable,
-        progressCallback: onUploadProgress,
+        progressCallback: () => {
+          // No progress here, we are using the progressTransform
+        },
       });
 
       return hashStream.getHash().toString('hex');

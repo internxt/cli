@@ -1,4 +1,5 @@
 import { ReadStream, WriteStream } from 'fs';
+import { Transform, TransformCallback } from 'node:stream';
 
 export class StreamUtils {
   static readStreamToReadableStream(readStream: ReadStream): ReadableStream<Uint8Array> {
@@ -62,5 +63,28 @@ export class StreamUtils {
     });
 
     return stream;
+  }
+}
+
+export class ProgressTransform extends Transform {
+  private receivedBytes = 0;
+
+  constructor(
+    private options: { totalBytes: number },
+    private progressCallback: (percentage: number) => void,
+  ) {
+    super();
+  }
+
+  _transform(chunk: Buffer, encoding: BufferEncoding, callback: TransformCallback) {
+    this.receivedBytes += chunk.length;
+    const percentage = this.receivedBytes / this.options.totalBytes;
+    this.progressCallback(percentage);
+    this.push(chunk);
+    callback();
+  }
+
+  _flush(callback: (err: Error | null) => void) {
+    callback(null);
   }
 }
