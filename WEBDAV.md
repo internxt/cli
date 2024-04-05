@@ -15,7 +15,7 @@ No plain data is being sent or is being pulled from the Internxt servers, you ca
 
 ## Officially supported WebDav clients
 
-Below you can find a list that we officially support in the Internxt CLI
+Below you can find a list of WebDav clients that we officially support in the Internxt CLI
 
 |                       | Supported |
 | --------------------- | --------- |
