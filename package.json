@@ -1,6 +1,6 @@
 {
   "author": "PixoDev",
-  "version": "0.1.3",
+  "version": "0.1.5",
   "description": "Internxt CLI to manage your encrypted storage",
   "scripts": {
     "build": "tsc",
@@ -11,7 +11,13 @@
     "prepare": "husky",
     "test:unit": "nyc --reporter=lcov --reporter=text mocha \"test/**/*.test.ts\" --exit",
     "dev:webdav": "nodemon -e ts --exec ts-node src/webdav/index.ts",
-    "version": "oclif readme && git add README.md"
+    "version": "oclif readme && git add README.md",
+    "migrate": "sequelize db:migrate",
+    "migrate:undo": "sequelize db:migrate:undo"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   },
   "homepage": "https://github.com/internxt/cli",
   "license": "MIT",
@@ -27,10 +33,8 @@
     "/oclif.manifest.json"
   ],
   "dependencies": {
-    "@internxt/eslint-config-internxt": "^1.0.9",
     "@internxt/inxt-js": "^2.0.9",
     "@internxt/lib": "^1.2.0",
-    "@internxt/prettier-config": "^1.0.2",
     "@internxt/sdk": "^1.4.76",
     "@oclif/core": "^3",
     "axios": "^1.6.7",
@@ -47,12 +51,17 @@
     "node-fetch": "2",
     "openpgp": "^5.11.1",
     "pm2": "^5.3.1",
-    "realm": "^12.6.2",
+    "reflect-metadata": "^0.2.2",
     "selfsigned": "^2.4.1",
+    "sequelize": "^6.37.2",
+    "sequelize-typescript": "^2.1.6",
+    "sqlite3": "^5.1.7",
     "superagent": "^8.1.2",
     "winston": "^3.12.0"
   },
   "devDependencies": {
+    "@internxt/eslint-config-internxt": "^1.0.9",
+    "@internxt/prettier-config": "^1.0.2",
     "@oclif/prettier-config": "^0.2.1",
     "@oclif/test": "^3",
     "@openpgp/web-stream-tools": "0.0.11-patch-0",
@@ -86,7 +95,7 @@
     "typescript": "^5.4.2"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.0.0"
   },
   "bin": {
     "internxt": "./bin/run.js"

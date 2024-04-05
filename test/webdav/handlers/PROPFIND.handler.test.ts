@@ -6,10 +6,10 @@ import { UserSettingsFixture } from '../../fixtures/auth.fixture';
 import { newFolderItem, newPaginatedFolder } from '../../fixtures/drive.fixture';
 import { createWebDavRequestFixture, createWebDavResponseFixture } from '../../fixtures/webdav.fixture';
 import {
-  getDriveFileRealmSchemaFixture,
-  getDriveFolderRealmSchemaFixture,
-  getDriveRealmManager,
-} from '../../fixtures/drive-realm.fixture';
+  getDriveFileDatabaseFixture,
+  getDriveFolderDatabaseFixture,
+  getDriveDatabaseManager,
+} from '../../fixtures/drive-database.fixture';
 import { FormatUtils } from '../../../src/utils/format.utils';
 
 describe('PROPFIND request handler', () => {
@@ -41,7 +41,7 @@ describe('PROPFIND request handler', () => {
       { debug: true },
       {
         driveFolderService,
-        driveRealmManager: getDriveRealmManager(),
+        driveDatabaseManager: getDriveDatabaseManager(),
       },
     );
 
@@ -96,7 +96,7 @@ describe('PROPFIND request handler', () => {
       { debug: true },
       {
         driveFolderService,
-        driveRealmManager: getDriveRealmManager(),
+        driveDatabaseManager: getDriveDatabaseManager(),
       },
     );
 
@@ -130,14 +130,14 @@ describe('PROPFIND request handler', () => {
       mnemonic: 'MNEMONIC',
     });
 
-    const driveRealmManager = getDriveRealmManager();
-    sandbox.stub(driveRealmManager, 'findByRelativePath').returns(getDriveFileRealmSchemaFixture());
+    const driveDatabaseManager = getDriveDatabaseManager();
+    sandbox.stub(driveDatabaseManager, 'findByRelativePath').resolves(getDriveFileDatabaseFixture());
 
     const requestHandler = new PROPFINDRequestHandler(
       { debug: true },
       {
         driveFolderService,
-        driveRealmManager,
+        driveDatabaseManager,
       },
     );
 
@@ -168,7 +168,7 @@ describe('PROPFIND request handler', () => {
       mnemonic: 'MNEMONIC',
     });
 
-    const driveRealmManager = getDriveRealmManager();
+    const driveDatabaseManager = getDriveDatabaseManager();
     const paginatedFolder1 = newPaginatedFolder();
     sandbox.stub(driveFolderService, 'getFolderContent').resolves({
       files: [],
@@ -176,12 +176,12 @@ describe('PROPFIND request handler', () => {
     });
     const folderFixture = newFolderItem();
     sandbox.stub(driveFolderService, 'getFolderMetaByUuid').resolves(folderFixture);
-    sandbox.stub(driveRealmManager, 'findByRelativePath').returns(getDriveFolderRealmSchemaFixture());
+    sandbox.stub(driveDatabaseManager, 'findByRelativePath').resolves(getDriveFolderDatabaseFixture());
     const requestHandler = new PROPFINDRequestHandler(
       { debug: true },
       {
         driveFolderService,
-        driveRealmManager,
+        driveDatabaseManager,
       },
     );
 
@@ -212,13 +212,13 @@ describe('PROPFIND request handler', () => {
       mnemonic: 'MNEMONIC',
     });
 
-    const driveRealmManager = getDriveRealmManager();
-    sandbox.stub(driveRealmManager, 'findByRelativePath').returns(null);
+    const driveDatabaseManager = getDriveDatabaseManager();
+    sandbox.stub(driveDatabaseManager, 'findByRelativePath').resolves(null);
     const requestHandler = new PROPFINDRequestHandler(
       { debug: true },
       {
         driveFolderService,
-        driveRealmManager,
+        driveDatabaseManager,
       },
     );
 

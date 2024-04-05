@@ -8,7 +8,7 @@ import bodyParser from 'body-parser';
 import { DriveFolderService } from '../services/drive/drive-folder.service';
 import { AuthMiddleware } from './middewares/auth.middleware';
 import { RequestLoggerMiddleware } from './middewares/request-logger.middleware';
-import { DriveRealmManager } from '../services/realms/drive-realm-manager.service';
+import { DriveDatabaseManager } from '../services/database/drive-database-manager.service';
 import { GETRequestHandler } from './handlers/GET.handler';
 import { HEADRequestHandler } from './handlers/HEAD.handler';
 import { DriveFileService } from '../services/drive/drive-file.service';
@@ -29,7 +29,7 @@ export class WebDavServer {
     private configService: ConfigService,
     private driveFileService: DriveFileService,
     private driveFolderService: DriveFolderService,
-    private driveRealmManager: DriveRealmManager,
+    private driveDatabaseManager: DriveDatabaseManager,
     private uploadService: UploadService,
     private downloadService: DownloadService,
     private authService: AuthService,
@@ -64,7 +64,7 @@ export class WebDavServer {
       asyncHandler(
         new GETRequestHandler({
           driveFileService: this.driveFileService,
-          driveRealmManager: this.driveRealmManager,
+          driveDatabaseManager: this.driveDatabaseManager,
           uploadService: this.uploadService,
           downloadService: this.downloadService,
           cryptoService: this.cryptoService,
@@ -81,7 +81,7 @@ export class WebDavServer {
           { debug: true },
           {
             driveFolderService: this.driveFolderService,
-            driveRealmManager: this.driveRealmManager,
+            driveDatabaseManager: this.driveDatabaseManager,
           },
         ).handle,
       ),
@@ -91,7 +91,7 @@ export class WebDavServer {
       asyncHandler(
         new PUTRequestHandler({
           driveFileService: this.driveFileService,
-          driveRealmManager: this.driveRealmManager,
+          driveDatabaseManager: this.driveDatabaseManager,
           uploadService: this.uploadService,
           downloadService: this.downloadService,
           cryptoService: this.cryptoService,

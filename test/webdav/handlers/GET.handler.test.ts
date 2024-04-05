@@ -2,7 +2,7 @@ import sinon from 'sinon';
 import { createWebDavRequestFixture, createWebDavResponseFixture } from '../../fixtures/webdav.fixture';
 import { GETRequestHandler } from '../../../src/webdav/handlers/GET.handler';
 import { DriveFileService } from '../../../src/services/drive/drive-file.service';
-import { getDriveFileRealmSchemaFixture, getDriveRealmManager } from '../../fixtures/drive-realm.fixture';
+import { getDriveFileDatabaseFixture, getDriveDatabaseManager } from '../../fixtures/drive-database.fixture';
 import { CryptoService } from '../../../src/services/crypto.service';
 import { DownloadService } from '../../../src/services/network/download.service';
 import { UploadService } from '../../../src/services/network/upload.service';
@@ -37,7 +37,7 @@ describe('GET request handler', () => {
       driveFileService: DriveFileService.instance,
       uploadService: UploadService.instance,
       downloadService: DownloadService.instance,
-      driveRealmManager: getDriveRealmManager(),
+      driveDatabaseManager: getDriveDatabaseManager(),
       authService: AuthService.instance,
       cryptoService: CryptoService.instance,
       networkFacade,
@@ -64,7 +64,7 @@ describe('GET request handler', () => {
   });
 
   it('When a WebDav client sends a GET request, and the Drive file is not found, should throw a NotFoundError', async () => {
-    const driveRealmManager = getDriveRealmManager();
+    const driveDatabaseManager = getDriveDatabaseManager();
     const downloadService = DownloadService.instance;
     const uploadService = UploadService.instance;
     const cryptoService = CryptoService.instance;
@@ -73,7 +73,7 @@ describe('GET request handler', () => {
       driveFileService: DriveFileService.instance,
       uploadService,
       downloadService,
-      driveRealmManager,
+      driveDatabaseManager,
       authService: AuthService.instance,
       cryptoService,
       networkFacade,
@@ -85,7 +85,7 @@ describe('GET request handler', () => {
       headers: {},
     });
 
-    sandbox.stub(driveRealmManager, 'findByRelativePath').returns(null);
+    sandbox.stub(driveDatabaseManager, 'findByRelativePath').resolves(null);
     const response = createWebDavResponseFixture({
       status: sandbox.stub().returns({ send: sandbox.stub() }),
     });
@@ -99,7 +99,7 @@ describe('GET request handler', () => {
   });
 
   it('When a WebDav client sends a GET request, and the Drive file is found, should write a response with the content', async () => {
-    const driveRealmManager = getDriveRealmManager();
+    const driveDatabaseManager = getDriveDatabaseManager();
     const downloadService = DownloadService.instance;
     const uploadService = UploadService.instance;
     const cryptoService = CryptoService.instance;
@@ -109,7 +109,7 @@ describe('GET request handler', () => {
       driveFileService: DriveFileService.instance,
       uploadService,
       downloadService,
-      driveRealmManager,
+      driveDatabaseManager,
       authService,
       cryptoService,
       networkFacade,
@@ -121,9 +121,9 @@ describe('GET request handler', () => {
       headers: {},
     });
 
-    const driveFileRealmObject = getDriveFileRealmSchemaFixture({});
+    const driveFileDatabaseObject = getDriveFileDatabaseFixture({});
 
-    sandbox.stub(driveRealmManager, 'findByRelativePath').returns(driveFileRealmObject);
+    sandbox.stub(driveDatabaseManager, 'findByRelativePath').resolves(driveFileDatabaseObject);
     sandbox
       .stub(authService, 'getAuthDetails')
       .resolves({ mnemonic: 'MNEMONIC', token: 'TOKEN', newToken: 'NEW_TOKEN', user: UserFixture });

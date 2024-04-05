@@ -2,13 +2,13 @@ import { WebDavMethodHandler, WebDavRequestedResource } from '../../types/webdav
 import { Request, Response } from 'express';
 import { WebDavUtils } from '../../utils/webdav.utils';
 import { DriveFileService } from '../../services/drive/drive-file.service';
-import { DriveRealmManager } from '../../services/realms/drive-realm-manager.service';
+import { DriveDatabaseManager } from '../../services/database/drive-database-manager.service';
 import { NetworkFacade } from '../../services/network/network-facade.service';
 import { UploadService } from '../../services/network/upload.service';
 import { DownloadService } from '../../services/network/download.service';
 import { CryptoService } from '../../services/crypto.service';
 import { AuthService } from '../../services/auth.service';
-import { DriveFileRealmSchema } from '../../services/realms/drive-files.realm';
+import { DriveFile } from '../../services/database/drive-file/drive-file.domain';
 import { NotFoundError, NotImplementedError } from '../../utils/errors.utils';
 import { webdavLogger } from '../../utils/logger.utils';
 
@@ -16,7 +16,7 @@ export class GETRequestHandler implements WebDavMethodHandler {
   constructor(
     private dependencies: {
       driveFileService: DriveFileService;
-      driveRealmManager: DriveRealmManager;
+      driveDatabaseManager: DriveDatabaseManager;
       uploadService: UploadService;
       downloadService: DownloadService;
       cryptoService: CryptoService;
@@ -26,14 +26,14 @@ export class GETRequestHandler implements WebDavMethodHandler {
   ) {}
 
   handle = async (req: Request, res: Response) => {
-    const resource = WebDavUtils.getRequestedResource(req, this.dependencies.driveRealmManager);
+    const resource = await WebDavUtils.getRequestedResource(req, this.dependencies.driveDatabaseManager);
 
     if (req.headers['content-range'] || req.headers['range'])
       throw new NotImplementedError('Range requests not supported');
     if (resource.name.startsWith('._')) throw new NotFoundError('File not found');
 
     webdavLogger.info(`GET request received for file at ${resource.url}`);
-    const driveFile = await this.getDriveFileRealmObject(resource);
+    const driveFile = await this.getDriveFileDatabaseObject(resource);
 
     if (!driveFile) {
       throw new NotFoundError('Drive file not found');
@@ -59,7 +59,7 @@ export class GETRequestHandler implements WebDavMethodHandler {
     const [executeDownload] = await this.dependencies.networkFacade.downloadToStream(
       driveFile.bucket,
       mnemonic,
-      driveFile.file_id,
+      driveFile.fileId,
       writable,
       {
         progressCallback: (progress) => {
@@ -75,11 +75,10 @@ export class GETRequestHandler implements WebDavMethodHandler {
     webdavLogger.info('✅ Download ready, replying to client');
   };
 
-  private async getDriveFileRealmObject(resource: WebDavRequestedResource) {
-    const { driveRealmManager } = this.dependencies;
+  private async getDriveFileDatabaseObject(resource: WebDavRequestedResource) {
+    const { driveDatabaseManager } = this.dependencies;
 
-    const result = driveRealmManager.findByRelativePath(resource.url);
-
-    return result as DriveFileRealmSchema | null;
+    const result = await driveDatabaseManager.findByRelativePath(resource.url);
+    return result as DriveFile | null;
   }
 }

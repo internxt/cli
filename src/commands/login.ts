@@ -3,11 +3,11 @@ import { EmptyPasswordError, NotValidEmailError, NotValidTwoFactorCodeError } fr
 import { AuthService } from '../services/auth.service';
 import { ConfigService } from '../services/config.service';
 import { ValidationService } from '../services/validation.service';
-import { DriveRealmManager } from '../services/realms/drive-realm-manager.service';
 import { CLIUtils } from '../utils/cli.utils';
 import { ErrorUtils } from '../utils/errors.utils';
 import { DriveFolderService } from '../services/drive/drive-folder.service';
 import { SdkManager } from '../services/sdk-manager.service';
+import { DriveDatabaseManager } from '../services/database/drive-database-manager.service';
 
 export default class Login extends Command {
   static readonly args = {};
@@ -65,9 +65,8 @@ export default class Login extends Command {
     const rootMeta = await DriveFolderService.instance.getFolderMetaById(loginCredentials.user.root_folder_id);
 
     await ConfigService.instance.saveUser(Object.assign(loginCredentials, { root_folder_uuid: rootMeta.uuid }));
-
-    const realm = await DriveRealmManager.getRealm();
-    realm.write(() => realm.deleteAll());
+    await DriveDatabaseManager.init();
+    await DriveDatabaseManager.clean();
 
     CLIUtils.success(`Succesfully logged in to: ${loginCredentials.user.email} `);
   }

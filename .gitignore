@@ -16,3 +16,4 @@ oclif.manifest.json
 coverage
 cli.inxt
 *.log
+.vscode

@@ -1,22 +1,22 @@
 import { Request, Response } from 'express';
 import { DriveFileService } from '../../services/drive/drive-file.service';
-import { DriveRealmManager } from '../../services/realms/drive-realm-manager.service';
 import { NetworkFacade } from '../../services/network/network-facade.service';
 import { UploadService } from '../../services/network/upload.service';
 import { DownloadService } from '../../services/network/download.service';
 import { CryptoService } from '../../services/crypto.service';
 import { AuthService } from '../../services/auth.service';
-import { DriveFolderRealmSchema } from '../../services/realms/drive-folders.realm';
 import { WebDavMethodHandler, WebDavRequestedResource } from '../../types/webdav.types';
 import { NotFoundError, UnsupportedMediaTypeError } from '../../utils/errors.utils';
 import { WebDavUtils } from '../../utils/webdav.utils';
 import { webdavLogger } from '../../utils/logger.utils';
+import { DriveDatabaseManager } from '../../services/database/drive-database-manager.service';
+import DriveFolderModel from '../../services/database/drive-folder/drive-folder.model';
 
 export class PUTRequestHandler implements WebDavMethodHandler {
   constructor(
     private dependencies: {
       driveFileService: DriveFileService;
-      driveRealmManager: DriveRealmManager;
+      driveDatabaseManager: DriveDatabaseManager;
       uploadService: UploadService;
       downloadService: DownloadService;
       cryptoService: CryptoService;
@@ -31,7 +31,7 @@ export class PUTRequestHandler implements WebDavMethodHandler {
       throw new UnsupportedMediaTypeError('Empty files are not supported');
     }
 
-    const resource = WebDavUtils.getRequestedResource(req, this.dependencies.driveRealmManager);
+    const resource = await WebDavUtils.getRequestedResource(req, this.dependencies.driveDatabaseManager);
     const driveFolder = await this.getDriveFolderRealmObject(resource);
 
     webdavLogger.info(`PUT request received for uploading file '${resource.name}' to '${resource.path.dir}'`);
@@ -68,15 +68,15 @@ export class PUTRequestHandler implements WebDavMethodHandler {
 
     webdavLogger.info('✅ File uploaded to internxt drive');
 
-    this.dependencies.driveRealmManager.createFile(file);
+    this.dependencies.driveDatabaseManager.createFile(file);
 
     res.status(200);
     res.send();
   };
 
   private async getDriveFolderRealmObject(resource: WebDavRequestedResource) {
-    const { driveRealmManager } = this.dependencies;
-    const result = driveRealmManager.findByRelativePath(resource.path.dir);
-    return result as DriveFolderRealmSchema | null;
+    const { driveDatabaseManager } = this.dependencies;
+    const result = await driveDatabaseManager.findByRelativePath(resource.path.dir);
+    return result as DriveFolderModel | null;
   }
 }

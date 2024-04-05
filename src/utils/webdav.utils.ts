@@ -1,27 +1,30 @@
 import { Request } from 'express';
 import path from 'path';
 import { WebDavRequestedResource } from '../types/webdav.types';
-import { DriveRealmManager } from '../services/realms/drive-realm-manager.service';
-import { DriveFolderRealmSchema } from '../services/realms/drive-folders.realm';
-import { DriveFileRealmSchema } from '../services/realms/drive-files.realm';
+import { DriveDatabaseManager } from '../services/database/drive-database-manager.service';
+import { DriveFolder } from '../services/database/drive-folder/drive-folder.domain';
+import { DriveFile } from '../services/database/drive-file/drive-file.domain';
 
 export class WebDavUtils {
   static joinURL(...pathComponents: string[]): string {
     return path.posix.join(...pathComponents);
   }
 
-  static getRequestedResource(req: Request, driveRealmManager: DriveRealmManager): WebDavRequestedResource {
+  static async getRequestedResource(
+    req: Request,
+    driveDatabaseManager: DriveDatabaseManager,
+  ): Promise<WebDavRequestedResource> {
     const decodedUrl = decodeURI(req.url);
     const parsedPath = path.parse(decodedUrl);
 
     let isFolder = req.url.endsWith('/');
 
     if (!isFolder) {
-      const findRealmItem = driveRealmManager.findByRelativePath(decodedUrl);
-      if (findRealmItem) {
-        if (findRealmItem instanceof DriveFileRealmSchema) {
+      const findDatabaseItem = await driveDatabaseManager.findByRelativePath(decodedUrl);
+      if (findDatabaseItem) {
+        if (findDatabaseItem instanceof DriveFile) {
           isFolder = false;
-        } else if (findRealmItem instanceof DriveFolderRealmSchema) {
+        } else if (findDatabaseItem instanceof DriveFolder) {
           isFolder = true;
         }
       }
