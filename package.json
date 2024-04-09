@@ -1,6 +1,6 @@
 {
   "author": "PixoDev",
-  "version": "0.1.5",
+  "version": "0.1.14",
   "description": "Internxt CLI to manage your encrypted storage",
   "scripts": {
     "build": "tsc",
@@ -13,7 +13,9 @@
     "dev:webdav": "nodemon -e ts --exec ts-node src/webdav/index.ts",
     "version": "oclif readme && git add README.md",
     "migrate": "sequelize db:migrate",
-    "migrate:undo": "sequelize db:migrate:undo"
+    "migrate:undo": "sequelize db:migrate:undo",
+    "publish:npm": "npm run build && npm publish --scope=@internxt --registry=https://registry.npmjs.org/ --access public",
+    "publish:github": "npm publish"
   },
   "publishConfig": {
     "access": "public",
@@ -33,8 +35,8 @@
     "/oclif.manifest.json"
   ],
   "dependencies": {
-    "@internxt/inxt-js": "^2.0.9",
-    "@internxt/lib": "^1.2.0",
+    "@internxt/inxt-js": "^2.0.11",
+    "@internxt/lib": "^1.2.1",
     "@internxt/sdk": "^1.4.76",
     "@oclif/core": "^3",
     "axios": "^1.6.7",
@@ -108,7 +110,7 @@
     "topicSeparator": " ",
     "topics": {},
     "hooks": {
-      "prerun": "./dist/hooks/prerun/auth_check"
+      "prerun": "./hooks/prerun/auth_check"
     },
     "macos": {
       "identifier": "com.internxt.cli"

@@ -1328,10 +1328,10 @@
     "@typescript-eslint/parser" "^5.4.0"
     eslint-config-prettier "^8.3.0"
 
-"@internxt/inxt-js@^2.0.9":
-  version "2.0.9"
-  resolved "https://npm.pkg.github.com/download/@internxt/inxt-js/2.0.9/063402c354b4c2d2052ae0cf1b38a37517abd833#063402c354b4c2d2052ae0cf1b38a37517abd833"
-  integrity sha512-ErH7L35JM8G0nOyEOKDRbF3NF4MsEhm/dbmUFkt4lfz1B3WIF+ocz92uCAdEej8Xdf/JAOsiclY9u94CLe1cHw==
+"@internxt/inxt-js@^2.0.11":
+  version "2.0.11"
+  resolved "https://registry.yarnpkg.com/@internxt/inxt-js/-/inxt-js-2.0.11.tgz#69566385d83e527031f63f48d475898cd66bbc43"
+  integrity sha512-TXOYEOOZJGHTsMd8CXJqBQanR8Vu9RNjLP2dkmnXr9Qfqfqr1UpV6rWvF4e4pJAj0ZQDGSYxeqPXm3LXRL0FkQ==
   dependencies:
     "@internxt/lib" "^1.1.6"
     "@internxt/sdk" "^1.4.27"
@@ -1341,10 +1341,15 @@
     undici "^5.5.1"
     winston "^3.3.3"
 
-"@internxt/lib@^1.1.6", "@internxt/lib@^1.2.0":
+"@internxt/lib@^1.1.6":
   version "1.2.0"
   resolved "https://npm.pkg.github.com/download/@internxt/lib/1.2.0/172d7929abb3dc34fda044ad9977875791f7a471#172d7929abb3dc34fda044ad9977875791f7a471"
   integrity sha512-14byNxSU0S0KSc3g+BWiJb7/fcHUfqxkHQRz9fwJhAHNmgOo+Bhx13xXk07KKUzeNX1JymSGEZkVCk0AOQiM+Q==
+
+"@internxt/lib@^1.2.1":
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/@internxt/lib/-/lib-1.2.1.tgz#fcf83351a178ec6d6038a4a0e251f2065340948b"
+  integrity sha512-Vepa2uEBPuvtqAPDhA5mgGYl6byZMaRWH0z67vPXoOb4cIfv++S8xXGaOmAUVBktwbhCE4lWuTgT6BN2N19INQ==
 
 "@internxt/prettier-config@^1.0.2":
   version "1.0.2"
