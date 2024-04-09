@@ -6,7 +6,7 @@ import { MissingCredentialsError } from '../../types/command.types';
 
 const CommandsToSkip = ['whoami', 'login', 'logout'];
 const hook: Hook<'prerun'> = async function (opts) {
-  if (!CommandsToSkip.includes(opts.Command.name)) {
+  if (!CommandsToSkip.includes(opts.Command.name.toLowerCase())) {
     CLIUtils.doing('Checking credentials');
     try {
       const { token, newToken } = await AuthService.instance.getAuthDetails();
