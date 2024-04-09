@@ -9,7 +9,6 @@ import {
   Table,
   Unique,
 } from 'sequelize-typescript';
-import { FileStatus } from '@internxt/sdk/dist/drive/storage/types';
 import { DriveFileAttributes } from './drive-file.attributes';
 
 @Table({
@@ -49,12 +48,7 @@ export class DriveFileModel extends Model implements DriveFileAttributes {
   @Column(DataType.BIGINT)
   declare size: number;
 
-  @Column({
-    type: DataType.ENUM,
-    values: Object.values(FileStatus),
-    defaultValue: FileStatus.EXISTS,
-    allowNull: false,
-  })
+  @Column(DataType.STRING)
   declare status: string;
 
   @Column(DataType.DATE)
