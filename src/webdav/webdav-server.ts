@@ -22,6 +22,11 @@ import { SdkManager } from '../services/sdk-manager.service';
 import { NetworkFacade } from '../services/network/network-facade.service';
 import { NetworkUtils } from '../utils/network.utils';
 import { PUTRequestHandler } from './handlers/PUT.handler';
+import { MKCOLRequestHandler } from './handlers/MKCOL.handler';
+import { DELETERequestHandler } from './handlers/DELETE.handler';
+import { PROPPATCHRequestHandler } from './handlers/PROPPATCH.handler';
+import { MOVERequestHandler } from './handlers/MOVE.handler';
+import { COPYRequestHandler } from './handlers/COPY.handler';
 
 export class WebDavServer {
   constructor(
@@ -100,6 +105,12 @@ export class WebDavServer {
         }).handle,
       ),
     );
+
+    this.app.mkcol('*', asyncHandler(new MKCOLRequestHandler().handle));
+    this.app.delete('*', asyncHandler(new DELETERequestHandler().handle));
+    this.app.proppatch('*', asyncHandler(new PROPPATCHRequestHandler().handle));
+    this.app.move('*', asyncHandler(new MOVERequestHandler().handle));
+    this.app.copy('*', asyncHandler(new COPYRequestHandler().handle));
   };
 
   async start() {

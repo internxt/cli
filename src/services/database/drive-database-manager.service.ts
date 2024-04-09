@@ -14,6 +14,7 @@ export class DriveDatabaseManager {
     dialect: 'sqlite',
     storage: ConfigService.DRIVE_SQLITE_FILE,
     models: [DriveFileModel, DriveFolderModel],
+    logging: false,
   });
 
   constructor(
