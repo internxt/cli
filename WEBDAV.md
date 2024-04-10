@@ -4,6 +4,8 @@ The Internxt CLI comes with built in WebDav support.
 
 ## How it works
 
+When you login with Internxt CLI, your session and some other configuration data are stored in your local home folder. These data will be used for both the CLI and WebDAV. Restarting the computer or uninstalling the CLI will not erase this configuration. The only way to properly clean up this configuration is by explicitly using the logout command.
+
 The WebDav feature works by exposing a local only server in your machine when enabled.
 
 - When you download a file, the WebDav local server decrypts your data and sends it to the WebDav client
@@ -19,7 +21,6 @@ Below you can find a list of WebDav clients that we officially support in the In
 
 |                       | Supported |
 | --------------------- | --------- |
-| Windows Explorer      | ✅        |
 | MacOS Finder          | ✅        |
 | CyberDuck for Windows | ✅        |
 | CyberDuck for MacOS   | ✅        |
@@ -42,10 +43,13 @@ Find below the methods that are supported in the latest version of the Internxt 
 | PROPPATCH | ❌        |
 | MKCOL     | ❌        |
 | COPY      | ❌        |
+| MOVE      | ❌        |
 
 ## Usage
 
+- Log into your account with `internxt login`
 - Enable WebDav with `internxt webdav enable`
+- Access to your files via WebDAV with your preferred client
 - Disable WebDav with `internxt webdav disable`
 
 ## Known issues
