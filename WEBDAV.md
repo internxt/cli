@@ -51,8 +51,10 @@ Find below the methods that are supported in the latest version of the Internxt 
 
 - Log into your account with `internxt login`
 - Enable WebDav with `internxt webdav enable`
-- Access to your files via WebDAV with your preferred client
+- Access your files via WebDAV with any of our supported clients by using https://webdav.local.internxt.com:3005
 - Disable WebDav with `internxt webdav disable`
+
+*webdav.local.internxt.com is simply a DNS record that points to the localhost IP address 127.0.0.1
 
 ## Known issues
 
