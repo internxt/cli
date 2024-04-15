@@ -4,7 +4,7 @@ The Internxt CLI comes with built in WebDav support.
 
 ## How it works
 
-When you login with Internxt CLI, your session and some other configuration data are stored in your local home folder. These data will be used for both the CLI and WebDAV. Restarting the computer or uninstalling the CLI will not erase this configuration. The only way to properly clean up this configuration is by explicitly using the logout command.
+When you login with Internxt CLI, your auth tokens and your decrypted mnemonic are stored in your local home folder. These data will be used for both the CLI and WebDAV. Restarting the computer or uninstalling the CLI will not erase this configuration. The only way to properly clean up this configuration is by explicitly using the logout command.
 
 The WebDav feature works by exposing a local only server in your machine when enabled.
 
@@ -47,14 +47,17 @@ Find below the methods that are supported in the latest version of the Internxt 
 | COPY      | ❌        |
 | MOVE      | ❌        |
 
+## Requisites
+
+- Installed Node >= v20.0.0
+- Internxt CLI is installed on its latest version
+
 ## Usage
 
 - Log into your account with `internxt login`
 - Enable WebDav with `internxt webdav enable`
-- Access your files via WebDAV with any of our supported clients by using https://webdav.local.internxt.com:3005
+- Access your files via WebDAV with any of our supported clients by using https://webdav.local.internxt.com:3005 or https://127.0.0.1:3005
 - Disable WebDav with `internxt webdav disable`
-
-*webdav.local.internxt.com is simply a DNS record that points to the localhost IP address 127.0.0.1
 
 ## Known issues
 

@@ -306,3 +306,7 @@ EXAMPLES
 
 _See code: [src/commands/whoami.ts](https://github.com/internxt/cli/blob/v0.1.19/src/commands/whoami.ts)_
 <!-- commandsstop -->
+
+# Current Limitations
+
+- We currently have a 5GB size upload limitation per file for both, CLI and WebDAV
