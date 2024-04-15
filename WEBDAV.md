@@ -4,7 +4,7 @@ The Internxt CLI comes with built in WebDav support.
 
 ## How it works
 
-When you login with Internxt CLI, your auth tokens and your decrypted mnemonic are stored in your local home folder. These data will be used for both the CLI and WebDAV. Restarting the computer or uninstalling the CLI will not erase this configuration. The only way to properly clean up this configuration is by explicitly using the logout command.
+When you login with Internxt CLI, your auth tokens and your decrypted mnemonic are stored in your local home folder. These data will be used for both the CLI and WebDAV. Restarting the computer or uninstalling the CLI will not erase this configuration. The only way to properly clean up this configuration is by explicitly using the logout command or by removing the '.internxt-cli' folder located in your home directory.
 
 The WebDav feature works by exposing a local only server in your machine when enabled.
 
