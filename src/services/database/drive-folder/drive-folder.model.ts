@@ -25,6 +25,9 @@ export class DriveFolderModel extends Model implements DriveFolderAttributes {
   @Column(DataType.STRING)
   declare name: string;
 
+  @Column(DataType.STRING)
+  declare status: 'EXISTS' | 'TRASHED';
+
   @Unique
   @Column(DataType.UUIDV4)
   declare uuid: string;

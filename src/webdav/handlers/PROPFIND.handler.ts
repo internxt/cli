@@ -31,6 +31,7 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
           const rootFolder = await this.dependencies.driveFolderService.getFolderMetaById(req.user.rootFolderId);
           await this.dependencies.driveDatabaseManager.createFolder({
             name: '',
+            status: 'EXISTS',
             encryptedName: rootFolder.name,
             bucket: rootFolder.bucket,
             id: rootFolder.id,
@@ -127,6 +128,7 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
         {
           name: folder.plainName,
           bucket: folder.bucket,
+          status: folder.deleted || folder.removed ? 'TRASHED' : 'EXISTS',
           createdAt: new Date(folder.createdAt),
           updatedAt: new Date(folder.updatedAt),
           id: folder.id,
@@ -143,10 +145,12 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
         ...folder,
         name: folder.plainName,
         encryptedName: folder.name,
+        status: folder.deleted || folder.removed ? 'TRASHED' : 'EXISTS',
       });
     });
 
     const filesXML = folderContent.files.map((file) => {
+      console.log('FILE', file.status);
       const fileRelativePath = WebDavUtils.joinURL(
         relativePath,
         file.type ? `${file.plainName}.${file.type}` : file.plainName,

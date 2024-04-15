@@ -14,6 +14,7 @@ import { AuthService } from '../../src/services/auth.service';
 import { CryptoService } from '../../src/services/crypto.service';
 import { ConfigKeys } from '../../src/types/config.types';
 import { NetworkUtils } from '../../src/utils/network.utils';
+import { TrashService } from '../../src/services/drive/trash.service';
 
 describe('WebDav server', () => {
   const sandbox = sinon.createSandbox();
@@ -52,6 +53,7 @@ describe('WebDav server', () => {
       DownloadService.instance,
       AuthService.instance,
       CryptoService.instance,
+      TrashService.instance,
     );
     server.start();
 

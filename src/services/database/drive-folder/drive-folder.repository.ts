@@ -1,4 +1,5 @@
 import { DriveFolderItem } from '../../../types/drive.types';
+import { DriveFolderAttributes } from './drive-folder.attributes';
 import { DriveFolder } from './drive-folder.domain';
 import { DriveFolderModel } from './drive-folder.model';
 
@@ -28,6 +29,21 @@ export class DriveFolderRepository {
     });
     const newFolder = await DriveFolderModel.create({ ...driveFolder.toJSON() });
     return this.toDomain(newFolder);
+  };
+
+  updateFolder = async (
+    id: number,
+    driveFolderItemAttributes: Partial<Pick<DriveFolderAttributes, 'name' | 'relativePath' | 'status'>>,
+  ): Promise<DriveFolder | null> => {
+    const existingFolder = await DriveFolderModel.findByPk(id);
+    if (!existingFolder) return null;
+
+    existingFolder.updatedAt = new Date();
+    existingFolder.status = driveFolderItemAttributes.status ?? existingFolder.status;
+    existingFolder.name = driveFolderItemAttributes.name ?? existingFolder.name;
+    existingFolder.relativePath = driveFolderItemAttributes.relativePath ?? existingFolder.relativePath;
+
+    return existingFolder.save();
   };
 
   toDomain = (model: DriveFolderModel): DriveFolder => {

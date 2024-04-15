@@ -23,6 +23,7 @@ export const newFolderItem = (attributes?: Partial<DriveFolderItem>): DriveFolde
     encryptedName: crypto.randomBytes(16).toString('hex'),
     createdAt: new Date(),
     updatedAt: new Date(),
+    status: 'EXISTS',
   };
   return { ...folder, ...attributes };
 };
