@@ -12,6 +12,7 @@
     "test:unit": "nyc --reporter=lcov --reporter=text mocha \"test/**/*.test.ts\" --exit",
     "dev:webdav": "nodemon -e ts --exec ts-node src/webdav/index.ts",
     "version": "oclif readme && git add README.md",
+    "pack:win": "oclif pack win",
     "migrate": "sequelize db:migrate",
     "migrate:undo": "sequelize db:migrate:undo",
     "publish:npm": "npm run build && npm publish --scope=@internxt --registry=https://registry.npmjs.org/ --access public",
