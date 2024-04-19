@@ -8,8 +8,6 @@ import { DriveFile } from './drive-file/drive-file.domain';
 import { DriveFolder } from './drive-folder/drive-folder.domain';
 import DriveFileModel from './drive-file/drive-file.model';
 import DriveFolderModel from './drive-folder/drive-folder.model';
-import { DriveFileAttributes } from './drive-file/drive-file.attributes';
-import { DriveFolderAttributes } from './drive-folder/drive-folder.attributes';
 
 export class DriveDatabaseManager {
   private static readonly sequelize: Sequelize = new Sequelize({
@@ -92,14 +90,11 @@ export class DriveDatabaseManager {
     return WebDavUtils.joinURL(parentPath, folderName, '/');
   };
 
-  updateFile = async (id: number, payload: Partial<Pick<DriveFileAttributes, 'status' | 'relativePath' | 'name'>>) => {
-    return await this.driveFileRepository.updateFile(id, payload);
+  deleteFile = (id: number): Promise<void> => {
+    return this.driveFileRepository.deleteById(id);
   };
 
-  updateFolder = async (
-    id: number,
-    payload: Partial<Pick<DriveFolderAttributes, 'name' | 'relativePath' | 'status'>>,
-  ) => {
-    return await this.driveFolderRepository.updateFolder(id, payload);
+  deleteFolder = (id: number): Promise<void> => {
+    return this.driveFolderRepository.deleteById(id);
   };
 }

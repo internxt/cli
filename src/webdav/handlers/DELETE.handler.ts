@@ -22,15 +22,11 @@ export class DELETERequestHandler implements WebDavMethodHandler {
     });
 
     if (resource.type === 'folder') {
-      await this.dependencies.driveDatabaseManager.updateFolder(databaseItem.id, {
-        status: 'TRASHED',
-      });
+      await this.dependencies.driveDatabaseManager.deleteFolder(databaseItem.id);
     }
 
     if (resource.type === 'file') {
-      await this.dependencies.driveDatabaseManager.updateFile(databaseItem.id, {
-        status: 'TRASHED',
-      });
+      await this.dependencies.driveDatabaseManager.deleteFile(databaseItem.id);
     }
 
     res.status(204).send();

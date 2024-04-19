@@ -56,7 +56,7 @@ describe('DELETE request handler', () => {
     const driveFileDatabaseObject = getDriveFileDatabaseFixture({});
 
     sandbox.stub(driveDatabaseManager, 'findByRelativePath').resolves(driveFileDatabaseObject);
-    const updateFileStub = sandbox.stub(driveDatabaseManager, 'updateFile').resolves();
+    const deleteFileStub = sandbox.stub(driveDatabaseManager, 'deleteFile').resolves();
     const trashItemsStub = sandbox.stub(trashService, 'trashItems').resolves();
 
     const response = createWebDavResponseFixture({
@@ -65,7 +65,7 @@ describe('DELETE request handler', () => {
 
     await requestHandler.handle(request, response);
     expect(response.status.calledWith(204)).to.be.true;
-    expect(updateFileStub.calledOnce).to.be.true;
+    expect(deleteFileStub.calledOnce).to.be.true;
     expect(trashItemsStub.calledWith({ items: [{ type: 'file', uuid: driveFileDatabaseObject.uuid }] })).to.be.true;
   });
 
@@ -85,7 +85,7 @@ describe('DELETE request handler', () => {
     const driveFolderDatabaseObject = getDriveFolderDatabaseFixture({});
 
     sandbox.stub(driveDatabaseManager, 'findByRelativePath').resolves(driveFolderDatabaseObject);
-    const updateFolderStub = sandbox.stub(driveDatabaseManager, 'updateFolder').resolves();
+    const deleteFolderStub = sandbox.stub(driveDatabaseManager, 'deleteFolder').resolves();
     const trashItemsStub = sandbox.stub(trashService, 'trashItems').resolves();
 
     const response = createWebDavResponseFixture({
@@ -94,7 +94,7 @@ describe('DELETE request handler', () => {
 
     await requestHandler.handle(request, response);
     expect(response.status.calledWith(204)).to.be.true;
-    expect(updateFolderStub.calledOnce).to.be.true;
+    expect(deleteFolderStub.calledOnce).to.be.true;
     expect(trashItemsStub.calledWith({ items: [{ type: 'folder', uuid: driveFolderDatabaseObject.uuid }] })).to.be.true;
   });
 });
