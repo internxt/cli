@@ -9,7 +9,6 @@ import {
 import { TrashService } from '../../../src/services/drive/trash.service';
 import { expect } from 'chai';
 import { NotFoundError } from '../../../src/utils/errors.utils';
-import { create } from 'domain';
 
 describe('DELETE request handler', () => {
   const sandbox = sinon.createSandbox();
