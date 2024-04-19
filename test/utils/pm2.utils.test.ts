@@ -18,7 +18,6 @@ describe('PM2 utils', () => {
   it('When connecting, and daemon is not available, should reject', async () => {
     const error = new Error('Failed to connect');
     sandbox.stub(pm2, 'connect').callsFake((callback) => {
-      console.log('ARGS', callback);
       // @ts-expect-error - The error callback does not include an error
 
       callback(error);

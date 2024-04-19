@@ -137,7 +137,6 @@ export class NetworkFacade {
       if (options?.progressCallback) {
         options.progressCallback(progress * 0.95);
       }
-      //console.log('Progress', progress);
     });
 
     const onProgress: UploadProgressCallback = (progress: number) => {

@@ -150,7 +150,6 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
     });
 
     const filesXML = folderContent.files.map((file) => {
-      console.log('FILE', file.status);
       const fileRelativePath = WebDavUtils.joinURL(
         relativePath,
         file.type ? `${file.plainName}.${file.type}` : file.plainName,
