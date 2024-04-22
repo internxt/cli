@@ -11,6 +11,7 @@ import { UploadService } from '../services/network/upload.service';
 import { DownloadService } from '../services/network/download.service';
 import { AuthService } from '../services/auth.service';
 import { CryptoService } from '../services/crypto.service';
+import { TrashService } from '../services/drive/trash.service';
 
 dotenv.config();
 
@@ -31,6 +32,7 @@ const init = async () => {
     DownloadService.instance,
     AuthService.instance,
     CryptoService.instance,
+    TrashService.instance,
   )
     .start()
     .then()

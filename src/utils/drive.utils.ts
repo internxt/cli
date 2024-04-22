@@ -24,6 +24,7 @@ export class DriveUtils {
       uuid: folderMeta.uuid,
       id: folderMeta.id,
       bucket: folderMeta.bucket,
+      status: folderMeta.deleted || folderMeta.removed ? 'TRASHED' : 'EXISTS',
       name: folderMeta.plainName ?? folderMeta.name,
       encryptedName: folderMeta.name,
       parentId: folderMeta.parentId,

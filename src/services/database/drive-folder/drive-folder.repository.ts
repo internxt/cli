@@ -17,8 +17,8 @@ export class DriveFolderRepository {
     return folder ? this.toDomain(folder) : null;
   };
 
-  deleteById = (id: DriveFolder['id']): Promise<number> => {
-    return DriveFolderModel.destroy({ where: { id } });
+  deleteById = async (id: DriveFolder['id']): Promise<void> => {
+    await DriveFolderModel.destroy({ where: { id } });
   };
 
   createFolder = async (driveFolderItem: DriveFolderItem, relativePath: string): Promise<DriveFolder> => {

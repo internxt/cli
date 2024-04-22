@@ -27,6 +27,7 @@ import { DELETERequestHandler } from './handlers/DELETE.handler';
 import { PROPPATCHRequestHandler } from './handlers/PROPPATCH.handler';
 import { MOVERequestHandler } from './handlers/MOVE.handler';
 import { COPYRequestHandler } from './handlers/COPY.handler';
+import { TrashService } from '../services/drive/trash.service';
 
 export class WebDavServer {
   constructor(
@@ -39,6 +40,7 @@ export class WebDavServer {
     private downloadService: DownloadService,
     private authService: AuthService,
     private cryptoService: CryptoService,
+    private trashService: TrashService,
   ) {}
 
   private async getNetwork() {
@@ -107,7 +109,15 @@ export class WebDavServer {
     );
 
     this.app.mkcol('*', asyncHandler(new MKCOLRequestHandler().handle));
-    this.app.delete('*', asyncHandler(new DELETERequestHandler().handle));
+    this.app.delete(
+      '*',
+      asyncHandler(
+        new DELETERequestHandler({
+          driveDatabaseManager: this.driveDatabaseManager,
+          trashService: this.trashService,
+        }).handle,
+      ),
+    );
     this.app.proppatch('*', asyncHandler(new PROPPATCHRequestHandler().handle));
     this.app.move('*', asyncHandler(new MOVERequestHandler().handle));
     this.app.copy('*', asyncHandler(new COPYRequestHandler().handle));

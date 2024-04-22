@@ -17,8 +17,8 @@ export class DriveFileRepository {
     return file ? this.toDomain(file) : null;
   };
 
-  deleteById = (id: DriveFile['id']): Promise<number> => {
-    return DriveFileModel.destroy({ where: { id } });
+  deleteById = async (id: DriveFile['id']): Promise<void> => {
+    await DriveFileModel.destroy({ where: { id } });
   };
 
   createFile = async (driveFileItem: DriveFileItem, relativePath: string): Promise<DriveFile> => {

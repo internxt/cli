@@ -89,4 +89,12 @@ export class DriveDatabaseManager {
 
     return WebDavUtils.joinURL(parentPath, folderName, '/');
   };
+
+  deleteFile = (id: number): Promise<void> => {
+    return this.driveFileRepository.deleteById(id);
+  };
+
+  deleteFolder = (id: number): Promise<void> => {
+    return this.driveFolderRepository.deleteById(id);
+  };
 }

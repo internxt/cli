@@ -1,8 +1,34 @@
+import { Request, Response } from 'express';
 import { WebDavMethodHandler } from '../../types/webdav.types';
-import { NotImplementedError } from '../../utils/errors.utils';
+import { NotFoundError } from '../../utils/errors.utils';
+import { WebDavUtils } from '../../utils/webdav.utils';
+import { DriveDatabaseManager } from '../../services/database/drive-database-manager.service';
+import { TrashService } from '../../services/drive/trash.service';
+import { webdavLogger } from '../../utils/logger.utils';
 
 export class DELETERequestHandler implements WebDavMethodHandler {
-  async handle() {
-    throw new NotImplementedError('DELETE is not implemented yet.');
-  }
+  constructor(private dependencies: { driveDatabaseManager: DriveDatabaseManager; trashService: TrashService }) {}
+  handle = async (req: Request, res: Response) => {
+    webdavLogger.info('DELETE request received');
+    const resource = await WebDavUtils.getRequestedResource(req, this.dependencies.driveDatabaseManager);
+    webdavLogger.info('Resource found for DELETE request', { resource });
+    const databaseItem = await this.dependencies.driveDatabaseManager.findByRelativePath(resource.url);
+
+    if (!databaseItem) throw new NotFoundError('Resource not found');
+
+    webdavLogger.info(`Trashing ${resource.type} with UUID ${databaseItem.uuid}...`);
+    await this.dependencies.trashService.trashItems({
+      items: [{ type: resource.type, uuid: databaseItem.uuid }],
+    });
+
+    if (resource.type === 'folder') {
+      await this.dependencies.driveDatabaseManager.deleteFolder(databaseItem.id);
+    }
+
+    if (resource.type === 'file') {
+      await this.dependencies.driveDatabaseManager.deleteFile(databaseItem.id);
+    }
+
+    res.status(204).send();
+  };
 }
