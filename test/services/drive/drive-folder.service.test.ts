@@ -6,6 +6,7 @@ import { DriveFolderService } from '../../../src/services/drive/drive-folder.ser
 import { SdkManager } from '../../../src/services/sdk-manager.service';
 import { DriveUtils } from '../../../src/utils/drive.utils';
 import { generateSubcontent, newFolderMeta } from '../../fixtures/drive.fixture';
+import { CreateFolderResponse } from '@internxt/sdk/dist/drive/storage/types';
 
 describe('Drive folder Service', () => {
   let sut: DriveFolderService;
@@ -75,5 +76,30 @@ describe('Drive folder Service', () => {
     const resultContent = await sut.getFolderContent(parentUuid);
 
     expect(subContentFixture).to.deep.equal(resultContent);
+  });
+
+  it('When a folder is created, the new folder and a request canceler are returned', async () => {
+    const newFolderResponse: CreateFolderResponse = {
+      parentId: 123,
+      bucket: 'bucket1',
+      id: 0,
+      name: 'folder-1',
+      plain_name: 'folder-1',
+      createdAt: '',
+      updatedAt: '',
+      userId: 0,
+      uuid: '1234-5678-9012-3456',
+    };
+    sandbox
+      .stub(Storage.prototype, 'createFolder')
+      .returns([Promise.resolve<CreateFolderResponse>(newFolderResponse), { cancel: () => {} }]);
+    sandbox.stub(SdkManager.instance, 'getStorage').returns(Storage.prototype);
+    const [createFolder] = sut.createFolder({
+      folderName: 'folder-1',
+      parentFolderId: 123,
+    });
+
+    const newFolder = await createFolder;
+    expect(newFolder.plain_name).to.be.eq('folder-1');
   });
 });
