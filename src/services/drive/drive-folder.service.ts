@@ -3,6 +3,7 @@ import { SdkManager } from '../sdk-manager.service';
 import { Storage, StorageTypes } from '@internxt/sdk/dist/drive';
 import { DriveFolderItem } from '../../types/drive.types';
 import { DriveUtils } from '../../utils/drive.utils';
+import { RequestCanceler } from '@internxt/sdk/dist/shared/http/types';
 
 export class DriveFolderService {
   static readonly instance = new DriveFolderService();
@@ -60,4 +61,23 @@ export class DriveFolderService {
     const storageClient = SdkManager.instance.getStorage(true);
     return storageClient.moveFolderByUuid(payload);
   };
+
+  /**
+   * Creates a new folder in the storage with the given folder name and parent folder ID.
+   *
+   * @param {Object} payload - The payload object containing the folder name and parent folder ID.
+   * @param {string} payload.folderName - The name of the folder to be created.
+   * @param {number} payload.parentFolderId - The ID of the parent folder.
+   * @return {[Promise<StorageTypes.CreateFolderResponse>, RequestCanceler]} - A tuple containing a promise that resolves to the response of creating the folder and a request canceler.
+   */
+  public createFolder(payload: {
+    folderName: string;
+    parentFolderId: number;
+  }): [Promise<StorageTypes.CreateFolderResponse>, RequestCanceler] {
+    const storageClient = SdkManager.instance.getStorage();
+    return storageClient.createFolder({
+      folderName: payload.folderName,
+      parentFolderId: payload.parentFolderId,
+    });
+  }
 }
