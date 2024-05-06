@@ -63,7 +63,7 @@ export class DriveFolderService {
   };
 
   /**
-   * Creates a new folder in the storage with the given folder name and parent folder ID.
+   * Creates a new folder in Drive with the given folder name and parent folder ID.
    *
    * @param {Object} payload - The payload object containing the folder name and parent folder ID.
    * @param {string} payload.folderName - The name of the folder to be created.
