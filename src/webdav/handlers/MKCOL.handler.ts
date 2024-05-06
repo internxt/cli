@@ -21,7 +21,7 @@ export class MKCOLRequestHandler implements WebDavMethodHandler {
     const { driveDatabaseManager, driveFolderService } = this.dependencies;
     const resourceParsedPath = path.parse(decodeURI(req.url));
 
-    const parentPath = await WebDavUtils.getParentPath(req.url);
+    const parentPath = WebDavUtils.getParentPath(req.url);
 
     const parentResource = await driveDatabaseManager.findByRelativePath(parentPath);
     if (!parentResource) throw new NotFoundError(`Parent resource not found for parent path ${parentPath}`);
