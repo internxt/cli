@@ -108,7 +108,15 @@ export class WebDavServer {
       ),
     );
 
-    this.app.mkcol('*', asyncHandler(new MKCOLRequestHandler().handle));
+    this.app.mkcol(
+      '*',
+      asyncHandler(
+        new MKCOLRequestHandler({
+          driveDatabaseManager: this.driveDatabaseManager,
+          driveFolderService: this.driveFolderService,
+        }).handle,
+      ),
+    );
     this.app.delete(
       '*',
       asyncHandler(
