@@ -10,6 +10,10 @@ export class WebDavUtils {
     return path.posix.join(...pathComponents);
   }
 
+  static getParentPath(fromPath: string): string {
+    return path.dirname(fromPath);
+  }
+
   static async getRequestedResource(
     req: Request,
     driveDatabaseManager: DriveDatabaseManager,
