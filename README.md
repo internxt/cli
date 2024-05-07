@@ -10,6 +10,7 @@ A CLI tool to interact with yout Internxt encrypted files
 * [Installation](#installation)
 * [Usage](#usage)
 * [Commands](#commands)
+* [Current Limitations](#current-limitations)
 <!-- tocstop -->
 
 # Installation
@@ -30,7 +31,7 @@ $ npm install -g @internxt/cli
 $ internxt COMMAND
 running command...
 $ internxt (--version)
-@internxt/cli/0.1.19 darwin-arm64 node-v20.10.0
+@internxt/cli/1.0.5 darwin-arm64 node-v20.10.0
 $ internxt --help [COMMAND]
 USAGE
   $ internxt COMMAND
@@ -42,6 +43,7 @@ USAGE
 
 <!-- commands -->
 * [`internxt config`](#internxt-config)
+* [`internxt create-folder`](#internxt-create-folder)
 * [`internxt download`](#internxt-download)
 * [`internxt list`](#internxt-list)
 * [`internxt login`](#internxt-login)
@@ -80,7 +82,28 @@ EXAMPLES
   $ internxt config
 ```
 
-_See code: [src/commands/config.ts](https://github.com/internxt/cli/blob/v0.1.19/src/commands/config.ts)_
+_See code: [src/commands/config.ts](https://github.com/internxt/cli/blob/v1.0.5/src/commands/config.ts)_
+
+## `internxt create-folder`
+
+Create a folder in your Internxt Drive
+
+```
+USAGE
+  $ internxt create-folder --name <value> [--id <value>]
+
+FLAGS
+  --id=<value>    The folder id to create the folder in, defaults to your root folder
+  --name=<value>  (required) The new folder name
+
+DESCRIPTION
+  Create a folder in your Internxt Drive
+
+EXAMPLES
+  $ internxt create-folder
+```
+
+_See code: [src/commands/create-folder.ts](https://github.com/internxt/cli/blob/v1.0.5/src/commands/create-folder.ts)_
 
 ## `internxt download`
 
@@ -103,7 +126,7 @@ EXAMPLES
   $ internxt download
 ```
 
-_See code: [src/commands/download.ts](https://github.com/internxt/cli/blob/v0.1.19/src/commands/download.ts)_
+_See code: [src/commands/download.ts](https://github.com/internxt/cli/blob/v1.0.5/src/commands/download.ts)_
 
 ## `internxt list`
 
@@ -137,7 +160,7 @@ EXAMPLES
   $ internxt list
 ```
 
-_See code: [src/commands/list.ts](https://github.com/internxt/cli/blob/v0.1.19/src/commands/list.ts)_
+_See code: [src/commands/list.ts](https://github.com/internxt/cli/blob/v1.0.5/src/commands/list.ts)_
 
 ## `internxt login`
 
@@ -163,7 +186,7 @@ EXAMPLES
   $ internxt login
 ```
 
-_See code: [src/commands/login.ts](https://github.com/internxt/cli/blob/v0.1.19/src/commands/login.ts)_
+_See code: [src/commands/login.ts](https://github.com/internxt/cli/blob/v1.0.5/src/commands/login.ts)_
 
 ## `internxt logout`
 
@@ -180,7 +203,7 @@ EXAMPLES
   $ internxt logout
 ```
 
-_See code: [src/commands/logout.ts](https://github.com/internxt/cli/blob/v0.1.19/src/commands/logout.ts)_
+_See code: [src/commands/logout.ts](https://github.com/internxt/cli/blob/v1.0.5/src/commands/logout.ts)_
 
 ## `internxt logs`
 
@@ -197,7 +220,7 @@ EXAMPLES
   $ internxt logs
 ```
 
-_See code: [src/commands/logs.ts](https://github.com/internxt/cli/blob/v0.1.19/src/commands/logs.ts)_
+_See code: [src/commands/logs.ts](https://github.com/internxt/cli/blob/v1.0.5/src/commands/logs.ts)_
 
 ## `internxt move`
 
@@ -222,7 +245,7 @@ EXAMPLES
   $ internxt move
 ```
 
-_See code: [src/commands/move.ts](https://github.com/internxt/cli/blob/v0.1.19/src/commands/move.ts)_
+_See code: [src/commands/move.ts](https://github.com/internxt/cli/blob/v1.0.5/src/commands/move.ts)_
 
 ## `internxt trash`
 
@@ -246,7 +269,7 @@ EXAMPLES
   $ internxt trash
 ```
 
-_See code: [src/commands/trash.ts](https://github.com/internxt/cli/blob/v0.1.19/src/commands/trash.ts)_
+_See code: [src/commands/trash.ts](https://github.com/internxt/cli/blob/v1.0.5/src/commands/trash.ts)_
 
 ## `internxt upload`
 
@@ -270,7 +293,7 @@ EXAMPLES
   $ internxt upload
 ```
 
-_See code: [src/commands/upload.ts](https://github.com/internxt/cli/blob/v0.1.19/src/commands/upload.ts)_
+_See code: [src/commands/upload.ts](https://github.com/internxt/cli/blob/v1.0.5/src/commands/upload.ts)_
 
 ## `internxt webdav ACTION`
 
@@ -287,7 +310,7 @@ EXAMPLES
   $ internxt webdav
 ```
 
-_See code: [src/commands/webdav.ts](https://github.com/internxt/cli/blob/v0.1.19/src/commands/webdav.ts)_
+_See code: [src/commands/webdav.ts](https://github.com/internxt/cli/blob/v1.0.5/src/commands/webdav.ts)_
 
 ## `internxt whoami`
 
@@ -304,7 +327,7 @@ EXAMPLES
   $ internxt whoami
 ```
 
-_See code: [src/commands/whoami.ts](https://github.com/internxt/cli/blob/v0.1.19/src/commands/whoami.ts)_
+_See code: [src/commands/whoami.ts](https://github.com/internxt/cli/blob/v1.0.5/src/commands/whoami.ts)_
 <!-- commandsstop -->
 
 # Current Limitations
