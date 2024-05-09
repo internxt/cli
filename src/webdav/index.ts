@@ -12,6 +12,7 @@ import { DownloadService } from '../services/network/download.service';
 import { AuthService } from '../services/auth.service';
 import { CryptoService } from '../services/crypto.service';
 import { TrashService } from '../services/drive/trash.service';
+import { webdavLogger } from '../utils/logger.utils';
 
 dotenv.config();
 
@@ -36,7 +37,7 @@ const init = async () => {
   )
     .start()
     .then()
-    .catch(console.error);
+    .catch((err) => webdavLogger.error('Failed to start WebDAV server', err));
 };
 
 init();

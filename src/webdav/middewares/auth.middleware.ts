@@ -13,6 +13,7 @@ export const AuthMiddleware = (configService: ConfigService): RequestHandler => 
           newToken: credentials.newToken,
         });
         req.user = {
+          uuid: credentials.user.uuid,
           rootFolderId: credentials.user.root_folder_id,
         };
         next();

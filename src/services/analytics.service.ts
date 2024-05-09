@@ -21,7 +21,7 @@ export class AnalyticsService {
 
   track(
     eventKey: keyof typeof AnalyticsEvents,
-    options: { app: 'internxt-cli' | 'internxt-webdav'; userId?: string },
+    options: { app: 'internxt-cli' | 'internxt-webdav'; userId: string },
     params: object = {},
   ) {
     return new Promise<void>((resolve) => {
@@ -30,7 +30,6 @@ export class AnalyticsService {
         {
           event: AnalyticsEvents[eventKey],
           userId: options.userId,
-          anonymousId: options.userId ? undefined : randomUUID(),
           properties: {
             app: {
               name: options.app,

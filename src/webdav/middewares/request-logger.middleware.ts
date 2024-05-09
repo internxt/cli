@@ -8,7 +8,14 @@ type RequestLoggerConfig = {
 };
 export const RequestLoggerMiddleware = (config: RequestLoggerConfig): RequestHandler => {
   return (req, _, next) => {
-    AnalyticsService.instance.track('WebDAVRequest', { app: 'internxt-webdav' }, { method: req.method.toUpperCase() });
+    if (req.user && req.user.uuid) {
+      AnalyticsService.instance.track(
+        'WebDAVRequest',
+        { app: 'internxt-webdav', userId: req.user.uuid },
+        { method: req.method.toUpperCase() },
+      );
+    }
+
     if (!config.enable) return next();
     if (config.methods && !config.methods.includes(req.method)) return next();
     webdavLogger.info(

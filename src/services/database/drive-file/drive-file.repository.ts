@@ -38,6 +38,6 @@ export class DriveFileRepository {
   };
 
   static readonly clean = (): Promise<void> => {
-    return DriveFileModel.truncate();
+    return DriveFileModel.drop();
   };
 }

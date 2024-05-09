@@ -68,7 +68,7 @@ export default class Login extends Command {
     await ConfigService.instance.saveUser(Object.assign(loginCredentials, { root_folder_uuid: rootMeta.uuid }));
     await DriveDatabaseManager.init();
     await DriveDatabaseManager.clean();
-    AnalyticsService.instance.track('CLILogin', { app: 'internxt-cli' });
+    AnalyticsService.instance.track('CLILogin', { app: 'internxt-cli', userId: loginCredentials.user.uuid });
     CLIUtils.success(`Succesfully logged in to: ${loginCredentials.user.email} `);
   }
 

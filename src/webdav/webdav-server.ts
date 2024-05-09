@@ -43,8 +43,9 @@ export class WebDavServer {
     private trashService: TrashService,
   ) {}
 
-  private async getNetwork() {
+  private async getNetworkFacade() {
     const credentials = await this.configService.readUser();
+
     if (!credentials) throw new Error('Credentials not found in Config service, cannot create network');
     const networkModule = SdkManager.instance.getNetwork({
       user: credentials.user.bridgeUser,
@@ -53,18 +54,19 @@ export class WebDavServer {
 
     return new NetworkFacade(networkModule, this.uploadService, this.downloadService, this.cryptoService);
   }
-  private registerMiddlewares = () => {
+  private registerMiddlewares = async () => {
     this.app.use(bodyParser.text({ type: ['application/xml', 'text/xml'] }));
     this.app.use(ErrorHandlingMiddleware);
+    this.app.use(AuthMiddleware(ConfigService.instance));
     this.app.use(
       RequestLoggerMiddleware({
         enable: false,
       }),
     );
-    this.app.use(AuthMiddleware(ConfigService.instance));
   };
 
   private registerHandlers = async () => {
+    const networkFacade = await this.getNetworkFacade();
     this.app.head('*', asyncHandler(new HEADRequestHandler().handle));
     this.app.get(
       '*',
@@ -76,7 +78,7 @@ export class WebDavServer {
           downloadService: this.downloadService,
           cryptoService: this.cryptoService,
           authService: this.authService,
-          networkFacade: await this.getNetwork(),
+          networkFacade: networkFacade,
         }).handle,
       ),
     );
@@ -93,6 +95,7 @@ export class WebDavServer {
         ).handle,
       ),
     );
+
     this.app.put(
       '*',
       asyncHandler(
@@ -103,7 +106,7 @@ export class WebDavServer {
           downloadService: this.downloadService,
           cryptoService: this.cryptoService,
           authService: this.authService,
-          networkFacade: await this.getNetwork(),
+          networkFacade: networkFacade,
         }).handle,
       ),
     );
@@ -134,9 +137,8 @@ export class WebDavServer {
   async start() {
     const port = this.configService.get('WEBDAV_SERVER_PORT');
     this.app.disable('x-powered-by');
-
-    this.registerMiddlewares();
-    this.registerHandlers();
+    await this.registerMiddlewares();
+    await this.registerHandlers();
 
     https.createServer(NetworkUtils.getWebdavSSLCerts(), this.app).listen(port, () => {
       webdavLogger.info(`Internxt WebDav server listening at https://${ConfigService.WEBDAV_LOCAL_URL}:${port}`);
