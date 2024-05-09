@@ -3,6 +3,7 @@ declare global {
     interface Request {
       user: {
         rootFolderId: number;
+        uuid: string;
       };
     }
   }

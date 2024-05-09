@@ -15,7 +15,7 @@ No plain data is being sent or is being pulled from the Internxt servers, you ca
 
 ![image](https://raw.githubusercontent.com/internxt/cli/main/public/webdav-how-it-works.png)
 
-*We currently have a 5GB size upload limitation per file for both, CLI and WebDAV*
+_We currently have a 5GB size upload limitation per file for both, CLI and WebDAV_
 
 ## Officially supported WebDav clients
 
@@ -40,10 +40,10 @@ Find below the methods that are supported in the latest version of the Internxt 
 | HEAD      | ✅        |
 | POST      | ❌        |
 | PUT       | ✅        |
-| DELETE    | ❌        |
+| DELETE    | ✅        |
 | PROPFIND  | ✅        |
 | PROPPATCH | ❌        |
-| MKCOL     | ❌        |
+| MKCOL     | ✅        |
 | COPY      | ❌        |
 | MOVE      | ❌        |
 

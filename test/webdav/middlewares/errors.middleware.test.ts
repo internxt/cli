@@ -12,7 +12,10 @@ describe('Error handling middleware', () => {
   it('When a not found error is received, should respond with a 404', () => {
     const error = new NotFoundError('Item not found');
     const res = createWebDavResponseFixture({});
-    const req = createWebDavRequestFixture({});
+    const req = createWebDavRequestFixture({
+      method: 'GET',
+      url: '/test',
+    });
 
     ErrorHandlingMiddleware(error, req, res, () => {});
 
@@ -29,7 +32,10 @@ describe('Error handling middleware', () => {
   it('When a bad request error is received, should respond with a 400', () => {
     const error = new BadRequestError('Missing property "size"');
     const res = createWebDavResponseFixture({});
-    const req = createWebDavRequestFixture({});
+    const req = createWebDavRequestFixture({
+      method: 'GET',
+      url: '/test',
+    });
 
     ErrorHandlingMiddleware(error, req, res, () => {});
 
@@ -46,7 +52,10 @@ describe('Error handling middleware', () => {
   it('When a not implement error is received, should respond with a 501', () => {
     const error = new NotImplementedError('Content-range is not supported');
     const res = createWebDavResponseFixture({});
-    const req = createWebDavRequestFixture({});
+    const req = createWebDavRequestFixture({
+      method: 'GET',
+      url: '/test',
+    });
 
     ErrorHandlingMiddleware(error, req, res, () => {});
 
@@ -63,7 +72,10 @@ describe('Error handling middleware', () => {
   it('When something that does not have status code arrives, should return a 500 status code', () => {
     const error = new TypeError('Cannot read property "id" of undefined');
     const res = createWebDavResponseFixture({});
-    const req = createWebDavRequestFixture({});
+    const req = createWebDavRequestFixture({
+      method: 'GET',
+      url: '/test',
+    });
 
     ErrorHandlingMiddleware(error, req, res, () => {});
 

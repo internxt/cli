@@ -15,6 +15,7 @@ import { CryptoService } from '../../src/services/crypto.service';
 import { ConfigKeys } from '../../src/types/config.types';
 import { NetworkUtils } from '../../src/utils/network.utils';
 import { TrashService } from '../../src/services/drive/trash.service';
+import { UserSettingsFixture } from '../fixtures/auth.fixture';
 
 describe('WebDav server', () => {
   const sandbox = sinon.createSandbox();
@@ -23,7 +24,7 @@ describe('WebDav server', () => {
     sandbox.restore();
   });
 
-  it('When the WebDav server is started, it should generate self-signed certificates', () => {
+  it('When the WebDav server is started, it should generate self-signed certificates', async () => {
     const envEndpoint: { key: keyof ConfigKeys; value: string } = {
       key: 'WEBDAV_SERVER_PORT',
       value: randomInt(65535).toString(),
@@ -36,6 +37,13 @@ describe('WebDav server', () => {
     };
 
     sandbox.stub(ConfigService.instance, 'get').withArgs(envEndpoint.key).returns(envEndpoint.value);
+    sandbox.stub(ConfigService.instance, 'readUser').resolves({
+      token: 'TOKEN',
+      newToken: 'NEW_TOKEN',
+      mnemonic: 'MNEMONIC',
+      root_folder_uuid: 'ROOT_FOLDER_UUID',
+      user: UserSettingsFixture,
+    });
     // @ts-expect-error - We stub the method partially
     const createServerStub = sandbox.stub(https, 'createServer').returns({
       listen: sandbox.stub().resolves(),
@@ -55,7 +63,7 @@ describe('WebDav server', () => {
       CryptoService.instance,
       TrashService.instance,
     );
-    server.start();
+    await server.start();
 
     expect(createServerStub).to.be.calledOnceWith({ cert: sslSelfSigned.cert, key: sslSelfSigned.private });
   });

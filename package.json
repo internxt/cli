@@ -1,6 +1,6 @@
 {
   "author": "PixoDev",
-  "version": "0.1.19",
+  "version": "1.0.5",
   "description": "Internxt CLI to manage your encrypted storage",
   "scripts": {
     "build": "tsc",
@@ -16,7 +16,8 @@
     "migrate": "sequelize db:migrate",
     "migrate:undo": "sequelize db:migrate:undo",
     "publish:npm": "npm run build && npm publish --scope=@internxt --registry=https://registry.npmjs.org/ --access public",
-    "publish:github": "npm publish"
+    "publish:github": "npm publish",
+    "postinstall": "node ./scripts/skip-in-ci.js || internxt webdav restart"
   },
   "publishConfig": {
     "access": "public",
@@ -40,6 +41,7 @@
     "@internxt/lib": "^1.2.1",
     "@internxt/sdk": "^1.4.79",
     "@oclif/core": "^3",
+    "@rudderstack/rudder-sdk-node": "^2.0.7",
     "axios": "^1.6.7",
     "bip39": "^3.1.0",
     "body-parser": "^1.20.2",

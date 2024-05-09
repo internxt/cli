@@ -8,6 +8,7 @@ import { ErrorUtils } from '../utils/errors.utils';
 import { DriveFolderService } from '../services/drive/drive-folder.service';
 import { SdkManager } from '../services/sdk-manager.service';
 import { DriveDatabaseManager } from '../services/database/drive-database-manager.service';
+import { AnalyticsService } from '../services/analytics.service';
 
 export default class Login extends Command {
   static readonly args = {};
@@ -67,7 +68,7 @@ export default class Login extends Command {
     await ConfigService.instance.saveUser(Object.assign(loginCredentials, { root_folder_uuid: rootMeta.uuid }));
     await DriveDatabaseManager.init();
     await DriveDatabaseManager.clean();
-
+    AnalyticsService.instance.track('CLILogin', { app: 'internxt-cli', userId: loginCredentials.user.uuid });
     CLIUtils.success(`Succesfully logged in to: ${loginCredentials.user.email} `);
   }
 
