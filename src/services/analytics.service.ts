@@ -1,7 +1,7 @@
 import Rudderstack from '@rudderstack/rudder-sdk-node';
 import { ConfigService } from './config.service';
 import packageJSON from '../../package.json';
-import { randomUUID } from 'crypto';
+
 export const AnalyticsEvents = {
   CLILogin: 'CLI Login',
   WebDAVEnabled: 'WebDAV Enabled',
