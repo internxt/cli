@@ -40,7 +40,7 @@ Find below the methods that are supported in the latest version of the Internxt 
 | HEAD      | ✅        |
 | POST      | ❌        |
 | PUT       | ✅        |
-| DELETE    | ❌        |
+| DELETE    | ✅        |
 | PROPFIND  | ✅        |
 | PROPPATCH | ❌        |
 | MKCOL     | ✅        |
