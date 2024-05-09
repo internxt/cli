@@ -8,7 +8,7 @@ type RequestLoggerConfig = {
 };
 export const RequestLoggerMiddleware = (config: RequestLoggerConfig, analytics: AnalyticsService): RequestHandler => {
   return (req, _, next) => {
-    if (req.user && req.user.uuid) {
+    if (req.user?.uuid) {
       analytics.track(
         'WebDAVRequest',
         { app: 'internxt-webdav', userId: req.user.uuid },
