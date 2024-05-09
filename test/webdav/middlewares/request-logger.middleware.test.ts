@@ -3,6 +3,7 @@ import { webdavLogger } from '../../../src/utils/logger.utils';
 import { RequestLoggerMiddleware } from '../../../src/webdav/middewares/request-logger.middleware';
 import { expect } from 'chai';
 import { createWebDavRequestFixture, createWebDavResponseFixture } from '../../fixtures/webdav.fixture';
+import { AnalyticsService } from '../../../src/services/analytics.service';
 
 describe('Request logger middleware', () => {
   const sandbox = sinon.createSandbox();
@@ -17,7 +18,7 @@ describe('Request logger middleware', () => {
     const next = sandbox.spy();
     const infoStub = sandbox.stub(webdavLogger, 'info');
 
-    const middleware = RequestLoggerMiddleware({ methods: ['PROPFIND'], enable: true });
+    const middleware = RequestLoggerMiddleware({ methods: ['PROPFIND'], enable: true }, AnalyticsService.instance);
     middleware(req, createWebDavResponseFixture({}), next);
 
     expect(infoStub.calledOnce).to.be.true;
@@ -33,10 +34,31 @@ describe('Request logger middleware', () => {
     const next = sandbox.spy();
     const infoStub = sandbox.stub(webdavLogger, 'info');
 
-    const middleware = RequestLoggerMiddleware({ methods: ['PROPFIND'], enable: true });
+    const middleware = RequestLoggerMiddleware({ methods: ['PROPFIND'], enable: true }, AnalyticsService.instance);
     middleware(req, createWebDavResponseFixture({}), next);
 
     expect(infoStub.notCalled).to.be.true;
     expect(next.calledOnce).to.be.true;
+  });
+
+  it('When a request is received and there is logged in user, the request is tracked in analytics', () => {
+    const req = createWebDavRequestFixture({
+      method: 'GET',
+      url: '/path',
+      user: {
+        uuid: 'xxxx',
+      },
+    });
+    const analytics = AnalyticsService.instance;
+
+    const trackStub = sandbox.stub(analytics, 'track').resolves();
+    const next = sandbox.spy();
+    const infoStub = sandbox.stub(webdavLogger, 'info');
+
+    const middleware = RequestLoggerMiddleware({ methods: ['PROPFIND'], enable: true }, analytics);
+    middleware(req, createWebDavResponseFixture({}), next);
+
+    expect(next.calledOnce).to.be.true;
+    expect(trackStub.calledOnce).to.be.true;
   });
 });

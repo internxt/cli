@@ -6,10 +6,10 @@ type RequestLoggerConfig = {
   enable: boolean;
   methods?: string[];
 };
-export const RequestLoggerMiddleware = (config: RequestLoggerConfig): RequestHandler => {
+export const RequestLoggerMiddleware = (config: RequestLoggerConfig, analytics: AnalyticsService): RequestHandler => {
   return (req, _, next) => {
     if (req.user && req.user.uuid) {
-      AnalyticsService.instance.track(
+      analytics.track(
         'WebDAVRequest',
         { app: 'internxt-webdav', userId: req.user.uuid },
         { method: req.method.toUpperCase() },
