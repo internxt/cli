@@ -1,7 +1,7 @@
-import Rudderstack from '@rudderstack/rudder-sdk-node';
+import Rudderstack, { apiObject } from '@rudderstack/rudder-sdk-node';
 import { ConfigService } from './config.service';
 import packageJSON from '../../package.json';
-
+import os from 'os';
 export const AnalyticsEvents = {
   CLILogin: 'CLI Login',
   WebDAVEnabled: 'WebDAV Enabled',
@@ -19,10 +19,36 @@ export class AnalyticsService {
     });
   }
 
+  private platformShortName(platform: string) {
+    switch (platform) {
+      case 'darwin':
+        return 'MAC';
+      case 'win32':
+        return 'WIN';
+      case 'linux':
+        return 'LINUX';
+      default:
+        return '';
+    }
+  }
+
+  private platformFamily(platform: string) {
+    switch (platform) {
+      case 'darwin':
+        return 'Mac';
+      case 'win32':
+        return 'Windows';
+      case 'linux':
+        return 'Linux';
+      default:
+        return 'Unknown';
+    }
+  }
+
   track(
     eventKey: keyof typeof AnalyticsEvents,
     options: { app: 'internxt-cli' | 'internxt-webdav'; userId: string },
-    params: object = {},
+    params: apiObject = {},
   ) {
     return new Promise<void>((resolve) => {
       const rudderstack = this.getRudderstack();
@@ -30,13 +56,19 @@ export class AnalyticsService {
         {
           event: AnalyticsEvents[eventKey],
           userId: options.userId,
-          properties: {
+          context: {
             app: {
               name: options.app,
               version: packageJSON.version,
             },
-            ...params,
+            os: {
+              family: this.platformFamily(os.platform()),
+              name: os.type(),
+              short_name: this.platformShortName(process.platform),
+              version: os.release(),
+            },
           },
+          properties: params,
         },
         () => {
           resolve();
