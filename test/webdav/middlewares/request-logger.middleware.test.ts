@@ -53,7 +53,6 @@ describe('Request logger middleware', () => {
 
     const trackStub = sandbox.stub(analytics, 'track').resolves();
     const next = sandbox.spy();
-    const infoStub = sandbox.stub(webdavLogger, 'info');
 
     const middleware = RequestLoggerMiddleware({ methods: ['PROPFIND'], enable: true }, analytics);
     middleware(req, createWebDavResponseFixture({}), next);
