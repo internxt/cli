@@ -10,6 +10,16 @@ export class ErrorUtils {
   }
 }
 
+export class ConflictError extends Error {
+  public statusCode = 409;
+
+  constructor(message: string) {
+    super(message);
+    this.name = 'ConflictError';
+    Object.setPrototypeOf(this, ConflictError.prototype);
+  }
+}
+
 export class NotFoundError extends Error {
   public statusCode = 404;
 

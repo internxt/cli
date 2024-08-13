@@ -7,7 +7,7 @@ import { DownloadService } from '../../../src/services/network/download.service'
 import { UploadService } from '../../../src/services/network/upload.service';
 import { AuthService } from '../../../src/services/auth.service';
 import { expect } from 'chai';
-import { NotFoundError, UnsupportedMediaTypeError } from '../../../src/utils/errors.utils';
+import { ConflictError, NotFoundError, UnsupportedMediaTypeError } from '../../../src/utils/errors.utils';
 import { SdkManager } from '../../../src/services/sdk-manager.service';
 import { NetworkFacade } from '../../../src/services/network/network-facade.service';
 import { UserFixture } from '../../fixtures/auth.fixture';
@@ -68,7 +68,7 @@ describe('PUT request handler', () => {
     }
   });
 
-  it('When a WebDav client sends a PUT request, and the Drive destination folder is not found, then it should throw a NotFoundError', async () => {
+  it('When a WebDav client sends a PUT request, and the Drive destination folder is not found, then it should throw a ConflictError', async () => {
     const driveDatabaseManager = getDriveDatabaseManager();
     const downloadService = DownloadService.instance;
     const uploadService = UploadService.instance;
@@ -101,7 +101,7 @@ describe('PUT request handler', () => {
       await sut.handle(request, response);
       expect(true).to.be.false;
     } catch (error) {
-      expect(error).to.be.instanceOf(NotFoundError);
+      expect(error).to.be.instanceOf(ConflictError);
     }
   });
 
