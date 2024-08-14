@@ -39,6 +39,17 @@ export class PUTRequestHandler implements WebDavMethodHandler {
       throw new ConflictError('Drive destination folder not found');
     }
 
+    // If the resource already exist and is a file, the WebDAV specification states that 'PUT /…/file' should replace it.
+    // http://www.webdav.org/specs/rfc4918.html#put-resources
+    const driveFileItem = await this.dependencies.driveDatabaseManager.findByRelativePath(resource.url);
+    if (driveFileItem && driveFileItem.status === 'EXISTS' && resource.type === 'file') {
+      webdavLogger.info(`File '${resource.name}' already exists in '${resource.path.dir}', trashing it before PUT`);
+      await this.dependencies.trashService.trashItems({
+        items: [{ type: resource.type, uuid: driveFileItem.uuid }],
+      });
+      await this.dependencies.driveDatabaseManager.deleteFile(driveFileItem.id);
+    }
+
     const { user, mnemonic } = await this.dependencies.authService.getAuthDetails();
 
     const [uploadPromise] = await this.dependencies.networkFacade.uploadFromStream(
