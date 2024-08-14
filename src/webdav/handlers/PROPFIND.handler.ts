@@ -140,14 +140,16 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
       );
     });
 
-    folderContent.folders.map(async (folder) => {
-      return await driveDatabaseManager.createFolder({
-        ...folder,
-        name: folder.plainName,
-        encryptedName: folder.name,
-        status: folder.deleted || folder.removed ? 'TRASHED' : 'EXISTS',
-      });
-    });
+    await Promise.all(
+      folderContent.folders.map((folder) =>
+        driveDatabaseManager.createFolder({
+          ...folder,
+          name: folder.plainName,
+          encryptedName: folder.name,
+          status: folder.deleted || folder.removed ? 'TRASHED' : 'EXISTS',
+        }),
+      ),
+    );
 
     const filesXML = folderContent.files.map((file) => {
       const fileRelativePath = WebDavUtils.joinURL(
@@ -173,15 +175,17 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
       );
     });
 
-    folderContent.files.map(async (file) => {
-      return await driveDatabaseManager.createFile({
-        ...file,
-        name: file.plainName,
-        fileId: file.fileId,
-        size: Number(file.size),
-        encryptedName: file.name,
-      });
-    });
+    await Promise.all(
+      folderContent.files.map((file) => {
+        driveDatabaseManager.createFile({
+          ...file,
+          name: file.plainName,
+          fileId: file.fileId,
+          size: Number(file.size),
+          encryptedName: file.name,
+        });
+      }),
+    );
 
     return foldersXML.concat(filesXML);
   }
