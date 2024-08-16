@@ -1,6 +1,6 @@
 {
   "author": "PixoDev",
-  "version": "1.1.2",
+  "version": "1.2.0",
   "description": "Internxt CLI to manage your encrypted storage",
   "scripts": {
     "build": "tsc",
