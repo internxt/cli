@@ -6,7 +6,7 @@ import { DownloadService } from '../../services/network/download.service';
 import { CryptoService } from '../../services/crypto.service';
 import { AuthService } from '../../services/auth.service';
 import { WebDavMethodHandler, WebDavRequestedResource } from '../../types/webdav.types';
-import { NotFoundError, UnsupportedMediaTypeError } from '../../utils/errors.utils';
+import { ConflictError, UnsupportedMediaTypeError } from '../../utils/errors.utils';
 import { WebDavUtils } from '../../utils/webdav.utils';
 import { webdavLogger } from '../../utils/logger.utils';
 import { DriveDatabaseManager } from '../../services/database/drive-database-manager.service';
@@ -36,7 +36,7 @@ export class PUTRequestHandler implements WebDavMethodHandler {
 
     webdavLogger.info(`PUT request received for uploading file '${resource.name}' to '${resource.path.dir}'`);
     if (!driveFolder) {
-      throw new NotFoundError('Drive destination folder not found');
+      throw new ConflictError('Drive destination folder not found');
     }
 
     const { user, mnemonic } = await this.dependencies.authService.getAuthDetails();

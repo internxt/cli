@@ -2,7 +2,7 @@ import { DriveDatabaseManager } from '../../services/database/drive-database-man
 import { WebDavMethodHandler } from '../../types/webdav.types';
 import { Request, Response } from 'express';
 import { WebDavUtils } from '../../utils/webdav.utils';
-import { NotFoundError } from '../../utils/errors.utils';
+import { ConflictError, NotFoundError } from '../../utils/errors.utils';
 import { DriveFolderService } from '../../services/drive/drive-folder.service';
 import { webdavLogger } from '../../utils/logger.utils';
 import path from 'path';
@@ -19,12 +19,17 @@ export class MKCOLRequestHandler implements WebDavMethodHandler {
 
   handle = async (req: Request, res: Response) => {
     const { driveDatabaseManager, driveFolderService } = this.dependencies;
-    const resourceParsedPath = path.parse(decodeURI(req.url));
+    const decodedUrl = decodeURI(req.url);
+    const resourceParsedPath = path.parse(decodedUrl);
 
-    const parentPath = WebDavUtils.getParentPath(req.url);
+    const parentPath = WebDavUtils.getParentPath(decodedUrl);
 
     const parentResource = await driveDatabaseManager.findByRelativePath(parentPath);
-    if (!parentResource) throw new NotFoundError(`Parent resource not found for parent path ${parentPath}`);
+
+    if (!parentResource) {
+      throw new ConflictError(`Parent resource not found for parent path ${parentPath}`);
+    }
+
     webdavLogger.info(`MKCOL request received for folder at ${req.url}`);
     webdavLogger.info(`Parent path: ${parentResource.id}`);
 

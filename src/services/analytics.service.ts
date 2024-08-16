@@ -50,30 +50,6 @@ export class AnalyticsService {
     options: { app: 'internxt-cli' | 'internxt-webdav'; userId: string },
     params: apiObject = {},
   ) {
-    return new Promise<void>((resolve) => {
-      const rudderstack = this.getRudderstack();
-      rudderstack.track(
-        {
-          event: AnalyticsEvents[eventKey],
-          userId: options.userId,
-          context: {
-            app: {
-              name: options.app,
-              version: packageJSON.version,
-            },
-            os: {
-              family: this.platformFamily(os.platform()),
-              name: os.type(),
-              short_name: this.platformShortName(process.platform),
-              version: os.release(),
-            },
-          },
-          properties: params,
-        },
-        () => {
-          resolve();
-        },
-      );
-    });
+    return;
   }
 }

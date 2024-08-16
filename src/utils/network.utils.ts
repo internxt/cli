@@ -41,7 +41,18 @@ export class NetworkUtils {
 
   static generateSelfSignedSSLCerts(): selfsigned.GenerateResult {
     const attrs = [{ name: 'commonName', value: ConfigService.WEBDAV_LOCAL_URL }];
-    const pems = selfsigned.generate(attrs, { days: 365, algorithm: 'sha256', keySize: 2048 });
+    const extensions = [
+      {
+        name: 'subjectAltName',
+        altNames: [
+          {
+            type: 2,
+            value: ConfigService.WEBDAV_LOCAL_URL,
+          },
+        ],
+      },
+    ];
+    const pems = selfsigned.generate(attrs, { days: 365, algorithm: 'sha256', keySize: 2048, extensions });
     return pems;
   }
 }
