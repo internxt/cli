@@ -6,7 +6,7 @@ import { AnalyticsService } from '../services/analytics.service';
 import { AuthService } from '../services/auth.service';
 import { DriveDatabaseManager } from '../services/database/drive-database-manager.service';
 export default class Webdav extends Command {
-  static readonly description = 'Enable,disable, restart or get the status of the Internxt CLI WebDav server';
+  static readonly description = 'Enable, disable, restart or get the status of the Internxt CLI WebDav server';
 
   static examples = [
     '<%= config.bin %> <%= command.id %> enable',
