@@ -68,7 +68,7 @@ export class PUTRequestHandler implements WebDavMethodHandler {
 
     webdavLogger.info('✅ File uploaded to internxt drive');
 
-    this.dependencies.driveDatabaseManager.createFile(file);
+    await this.dependencies.driveDatabaseManager.createFile(file);
 
     res.status(200);
     res.send();

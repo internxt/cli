@@ -19,9 +19,8 @@ export class MKCOLRequestHandler implements WebDavMethodHandler {
 
   handle = async (req: Request, res: Response) => {
     const { driveDatabaseManager, driveFolderService } = this.dependencies;
-    const decodedUrl = decodeURI(req.url);
+    const decodedUrl = decodeURIComponent(req.url);
     const resourceParsedPath = path.parse(decodedUrl);
-
     const parentPath = WebDavUtils.getParentPath(decodedUrl);
 
     const parentResource = await driveDatabaseManager.findByRelativePath(parentPath);
@@ -34,7 +33,7 @@ export class MKCOLRequestHandler implements WebDavMethodHandler {
     webdavLogger.info(`Parent path: ${parentResource.id}`);
 
     const [createFolder] = driveFolderService.createFolder({
-      folderName: resourceParsedPath.name,
+      folderName: resourceParsedPath.base,
       parentFolderId: parentResource.id,
     });
 

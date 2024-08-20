@@ -18,7 +18,7 @@ export class WebDavUtils {
     req: Request,
     driveDatabaseManager: DriveDatabaseManager,
   ): Promise<WebDavRequestedResource> {
-    const decodedUrl = decodeURI(req.url);
+    const decodedUrl = decodeURIComponent(req.url);
     const parsedPath = path.parse(decodedUrl);
 
     let isFolder = req.url.endsWith('/');
@@ -38,7 +38,7 @@ export class WebDavUtils {
       return {
         url: decodedUrl,
         type: 'folder',
-        name: parsedPath.name,
+        name: parsedPath.base,
         path: parsedPath,
       };
     } else {
