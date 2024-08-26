@@ -3,7 +3,7 @@
 [![Commands Unit Tests](https://github.com/internxt/cli/actions/workflows/commands-unit-tests.yml/badge.svg)](https://github.com/internxt/cli/actions/workflows/commands-unit-tests.yml)
 [![CodeQL](https://github.com/internxt/cli/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/internxt/cli/actions/workflows/github-code-scanning/codeql)
 
-A CLI tool to interact with yout Internxt encrypted files
+A CLI tool to interact with your Internxt encrypted files
 
 <!-- toc -->
 * [Internxt CLI](#internxt-cli)
