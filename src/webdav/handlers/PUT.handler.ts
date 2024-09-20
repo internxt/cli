@@ -48,7 +48,7 @@ export class PUTRequestHandler implements WebDavMethodHandler {
       req,
       {
         progressCallback: (progress) => {
-          webdavLogger.info(`Upload progress for file ${resource.name}: ${progress}%`);
+          webdavLogger.info(`Upload progress for file ${resource.name}: ${(100*progress).toFixed(2)}%`);
         },
       },
     );
