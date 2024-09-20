@@ -31,6 +31,7 @@ describe('MKCOL request handler', () => {
       updatedAt: '',
       userId: 0,
       uuid: '1234-5678-9012-3456',
+      parentUuid: '0123-5678-9012-3456',
     };
 
     sandbox

@@ -65,6 +65,7 @@ describe('Drive file Service', () => {
       status: 'EXISTS',
       thumbnails: [],
       currentThumbnail: null,
+      folderUuid: randomUUID(),
     };
     const storageClientMock: Partial<Storage> = {
       getFile: sinon.stub().returns([Promise.resolve(fakeFileData)]),

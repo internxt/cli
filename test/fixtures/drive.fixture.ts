@@ -92,6 +92,7 @@ export const newFileMeta = (attributes?: Partial<FileMeta>): FileMeta => {
     thumbnails: [],
     currentThumbnail: null,
     uuid: crypto.randomBytes(16).toString('hex'),
+    folderUuid: crypto.randomBytes(16).toString('hex'),
   };
   return { ...file, ...attributes };
 };
