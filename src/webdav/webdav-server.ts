@@ -144,8 +144,10 @@ export class WebDavServer {
     await this.registerMiddlewares();
     await this.registerHandlers();
 
-    https.createServer(NetworkUtils.getWebdavSSLCerts(), this.app).listen(port, () => {
+    const server = https.createServer(NetworkUtils.getWebdavSSLCerts(), this.app).listen(port, () => {
       webdavLogger.info(`Internxt WebDav server listening at https://${ConfigService.WEBDAV_LOCAL_URL}:${port}`);
     });
+    // Allow long uploads/downloads from WebDAV clients (up to 15 minutes before closing connection):
+    server.requestTimeout = 15 * 60 * 1000;
   }
 }
