@@ -6,6 +6,7 @@ import Storage, { DriveFileData } from '@internxt/sdk/dist/drive/storage/types';
 import { Drive } from '@internxt/sdk';
 import { randomUUID } from 'crypto';
 import { CommonFixture } from '../../fixtures/common.fixture';
+
 describe('Drive file Service', () => {
   let sut: DriveFileService;
   const sandbox = sinon.createSandbox();
@@ -13,9 +14,11 @@ describe('Drive file Service', () => {
   beforeEach(() => {
     sut = DriveFileService.instance;
   });
+
   afterEach(() => {
     sandbox.restore();
   });
+
   it('When a file is created, should be created correctly', async () => {
     const payload = {
       name: 'example.txt',
