@@ -125,7 +125,7 @@ export default class List extends Command {
       nonInteractive,
       (folderUuid: string) => ValidationService.instance.validateUUIDv4(folderUuid),
     );
-    if (!folderUuid && folderUuid !== '') {
+    if (!folderUuid) {
       folderUuid = (await this.getFolderUuidInteractively()).trim();
     }
     return folderUuid;
