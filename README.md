@@ -47,6 +47,7 @@ USAGE
 * [`internxt create-folder`](#internxt-create-folder)
 * [`internxt download`](#internxt-download)
 * [`internxt list`](#internxt-list)
+* [`internxt list-trash`](#internxt-list-trash)
 * [`internxt login`](#internxt-login)
 * [`internxt logout`](#internxt-logout)
 * [`internxt logs`](#internxt-logs)
@@ -179,6 +180,39 @@ EXAMPLES
 ```
 
 _See code: [src/commands/list.ts](https://github.com/internxt/cli/blob/v1.2.2/src/commands/list.ts)_
+
+## `internxt list-trash`
+
+Lists the content of the trash.
+
+```
+USAGE
+  $ internxt list-trash [-n] [--columns <value> | -x] [--filter <value>] [--no-header | [--csv | --no-truncate]]
+    [--output csv|json|yaml |  | ] [--sort <value>]
+
+FLAGS
+  -x, --extended         show extra columns
+      --columns=<value>  only show provided columns (comma-separated)
+      --csv              output is csv format [alias: --output=csv]
+      --filter=<value>   filter property by partial string matching, ex: name=foo
+      --no-header        hide table header from output
+      --no-truncate      do not truncate output to fit screen
+      --output=<option>  output in a more machine friendly format
+                         <options: csv|json|yaml>
+      --sort=<value>     property to sort by (prepend '-' for descending)
+
+HELPER FLAGS
+  -n, --non-interactive  Blocks the cli from being interactive. If passed, the cli will not request data through the
+                         console and will throw errors directly
+
+DESCRIPTION
+  Lists the content of the trash.
+
+EXAMPLES
+  $ internxt list-trash
+```
+
+_See code: [src/commands/list-trash.ts](https://github.com/internxt/cli/blob/v1.2.2/src/commands/list-trash.ts)_
 
 ## `internxt login`
 
@@ -315,14 +349,14 @@ _See code: [src/commands/upload.ts](https://github.com/internxt/cli/blob/v1.2.2/
 
 ## `internxt webdav ACTION`
 
-Enable,disable, restart or get the status of the Internxt CLI WebDav server
+Enable, disable, restart or get the status of the Internxt CLI WebDav server
 
 ```
 USAGE
   $ internxt webdav ACTION
 
 DESCRIPTION
-  Enable,disable, restart or get the status of the Internxt CLI WebDav server
+  Enable, disable, restart or get the status of the Internxt CLI WebDav server
 
 EXAMPLES
   $ internxt webdav enable
