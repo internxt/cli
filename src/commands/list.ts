@@ -135,7 +135,6 @@ export default class List extends Command {
     return CLIUtils.prompt({
       message: 'What is the folder id you want to list? (leave empty for the root folder)',
       options: { required: false },
-      error: new NotValidFolderUuidError(),
     });
   };
 }
