@@ -75,6 +75,14 @@ export class MissingCredentialsError extends Error {
   }
 }
 
+export class NotValidYesOrNoError extends Error {
+  constructor() {
+    super('Only yes or not -> ["yes", "no", "y", "n"] options are valid');
+
+    Object.setPrototypeOf(this, NotValidYesOrNoError.prototype);
+  }
+}
+
 export type PaginatedItem = {
   plainName: string;
   uuid: string;

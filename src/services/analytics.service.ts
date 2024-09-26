@@ -49,7 +49,7 @@ export class AnalyticsService {
   track(
     eventKey: keyof typeof AnalyticsEvents,
     options: { app: 'internxt-cli' | 'internxt-webdav'; userId: string },
-    params: apiObject,
+    params: apiObject = {},
   ) {
     return;
   }
