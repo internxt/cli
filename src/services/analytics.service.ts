@@ -1,7 +1,8 @@
 import Rudderstack, { apiObject } from '@rudderstack/rudder-sdk-node';
 import { ConfigService } from './config.service';
-import packageJSON from '../../package.json';
-import os from 'os';
+//import packageJSON from '../../package.json';
+//import os from 'os';
+
 export const AnalyticsEvents = {
   CLILogin: 'CLI Login',
   WebDAVEnabled: 'WebDAV Enabled',
@@ -48,7 +49,7 @@ export class AnalyticsService {
   track(
     eventKey: keyof typeof AnalyticsEvents,
     options: { app: 'internxt-cli' | 'internxt-webdav'; userId: string },
-    params: apiObject = {},
+    params: apiObject,
   ) {
     return;
   }

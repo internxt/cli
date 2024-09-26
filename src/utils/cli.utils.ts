@@ -101,7 +101,7 @@ export class CLIUtils {
   }
 
   static readonly prompt = async (
-    prompt: { message: string; options?: ux.IPromptOptions; error: Error },
+    prompt: { message: string; options?: ux.IPromptOptions; error?: Error },
     validate?: (value: string) => boolean,
   ): Promise<string> => {
     const promptValue = await ux.prompt(prompt.message, prompt.options);

@@ -1,13 +1,15 @@
-import sinon from 'sinon';
+/*import sinon from 'sinon';
 import { AnalyticsEvents, AnalyticsService } from '../../src/services/analytics.service';
 import { expect } from 'chai';
 
 describe('Analytics service', () => {
   const sandbox = sinon.createSandbox();
+
   afterEach(() => {
     sandbox.restore();
   });
-  /*   it('When a track request is made, should be able to track events', async () => {
+
+  it('When a track request is made, should be able to track events', async () => {
     const analyticsService = AnalyticsService.instance;
 
     // @ts-expect-error - Stubbing private method
@@ -30,5 +32,5 @@ describe('Analytics service', () => {
       event: AnalyticsEvents[eventKey],
       userId: options.userId,
     });
-  }); */
-});
+  });
+});*/

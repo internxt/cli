@@ -2,7 +2,7 @@ import { DriveDatabaseManager } from '../../services/database/drive-database-man
 import { WebDavMethodHandler } from '../../types/webdav.types';
 import { Request, Response } from 'express';
 import { WebDavUtils } from '../../utils/webdav.utils';
-import { ConflictError, NotFoundError } from '../../utils/errors.utils';
+import { ConflictError } from '../../utils/errors.utils';
 import { DriveFolderService } from '../../services/drive/drive-folder.service';
 import { webdavLogger } from '../../utils/logger.utils';
 import path from 'path';

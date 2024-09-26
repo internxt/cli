@@ -7,7 +7,7 @@ import { DownloadService } from '../../../src/services/network/download.service'
 import { UploadService } from '../../../src/services/network/upload.service';
 import { AuthService } from '../../../src/services/auth.service';
 import { expect } from 'chai';
-import { ConflictError, NotFoundError, UnsupportedMediaTypeError } from '../../../src/utils/errors.utils';
+import { ConflictError, UnsupportedMediaTypeError } from '../../../src/utils/errors.utils';
 import { SdkManager } from '../../../src/services/sdk-manager.service';
 import { NetworkFacade } from '../../../src/services/network/network-facade.service';
 import { UserFixture } from '../../fixtures/auth.fixture';

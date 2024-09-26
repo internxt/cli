@@ -47,7 +47,7 @@ export class WebDavServer {
   private async getNetworkFacade() {
     const credentials = await this.configService.readUser();
 
-    if (!credentials) throw new Error('Credentials not found in Config service, cannot create network');
+    if (!credentials) throw new Error('Credentials not found in Config service, do login first');
     const networkModule = SdkManager.instance.getNetwork({
       user: credentials.user.bridgeUser,
       pass: credentials.user.userId,
