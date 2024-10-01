@@ -17,7 +17,7 @@ export default class TrashRestore extends Command {
   static readonly args = {};
   static readonly description = 'Restore a trashed folder/file into a destination folder.';
   static readonly examples = ['<%= config.bin %> <%= command.id %>'];
-  static readonly aliases = ['trash:restore', 'trash:move'];
+  static readonly aliases = ['trash:restore'];
   static readonly flags = {
     ...CLIUtils.CommonFlags,
     id: Flags.string({

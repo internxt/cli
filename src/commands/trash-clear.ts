@@ -10,7 +10,7 @@ export default class TrashClear extends Command {
   static readonly args = {};
   static readonly description = 'Deletes permanently all the content of the trash. This action cannot be undone.';
   static readonly examples = ['<%= config.bin %> <%= command.id %>'];
-  static readonly aliases = ['trash:clear', 'trash:clean', 'trash:empty'];
+  static readonly aliases = ['trash:clear'];
   static readonly flags = {
     ...CLIUtils.CommonFlags,
     force: Flags.boolean({
