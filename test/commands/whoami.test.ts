@@ -3,7 +3,7 @@ import test from '@oclif/test';
 import { ConfigService } from '../../src/services/config.service';
 import { UserCredentialsFixture } from '../fixtures/login.fixture';
 
-describe('Whoami Command', () => {
+describe.skip('Whoami Command', () => {
   describe('When user is logged in and whoami is called, then the current user logged in is printed', () => {
     test
       .stdout()

@@ -125,7 +125,7 @@ export default class List extends Command {
       nonInteractive,
       (folderUuid: string) => ValidationService.instance.validateUUIDv4(folderUuid),
     );
-    if (!folderUuid && folderUuid !== '') {
+    if (!folderUuid) {
       folderUuid = (await this.getFolderUuidInteractively()).trim();
     }
     return folderUuid;
@@ -135,7 +135,6 @@ export default class List extends Command {
     return CLIUtils.prompt({
       message: 'What is the folder id you want to list? (leave empty for the root folder)',
       options: { required: false },
-      error: new NotValidFolderUuidError(),
     });
   };
 }

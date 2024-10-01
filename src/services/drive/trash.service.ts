@@ -10,6 +10,11 @@ export class TrashService {
     return storageClient.addItemsToTrash(payload);
   };
 
+  public clearTrash = () => {
+    const storageClient = SdkManager.instance.getTrash();
+    return storageClient.clearTrash();
+  };
+
   public getTrashFolderContent = async () => {
     const storageClient = SdkManager.instance.getTrash();
     const folders = await this.getAllTrashSubfolders(storageClient, 0);

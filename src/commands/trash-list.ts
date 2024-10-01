@@ -6,19 +6,18 @@ import { FormatUtils } from '../utils/format.utils';
 import { ErrorUtils } from '../utils/errors.utils';
 import { TrashService } from '../services/drive/trash.service';
 
-export default class ListTrash extends Command {
+export default class TrashList extends Command {
   static readonly args = {};
   static readonly description = 'Lists the content of the trash.';
-
   static readonly examples = ['<%= config.bin %> <%= command.id %>'];
-
+  static readonly aliases = ['trash:list'];
   static readonly flags = {
     ...CLIUtils.CommonFlags,
     ...ux.table.flags(),
   };
 
   public async run() {
-    const { flags } = await this.parse(ListTrash);
+    const { flags } = await this.parse(TrashList);
 
     const userCredentials = await ConfigService.instance.readUser();
     if (!userCredentials) throw new MissingCredentialsError();

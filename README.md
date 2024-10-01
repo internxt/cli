@@ -31,7 +31,7 @@ $ npm install -g @internxt/cli
 $ internxt COMMAND
 running command...
 $ internxt (--version)
-@internxt/cli/1.2.2 darwin-arm64 node-v20.14.0
+@internxt/cli/1.3.0 darwin-arm64 node-v20.14.0
 $ internxt --help [COMMAND]
 USAGE
   $ internxt COMMAND
@@ -47,12 +47,17 @@ USAGE
 * [`internxt create-folder`](#internxt-create-folder)
 * [`internxt download`](#internxt-download)
 * [`internxt list`](#internxt-list)
-* [`internxt list-trash`](#internxt-list-trash)
 * [`internxt login`](#internxt-login)
 * [`internxt logout`](#internxt-logout)
 * [`internxt logs`](#internxt-logs)
 * [`internxt move`](#internxt-move)
 * [`internxt trash`](#internxt-trash)
+* [`internxt trash-clear`](#internxt-trash-clear)
+* [`internxt trash-list`](#internxt-trash-list)
+* [`internxt trash-restore`](#internxt-trash-restore)
+* [`internxt trash clear`](#internxt-trash-clear-1)
+* [`internxt trash list`](#internxt-trash-list-1)
+* [`internxt trash restore`](#internxt-trash-restore-1)
 * [`internxt upload`](#internxt-upload)
 * [`internxt webdav ACTION`](#internxt-webdav-action)
 * [`internxt whoami`](#internxt-whoami)
@@ -72,7 +77,7 @@ EXAMPLES
   $ internxt add-cert
 ```
 
-_See code: [src/commands/add-cert.ts](https://github.com/internxt/cli/blob/v1.2.2/src/commands/add-cert.ts)_
+_See code: [src/commands/add-cert.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/add-cert.ts)_
 
 ## `internxt config`
 
@@ -101,7 +106,7 @@ EXAMPLES
   $ internxt config
 ```
 
-_See code: [src/commands/config.ts](https://github.com/internxt/cli/blob/v1.2.2/src/commands/config.ts)_
+_See code: [src/commands/config.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/config.ts)_
 
 ## `internxt create-folder`
 
@@ -122,7 +127,7 @@ EXAMPLES
   $ internxt create-folder
 ```
 
-_See code: [src/commands/create-folder.ts](https://github.com/internxt/cli/blob/v1.2.2/src/commands/create-folder.ts)_
+_See code: [src/commands/create-folder.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/create-folder.ts)_
 
 ## `internxt download`
 
@@ -145,7 +150,7 @@ EXAMPLES
   $ internxt download
 ```
 
-_See code: [src/commands/download.ts](https://github.com/internxt/cli/blob/v1.2.2/src/commands/download.ts)_
+_See code: [src/commands/download.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/download.ts)_
 
 ## `internxt list`
 
@@ -179,40 +184,7 @@ EXAMPLES
   $ internxt list
 ```
 
-_See code: [src/commands/list.ts](https://github.com/internxt/cli/blob/v1.2.2/src/commands/list.ts)_
-
-## `internxt list-trash`
-
-Lists the content of the trash.
-
-```
-USAGE
-  $ internxt list-trash [-n] [--columns <value> | -x] [--filter <value>] [--no-header | [--csv | --no-truncate]]
-    [--output csv|json|yaml |  | ] [--sort <value>]
-
-FLAGS
-  -x, --extended         show extra columns
-      --columns=<value>  only show provided columns (comma-separated)
-      --csv              output is csv format [alias: --output=csv]
-      --filter=<value>   filter property by partial string matching, ex: name=foo
-      --no-header        hide table header from output
-      --no-truncate      do not truncate output to fit screen
-      --output=<option>  output in a more machine friendly format
-                         <options: csv|json|yaml>
-      --sort=<value>     property to sort by (prepend '-' for descending)
-
-HELPER FLAGS
-  -n, --non-interactive  Blocks the cli from being interactive. If passed, the cli will not request data through the
-                         console and will throw errors directly
-
-DESCRIPTION
-  Lists the content of the trash.
-
-EXAMPLES
-  $ internxt list-trash
-```
-
-_See code: [src/commands/list-trash.ts](https://github.com/internxt/cli/blob/v1.2.2/src/commands/list-trash.ts)_
+_See code: [src/commands/list.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/list.ts)_
 
 ## `internxt login`
 
@@ -238,7 +210,7 @@ EXAMPLES
   $ internxt login
 ```
 
-_See code: [src/commands/login.ts](https://github.com/internxt/cli/blob/v1.2.2/src/commands/login.ts)_
+_See code: [src/commands/login.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/login.ts)_
 
 ## `internxt logout`
 
@@ -255,7 +227,7 @@ EXAMPLES
   $ internxt logout
 ```
 
-_See code: [src/commands/logout.ts](https://github.com/internxt/cli/blob/v1.2.2/src/commands/logout.ts)_
+_See code: [src/commands/logout.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/logout.ts)_
 
 ## `internxt logs`
 
@@ -272,7 +244,7 @@ EXAMPLES
   $ internxt logs
 ```
 
-_See code: [src/commands/logs.ts](https://github.com/internxt/cli/blob/v1.2.2/src/commands/logs.ts)_
+_See code: [src/commands/logs.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/logs.ts)_
 
 ## `internxt move`
 
@@ -297,7 +269,7 @@ EXAMPLES
   $ internxt move
 ```
 
-_See code: [src/commands/move.ts](https://github.com/internxt/cli/blob/v1.2.2/src/commands/move.ts)_
+_See code: [src/commands/move.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/move.ts)_
 
 ## `internxt trash`
 
@@ -321,7 +293,183 @@ EXAMPLES
   $ internxt trash
 ```
 
-_See code: [src/commands/trash.ts](https://github.com/internxt/cli/blob/v1.2.2/src/commands/trash.ts)_
+_See code: [src/commands/trash.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/trash.ts)_
+
+## `internxt trash-clear`
+
+Deletes permanently all the content of the trash. This action cannot be undone.
+
+```
+USAGE
+  $ internxt trash-clear [-n] [-f]
+
+FLAGS
+  -f, --force  It forces the trash to be emptied without confirmation.
+
+HELPER FLAGS
+  -n, --non-interactive  Blocks the cli from being interactive. If passed, the cli will not request data through the
+                         console and will throw errors directly
+
+DESCRIPTION
+  Deletes permanently all the content of the trash. This action cannot be undone.
+
+ALIASES
+  $ internxt trash clear
+
+EXAMPLES
+  $ internxt trash-clear
+```
+
+_See code: [src/commands/trash-clear.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/trash-clear.ts)_
+
+## `internxt trash-list`
+
+Lists the content of the trash.
+
+```
+USAGE
+  $ internxt trash-list [-n] [--columns <value> | -x] [--filter <value>] [--no-header | [--csv | --no-truncate]]
+    [--output csv|json|yaml |  | ] [--sort <value>]
+
+FLAGS
+  -x, --extended         show extra columns
+      --columns=<value>  only show provided columns (comma-separated)
+      --csv              output is csv format [alias: --output=csv]
+      --filter=<value>   filter property by partial string matching, ex: name=foo
+      --no-header        hide table header from output
+      --no-truncate      do not truncate output to fit screen
+      --output=<option>  output in a more machine friendly format
+                         <options: csv|json|yaml>
+      --sort=<value>     property to sort by (prepend '-' for descending)
+
+HELPER FLAGS
+  -n, --non-interactive  Blocks the cli from being interactive. If passed, the cli will not request data through the
+                         console and will throw errors directly
+
+DESCRIPTION
+  Lists the content of the trash.
+
+ALIASES
+  $ internxt trash list
+
+EXAMPLES
+  $ internxt trash-list
+```
+
+_See code: [src/commands/trash-list.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/trash-list.ts)_
+
+## `internxt trash-restore`
+
+Restore a trashed folder/file into a destination folder.
+
+```
+USAGE
+  $ internxt trash-restore [-n] [-i <value>] [-d <value>]
+
+FLAGS
+  -d, --destination=<value>  The destination folder id where the item is going to be restored.
+  -i, --id=<value>           The item id to be restored from the trash (it can be a file id or a folder id).
+
+HELPER FLAGS
+  -n, --non-interactive  Blocks the cli from being interactive. If passed, the cli will not request data through the
+                         console and will throw errors directly
+
+DESCRIPTION
+  Restore a trashed folder/file into a destination folder.
+
+ALIASES
+  $ internxt trash restore
+
+EXAMPLES
+  $ internxt trash-restore
+```
+
+_See code: [src/commands/trash-restore.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/trash-restore.ts)_
+
+## `internxt trash clear`
+
+Deletes permanently all the content of the trash. This action cannot be undone.
+
+```
+USAGE
+  $ internxt trash clear [-n] [-f]
+
+FLAGS
+  -f, --force  It forces the trash to be emptied without confirmation.
+
+HELPER FLAGS
+  -n, --non-interactive  Blocks the cli from being interactive. If passed, the cli will not request data through the
+                         console and will throw errors directly
+
+DESCRIPTION
+  Deletes permanently all the content of the trash. This action cannot be undone.
+
+ALIASES
+  $ internxt trash clear
+
+EXAMPLES
+  $ internxt trash clear
+```
+
+## `internxt trash list`
+
+Lists the content of the trash.
+
+```
+USAGE
+  $ internxt trash list [-n] [--columns <value> | -x] [--filter <value>] [--no-header | [--csv | --no-truncate]]
+    [--output csv|json|yaml |  | ] [--sort <value>]
+
+FLAGS
+  -x, --extended         show extra columns
+      --columns=<value>  only show provided columns (comma-separated)
+      --csv              output is csv format [alias: --output=csv]
+      --filter=<value>   filter property by partial string matching, ex: name=foo
+      --no-header        hide table header from output
+      --no-truncate      do not truncate output to fit screen
+      --output=<option>  output in a more machine friendly format
+                         <options: csv|json|yaml>
+      --sort=<value>     property to sort by (prepend '-' for descending)
+
+HELPER FLAGS
+  -n, --non-interactive  Blocks the cli from being interactive. If passed, the cli will not request data through the
+                         console and will throw errors directly
+
+DESCRIPTION
+  Lists the content of the trash.
+
+ALIASES
+  $ internxt trash list
+
+EXAMPLES
+  $ internxt trash list
+```
+
+## `internxt trash restore`
+
+Restore a trashed folder/file into a destination folder.
+
+```
+USAGE
+  $ internxt trash restore [-n] [-i <value>] [-d <value>]
+
+FLAGS
+  -d, --destination=<value>  The destination folder id where the item is going to be restored.
+  -i, --id=<value>           The item id to be restored from the trash (it can be a file id or a folder id).
+
+HELPER FLAGS
+  -n, --non-interactive  Blocks the cli from being interactive. If passed, the cli will not request data through the
+                         console and will throw errors directly
+
+DESCRIPTION
+  Restore a trashed folder/file into a destination folder.
+
+ALIASES
+  $ internxt trash restore
+
+EXAMPLES
+  $ internxt trash restore
+```
 
 ## `internxt upload`
 
@@ -345,7 +493,7 @@ EXAMPLES
   $ internxt upload
 ```
 
-_See code: [src/commands/upload.ts](https://github.com/internxt/cli/blob/v1.2.2/src/commands/upload.ts)_
+_See code: [src/commands/upload.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/upload.ts)_
 
 ## `internxt webdav ACTION`
 
@@ -368,7 +516,7 @@ EXAMPLES
   $ internxt webdav status
 ```
 
-_See code: [src/commands/webdav.ts](https://github.com/internxt/cli/blob/v1.2.2/src/commands/webdav.ts)_
+_See code: [src/commands/webdav.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/webdav.ts)_
 
 ## `internxt whoami`
 
@@ -385,7 +533,7 @@ EXAMPLES
   $ internxt whoami
 ```
 
-_See code: [src/commands/whoami.ts](https://github.com/internxt/cli/blob/v1.2.2/src/commands/whoami.ts)_
+_See code: [src/commands/whoami.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/whoami.ts)_
 <!-- commandsstop -->
 
 # Current Limitations

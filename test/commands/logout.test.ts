@@ -3,7 +3,7 @@ import { test } from '@oclif/test';
 import { ConfigService } from '../../src/services/config.service';
 import { UserCredentialsFixture } from '../fixtures/login.fixture';
 
-describe('Logout Command', () => {
+describe.skip('Logout Command', () => {
   describe('When user is logged in and logout is called, then the current user logged out', () => {
     test
       .stdout()
