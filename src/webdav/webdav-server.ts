@@ -108,6 +108,7 @@ export class WebDavServer {
           driveDatabaseManager: this.driveDatabaseManager,
           uploadService: this.uploadService,
           downloadService: this.downloadService,
+          trashService: this.trashService,
           cryptoService: this.cryptoService,
           authService: this.authService,
           networkFacade: networkFacade,
