@@ -83,6 +83,14 @@ export class NotValidYesOrNoError extends Error {
   }
 }
 
+export class EmptyItemNameError extends Error {
+  constructor() {
+    super('Item name can not be empty');
+
+    Object.setPrototypeOf(this, EmptyPasswordError.prototype);
+  }
+}
+
 export type PaginatedItem = {
   plainName: string;
   uuid: string;
