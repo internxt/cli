@@ -51,6 +51,7 @@ USAGE
 * [`internxt logout`](#internxt-logout)
 * [`internxt logs`](#internxt-logs)
 * [`internxt move`](#internxt-move)
+* [`internxt rename`](#internxt-rename)
 * [`internxt trash`](#internxt-trash)
 * [`internxt trash-clear`](#internxt-trash-clear)
 * [`internxt trash-list`](#internxt-trash-list)
@@ -270,6 +271,31 @@ EXAMPLES
 ```
 
 _See code: [src/commands/move.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/move.ts)_
+
+## `internxt rename`
+
+Rename a folder/file.
+
+```
+USAGE
+  $ internxt rename [-n] [-i <value>] [-n <value>]
+
+FLAGS
+  -i, --id=<value>    The item id to be renamed (it can be a file id or a folder id).
+  -n, --name=<value>  The new item name that the item is going to be have.
+
+HELPER FLAGS
+  -n, --non-interactive  Blocks the cli from being interactive. If passed, the cli will not request data through the
+                         console and will throw errors directly
+
+DESCRIPTION
+  Rename a folder/file.
+
+EXAMPLES
+  $ internxt rename
+```
+
+_See code: [src/commands/rename.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/rename.ts)_
 
 ## `internxt trash`
 
