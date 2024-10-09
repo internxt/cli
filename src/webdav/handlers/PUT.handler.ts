@@ -5,6 +5,7 @@ import { UploadService } from '../../services/network/upload.service';
 import { DownloadService } from '../../services/network/download.service';
 import { CryptoService } from '../../services/crypto.service';
 import { AuthService } from '../../services/auth.service';
+import { DriveFileItem } from '../../types/drive.types';
 import { WebDavMethodHandler, WebDavRequestedResource } from '../../types/webdav.types';
 import { ConflictError, UnsupportedMediaTypeError } from '../../utils/errors.utils';
 import { WebDavUtils } from '../../utils/webdav.utils';
@@ -33,6 +34,7 @@ export class PUTRequestHandler implements WebDavMethodHandler {
 
     const resource = await WebDavUtils.getRequestedResource(req, this.dependencies.driveDatabaseManager);
     const driveFolder = await this.getDriveFolderRealmObject(resource);
+    const previousFile = await this.dependencies.driveDatabaseManager.findByRelativePath(resource.url);
 
     webdavLogger.info(`PUT request received for uploading file '${resource.name}' to '${resource.path.dir}'`);
     if (!driveFolder) {
@@ -57,14 +59,29 @@ export class PUTRequestHandler implements WebDavMethodHandler {
 
     webdavLogger.info('✅ File uploaded to network');
 
-    const file = await DriveFileService.instance.createFile({
-      name: resource.path.name,
-      type: resource.path.ext.replaceAll('.', ''),
-      size: contentLength,
-      folderId: driveFolder.id,
-      fileId: uploadResult.fileId,
-      bucket: user.bucket,
-    });
+    let file: DriveFileItem;
+    // If the resource already exist and is a file, the WebDAV specification states that 'PUT /…/file' should replace it.
+    // http://www.webdav.org/specs/rfc4918.html#put-resources
+    if (previousFile) {
+      webdavLogger.info(`File '${resource.name}' already exists, replacing its content`);
+      file = await DriveFileService.instance.replaceFile(previousFile.uuid, {
+        name: resource.path.name,
+        type: resource.path.ext.replaceAll('.', ''),
+        size: contentLength,
+        folderId: driveFolder.id,
+        fileId: uploadResult.fileId,
+        bucket: user.bucket,
+      });
+    } else {
+      file = await DriveFileService.instance.createFile({
+        name: resource.path.name,
+        type: resource.path.ext.replaceAll('.', ''),
+        size: contentLength,
+        folderId: driveFolder.id,
+        fileId: uploadResult.fileId,
+        bucket: user.bucket,
+      });
+    }
 
     webdavLogger.info('✅ File uploaded to internxt drive');
 

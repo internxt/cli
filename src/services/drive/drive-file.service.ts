@@ -51,6 +51,39 @@ export class DriveFileService {
     };
   };
 
+  public replaceFile = async (previousFileUuid: string, payload: {
+    name: string;
+    type: string;
+    size: number;
+    folderId: number;
+    fileId: string;
+    bucket: string;
+  }): Promise<DriveFileItem> => {
+    const storageClient = SdkManager.instance.getStorage();
+    const encryptedName = aes.encrypt(
+      payload.name,
+      `${ConfigService.instance.get('APP_CRYPTO_SECRET2')}-${payload.folderId}`,
+      CryptoUtils.getAesInit(),
+    );
+    const driveFile = await storageClient.replaceFile(
+      previousFileUuid, {fileId: payload.fileId, size: payload.size});
+
+    return {
+      size: Number(driveFile.size),
+      uuid: driveFile.uuid,
+      encryptedName,
+      name: payload.name,
+      bucket: payload.bucket,
+      createdAt: new Date(driveFile.createdAt),
+      updatedAt: new Date(driveFile.updatedAt),
+      fileId: payload.fileId,
+      id: driveFile.id,
+      type: payload.type,
+      status: driveFile.status,
+      folderId: driveFile.folderId,
+    };
+  };
+
   public getFileMetadata = async (uuid: string): Promise<DriveFileItem> => {
     const storageClient = SdkManager.instance.getStorage(true);
 
