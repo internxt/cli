@@ -48,6 +48,7 @@ export class DriveFileService {
       type: payload.type,
       status: driveFile.status,
       folderId: driveFile.folderId,
+      folderUuid: driveFile.folderUuid,
     };
   };
 

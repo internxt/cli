@@ -6,16 +6,28 @@ export class DriveFolder implements DriveFolderAttributes {
   uuid: string;
   relativePath: string;
   parentId: number | null;
+  parentUuid: string | null;
   createdAt: Date;
   updatedAt: Date;
   status: DriveFolderAttributes['status'];
 
-  constructor({ id, name, uuid, relativePath, parentId, createdAt, updatedAt, status }: DriveFolderAttributes) {
+  constructor({
+    id,
+    name,
+    uuid,
+    relativePath,
+    parentId,
+    parentUuid,
+    createdAt,
+    updatedAt,
+    status,
+  }: DriveFolderAttributes) {
     this.id = id;
     this.name = name;
     this.uuid = uuid;
     this.relativePath = relativePath;
     this.parentId = parentId;
+    this.parentUuid = parentUuid;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
     this.status = status;
@@ -33,6 +45,7 @@ export class DriveFolder implements DriveFolderAttributes {
       status: this.status,
       relativePath: this.relativePath,
       parentId: this.parentId,
+      parentUuid: this.parentUuid,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
     };

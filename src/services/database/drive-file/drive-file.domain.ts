@@ -7,6 +7,7 @@ export class DriveFile implements DriveFileAttributes {
   uuid: string;
   fileId: string;
   folderId: number;
+  folderUuid: string;
   bucket: string;
   relativePath: string;
   createdAt: Date;
@@ -21,6 +22,7 @@ export class DriveFile implements DriveFileAttributes {
     uuid,
     fileId,
     folderId,
+    folderUuid,
     bucket,
     relativePath,
     createdAt,
@@ -34,6 +36,7 @@ export class DriveFile implements DriveFileAttributes {
     this.uuid = uuid;
     this.fileId = fileId;
     this.folderId = folderId;
+    this.folderUuid = folderUuid;
     this.bucket = bucket;
     this.relativePath = relativePath;
     this.createdAt = createdAt;
@@ -54,6 +57,7 @@ export class DriveFile implements DriveFileAttributes {
       uuid: this.uuid,
       fileId: this.fileId,
       folderId: this.folderId,
+      folderUuid: this.folderUuid,
       bucket: this.bucket,
       relativePath: this.relativePath,
       createdAt: this.createdAt,

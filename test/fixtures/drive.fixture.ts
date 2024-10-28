@@ -24,6 +24,7 @@ export const newFolderItem = (attributes?: Partial<DriveFolderItem>): DriveFolde
     createdAt: new Date(),
     updatedAt: new Date(),
     status: 'EXISTS',
+    parentUuid: randomUUID(),
   };
   return { ...folder, ...attributes };
 };
@@ -42,6 +43,7 @@ export const newFileItem = (attributes?: Partial<DriveFileItem>): DriveFileItem 
     size: randomInt(1, 10000),
     type: fileTypes[randomInt(fileTypes.length)],
     status: FileStatus.EXISTS,
+    folderUuid: randomUUID(),
   };
   return { ...file, ...attributes };
 };
@@ -66,6 +68,7 @@ export const newFolderMeta = (attributes?: Partial<FolderMeta>): FolderMeta => {
     user: null,
     userId: randomInt(1, 100000),
     uuid: randomUUID(),
+    parentUuid: randomUUID(),
   };
   return { ...folder, ...attributes };
 };

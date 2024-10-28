@@ -39,6 +39,9 @@ export class DriveFileModel extends Model implements DriveFileAttributes {
   @Column(DataType.INTEGER)
   declare folderId: number;
 
+  @Column(DataType.UUIDV4)
+  declare folderUuid: string;
+
   @Column(DataType.STRING(24))
   declare bucket: string;
 
