@@ -66,8 +66,8 @@ export class DriveFileService {
     return storageClient.moveFileByUuid(payload);
   };
 
-  public renameFile = (payload: { fileUuid: string; name: string }): Promise<void> => {
+  public renameFile = (fileUuid: string, payload: { plainName?: string; type?: string | null }): Promise<void> => {
     const storageClient = SdkManager.instance.getStorage(true);
-    return storageClient.updateFileNameWithUUID(payload);
+    return storageClient.updateFileMetaWithUUID(fileUuid, payload);
   };
 }
