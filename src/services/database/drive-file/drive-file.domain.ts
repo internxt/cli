@@ -1,3 +1,4 @@
+import { DriveFileItem } from '../../../types/drive.types';
 import { DriveFileAttributes } from './drive-file.attributes';
 
 export class DriveFile implements DriveFileAttributes {
@@ -64,6 +65,24 @@ export class DriveFile implements DriveFileAttributes {
       updatedAt: this.updatedAt,
       size: this.size,
       status: this.status,
+    };
+  }
+
+  public toItem(): DriveFileItem {
+    return {
+      id: this.id,
+      name: this.name,
+      type: this.type,
+      uuid: this.uuid,
+      fileId: this.fileId,
+      folderId: this.folderId,
+      folderUuid: this.folderUuid,
+      bucket: this.bucket,
+      createdAt: this.createdAt,
+      updatedAt: this.updatedAt,
+      size: this.size,
+      status: this.status,
+      encryptedName: '',
     };
   }
 }

@@ -1,3 +1,4 @@
+import { DriveFolderItem } from '../../../types/drive.types';
 import { DriveFolderAttributes } from './drive-folder.attributes';
 
 export class DriveFolder implements DriveFolderAttributes {
@@ -48,6 +49,21 @@ export class DriveFolder implements DriveFolderAttributes {
       parentUuid: this.parentUuid,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
+    };
+  }
+
+  public toItem(): DriveFolderItem {
+    return {
+      id: this.id,
+      name: this.name,
+      uuid: this.uuid,
+      status: this.status,
+      parentId: this.parentId,
+      parentUuid: this.parentUuid,
+      createdAt: this.createdAt,
+      updatedAt: this.updatedAt,
+      encryptedName: '',
+      bucket: null,
     };
   }
 }
