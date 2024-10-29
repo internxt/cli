@@ -23,7 +23,7 @@ export class DriveDatabaseManager {
   ) {}
 
   static readonly init = async () => {
-    await DriveDatabaseManager.sequelize.sync();
+    await DriveDatabaseManager.sequelize.sync({ force: true });
   };
 
   static readonly clean = async () => {
