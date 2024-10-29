@@ -6,6 +6,7 @@ export class DriveUtils {
     return {
       uuid: fileMeta.uuid ?? '',
       status: fileMeta.status,
+      folderId: fileMeta.folderId ?? fileMeta.folder_id,
       folderUuid: fileMeta.folderUuid,
       size: fileMeta.size,
       encryptedName: fileMeta.name,
