@@ -70,4 +70,10 @@ export class DriveFileService {
     const storageClient = SdkManager.instance.getStorage(true);
     return storageClient.updateFileMetaWithUUID(fileUuid, payload);
   };
+
+  public getFileMetadataByPath = async (path: string): Promise<DriveFileItem> => {
+    const storageClient = SdkManager.instance.getStorage(true);
+    const fileMetadata = await storageClient.getFileByPath(encodeURIComponent(path));
+    return DriveUtils.driveFileMetaToItem(fileMetadata);
+  };
 }

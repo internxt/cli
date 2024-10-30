@@ -85,4 +85,17 @@ export class DriveFolderService {
     const storageClient = SdkManager.instance.getStorage(true);
     return storageClient.updateFolderNameWithUUID(payload);
   };
+
+  public getFolderMetadataByPath = async (path: string): Promise<DriveFolderItem> => {
+    const storageClient = SdkManager.instance.getStorage(true);
+    const folderMeta = await storageClient.getFolderByPath(encodeURIComponent(path));
+    return DriveUtils.driveFolderMetaToItem({
+      ...folderMeta,
+      createdAt: folderMeta.createdAt ?? folderMeta.created_at,
+      updatedAt: folderMeta.updatedAt ?? folderMeta.updated_at,
+      plainName: folderMeta.plainName ?? folderMeta.plain_name,
+      parentId: folderMeta.parentId ?? folderMeta.parent_id,
+      parentUuid: folderMeta.parentUuid ?? folderMeta.parent_uuid,
+    });
+  };
 }
