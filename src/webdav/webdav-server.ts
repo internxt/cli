@@ -55,6 +55,7 @@ export class WebDavServer {
 
     return new NetworkFacade(networkModule, this.uploadService, this.downloadService, this.cryptoService);
   }
+
   private registerMiddlewares = async () => {
     this.app.use(bodyParser.text({ type: ['application/xml', 'text/xml'] }));
     this.app.use(ErrorHandlingMiddleware);
@@ -62,7 +63,7 @@ export class WebDavServer {
     this.app.use(
       RequestLoggerMiddleware(
         {
-          enable: false,
+          enable: true,
         },
         AnalyticsService.instance,
       ),
@@ -93,6 +94,7 @@ export class WebDavServer {
         new PROPFINDRequestHandler(
           { debug: true },
           {
+            driveFileService: this.driveFileService,
             driveFolderService: this.driveFolderService,
             driveDatabaseManager: this.driveDatabaseManager,
           },
@@ -130,11 +132,22 @@ export class WebDavServer {
         new DELETERequestHandler({
           driveDatabaseManager: this.driveDatabaseManager,
           trashService: this.trashService,
+          driveFileService: this.driveFileService,
+          driveFolderService: this.driveFolderService,
         }).handle,
       ),
     );
     this.app.proppatch('*', asyncHandler(new PROPPATCHRequestHandler().handle));
-    this.app.move('*', asyncHandler(new MOVERequestHandler().handle));
+    this.app.move(
+      '*',
+      asyncHandler(
+        new MOVERequestHandler({
+          driveDatabaseManager: this.driveDatabaseManager,
+          driveFolderService: this.driveFolderService,
+          driveFileService: this.driveFileService,
+        }).handle,
+      ),
+    );
     this.app.copy('*', asyncHandler(new COPYRequestHandler().handle));
   };
 
