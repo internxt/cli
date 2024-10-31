@@ -5,9 +5,9 @@ import { WebDavUtils } from '../../utils/webdav.utils';
 import { ConflictError } from '../../utils/errors.utils';
 import { DriveFolderService } from '../../services/drive/drive-folder.service';
 import { webdavLogger } from '../../utils/logger.utils';
-import path from 'path';
 import { XMLUtils } from '../../utils/xml.utils';
 import { AsyncUtils } from '../../utils/async.utils';
+import { DriveFolderItem } from '../../types/drive.types';
 
 export class MKCOLRequestHandler implements WebDavMethodHandler {
   constructor(
@@ -19,39 +19,45 @@ export class MKCOLRequestHandler implements WebDavMethodHandler {
 
   handle = async (req: Request, res: Response) => {
     const { driveDatabaseManager, driveFolderService } = this.dependencies;
-    const decodedUrl = decodeURIComponent(req.url);
-    const resourceParsedPath = path.parse(decodedUrl);
-    const parentPath = WebDavUtils.getParentPath(decodedUrl);
+    const resource = await WebDavUtils.getRequestedResource(req);
+    webdavLogger.info('Resource received for MKCOL request', { resource });
 
-    const parentResource = await driveDatabaseManager.findByRelativePath(parentPath);
+    const parentResource = await WebDavUtils.getRequestedResource(resource.parentPath);
 
-    if (!parentResource) {
-      throw new ConflictError(`Parent resource not found for parent path ${parentPath}`);
+    const parentFolderItem = (await WebDavUtils.getAndSearchItemFromResource({
+      resource: parentResource,
+      driveDatabaseManager,
+      driveFolderService,
+    })) as DriveFolderItem;
+
+    if (!parentFolderItem) {
+      throw new ConflictError(`Parent resource not found for parent path ${resource.parentPath}`);
     }
 
-    webdavLogger.info(`MKCOL request received for folder at ${req.url}`);
-    webdavLogger.info(`Parent path: ${parentResource.id}`);
-
     const [createFolder] = driveFolderService.createFolder({
-      folderName: resourceParsedPath.base,
-      parentFolderId: parentResource.id,
+      folderName: resource.name,
+      parentFolderId: parentFolderItem.id,
     });
 
     const newFolder = await createFolder;
 
     webdavLogger.info(`✅ Folder created with UUID ${newFolder.uuid}`);
 
-    await driveDatabaseManager.createFolder({
-      name: newFolder.plain_name,
-      status: 'EXISTS',
-      encryptedName: newFolder.name,
-      bucket: newFolder.bucket,
-      id: newFolder.id,
-      parentId: newFolder.parentId,
-      uuid: newFolder.uuid,
-      createdAt: new Date(newFolder.createdAt),
-      updatedAt: new Date(newFolder.updatedAt),
-    });
+    await driveDatabaseManager.createFolder(
+      {
+        name: newFolder.plain_name,
+        status: 'EXISTS',
+        encryptedName: newFolder.name,
+        bucket: newFolder.bucket,
+        id: newFolder.id,
+        parentId: newFolder.parentId,
+        parentUuid: newFolder.parentUuid,
+        uuid: newFolder.uuid,
+        createdAt: new Date(newFolder.createdAt),
+        updatedAt: new Date(newFolder.updatedAt),
+      },
+      resource.url,
+    );
 
     // This aims to prevent this issue: https://inxt.atlassian.net/browse/PB-1446
     await AsyncUtils.sleep(500);
