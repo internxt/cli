@@ -1,6 +1,11 @@
 import sinon from 'sinon';
 import { DELETERequestHandler } from '../../../src/webdav/handlers/DELETE.handler';
-import { createWebDavRequestFixture, createWebDavResponseFixture } from '../../fixtures/webdav.fixture';
+import {
+  createWebDavRequestFixture,
+  createWebDavResponseFixture,
+  getRequestedFileResource,
+  getRequestedFolderResource,
+} from '../../fixtures/webdav.fixture';
 import { getDriveDatabaseManager } from '../../fixtures/drive-database.fixture';
 import { TrashService } from '../../../src/services/drive/trash.service';
 import { expect } from 'chai';
@@ -9,8 +14,8 @@ import { DriveFileService } from '../../../src/services/drive/drive-file.service
 import { DriveFolderService } from '../../../src/services/drive/drive-folder.service';
 import { WebDavUtils } from '../../../src/utils/webdav.utils';
 import { newFileItem, newFolderItem } from '../../fixtures/drive.fixture';
+import { fail } from 'assert';
 import { WebDavRequestedResource } from '../../../src/types/webdav.types';
-import path from 'path';
 
 describe('DELETE request handler', () => {
   const sandbox = sinon.createSandbox();
@@ -35,24 +40,18 @@ describe('DELETE request handler', () => {
       status: sandbox.stub().returns({ send: sandbox.stub() }),
     });
 
-    const requestedResource: WebDavRequestedResource = {
-      name: 'file',
-      parentPath: '/',
-      path: path.parse('/file.txt'),
-      type: 'file',
-      url: '/file.txt',
-    };
+    const requestedFileResource: WebDavRequestedResource = getRequestedFileResource();
 
-    const expectedError = new NotFoundError(`Resource not found on Internxt Drive at ${requestedResource.url}`);
+    const expectedError = new NotFoundError(`Resource not found on Internxt Drive at ${requestedFileResource.url}`);
 
-    const getRequestedResourceStub = sandbox.stub(WebDavUtils, 'getRequestedResource').resolves(requestedResource);
+    const getRequestedResourceStub = sandbox.stub(WebDavUtils, 'getRequestedResource').resolves(requestedFileResource);
     const getAndSearchItemFromResourceStub = sandbox
       .stub(WebDavUtils, 'getAndSearchItemFromResource')
       .throws(expectedError);
 
     try {
       await requestHandler.handle(request, response);
-      expect(true).to.be.false;
+      fail('Expected function to throw an error, but it did not.');
     } catch (error) {
       expect(error).to.be.instanceOf(NotFoundError);
     }
@@ -78,15 +77,9 @@ describe('DELETE request handler', () => {
     });
 
     const mockFile = newFileItem();
-    const requestedResource: WebDavRequestedResource = {
-      name: 'file',
-      parentPath: '/',
-      path: path.parse('/file.txt'),
-      type: 'file',
-      url: '/file.txt',
-    };
+    const requestedFileResource: WebDavRequestedResource = getRequestedFileResource();
 
-    const getRequestedResourceStub = sandbox.stub(WebDavUtils, 'getRequestedResource').resolves(requestedResource);
+    const getRequestedResourceStub = sandbox.stub(WebDavUtils, 'getRequestedResource').resolves(requestedFileResource);
     const getAndSearchItemFromResourceStub = sandbox
       .stub(WebDavUtils, 'getAndSearchItemFromResource')
       .resolves(mockFile);
@@ -122,15 +115,11 @@ describe('DELETE request handler', () => {
     });
 
     const mockFolder = newFolderItem();
-    const requestedResource: WebDavRequestedResource = {
-      name: 'folder',
-      parentPath: '/',
-      path: path.parse('/folder/'),
-      type: 'folder',
-      url: '/folder/',
-    };
+    const requestedFolderResource: WebDavRequestedResource = getRequestedFolderResource();
 
-    const getRequestedResourceStub = sandbox.stub(WebDavUtils, 'getRequestedResource').resolves(requestedResource);
+    const getRequestedResourceStub = sandbox
+      .stub(WebDavUtils, 'getRequestedResource')
+      .resolves(requestedFolderResource);
     const getAndSearchItemFromResourceStub = sandbox
       .stub(WebDavUtils, 'getAndSearchItemFromResource')
       .resolves(mockFolder);
