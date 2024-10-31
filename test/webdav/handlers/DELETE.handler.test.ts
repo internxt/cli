@@ -32,15 +32,16 @@ describe('DELETE request handler', () => {
       driveFileService: DriveFileService.instance,
       driveFolderService: DriveFolderService.instance,
     });
+
+    const requestedFileResource: WebDavRequestedResource = getRequestedFileResource();
+
     const request = createWebDavRequestFixture({
       method: 'DELETE',
-      url: '/file.txt',
+      url: requestedFileResource.url,
     });
     const response = createWebDavResponseFixture({
       status: sandbox.stub().returns({ send: sandbox.stub() }),
     });
-
-    const requestedFileResource: WebDavRequestedResource = getRequestedFileResource();
 
     const expectedError = new NotFoundError(`Resource not found on Internxt Drive at ${requestedFileResource.url}`);
 
@@ -68,16 +69,16 @@ describe('DELETE request handler', () => {
       driveFileService: DriveFileService.instance,
       driveFolderService: DriveFolderService.instance,
     });
+    const requestedFileResource: WebDavRequestedResource = getRequestedFileResource();
     const request = createWebDavRequestFixture({
       method: 'DELETE',
-      url: '/file.txt',
+      url: requestedFileResource.url,
     });
     const response = createWebDavResponseFixture({
       status: sandbox.stub().returns({ send: sandbox.stub() }),
     });
 
     const mockFile = newFileItem();
-    const requestedFileResource: WebDavRequestedResource = getRequestedFileResource();
 
     const getRequestedResourceStub = sandbox.stub(WebDavUtils, 'getRequestedResource').resolves(requestedFileResource);
     const getAndSearchItemFromResourceStub = sandbox
@@ -105,17 +106,17 @@ describe('DELETE request handler', () => {
       driveFileService: DriveFileService.instance,
       driveFolderService: DriveFolderService.instance,
     });
+    const requestedFolderResource: WebDavRequestedResource = getRequestedFolderResource();
 
     const request = createWebDavRequestFixture({
       method: 'DELETE',
-      url: '/folder/',
+      url: requestedFolderResource.url,
     });
     const response = createWebDavResponseFixture({
       status: sandbox.stub().returns({ send: sandbox.stub() }),
     });
 
     const mockFolder = newFolderItem();
-    const requestedFolderResource: WebDavRequestedResource = getRequestedFolderResource();
 
     const getRequestedResourceStub = sandbox
       .stub(WebDavUtils, 'getRequestedResource')

@@ -19,22 +19,48 @@ export function createWebDavResponseFixture<T extends object>(response: T): mock
   return mockRes(response);
 }
 
-export const getRequestedFileResource = (): WebDavRequestedResource => {
+export const getRequestedFileResource = ({
+  parentFolder = '/',
+  fileName = 'file',
+  fileType = 'txt',
+} = {}): WebDavRequestedResource => {
+  if (!parentFolder.startsWith('/')) {
+    parentFolder = '/'.concat(parentFolder);
+  }
+  if (!parentFolder.endsWith('/')) {
+    parentFolder = parentFolder.concat('/');
+  }
+  const completeURL = parentFolder.concat(fileType ? fileName + '.' + fileType : fileName);
   return {
-    name: 'file',
-    parentPath: '/',
-    path: path.parse('/file.txt'),
+    name: fileName,
+    parentPath: parentFolder,
+    path: path.parse(completeURL),
     type: 'file',
-    url: '/file.txt',
+    url: completeURL,
   };
 };
 
-export const getRequestedFolderResource = (): WebDavRequestedResource => {
+export const getRequestedFolderResource = ({
+  parentFolder = '/',
+  folderName = 'folder',
+} = {}): WebDavRequestedResource => {
+  if (!parentFolder.startsWith('/')) {
+    parentFolder = '/'.concat(parentFolder);
+  }
+  if (!parentFolder.endsWith('/')) {
+    parentFolder = parentFolder.concat('/');
+  }
+  folderName = folderName.replaceAll('/', '');
+
+  let completeURL = parentFolder.concat(folderName);
+  if (!completeURL.endsWith('/')) {
+    completeURL = completeURL.concat('/');
+  }
   return {
-    name: 'folder',
-    parentPath: '/',
-    path: path.parse('/folder/'),
+    name: folderName,
+    parentPath: parentFolder,
+    path: path.parse(completeURL),
     type: 'folder',
-    url: '/folder/',
+    url: completeURL,
   };
 };

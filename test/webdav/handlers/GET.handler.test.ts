@@ -23,6 +23,7 @@ import { newFileItem } from '../../fixtures/drive.fixture';
 
 describe('GET request handler', () => {
   const sandbox = sinon.createSandbox();
+
   const getNetworkMock = () => {
     return SdkManager.instance.getNetwork({
       user: 'user',
@@ -86,16 +87,16 @@ describe('GET request handler', () => {
       networkFacade,
     });
 
+    const requestedFileResource: WebDavRequestedResource = getRequestedFileResource();
+
     const request = createWebDavRequestFixture({
       method: 'GET',
-      url: '/file.txt',
+      url: requestedFileResource.url,
       headers: {},
     });
     const response = createWebDavResponseFixture({
       status: sandbox.stub().returns({ send: sandbox.stub() }),
     });
-
-    const requestedFileResource: WebDavRequestedResource = getRequestedFileResource();
 
     const expectedError = new NotFoundError(`Resource not found on Internxt Drive at ${requestedFileResource.url}`);
 
@@ -131,9 +132,11 @@ describe('GET request handler', () => {
       networkFacade,
     });
 
+    const requestedFileResource: WebDavRequestedResource = getRequestedFileResource();
+
     const request = createWebDavRequestFixture({
       method: 'GET',
-      url: '/file.txt',
+      url: requestedFileResource.url,
       headers: {},
     });
     const response = createWebDavResponseFixture({
@@ -141,7 +144,6 @@ describe('GET request handler', () => {
     });
 
     const mockFile = newFileItem();
-    const requestedFileResource: WebDavRequestedResource = getRequestedFileResource();
     const mockAuthDetails = { mnemonic: 'MNEMONIC', token: 'TOKEN', newToken: 'NEW_TOKEN', user: UserFixture };
 
     const getRequestedResourceStub = sandbox.stub(WebDavUtils, 'getRequestedResource').resolves(requestedFileResource);
