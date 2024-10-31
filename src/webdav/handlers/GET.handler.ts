@@ -1,4 +1,4 @@
-import { WebDavMethodHandler, WebDavRequestedResource } from '../../types/webdav.types';
+import { WebDavMethodHandler } from '../../types/webdav.types';
 import { Request, Response } from 'express';
 import { WebDavUtils } from '../../utils/webdav.utils';
 import { DriveFileService } from '../../services/drive/drive-file.service';
@@ -8,9 +8,9 @@ import { UploadService } from '../../services/network/upload.service';
 import { DownloadService } from '../../services/network/download.service';
 import { CryptoService } from '../../services/crypto.service';
 import { AuthService } from '../../services/auth.service';
-import { DriveFile } from '../../services/database/drive-file/drive-file.domain';
 import { NotFoundError, NotImplementedError } from '../../utils/errors.utils';
 import { webdavLogger } from '../../utils/logger.utils';
+import { DriveFileItem } from '../../types/drive.types';
 
 export class GETRequestHandler implements WebDavMethodHandler {
   constructor(
@@ -26,25 +26,26 @@ export class GETRequestHandler implements WebDavMethodHandler {
   ) {}
 
   handle = async (req: Request, res: Response) => {
-    const resource = await WebDavUtils.getRequestedResource(req, this.dependencies.driveDatabaseManager);
+    const { driveDatabaseManager, driveFileService, authService, networkFacade } = this.dependencies;
+    const resource = await WebDavUtils.getRequestedResource(req);
 
     if (req.headers['content-range'] || req.headers['range'])
       throw new NotImplementedError('Range requests not supported');
     if (resource.name.startsWith('._')) throw new NotFoundError('File not found');
 
     webdavLogger.info(`GET request received for file at ${resource.url}`);
-    const driveFile = await this.getDriveFileDatabaseObject(resource);
-
-    if (!driveFile) {
-      throw new NotFoundError('Drive file not found');
-    }
+    const driveFile = (await WebDavUtils.getAndSearchItemFromResource({
+      resource,
+      driveDatabaseManager,
+      driveFileService,
+    })) as DriveFileItem;
 
     webdavLogger.info(`✅ Found Drive File with uuid ${driveFile.uuid}`);
 
     res.set('Content-Type', 'application/octet-stream');
     res.set('Content-length', driveFile.size.toString());
 
-    const { mnemonic } = await this.dependencies.authService.getAuthDetails();
+    const { mnemonic } = await authService.getAuthDetails();
     webdavLogger.info('✅ Network ready for download');
 
     const writable = new WritableStream({
@@ -56,14 +57,14 @@ export class GETRequestHandler implements WebDavMethodHandler {
       },
     });
 
-    const [executeDownload] = await this.dependencies.networkFacade.downloadToStream(
+    const [executeDownload] = await networkFacade.downloadToStream(
       driveFile.bucket,
       mnemonic,
       driveFile.fileId,
       writable,
       {
         progressCallback: (progress) => {
-          webdavLogger.info(`Download progress for file ${resource.name}: ${progress}%`);
+          webdavLogger.info(`Download progress for file ${resource.name}: ${(100 * progress).toFixed(2)}%`);
         },
       },
     );
@@ -74,11 +75,4 @@ export class GETRequestHandler implements WebDavMethodHandler {
 
     webdavLogger.info('✅ Download ready, replying to client');
   };
-
-  private async getDriveFileDatabaseObject(resource: WebDavRequestedResource) {
-    const { driveDatabaseManager } = this.dependencies;
-
-    const result = await driveDatabaseManager.findByRelativePath(resource.url);
-    return result as DriveFile | null;
-  }
 }
