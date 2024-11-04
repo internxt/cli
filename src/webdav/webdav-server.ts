@@ -107,11 +107,10 @@ export class WebDavServer {
       asyncHandler(
         new PUTRequestHandler({
           driveFileService: this.driveFileService,
+          driveFolderService: this.driveFolderService,
           driveDatabaseManager: this.driveDatabaseManager,
-          uploadService: this.uploadService,
-          downloadService: this.downloadService,
-          cryptoService: this.cryptoService,
           authService: this.authService,
+          trashService: this.trashService,
           networkFacade: networkFacade,
         }).handle,
       ),
