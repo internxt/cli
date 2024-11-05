@@ -1,5 +1,6 @@
 import { Express } from 'express';
 import https from 'https';
+import http from 'http';
 import { ConfigService } from '../services/config.service';
 import { OPTIONSRequestHandler } from './handlers/OPTIONS.handler';
 import { PROPFINDRequestHandler } from './handlers/PROPFIND.handler';
@@ -151,15 +152,27 @@ export class WebDavServer {
   };
 
   async start() {
-    const port = this.configService.get('WEBDAV_SERVER_PORT');
+    const configs = await this.configService.readWebdavConfig();
     this.app.disable('x-powered-by');
     await this.registerMiddlewares();
     await this.registerHandlers();
 
-    const server = https.createServer(NetworkUtils.getWebdavSSLCerts(), this.app).listen(port, () => {
-      webdavLogger.info(`Internxt WebDav server listening at https://${ConfigService.WEBDAV_LOCAL_URL}:${port}`);
-    });
+    const plainHttp = configs.protocol === 'http';
+    let server: http.Server | https.Server;
+    if (plainHttp) {
+      server = http.createServer(this.app);
+    } else {
+      const httpsCerts = NetworkUtils.getWebdavSSLCerts();
+      server = https.createServer(httpsCerts, this.app);
+    }
+
     // Allow long uploads/downloads from WebDAV clients (up to 15 minutes before closing connection):
     server.requestTimeout = 15 * 60 * 1000;
+
+    server.listen(configs.port, () => {
+      webdavLogger.info(
+        `Internxt WebDav server listening at ${configs.protocol}://${ConfigService.WEBDAV_LOCAL_URL}:${configs.port}`,
+      );
+    });
   }
 }

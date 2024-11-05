@@ -11,6 +11,11 @@ export interface CLICredentials extends LoginCredentials {
   root_folder_uuid: string;
 }
 
+export interface WebdavConfig {
+  port: string;
+  protocol: 'http' | 'https';
+}
+
 export class NotValidEmailError extends Error {
   constructor() {
     super('Email is not valid');
@@ -88,6 +93,14 @@ export class EmptyItemNameError extends Error {
     super('Item name can not be empty');
 
     Object.setPrototypeOf(this, EmptyPasswordError.prototype);
+  }
+}
+
+export class NotValidPortError extends Error {
+  constructor() {
+    super('Port should be a number between 1 and 65535');
+
+    Object.setPrototypeOf(this, NotValidPortError.prototype);
   }
 }
 

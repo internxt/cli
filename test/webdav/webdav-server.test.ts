@@ -2,6 +2,7 @@ import { expect } from 'chai';
 import express from 'express';
 import sinon from 'sinon';
 import { randomBytes, randomInt } from 'crypto';
+import http from 'http';
 import https from 'https';
 import { ConfigService } from '../../src/services/config.service';
 import { DriveFolderService } from '../../src/services/drive/drive-folder.service';
@@ -12,10 +13,10 @@ import { DriveFileService } from '../../src/services/drive/drive-file.service';
 import { DownloadService } from '../../src/services/network/download.service';
 import { AuthService } from '../../src/services/auth.service';
 import { CryptoService } from '../../src/services/crypto.service';
-import { ConfigKeys } from '../../src/types/config.types';
 import { NetworkUtils } from '../../src/utils/network.utils';
 import { TrashService } from '../../src/services/drive/trash.service';
 import { UserSettingsFixture } from '../fixtures/auth.fixture';
+import { WebdavConfig } from '../../src/types/command.types';
 
 describe('WebDav server', () => {
   const sandbox = sinon.createSandbox();
@@ -24,10 +25,10 @@ describe('WebDav server', () => {
     sandbox.restore();
   });
 
-  it('When the WebDav server is started, it should generate self-signed certificates', async () => {
-    const envEndpoint: { key: keyof ConfigKeys; value: string } = {
-      key: 'WEBDAV_SERVER_PORT',
-      value: randomInt(65535).toString(),
+  it('When the WebDav server is started with https, it should generate self-signed certificates', async () => {
+    const webdavConfig: WebdavConfig = {
+      port: randomInt(65535).toString(),
+      protocol: 'https',
     };
     const sslSelfSigned = {
       private: randomBytes(8).toString('hex'),
@@ -36,7 +37,7 @@ describe('WebDav server', () => {
       fingerprint: randomBytes(8).toString('hex'),
     };
 
-    sandbox.stub(ConfigService.instance, 'get').withArgs(envEndpoint.key).returns(envEndpoint.value);
+    sandbox.stub(ConfigService.instance, 'readWebdavConfig').resolves(webdavConfig);
     sandbox.stub(ConfigService.instance, 'readUser').resolves({
       token: 'TOKEN',
       newToken: 'NEW_TOKEN',
@@ -45,8 +46,12 @@ describe('WebDav server', () => {
       user: UserSettingsFixture,
     });
     // @ts-expect-error - We stub the method partially
-    const createServerStub = sandbox.stub(https, 'createServer').returns({
+    const createHTTPSServerStub = sandbox.stub(https, 'createServer').returns({
       listen: sandbox.stub().resolves(),
+    });
+    // @ts-expect-error - We stub the method partially
+    const createHTTPServerStub = sandbox.stub(http, 'createServer').returns({
+      listen: sandbox.stub().rejects(),
     });
     sandbox.stub(NetworkUtils, 'getWebdavSSLCerts').returns({ cert: sslSelfSigned.cert, key: sslSelfSigned.private });
 
@@ -65,6 +70,49 @@ describe('WebDav server', () => {
     );
     await server.start();
 
-    expect(createServerStub).to.be.calledOnceWith({ cert: sslSelfSigned.cert, key: sslSelfSigned.private });
+    expect(createHTTPSServerStub).to.be.calledOnceWith({ cert: sslSelfSigned.cert, key: sslSelfSigned.private });
+    expect(createHTTPServerStub.called).to.be.false;
+  });
+
+  it('When the WebDav server is started with http, it should run http', async () => {
+    const webdavConfig: WebdavConfig = {
+      port: randomInt(65535).toString(),
+      protocol: 'http',
+    };
+
+    sandbox.stub(ConfigService.instance, 'readWebdavConfig').resolves(webdavConfig);
+    sandbox.stub(ConfigService.instance, 'readUser').resolves({
+      token: 'TOKEN',
+      newToken: 'NEW_TOKEN',
+      mnemonic: 'MNEMONIC',
+      root_folder_uuid: 'ROOT_FOLDER_UUID',
+      user: UserSettingsFixture,
+    });
+    // @ts-expect-error - We stub the method partially
+    const createHTTPServerStub = sandbox.stub(http, 'createServer').returns({
+      listen: sandbox.stub().resolves(),
+    });
+    // @ts-expect-error - We stub the method partially
+    const createHTTPSServerStub = sandbox.stub(https, 'createServer').returns({
+      listen: sandbox.stub().rejects(),
+    });
+
+    const app = express();
+    const server = new WebDavServer(
+      app,
+      ConfigService.instance,
+      DriveFileService.instance,
+      DriveFolderService.instance,
+      getDriveDatabaseManager(),
+      UploadService.instance,
+      DownloadService.instance,
+      AuthService.instance,
+      CryptoService.instance,
+      TrashService.instance,
+    );
+    await server.start();
+
+    expect(createHTTPServerStub.calledOnce).to.be.true;
+    expect(createHTTPSServerStub.called).to.be.false;
   });
 });

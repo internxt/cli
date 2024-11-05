@@ -33,14 +33,15 @@ export default class Webdav extends Command {
     await PM2Utils.startWebDavServer();
     CLIUtils.done();
     const { status } = await PM2Utils.webdavServerStatus();
+    const webdavConfigs = await ConfigService.instance.readWebdavConfig();
 
     if (status === 'online') {
       ux.log(`\nWebDav server status: ${ux.colorize('green', 'online')}\n`);
       CLIUtils.success(
-        `Internxt WebDav server started successfully on https://${ConfigService.WEBDAV_LOCAL_URL}:${process.env.WEBDAV_SERVER_PORT}`,
+        `Internxt WebDav server started successfully at ${webdavConfigs.protocol}://${ConfigService.WEBDAV_LOCAL_URL}:${webdavConfigs.port}`,
       );
       ux.log(
-        `\n[If the above URL is not working, the WebDAV server can be accessed directly via the localhost IP at: https://127.0.0.1:${process.env.WEBDAV_SERVER_PORT} ]\n`,
+        `\n[If the above URL is not working, the WebDAV server can be accessed directly via your localhost IP at: ${webdavConfigs.protocol}://127.0.0.1:${webdavConfigs.port} ]\n`,
       );
       const authDetails = await AuthService.instance.getAuthDetails();
       await AnalyticsService.instance.track('WebDAVEnabled', { app: 'internxt-cli', userId: authDetails.user.uuid });

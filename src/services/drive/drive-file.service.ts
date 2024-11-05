@@ -68,7 +68,7 @@ export class DriveFileService {
 
   public renameFile = (fileUuid: string, payload: { plainName?: string; type?: string | null }): Promise<void> => {
     const storageClient = SdkManager.instance.getStorage(true);
-    return storageClient.updateFileMetaWithUUID(fileUuid, payload);
+    return storageClient.updateFileMetaByUUID(fileUuid, payload);
   };
 
   public getFileMetadataByPath = async (path: string): Promise<DriveFileItem> => {
