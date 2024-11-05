@@ -1350,10 +1350,10 @@
     query-string "^7.1.0"
     uuid "^8.3.2"
 
-"@internxt/sdk@^1.5.17":
-  version "1.5.17"
-  resolved "https://npm.pkg.github.com/download/@internxt/sdk/1.5.17/a08d06a5bbb603cecb0ba71f6114701ff91e9ab2#a08d06a5bbb603cecb0ba71f6114701ff91e9ab2"
-  integrity sha512-s9uw1l2EIbHNR8qZ8mCYYIkqU6mXharS9SK3e67NuLuzmWDJYd4Tei/wpVu4DGrSH4AvVGoIIeSFQAshLnI2Zg==
+"@internxt/sdk@^1.5.25":
+  version "1.5.25"
+  resolved "https://npm.pkg.github.com/download/@internxt/sdk/1.5.25/c0dc19d92b4002d897c5cc177168f36c9c34001f#c0dc19d92b4002d897c5cc177168f36c9c34001f"
+  integrity sha512-FTMGTv2p3ZKl91BMhBlig7CyZ45hTWoSUDf2cyM/iIZtdublGbMipG644tIlZbtrEDmQRA8XCO2NjkPV3IjXow==
   dependencies:
     axios "^0.24.0"
     query-string "^7.1.0"
