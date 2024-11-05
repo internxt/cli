@@ -30,14 +30,11 @@ describe('PROPFIND request handler', () => {
   it('When a WebDav client sends a PROPFIND request for the root folder, and there is no content, should return the correct XML', async () => {
     const driveFolderService = DriveFolderService.instance;
     const driveFileService = DriveFileService.instance;
-    const requestHandler = new PROPFINDRequestHandler(
-      { debug: true },
-      {
-        driveFileService,
-        driveFolderService,
-        driveDatabaseManager: getDriveDatabaseManager(),
-      },
-    );
+    const requestHandler = new PROPFINDRequestHandler({
+      driveFileService,
+      driveFolderService,
+      driveDatabaseManager: getDriveDatabaseManager(),
+    });
     const requestedFolderResource: WebDavRequestedResource = getRequestedFolderResource({
       parentFolder: '/',
       folderName: '',
@@ -82,14 +79,11 @@ describe('PROPFIND request handler', () => {
   it('When a WebDav client sends a PROPFIND request for the root folder, and there is content, should return the correct XML', async () => {
     const driveFolderService = DriveFolderService.instance;
     const driveFileService = DriveFileService.instance;
-    const requestHandler = new PROPFINDRequestHandler(
-      { debug: true },
-      {
-        driveFileService,
-        driveFolderService,
-        driveDatabaseManager: getDriveDatabaseManager(),
-      },
-    );
+    const requestHandler = new PROPFINDRequestHandler({
+      driveFileService,
+      driveFolderService,
+      driveDatabaseManager: getDriveDatabaseManager(),
+    });
     const requestedFolderResource: WebDavRequestedResource = getRequestedFolderResource({
       parentFolder: '/',
       folderName: '',
@@ -140,14 +134,11 @@ describe('PROPFIND request handler', () => {
   it('When a WebDav client sends a PROPFIND request for a file, should return the correct XML', async () => {
     const driveFolderService = DriveFolderService.instance;
     const driveFileService = DriveFileService.instance;
-    const requestHandler = new PROPFINDRequestHandler(
-      { debug: true },
-      {
-        driveFileService,
-        driveFolderService,
-        driveDatabaseManager: getDriveDatabaseManager(),
-      },
-    );
+    const requestHandler = new PROPFINDRequestHandler({
+      driveFileService,
+      driveFolderService,
+      driveDatabaseManager: getDriveDatabaseManager(),
+    });
     const requestedFileResource: WebDavRequestedResource = getRequestedFileResource({
       parentFolder: '/',
       fileName: 'file',
@@ -192,14 +183,11 @@ describe('PROPFIND request handler', () => {
   it('When a WebDav client sends a PROPFIND request for a folder, should return the correct XML', async () => {
     const driveFolderService = DriveFolderService.instance;
     const driveFileService = DriveFileService.instance;
-    const requestHandler = new PROPFINDRequestHandler(
-      { debug: true },
-      {
-        driveFileService,
-        driveFolderService,
-        driveDatabaseManager: getDriveDatabaseManager(),
-      },
-    );
+    const requestHandler = new PROPFINDRequestHandler({
+      driveFileService,
+      driveFolderService,
+      driveDatabaseManager: getDriveDatabaseManager(),
+    });
     const requestedFolderResource: WebDavRequestedResource = getRequestedFolderResource({
       parentFolder: '/',
       folderName: 'folder_a',
@@ -240,14 +228,11 @@ describe('PROPFIND request handler', () => {
   it('When a WebDav client sends a PROPFIND request for a folder and it does not exists, should return a 404', async () => {
     const driveFolderService = DriveFolderService.instance;
     const driveFileService = DriveFileService.instance;
-    const requestHandler = new PROPFINDRequestHandler(
-      { debug: true },
-      {
-        driveFileService,
-        driveFolderService,
-        driveDatabaseManager: getDriveDatabaseManager(),
-      },
-    );
+    const requestHandler = new PROPFINDRequestHandler({
+      driveFileService,
+      driveFolderService,
+      driveDatabaseManager: getDriveDatabaseManager(),
+    });
     const requestedFolderResource: WebDavRequestedResource = getRequestedFolderResource({
       parentFolder: '/',
       folderName: 'folder_a',
