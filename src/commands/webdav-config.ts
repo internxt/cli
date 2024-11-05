@@ -33,7 +33,7 @@ export default class WebDAVConfig extends Command {
     const webdavConfig = await ConfigService.instance.readWebdavConfig();
 
     if (args.action !== 'change-port' && flags['port']) {
-      CLIUtils.warning('The port flag is going to be ignored, it can only be used with the action "change-port"');
+      CLIUtils.warning('The port flag will be ignored; it can only be used with the "change-port" action.');
     }
 
     switch (args.action) {
@@ -42,7 +42,7 @@ export default class WebDAVConfig extends Command {
           ...webdavConfig,
           protocol: 'http',
         });
-        CLIUtils.success('For the next start, the Webdav server will be served using HTTP');
+        CLIUtils.success('On the next start, the WebDAV server will use HTTP.');
         break;
       }
 
@@ -51,7 +51,7 @@ export default class WebDAVConfig extends Command {
           ...webdavConfig,
           protocol: 'https',
         });
-        CLIUtils.success('For the next start, the Webdav server will be served using HTTPS');
+        CLIUtils.success('On the next start, the WebDAV server will use HTTPS.');
         break;
       }
 

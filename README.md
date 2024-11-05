@@ -61,6 +61,7 @@ USAGE
 * [`internxt trash restore`](#internxt-trash-restore-1)
 * [`internxt upload`](#internxt-upload)
 * [`internxt webdav ACTION`](#internxt-webdav-action)
+* [`internxt webdav-config ACTION`](#internxt-webdav-config-action)
 * [`internxt whoami`](#internxt-whoami)
 
 ## `internxt add-cert`
@@ -543,6 +544,34 @@ EXAMPLES
 ```
 
 _See code: [src/commands/webdav.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/webdav.ts)_
+
+## `internxt webdav-config ACTION`
+
+Edit the configuration of the Internxt CLI WebDav server as the port or the protocol.
+
+```
+USAGE
+  $ internxt webdav-config ACTION [-n] [-p <value>]
+
+FLAGS
+  -p, --port=<value>  The new port that the WebDAV server is going to be have.
+
+HELPER FLAGS
+  -n, --non-interactive  Blocks the cli from being interactive. If passed, the cli will not request data through the
+                         console and will throw errors directly
+
+DESCRIPTION
+  Edit the configuration of the Internxt CLI WebDav server as the port or the protocol.
+
+EXAMPLES
+  $ internxt webdav-config set-http
+
+  $ internxt webdav-config set-https
+
+  $ internxt webdav-config change-port
+```
+
+_See code: [src/commands/webdav-config.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/webdav-config.ts)_
 
 ## `internxt whoami`
 
