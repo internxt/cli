@@ -17,8 +17,8 @@ export class WebDavUtils {
 
   static removeHostFromURL(completeURL: string) {
     // add a temp http schema if its not present
-    if (!completeURL.startsWith('/') && !/^http[s]?:\/\//i.test(completeURL)) {
-      completeURL = 'http://' + completeURL;
+    if (!completeURL.startsWith('/') && !/^https?:\/\//i.test(completeURL)) {
+      completeURL = 'https://' + completeURL;
     }
 
     const parsedUrl = new URL(completeURL);
@@ -36,7 +36,7 @@ export class WebDavUtils {
     }
     const decodedUrl = decodeURIComponent(requestUrl);
     const parsedPath = path.parse(decodedUrl);
-    const parentPath = `/${path.dirname(decodedUrl).replace(/^\/|\/$/g, '')}/`.replaceAll('//', '/');
+    const parentPath = `/${path.dirname(decodedUrl).replace(/^(\/)|(\/)$/g, '')}/`.replaceAll('//', '/');
 
     const isFolder = requestUrl.endsWith('/');
 

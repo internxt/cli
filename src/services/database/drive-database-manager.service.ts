@@ -18,8 +18,8 @@ export class DriveDatabaseManager {
   });
 
   constructor(
-    private driveFileRepository: DriveFileRepository,
-    private driveFolderRepository: DriveFolderRepository,
+    private readonly driveFileRepository: DriveFileRepository,
+    private readonly driveFolderRepository: DriveFolderRepository,
   ) {}
 
   static readonly init = async () => {

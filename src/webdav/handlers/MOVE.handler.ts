@@ -10,7 +10,7 @@ import { DriveFileItem, DriveFolderItem } from '../../types/drive.types';
 
 export class MOVERequestHandler implements WebDavMethodHandler {
   constructor(
-    private dependencies: {
+    private readonly dependencies: {
       driveDatabaseManager: DriveDatabaseManager;
       driveFolderService: DriveFolderService;
       driveFileService: DriveFileService;

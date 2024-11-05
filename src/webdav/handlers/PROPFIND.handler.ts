@@ -1,4 +1,4 @@
-import { WebDavMethodHandler, WebDavMethodHandlerOptions, WebDavRequestedResource } from '../../types/webdav.types';
+import { WebDavMethodHandler, WebDavRequestedResource } from '../../types/webdav.types';
 import { XMLUtils } from '../../utils/xml.utils';
 import { DriveFileItem, DriveFolderItem } from '../../types/drive.types';
 import { DriveFolderService } from '../../services/drive/drive-folder.service';
@@ -13,8 +13,7 @@ import { webdavLogger } from '../../utils/logger.utils';
 
 export class PROPFINDRequestHandler implements WebDavMethodHandler {
   constructor(
-    private options: WebDavMethodHandlerOptions = { debug: false },
-    private dependencies: {
+    private readonly dependencies: {
       driveFolderService: DriveFolderService;
       driveFileService: DriveFileService;
       driveDatabaseManager: DriveDatabaseManager;

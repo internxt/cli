@@ -13,7 +13,7 @@ import { TrashService } from '../../services/drive/trash.service';
 
 export class PUTRequestHandler implements WebDavMethodHandler {
   constructor(
-    private dependencies: {
+    private readonly dependencies: {
       driveFileService: DriveFileService;
       driveFolderService: DriveFolderService;
       driveDatabaseManager: DriveDatabaseManager;

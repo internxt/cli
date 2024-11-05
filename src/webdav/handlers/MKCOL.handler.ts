@@ -11,7 +11,7 @@ import { DriveFolderItem } from '../../types/drive.types';
 
 export class MKCOLRequestHandler implements WebDavMethodHandler {
   constructor(
-    private dependencies: {
+    private readonly dependencies: {
       driveDatabaseManager: DriveDatabaseManager;
       driveFolderService: DriveFolderService;
     },

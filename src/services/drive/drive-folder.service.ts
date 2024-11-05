@@ -27,7 +27,7 @@ export class DriveFolderService {
     return { folders, files };
   };
 
-  private getAllSubfolders = async (
+  private readonly getAllSubfolders = async (
     storageClient: Storage,
     folderUuid: string,
     offset: number,
@@ -42,7 +42,7 @@ export class DriveFolderService {
     }
   };
 
-  private getAllSubfiles = async (
+  private readonly getAllSubfiles = async (
     storageClient: Storage,
     folderUuid: string,
     offset: number,

@@ -33,19 +33,19 @@ import { AnalyticsService } from '../services/analytics.service';
 
 export class WebDavServer {
   constructor(
-    private app: Express,
-    private configService: ConfigService,
-    private driveFileService: DriveFileService,
-    private driveFolderService: DriveFolderService,
-    private driveDatabaseManager: DriveDatabaseManager,
-    private uploadService: UploadService,
-    private downloadService: DownloadService,
-    private authService: AuthService,
-    private cryptoService: CryptoService,
-    private trashService: TrashService,
+    private readonly app: Express,
+    private readonly configService: ConfigService,
+    private readonly driveFileService: DriveFileService,
+    private readonly driveFolderService: DriveFolderService,
+    private readonly driveDatabaseManager: DriveDatabaseManager,
+    private readonly uploadService: UploadService,
+    private readonly downloadService: DownloadService,
+    private readonly authService: AuthService,
+    private readonly cryptoService: CryptoService,
+    private readonly trashService: TrashService,
   ) {}
 
-  private async getNetworkFacade() {
+  private readonly getNetworkFacade = async () => {
     const credentials = await this.configService.readUser();
 
     if (!credentials) throw new Error('Credentials not found in Config service, do login first');
@@ -55,9 +55,9 @@ export class WebDavServer {
     });
 
     return new NetworkFacade(networkModule, this.uploadService, this.downloadService, this.cryptoService);
-  }
+  };
 
-  private registerMiddlewares = async () => {
+  private readonly registerMiddlewares = async () => {
     this.app.use(bodyParser.text({ type: ['application/xml', 'text/xml'] }));
     this.app.use(ErrorHandlingMiddleware);
     this.app.use(AuthMiddleware(ConfigService.instance));
@@ -71,7 +71,7 @@ export class WebDavServer {
     );
   };
 
-  private registerHandlers = async () => {
+  private readonly registerHandlers = async () => {
     const networkFacade = await this.getNetworkFacade();
     this.app.head('*', asyncHandler(new HEADRequestHandler().handle));
     this.app.get(
@@ -92,14 +92,11 @@ export class WebDavServer {
     this.app.propfind(
       '*',
       asyncHandler(
-        new PROPFINDRequestHandler(
-          { debug: true },
-          {
-            driveFileService: this.driveFileService,
-            driveFolderService: this.driveFolderService,
-            driveDatabaseManager: this.driveDatabaseManager,
-          },
-        ).handle,
+        new PROPFINDRequestHandler({
+          driveFileService: this.driveFileService,
+          driveFolderService: this.driveFolderService,
+          driveDatabaseManager: this.driveDatabaseManager,
+        }).handle,
       ),
     );
 
@@ -151,7 +148,7 @@ export class WebDavServer {
     this.app.copy('*', asyncHandler(new COPYRequestHandler().handle));
   };
 
-  async start() {
+  start = async () => {
     const configs = await this.configService.readWebdavConfig();
     this.app.disable('x-powered-by');
     await this.registerMiddlewares();
@@ -174,5 +171,5 @@ export class WebDavServer {
         `Internxt WebDav server listening at ${configs.protocol}://${ConfigService.WEBDAV_LOCAL_URL}:${configs.port}`,
       );
     });
-  }
+  };
 }

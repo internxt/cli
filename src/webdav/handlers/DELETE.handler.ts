@@ -9,7 +9,7 @@ import { DriveFolderService } from '../../services/drive/drive-folder.service';
 
 export class DELETERequestHandler implements WebDavMethodHandler {
   constructor(
-    private dependencies: {
+    private readonly dependencies: {
       driveDatabaseManager: DriveDatabaseManager;
       trashService: TrashService;
       driveFileService: DriveFileService;

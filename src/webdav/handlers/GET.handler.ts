@@ -14,7 +14,7 @@ import { DriveFileItem } from '../../types/drive.types';
 
 export class GETRequestHandler implements WebDavMethodHandler {
   constructor(
-    private dependencies: {
+    private readonly dependencies: {
       driveFileService: DriveFileService;
       driveDatabaseManager: DriveDatabaseManager;
       uploadService: UploadService;
