@@ -28,7 +28,7 @@ export default class Config extends Command {
       const configList = [
         { key: 'Email', value: userCredentials.user.email },
         { key: 'Root folder ID', value: userCredentials.root_folder_uuid },
-        { key: 'Used space', value: FormatUtils.humanFileSize(await UsageService.instance.fetchTotalUsage()) },
+        { key: 'Used space', value: FormatUtils.humanFileSize((await UsageService.instance.fetchUsage()).total) },
         { key: 'Available space', value: FormatUtils.formatLimit(await UsageService.instance.fetchSpaceLimit()) },
       ];
       ux.table(

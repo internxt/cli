@@ -10,6 +10,7 @@ import mime from 'mime-types';
 import { DriveDatabaseManager } from '../../services/database/drive-database-manager.service';
 import { WebDavUtils } from '../../utils/webdav.utils';
 import { webdavLogger } from '../../utils/logger.utils';
+import { UsageService } from '../../services/usage.service';
 
 export class PROPFINDRequestHandler implements WebDavMethodHandler {
   constructor(
@@ -36,7 +37,6 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
     switch (resource.type) {
       case 'file': {
         const fileMetaXML = await this.getFileMetaXML(resource, driveItem as DriveFileItem);
-        console.error({ fileMetaXML });
         res.status(207).send(fileMetaXML);
         break;
       }
@@ -44,14 +44,16 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
       case 'folder': {
         const depth = req.header('depth') ?? '1';
         const folderMetaXML = await this.getFolderContentXML(resource, driveItem as DriveFolderItem, depth);
-        console.error({ folderMetaXML });
         res.status(207).send(folderMetaXML);
         break;
       }
     }
   };
 
-  private async getFileMetaXML(resource: WebDavRequestedResource, driveFileItem: DriveFileItem): Promise<string> {
+  private readonly getFileMetaXML = async (
+    resource: WebDavRequestedResource,
+    driveFileItem: DriveFileItem,
+  ): Promise<string> => {
     const driveFile = this.driveFileItemToXMLNode(
       {
         name: driveFileItem.name,
@@ -75,9 +77,13 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
     });
 
     return xml;
-  }
+  };
 
-  private async getFolderContentXML(resource: WebDavRequestedResource, folderItem: DriveFolderItem, depth: string) {
+  private readonly getFolderContentXML = async (
+    resource: WebDavRequestedResource,
+    folderItem: DriveFolderItem,
+    depth: string,
+  ) => {
     const relativePath = resource.url;
     const isRootFolder = resource.url === '/';
     let XMLNodes: object[] = [];
@@ -85,7 +91,7 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
     switch (depth) {
       case '0':
         if (isRootFolder) {
-          XMLNodes.push(this.driveFolderRootStatsToXMLNode(folderItem, relativePath));
+          XMLNodes.push(await this.driveFolderRootStatsToXMLNode(folderItem, relativePath));
         } else {
           XMLNodes.push(this.driveFolderItemToXMLNode(folderItem, relativePath));
         }
@@ -93,7 +99,7 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
       case '1':
       default:
         if (isRootFolder) {
-          XMLNodes.push(this.driveFolderRootStatsToXMLNode(folderItem, relativePath));
+          XMLNodes.push(await this.driveFolderRootStatsToXMLNode(folderItem, relativePath));
           XMLNodes = XMLNodes.concat(await this.getFolderChildsXMLNode(relativePath, folderItem.uuid));
         } else {
           XMLNodes.push(this.driveFolderItemToXMLNode(folderItem, relativePath));
@@ -108,9 +114,9 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
       suppressEmptyNode: true,
     });
     return xml;
-  }
+  };
 
-  private async getFolderChildsXMLNode(relativePath: string, folderUuid: string) {
+  private readonly getFolderChildsXMLNode = async (relativePath: string, folderUuid: string) => {
     const { driveFolderService, driveDatabaseManager } = this.dependencies;
 
     const folderContent = await driveFolderService.getFolderContent(folderUuid);
@@ -195,9 +201,15 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
     );
 
     return foldersXML.concat(filesXML);
-  }
+  };
 
-  private driveFolderRootStatsToXMLNode(driveFolderItem: DriveFolderItem, relativePath: string): object {
+  private readonly driveFolderRootStatsToXMLNode = async (
+    driveFolderItem: DriveFolderItem,
+    relativePath: string,
+  ): Promise<object> => {
+    const totalUsage = (await UsageService.instance.fetchUsage()).total;
+    const spaceLimit = await UsageService.instance.fetchSpaceLimit();
+
     const driveFolderXML = {
       [XMLUtils.addDefaultNamespace('href')]: encodeURIComponent(relativePath),
       [XMLUtils.addDefaultNamespace('propstat')]: {
@@ -216,6 +228,8 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
             '#text': '00000030',
             '@_xmlns:x3': 'urn:schemas-microsoft-com:',
           },
+          [XMLUtils.addDefaultNamespace('quota-available-bytes')]: spaceLimit - totalUsage,
+          [XMLUtils.addDefaultNamespace('quota-used-bytes')]: totalUsage,
           [XMLUtils.addDefaultNamespace('resourcetype')]: {
             [XMLUtils.addDefaultNamespace('collection')]: '',
           },
@@ -223,9 +237,9 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
       },
     };
     return driveFolderXML;
-  }
+  };
 
-  private driveFolderItemToXMLNode(driveFolderItem: DriveFolderItem, relativePath: string): object {
+  private readonly driveFolderItemToXMLNode = (driveFolderItem: DriveFolderItem, relativePath: string): object => {
     const displayName = `${driveFolderItem.name}`;
 
     const driveFolderXML = {
@@ -244,9 +258,9 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
     };
 
     return driveFolderXML;
-  }
+  };
 
-  private driveFileItemToXMLNode(driveFileItem: DriveFileItem, relativePath: string): object {
+  private readonly driveFileItemToXMLNode = (driveFileItem: DriveFileItem, relativePath: string): object => {
     const displayName = driveFileItem.type ? `${driveFileItem.name}.${driveFileItem.type}` : driveFileItem.name;
 
     const driveFileXML = {
@@ -265,5 +279,5 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
     };
 
     return driveFileXML;
-  }
+  };
 }

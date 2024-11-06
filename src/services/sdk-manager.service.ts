@@ -1,4 +1,4 @@
-import { Auth, Drive, photos, Network as NetworkModule } from '@internxt/sdk';
+import { Auth, Drive, Network as NetworkModule } from '@internxt/sdk';
 import { Trash } from '@internxt/sdk/dist/drive';
 import { ApiSecurity, AppDetails } from '@internxt/sdk/dist/shared';
 import { ConfigService } from './config.service';
@@ -133,15 +133,6 @@ export class SdkManager {
       // Weird, normal accessToken doesn't work here
       token: newToken,
     });
-  }
-
-  /** Photos SDK */
-  getPhotos() {
-    const PHOTOS_API_URL = ConfigService.instance.get('PHOTOS_API_URL');
-
-    const newToken = SdkManager.getApiSecurity().newToken;
-
-    return new photos.Photos(PHOTOS_API_URL, newToken);
   }
 
   /** Share SDK */
