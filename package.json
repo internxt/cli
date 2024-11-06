@@ -8,7 +8,7 @@
     "postpack": "shx rm -f oclif.manifest.json",
     "posttest": "yarn lint",
     "prepack": "yarn build && oclif manifest && oclif readme",
-    "prepare": "husky",
+    "prepare": "husky || true",
     "test:unit": "nyc --reporter=lcov --reporter=text mocha \"test/**/*.test.ts\" --exit",
     "dev:webdav": "nodemon -e ts --exec ts-node src/webdav/index.ts",
     "version": "oclif readme && git add README.md",
@@ -18,10 +18,6 @@
     "publish:npm": "npm run build && npm publish --scope=@internxt --registry=https://registry.npmjs.org/ --access public",
     "publish:github": "npm publish",
     "postinstall": "node ./scripts/skip-in-ci.js || internxt webdav restart"
-  },
-  "publishConfig": {
-    "access": "public",
-    "registry": "https://registry.npmjs.org/"
   },
   "homepage": "https://github.com/internxt/cli",
   "license": "MIT",
