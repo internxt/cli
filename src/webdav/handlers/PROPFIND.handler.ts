@@ -50,7 +50,10 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
     }
   };
 
-  private getFileMetaXML = async (resource: WebDavRequestedResource, driveFileItem: DriveFileItem): Promise<string> => {
+  private readonly getFileMetaXML = async (
+    resource: WebDavRequestedResource,
+    driveFileItem: DriveFileItem,
+  ): Promise<string> => {
     const driveFile = this.driveFileItemToXMLNode(
       {
         name: driveFileItem.name,
@@ -76,7 +79,7 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
     return xml;
   };
 
-  private getFolderContentXML = async (
+  private readonly getFolderContentXML = async (
     resource: WebDavRequestedResource,
     folderItem: DriveFolderItem,
     depth: string,
@@ -113,7 +116,7 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
     return xml;
   };
 
-  private getFolderChildsXMLNode = async (relativePath: string, folderUuid: string) => {
+  private readonly getFolderChildsXMLNode = async (relativePath: string, folderUuid: string) => {
     const { driveFolderService, driveDatabaseManager } = this.dependencies;
 
     const folderContent = await driveFolderService.getFolderContent(folderUuid);
@@ -200,7 +203,7 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
     return foldersXML.concat(filesXML);
   };
 
-  private driveFolderRootStatsToXMLNode = async (
+  private readonly driveFolderRootStatsToXMLNode = async (
     driveFolderItem: DriveFolderItem,
     relativePath: string,
   ): Promise<object> => {
@@ -236,7 +239,7 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
     return driveFolderXML;
   };
 
-  private driveFolderItemToXMLNode = (driveFolderItem: DriveFolderItem, relativePath: string): object => {
+  private readonly driveFolderItemToXMLNode = (driveFolderItem: DriveFolderItem, relativePath: string): object => {
     const displayName = `${driveFolderItem.name}`;
 
     const driveFolderXML = {
@@ -257,7 +260,7 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
     return driveFolderXML;
   };
 
-  private driveFileItemToXMLNode = (driveFileItem: DriveFileItem, relativePath: string): object => {
+  private readonly driveFileItemToXMLNode = (driveFileItem: DriveFileItem, relativePath: string): object => {
     const displayName = driveFileItem.type ? `${driveFileItem.name}.${driveFileItem.type}` : driveFileItem.name;
 
     const driveFileXML = {
