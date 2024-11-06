@@ -19,6 +19,7 @@ import mime from 'mime-types';
 import crypto from 'crypto';
 import { NotFoundError } from '../../../src/utils/errors.utils';
 import { fail } from 'assert';
+import { UsageService } from '../../../src/services/usage.service';
 
 describe('PROPFIND request handler', () => {
   const sandbox = sinon.createSandbox();
@@ -53,6 +54,11 @@ describe('PROPFIND request handler', () => {
     const folderFixture = newFolderItem({
       id: UserSettingsFixture.root_folder_id,
     });
+    const drive = crypto.randomInt(2000000000);
+    const backups = crypto.randomInt(2000000000);
+    const total = drive + backups;
+    const usageFixture = { _id: UserSettingsFixture.email, total, drive, backups };
+    const spaceLimitFixture = crypto.randomInt(2000000000);
 
     const getRequestedResourceStub = sandbox
       .stub(WebDavUtils, 'getRequestedResource')
@@ -63,17 +69,21 @@ describe('PROPFIND request handler', () => {
     const getFolderContentStub = sandbox
       .stub(driveFolderService, 'getFolderContent')
       .resolves({ folders: [], files: [] });
+    const getUsageStub = sandbox.stub(UsageService.instance, 'fetchUsage').resolves(usageFixture);
+    const spaceLimitStub = sandbox.stub(UsageService.instance, 'fetchSpaceLimit').resolves(spaceLimitFixture);
 
     await requestHandler.handle(request, response);
     expect(response.status.calledWith(207)).to.be.true;
     expect(
       sendStub.calledWith(
-        `<?xml version="1.0" encoding="utf-8" ?><D:multistatus xmlns:D="DAV:"><D:response><D:href>${encodeURIComponent('/')}</D:href><D:propstat><D:status>HTTP/1.1 200 OK</D:status><D:prop><D:getcontenttype>application/octet-stream</D:getcontenttype><x1:lastmodified xmlns:x1="SAR:">${FormatUtils.formatDateForWebDav(folderFixture.updatedAt)}</x1:lastmodified><x2:executable xmlns:x2="http://apache.org/dav/props/">F</x2:executable><x3:Win32FileAttributes xmlns:x3="urn:schemas-microsoft-com:">00000030</x3:Win32FileAttributes><D:resourcetype><D:collection/></D:resourcetype></D:prop></D:propstat></D:response></D:multistatus>`,
+        `<?xml version="1.0" encoding="utf-8" ?><D:multistatus xmlns:D="DAV:"><D:response><D:href>${encodeURIComponent('/')}</D:href><D:propstat><D:status>HTTP/1.1 200 OK</D:status><D:prop><D:getcontenttype>application/octet-stream</D:getcontenttype><x1:lastmodified xmlns:x1="SAR:">${FormatUtils.formatDateForWebDav(folderFixture.updatedAt)}</x1:lastmodified><x2:executable xmlns:x2="http://apache.org/dav/props/">F</x2:executable><x3:Win32FileAttributes xmlns:x3="urn:schemas-microsoft-com:">00000030</x3:Win32FileAttributes><D:quota-available-bytes>${spaceLimitFixture - usageFixture.total}</D:quota-available-bytes><D:quota-used-bytes>${usageFixture.total}</D:quota-used-bytes><D:resourcetype><D:collection/></D:resourcetype></D:prop></D:propstat></D:response></D:multistatus>`,
       ),
     ).to.be.true;
     expect(getRequestedResourceStub.calledOnce).to.be.true;
     expect(getAndSearchItemFromResourceStub.calledOnce).to.be.true;
     expect(getFolderContentStub.calledOnce).to.be.true;
+    expect(getUsageStub.calledOnce).to.be.true;
+    expect(spaceLimitStub.calledOnce).to.be.true;
   });
 
   it('When a WebDav client sends a PROPFIND request for the root folder, and there is content, should return the correct XML', async () => {
@@ -107,6 +117,11 @@ describe('PROPFIND request handler', () => {
       updatedAt: new Date('2024-03-04T15:11:01.000Z'),
       uuid: 'FOLDER_UUID_1',
     });
+    const drive = crypto.randomInt(2000000000);
+    const backups = crypto.randomInt(2000000000);
+    const total = drive + backups;
+    const usageFixture = { _id: UserSettingsFixture.email, total, drive, backups };
+    const spaceLimitFixture = crypto.randomInt(2000000000);
 
     const getRequestedResourceStub = sandbox
       .stub(WebDavUtils, 'getRequestedResource')
@@ -118,17 +133,21 @@ describe('PROPFIND request handler', () => {
       files: [],
       folders: [paginatedFolder1],
     });
+    const getUsageStub = sandbox.stub(UsageService.instance, 'fetchUsage').resolves(usageFixture);
+    const spaceLimitStub = sandbox.stub(UsageService.instance, 'fetchSpaceLimit').resolves(spaceLimitFixture);
 
     await requestHandler.handle(request, response);
     expect(response.status.calledWith(207)).to.be.true;
     expect(
       sendStub.calledWith(
-        `<?xml version="1.0" encoding="utf-8" ?><D:multistatus xmlns:D="DAV:"><D:response><D:href>${encodeURIComponent('/')}</D:href><D:propstat><D:status>HTTP/1.1 200 OK</D:status><D:prop><D:getcontenttype>application/octet-stream</D:getcontenttype><x1:lastmodified xmlns:x1="SAR:">${FormatUtils.formatDateForWebDav(folderFixture.updatedAt)}</x1:lastmodified><x2:executable xmlns:x2="http://apache.org/dav/props/">F</x2:executable><x3:Win32FileAttributes xmlns:x3="urn:schemas-microsoft-com:">00000030</x3:Win32FileAttributes><D:resourcetype><D:collection/></D:resourcetype></D:prop></D:propstat></D:response><D:response><D:href>${encodeURIComponent(`/${paginatedFolder1.plainName}/`)}</D:href><D:propstat><D:status>HTTP/1.1 200 OK</D:status><D:prop><D:displayname>${paginatedFolder1.plainName}</D:displayname><D:getlastmodified>${FormatUtils.formatDateForWebDav(paginatedFolder1.updatedAt)}</D:getlastmodified><D:getcontentlength>0</D:getcontentlength><D:resourcetype><D:collection/></D:resourcetype></D:prop></D:propstat></D:response></D:multistatus>`,
+        `<?xml version="1.0" encoding="utf-8" ?><D:multistatus xmlns:D="DAV:"><D:response><D:href>${encodeURIComponent('/')}</D:href><D:propstat><D:status>HTTP/1.1 200 OK</D:status><D:prop><D:getcontenttype>application/octet-stream</D:getcontenttype><x1:lastmodified xmlns:x1="SAR:">${FormatUtils.formatDateForWebDav(folderFixture.updatedAt)}</x1:lastmodified><x2:executable xmlns:x2="http://apache.org/dav/props/">F</x2:executable><x3:Win32FileAttributes xmlns:x3="urn:schemas-microsoft-com:">00000030</x3:Win32FileAttributes><D:quota-available-bytes>${spaceLimitFixture - usageFixture.total}</D:quota-available-bytes><D:quota-used-bytes>${usageFixture.total}</D:quota-used-bytes><D:resourcetype><D:collection/></D:resourcetype></D:prop></D:propstat></D:response><D:response><D:href>${encodeURIComponent(`/${paginatedFolder1.plainName}/`)}</D:href><D:propstat><D:status>HTTP/1.1 200 OK</D:status><D:prop><D:displayname>${paginatedFolder1.plainName}</D:displayname><D:getlastmodified>${FormatUtils.formatDateForWebDav(paginatedFolder1.updatedAt)}</D:getlastmodified><D:getcontentlength>0</D:getcontentlength><D:resourcetype><D:collection/></D:resourcetype></D:prop></D:propstat></D:response></D:multistatus>`,
       ),
     ).to.be.true;
     expect(getRequestedResourceStub.calledOnce).to.be.true;
     expect(getAndSearchItemFromResourceStub.calledOnce).to.be.true;
     expect(getFolderContentStub.calledOnce).to.be.true;
+    expect(getUsageStub.calledOnce).to.be.true;
+    expect(spaceLimitStub.calledOnce).to.be.true;
   });
 
   it('When a WebDav client sends a PROPFIND request for a file, should return the correct XML', async () => {
