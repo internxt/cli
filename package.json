@@ -16,7 +16,7 @@
     "migrate": "sequelize db:migrate",
     "migrate:undo": "sequelize db:migrate:undo",
     "publish:npm": "npm run build && npm publish --scope=@internxt --registry=https://registry.npmjs.org/ --access public",
-    "publish:github": "npm publish",
+    "publish:github": "npm publish --scope=@internxt --registry=https://npm.pkg.github.com",
     "postinstall": "node ./scripts/skip-in-ci.js || internxt webdav restart"
   },
   "homepage": "https://github.com/internxt/cli",
