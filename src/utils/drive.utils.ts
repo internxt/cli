@@ -6,7 +6,8 @@ export class DriveUtils {
     return {
       uuid: fileMeta.uuid ?? '',
       status: fileMeta.status,
-      folderId: fileMeta.folder_id,
+      folderId: fileMeta.folderId ?? fileMeta.folder_id,
+      folderUuid: fileMeta.folderUuid,
       size: fileMeta.size,
       encryptedName: fileMeta.name,
       name: fileMeta.plainName ?? fileMeta.name,
@@ -28,6 +29,7 @@ export class DriveUtils {
       name: folderMeta.plainName ?? folderMeta.name,
       encryptedName: folderMeta.name,
       parentId: folderMeta.parentId,
+      parentUuid: folderMeta.parentUuid,
       createdAt: new Date(folderMeta.createdAt),
       updatedAt: new Date(folderMeta.updatedAt),
     };

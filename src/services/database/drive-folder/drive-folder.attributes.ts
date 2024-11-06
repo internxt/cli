@@ -5,6 +5,7 @@ export interface DriveFolderAttributes {
   status: 'EXISTS' | 'TRASHED';
   relativePath: string;
   parentId: number | null;
+  parentUuid: string | null;
   createdAt: Date;
   updatedAt: Date;
 }

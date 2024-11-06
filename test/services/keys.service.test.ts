@@ -6,6 +6,7 @@ import * as openpgp from 'openpgp';
 import { KeysService } from '../../src/services/keys.service';
 import { ConfigService } from '../../src/services/config.service';
 import { AesInit, CorruptedEncryptedPrivateKeyError } from '../../src/types/keys.types';
+import { fail } from 'assert';
 
 describe('Keys service', () => {
   let keysServiceSandbox: SinonSandbox;
@@ -34,13 +35,12 @@ describe('Keys service', () => {
     });
 
     await KeysService.instance.assertValidateKeys('dontcareprivate', 'dontcarepublic');
-    expect(true).to.be.true; //checks that assertValidateKeys does not throw any error
   });
 
   it('When public and private keys are not valid, then the validation throws an error', async () => {
     try {
       await KeysService.instance.assertValidateKeys('privateKey', 'publickey');
-      expect(false).to.be.true; //should throw error
+      fail('Expected function to throw an error, but it did not.');
     } catch {
       /* no op */
     }
@@ -58,7 +58,7 @@ describe('Keys service', () => {
     //every dependency method resolves (no error thrown), but nothing should be encrypted/decrypted, so the result should not be valid
     try {
       await KeysService.instance.assertValidateKeys('dontcareprivate', 'dontcarepublic');
-      expect(false).to.be.true; //should throw error
+      fail('Expected function to throw an error, but it did not.');
     } catch (err) {
       const error = err as Error;
       expect(error.message).to.equal('Keys do not match');
@@ -112,8 +112,6 @@ describe('Keys service', () => {
     keysServiceSandbox.stub(KeysService.instance, <any>'isValidKey').resolves(true);
 
     await KeysService.instance.assertPrivateKeyIsValid(encryptedPrivateKey, password);
-
-    expect(true).to.be.true; //checks that assertPrivateKeyIsValid does not throw any error
   });
 
   it('When private key is encrypted with bad iterations, then it throws a WrongIterationsToEncryptPrivateKey error', async () => {

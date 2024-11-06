@@ -4,10 +4,10 @@ import { WebDavUtils } from '../../utils/webdav.utils';
 import { ConfigService } from '../config.service';
 import { DriveFileRepository } from './drive-file/drive-file.repository';
 import { DriveFolderRepository } from './drive-folder/drive-folder.repository';
-import { DriveFile } from './drive-file/drive-file.domain';
-import { DriveFolder } from './drive-folder/drive-folder.domain';
 import DriveFileModel from './drive-file/drive-file.model';
 import DriveFolderModel from './drive-folder/drive-folder.model';
+import { DriveFile } from './drive-file/drive-file.domain';
+import { DriveFolder } from './drive-folder/drive-folder.domain';
 
 export class DriveDatabaseManager {
   private static readonly sequelize: Sequelize = new Sequelize({
@@ -18,12 +18,12 @@ export class DriveDatabaseManager {
   });
 
   constructor(
-    private driveFileRepository: DriveFileRepository,
-    private driveFolderRepository: DriveFolderRepository,
+    private readonly driveFileRepository: DriveFileRepository,
+    private readonly driveFolderRepository: DriveFolderRepository,
   ) {}
 
   static readonly init = async () => {
-    await DriveDatabaseManager.sequelize.sync();
+    await DriveDatabaseManager.sequelize.sync({ force: true });
   };
 
   static readonly clean = async () => {
@@ -31,37 +31,28 @@ export class DriveDatabaseManager {
     await DriveFolderRepository.clean();
   };
 
-  findByRelativePath = async (relativePath: string): Promise<DriveFolder | DriveFile | null> => {
+  findFileByRelativePath = async (relativePath: string): Promise<DriveFile | null> => {
     const driveFile = await this.driveFileRepository.findByRelativePath(relativePath);
-
-    if (driveFile) return driveFile;
-
-    let folderRelativePath = relativePath;
-    if (!relativePath.endsWith('/')) folderRelativePath = relativePath.concat('/');
-    const driveFolder = await this.driveFolderRepository.findByRelativePath(folderRelativePath);
-
-    if (driveFolder) return driveFolder;
-
-    return null;
+    return driveFile ?? null;
   };
 
-  createFolder = async (driveFolder: DriveFolderItem) => {
-    const relativePath = await this.buildRelativePathForFolder(driveFolder.name, driveFolder.parentId ?? null);
+  findFolderByRelativePath = async (relativePath: string): Promise<DriveFolder | null> => {
+    const folderRelativePath = relativePath.endsWith('/') ? relativePath : relativePath.concat('/');
 
-    const existingObject = await this.driveFolderRepository.findById(driveFolder.id);
-    if (existingObject) await this.driveFolderRepository.deleteById(existingObject.id);
+    const driveFolder = await this.driveFolderRepository.findByRelativePath(folderRelativePath);
+    return driveFolder ?? null;
+  };
+
+  createFolder = async (driveFolder: DriveFolderItem, relativePath: string) => {
+    await this.deleteFolderById(driveFolder.id);
+    await this.deleteFolderByPath(relativePath);
 
     return await this.driveFolderRepository.createFolder(driveFolder, relativePath);
   };
 
-  createFile = async (driveFile: DriveFileItem) => {
-    const relativePath = await this.buildRelativePathForFile(
-      driveFile.type ? `${driveFile.name}.${driveFile.type}` : driveFile.name,
-      driveFile.folderId,
-    );
-
-    const existingObject = await this.driveFileRepository.findById(driveFile.id);
-    if (existingObject) await this.driveFileRepository.deleteById(existingObject.id);
+  createFile = async (driveFile: DriveFileItem, relativePath: string) => {
+    await this.deleteFileById(driveFile.id);
+    await this.deleteFileByPath(relativePath);
 
     return await this.driveFileRepository.createFile(driveFile, relativePath);
   };
@@ -90,11 +81,29 @@ export class DriveDatabaseManager {
     return WebDavUtils.joinURL(parentPath, folderName, '/');
   };
 
-  deleteFile = (id: number): Promise<void> => {
-    return this.driveFileRepository.deleteById(id);
+  deleteFileById = async (id: number): Promise<void> => {
+    const existingObject = await this.driveFileRepository.findById(id);
+    if (existingObject) {
+      await this.driveFileRepository.deleteById(existingObject.id);
+    }
   };
 
-  deleteFolder = (id: number): Promise<void> => {
-    return this.driveFolderRepository.deleteById(id);
+  deleteFolderById = async (id: number): Promise<void> => {
+    const existingObject = await this.driveFolderRepository.findById(id);
+    if (existingObject) {
+      await this.driveFolderRepository.deleteById(existingObject.id);
+    }
+  };
+
+  deleteFileByPath = async (relativePath: string): Promise<void> => {
+    const existingPath = await this.driveFileRepository.findByRelativePath(relativePath);
+    if (existingPath) await this.driveFileRepository.deleteById(existingPath.id);
+  };
+
+  deleteFolderByPath = async (relativePath: string): Promise<void> => {
+    const existingPath = await this.driveFolderRepository.findByRelativePath(relativePath);
+    if (existingPath) {
+      await this.driveFolderRepository.deleteById(existingPath.id);
+    }
   };
 }

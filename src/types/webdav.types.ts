@@ -14,4 +14,5 @@ export type WebDavRequestedResource = {
   url: string;
   name: string;
   path: ParsedPath;
+  parentPath: string;
 };

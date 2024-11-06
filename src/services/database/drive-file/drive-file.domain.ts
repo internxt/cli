@@ -1,3 +1,4 @@
+import { DriveFileItem } from '../../../types/drive.types';
 import { DriveFileAttributes } from './drive-file.attributes';
 
 export class DriveFile implements DriveFileAttributes {
@@ -7,6 +8,7 @@ export class DriveFile implements DriveFileAttributes {
   uuid: string;
   fileId: string;
   folderId: number;
+  folderUuid: string;
   bucket: string;
   relativePath: string;
   createdAt: Date;
@@ -21,6 +23,7 @@ export class DriveFile implements DriveFileAttributes {
     uuid,
     fileId,
     folderId,
+    folderUuid,
     bucket,
     relativePath,
     createdAt,
@@ -34,6 +37,7 @@ export class DriveFile implements DriveFileAttributes {
     this.uuid = uuid;
     this.fileId = fileId;
     this.folderId = folderId;
+    this.folderUuid = folderUuid;
     this.bucket = bucket;
     this.relativePath = relativePath;
     this.createdAt = createdAt;
@@ -54,12 +58,31 @@ export class DriveFile implements DriveFileAttributes {
       uuid: this.uuid,
       fileId: this.fileId,
       folderId: this.folderId,
+      folderUuid: this.folderUuid,
       bucket: this.bucket,
       relativePath: this.relativePath,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
       size: this.size,
       status: this.status,
+    };
+  }
+
+  public toItem(): DriveFileItem {
+    return {
+      id: this.id,
+      name: this.name,
+      type: this.type,
+      uuid: this.uuid,
+      fileId: this.fileId,
+      folderId: this.folderId,
+      folderUuid: this.folderUuid,
+      bucket: this.bucket,
+      createdAt: this.createdAt,
+      updatedAt: this.updatedAt,
+      size: this.size,
+      status: this.status,
+      encryptedName: '',
     };
   }
 }

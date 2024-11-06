@@ -39,6 +39,10 @@ export class DriveFolderModel extends Model implements DriveFolderAttributes {
   @Column(DataType.INTEGER)
   declare parentId: number | null;
 
+  @AllowNull
+  @Column(DataType.UUIDV4)
+  declare parentUuid: string | null;
+
   @Column(DataType.DATE)
   declare createdAt: Date;
 

@@ -2,7 +2,7 @@ import { DriveFileData, DriveFolderData } from '@internxt/sdk/dist/drive/storage
 
 export type DriveFileItem = Pick<
   DriveFileData,
-  'name' | 'bucket' | 'fileId' | 'id' | 'uuid' | 'folderId' | 'status'
+  'name' | 'bucket' | 'fileId' | 'id' | 'uuid' | 'folderId' | 'status' | 'folderUuid'
 > & {
   encryptedName: string;
   size: number;
@@ -17,4 +17,5 @@ export type DriveFolderItem = Pick<DriveFolderData, 'name' | 'bucket' | 'id' | '
   createdAt: Date;
   updatedAt: Date;
   status: 'EXISTS' | 'TRASHED';
+  parentUuid: string | null;
 };

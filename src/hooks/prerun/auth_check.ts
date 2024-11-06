@@ -8,8 +8,9 @@ import { SdkManager } from '../../services/sdk-manager.service';
 import { AuthService } from '../../services/auth.service';
 import { MissingCredentialsError } from '../../types/command.types';
 import Webdav from '../../commands/webdav';
+import WebDAVConfig from '../../commands/webdav-config';
 
-const CommandsToSkip = [Whoami, Login, Logout, Logs, Webdav];
+const CommandsToSkip = [Whoami, Login, Logout, Logs, Webdav, WebDAVConfig];
 const hook: Hook<'prerun'> = async function (opts) {
   if (!CommandsToSkip.map((command) => command.name).includes(opts.Command.name)) {
     CLIUtils.doing('Checking credentials');

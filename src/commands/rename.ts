@@ -68,7 +68,7 @@ export default class Rename extends Command {
     if (isFolder) {
       await DriveFolderService.instance.renameFolder({ folderUuid: item.uuid, name: newName });
     } else {
-      await DriveFileService.instance.renameFile({ fileUuid: item.uuid, name: newName });
+      await DriveFileService.instance.renameFile(item.uuid, { plainName: newName });
     }
     CLIUtils.success(`${isFolder ? 'Folder' : 'File'} renamed successfully with: ${newName}`);
   }

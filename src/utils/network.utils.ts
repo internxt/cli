@@ -1,5 +1,5 @@
-import { NetworkCredentials } from '../types/network.types';
-import { createHash } from 'node:crypto';
+import { NetworkCredentials, SelfsignedCert } from '../types/network.types';
+import { createHash, X509Certificate } from 'node:crypto';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import selfsigned from 'selfsigned';
@@ -18,19 +18,36 @@ export class NetworkUtils {
     privateKey: path.join(ConfigService.WEBDAV_SSL_CERTS_DIR, 'priv.key'),
   };
 
+  static generateNewSelfsignedCerts(): SelfsignedCert {
+    const newCerts = this.generateSelfSignedSSLCerts();
+    this.saveWebdavSSLCerts(newCerts);
+    return {
+      cert: newCerts.cert,
+      key: newCerts.private,
+    };
+  }
+
   static getWebdavSSLCerts() {
     if (!existsSync(this.WEBDAV_SSL_CERTS_PATH.cert) || !existsSync(this.WEBDAV_SSL_CERTS_PATH.privateKey)) {
-      const newCerts = this.generateSelfSignedSSLCerts();
-      this.saveWebdavSSLCerts(newCerts);
-      return {
-        cert: newCerts.cert,
-        key: newCerts.private,
-      };
+      return this.generateNewSelfsignedCerts();
     } else {
-      return {
+      let selfsignedCert: SelfsignedCert = {
         cert: readFileSync(this.WEBDAV_SSL_CERTS_PATH.cert),
         key: readFileSync(this.WEBDAV_SSL_CERTS_PATH.privateKey),
       };
+
+      const { validTo } = new X509Certificate(selfsignedCert.cert);
+      const dateToday = new Date();
+      const dateValid = new Date(validTo);
+
+      if (dateToday > dateValid) {
+        const newCerts = this.generateNewSelfsignedCerts();
+        selfsignedCert = {
+          cert: newCerts.cert,
+          key: newCerts.key,
+        };
+      }
+      return selfsignedCert;
     }
   }
 

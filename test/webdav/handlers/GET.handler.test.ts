@@ -1,8 +1,12 @@
 import sinon from 'sinon';
-import { createWebDavRequestFixture, createWebDavResponseFixture } from '../../fixtures/webdav.fixture';
+import {
+  createWebDavRequestFixture,
+  createWebDavResponseFixture,
+  getRequestedFileResource,
+} from '../../fixtures/webdav.fixture';
 import { GETRequestHandler } from '../../../src/webdav/handlers/GET.handler';
 import { DriveFileService } from '../../../src/services/drive/drive-file.service';
-import { getDriveFileDatabaseFixture, getDriveDatabaseManager } from '../../fixtures/drive-database.fixture';
+import { getDriveDatabaseManager } from '../../fixtures/drive-database.fixture';
 import { CryptoService } from '../../../src/services/crypto.service';
 import { DownloadService } from '../../../src/services/network/download.service';
 import { UploadService } from '../../../src/services/network/upload.service';
@@ -12,9 +16,14 @@ import { NotFoundError, NotImplementedError } from '../../../src/utils/errors.ut
 import { SdkManager } from '../../../src/services/sdk-manager.service';
 import { NetworkFacade } from '../../../src/services/network/network-facade.service';
 import { UserFixture } from '../../fixtures/auth.fixture';
+import { fail } from 'node:assert';
+import { WebDavUtils } from '../../../src/utils/webdav.utils';
+import { WebDavRequestedResource } from '../../../src/types/webdav.types';
+import { newFileItem } from '../../fixtures/drive.fixture';
 
 describe('GET request handler', () => {
   const sandbox = sinon.createSandbox();
+
   const getNetworkMock = () => {
     return SdkManager.instance.getNetwork({
       user: 'user',
@@ -26,7 +35,7 @@ describe('GET request handler', () => {
     sandbox.restore();
   });
 
-  it('When a WebDav client sends a GET request, and it contains a content-range header, should throw a NotImplementedError ', async () => {
+  it('When a WebDav client sends a GET request, and it contains a content-range header, then it should throw a NotImplementedError', async () => {
     const networkFacade = new NetworkFacade(
       getNetworkMock(),
       UploadService.instance,
@@ -50,14 +59,13 @@ describe('GET request handler', () => {
         'content-range': 'bytes 0-100/200',
       },
     });
-
     const response = createWebDavResponseFixture({
       status: sandbox.stub().returns({ send: sandbox.stub() }),
     });
 
     try {
       await sut.handle(request, response);
-      expect(true).to.be.false;
+      fail('Expected function to throw an error, but it did not.');
     } catch (error) {
       expect(error).to.be.instanceOf(NotImplementedError);
     }
@@ -69,7 +77,7 @@ describe('GET request handler', () => {
     const uploadService = UploadService.instance;
     const cryptoService = CryptoService.instance;
     const networkFacade = new NetworkFacade(getNetworkMock(), uploadService, downloadService, cryptoService);
-    const sut = new GETRequestHandler({
+    const requestHandler = new GETRequestHandler({
       driveFileService: DriveFileService.instance,
       uploadService,
       downloadService,
@@ -79,23 +87,32 @@ describe('GET request handler', () => {
       networkFacade,
     });
 
+    const requestedFileResource: WebDavRequestedResource = getRequestedFileResource();
+
     const request = createWebDavRequestFixture({
       method: 'GET',
-      url: '/file.txt',
+      url: requestedFileResource.url,
       headers: {},
     });
-
-    sandbox.stub(driveDatabaseManager, 'findByRelativePath').resolves(null);
     const response = createWebDavResponseFixture({
       status: sandbox.stub().returns({ send: sandbox.stub() }),
     });
 
+    const expectedError = new NotFoundError(`Resource not found on Internxt Drive at ${requestedFileResource.url}`);
+
+    const getRequestedResourceStub = sandbox.stub(WebDavUtils, 'getRequestedResource').resolves(requestedFileResource);
+    const getAndSearchItemFromResourceStub = sandbox
+      .stub(WebDavUtils, 'getAndSearchItemFromResource')
+      .throws(expectedError);
+
     try {
-      await sut.handle(request, response);
-      expect(true).to.be.false;
+      await requestHandler.handle(request, response);
+      fail('Expected function to throw an error, but it did not.');
     } catch (error) {
       expect(error).to.be.instanceOf(NotFoundError);
     }
+    expect(getRequestedResourceStub.calledOnce).to.be.true;
+    expect(getAndSearchItemFromResourceStub.calledOnce).to.be.true;
   });
 
   it('When a WebDav client sends a GET request, and the Drive file is found, should write a response with the content', async () => {
@@ -105,7 +122,7 @@ describe('GET request handler', () => {
     const cryptoService = CryptoService.instance;
     const authService = AuthService.instance;
     const networkFacade = new NetworkFacade(getNetworkMock(), uploadService, downloadService, cryptoService);
-    const sut = new GETRequestHandler({
+    const requestHandler = new GETRequestHandler({
       driveFileService: DriveFileService.instance,
       uploadService,
       downloadService,
@@ -115,25 +132,34 @@ describe('GET request handler', () => {
       networkFacade,
     });
 
+    const requestedFileResource: WebDavRequestedResource = getRequestedFileResource();
+
     const request = createWebDavRequestFixture({
       method: 'GET',
-      url: '/file.txt',
+      url: requestedFileResource.url,
       headers: {},
     });
-
-    const driveFileDatabaseObject = getDriveFileDatabaseFixture({});
-
-    sandbox.stub(driveDatabaseManager, 'findByRelativePath').resolves(driveFileDatabaseObject);
-    sandbox
-      .stub(authService, 'getAuthDetails')
-      .resolves({ mnemonic: 'MNEMONIC', token: 'TOKEN', newToken: 'NEW_TOKEN', user: UserFixture });
-
-    sandbox.stub(networkFacade, 'downloadToStream').resolves([Promise.resolve(), new AbortController()]);
     const response = createWebDavResponseFixture({
       status: sandbox.stub().returns({ send: sandbox.stub() }),
     });
 
-    await sut.handle(request, response);
+    const mockFile = newFileItem();
+    const mockAuthDetails = { mnemonic: 'MNEMONIC', token: 'TOKEN', newToken: 'NEW_TOKEN', user: UserFixture };
+
+    const getRequestedResourceStub = sandbox.stub(WebDavUtils, 'getRequestedResource').resolves(requestedFileResource);
+    const getAndSearchItemFromResourceStub = sandbox
+      .stub(WebDavUtils, 'getAndSearchItemFromResource')
+      .resolves(mockFile);
+    const authDetailsStub = sandbox.stub(authService, 'getAuthDetails').resolves(mockAuthDetails);
+    const downloadStreamStub = sandbox
+      .stub(networkFacade, 'downloadToStream')
+      .resolves([Promise.resolve(), new AbortController()]);
+
+    await requestHandler.handle(request, response);
     expect(response.status.calledWith(200)).to.be.true;
+    expect(getRequestedResourceStub.calledOnce).to.be.true;
+    expect(getAndSearchItemFromResourceStub.calledOnce).to.be.true;
+    expect(authDetailsStub.calledOnce).to.be.true;
+    expect(downloadStreamStub.calledWith(mockFile.bucket, mockAuthDetails.mnemonic, mockFile.fileId)).to.be.true;
   });
 });

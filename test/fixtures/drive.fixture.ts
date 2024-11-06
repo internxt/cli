@@ -24,6 +24,7 @@ export const newFolderItem = (attributes?: Partial<DriveFolderItem>): DriveFolde
     createdAt: new Date(),
     updatedAt: new Date(),
     status: 'EXISTS',
+    parentUuid: randomUUID(),
   };
   return { ...folder, ...attributes };
 };
@@ -42,6 +43,7 @@ export const newFileItem = (attributes?: Partial<DriveFileItem>): DriveFileItem 
     size: randomInt(1, 10000),
     type: fileTypes[randomInt(fileTypes.length)],
     status: FileStatus.EXISTS,
+    folderUuid: randomUUID(),
   };
   return { ...file, ...attributes };
 };
@@ -50,22 +52,34 @@ export const newFolderMeta = (attributes?: Partial<FolderMeta>): FolderMeta => {
   const folder: FolderMeta = {
     bucket: crypto.randomBytes(16).toString('hex'),
     createdAt: new Date().toString(),
+    created_at: new Date().toString(),
     deleted: false,
     deletedAt: null,
+    deleted_at: null,
     encryptVersion: EncryptionVersion.Aes03,
+    encrypt_version: EncryptionVersion.Aes03,
     id: randomInt(1, 100000),
     name: crypto.randomBytes(16).toString('hex'),
     parent: null,
     parentId: randomInt(1, 100000),
+    parent_id: randomInt(1, 100000),
     plainName: wordlist[randomInt(wordlist.length)],
+    plain_name: wordlist[randomInt(wordlist.length)],
     removed: false,
     removedAt: null,
+    removed_at: null,
     size: randomInt(1, 10000),
     type: 'folder',
     updatedAt: new Date().toString(),
+    updated_at: new Date().toString(),
     user: null,
     userId: randomInt(1, 100000),
+    user_id: randomInt(1, 100000),
     uuid: randomUUID(),
+    parentUuid: randomUUID(),
+    parent_uuid: randomUUID(),
+    creation_time: new Date().toString(),
+    modification_time: new Date().toString(),
   };
   return { ...folder, ...attributes };
 };

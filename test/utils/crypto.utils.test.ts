@@ -17,12 +17,7 @@ describe('Crypto utils', () => {
   });
 
   it('When Magic IV or Magic Salt are missing should throw an error', async () => {
-    try {
-      CryptoUtils.getAesInit();
-      expect(true).to.be.true;
-    } catch {
-      // Noop
-    }
+    CryptoUtils.getAesInit();
   });
 
   it('When aes information is required, then it is read from the config service', async () => {

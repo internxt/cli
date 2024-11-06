@@ -48,6 +48,7 @@ export class DriveFileService {
       type: payload.type,
       status: driveFile.status,
       folderId: driveFile.folderId,
+      folderUuid: driveFile.folderUuid,
     };
   };
 
@@ -65,8 +66,14 @@ export class DriveFileService {
     return storageClient.moveFileByUuid(payload);
   };
 
-  public renameFile = (payload: { fileUuid: string; name: string }): Promise<void> => {
+  public renameFile = (fileUuid: string, payload: { plainName?: string; type?: string | null }): Promise<void> => {
     const storageClient = SdkManager.instance.getStorage(true);
-    return storageClient.updateFileNameWithUUID(payload);
+    return storageClient.updateFileMetaByUUID(fileUuid, payload);
+  };
+
+  public getFileMetadataByPath = async (path: string): Promise<DriveFileItem> => {
+    const storageClient = SdkManager.instance.getStorage(true);
+    const fileMetadata = await storageClient.getFileByPath(encodeURIComponent(path));
+    return DriveUtils.driveFileMetaToItem(fileMetadata);
   };
 }

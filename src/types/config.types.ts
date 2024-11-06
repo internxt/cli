@@ -9,7 +9,6 @@ export interface ConfigKeys {
   readonly APP_MAGIC_IV: string;
   readonly APP_MAGIC_SALT: string;
   readonly NETWORK_URL: string;
-  readonly WEBDAV_SERVER_PORT: string;
   readonly RUDDERSTACK_WRITE_KEY: string;
   readonly RUDDERSTACK_DATAPLANE_URL: string;
 }

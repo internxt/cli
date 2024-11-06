@@ -1,10 +1,10 @@
 import { expect } from 'chai';
-import crypto, { randomUUID } from 'crypto';
+import crypto, { randomInt, randomUUID } from 'crypto';
 import Sinon, { SinonSandbox } from 'sinon';
 import fs from 'fs/promises';
 import { ConfigService } from '../../src/services/config.service';
 import { CryptoService } from '../../src/services/crypto.service';
-import { CLICredentials, LoginCredentials } from '../../src/types/command.types';
+import { CLICredentials, LoginCredentials, WebdavConfig } from '../../src/types/command.types';
 import { UserFixture } from '../fixtures/auth.fixture';
 
 import { config } from 'dotenv';
@@ -153,5 +153,67 @@ describe('Config service', () => {
     await ConfigService.instance.ensureWebdavCertsDirExists();
 
     expect(stubMkdir).to.be.calledOnceWith(ConfigService.WEBDAV_SSL_CERTS_DIR);
+  });
+
+  it('When webdav config options are saved, then they are written to a file', async () => {
+    const webdavConfig: WebdavConfig = {
+      port: String(randomInt(65000)),
+      protocol: 'https',
+    };
+    const stringConfig = JSON.stringify(webdavConfig);
+
+    const fsStub = configServiceSandbox
+      .stub(fs, 'writeFile')
+      .withArgs(ConfigService.WEBDAV_CONFIGS_FILE, stringConfig)
+      .resolves();
+
+    await ConfigService.instance.saveWebdavConfig(webdavConfig);
+    expect(fsStub).to.be.calledWith(ConfigService.WEBDAV_CONFIGS_FILE, stringConfig);
+  });
+
+  it('When webdav config options are read and exist, then they are read from a file', async () => {
+    const webdavConfig: WebdavConfig = {
+      port: String(randomInt(65000)),
+      protocol: 'http',
+    };
+    const stringConfig = JSON.stringify(webdavConfig);
+
+    const fsStub = configServiceSandbox
+      .stub(fs, 'readFile')
+      .withArgs(ConfigService.WEBDAV_CONFIGS_FILE)
+      .resolves(stringConfig);
+
+    const webdavConfigResult = await ConfigService.instance.readWebdavConfig();
+    expect(webdavConfigResult).to.be.eql(webdavConfig);
+    expect(fsStub).to.be.calledWith(ConfigService.WEBDAV_CONFIGS_FILE);
+  });
+
+  it('When webdav config options are read but not exist, then they are returned from defaults', async () => {
+    const defaultWebdavConfig: WebdavConfig = {
+      port: ConfigService.WEBDAV_DEFAULT_PORT,
+      protocol: ConfigService.WEBDAV_DEFAULT_PROTOCOL,
+    };
+
+    const fsStub = configServiceSandbox
+      .stub(fs, 'readFile')
+      .withArgs(ConfigService.WEBDAV_CONFIGS_FILE)
+      .resolves(undefined);
+
+    const webdavConfigResult = await ConfigService.instance.readWebdavConfig();
+    expect(webdavConfigResult).to.be.eql(defaultWebdavConfig);
+    expect(fsStub).to.be.calledWith(ConfigService.WEBDAV_CONFIGS_FILE);
+  });
+
+  it('When webdav config options are read but an error is thrown, then they are returned from defaults', async () => {
+    const defaultWebdavConfig: WebdavConfig = {
+      port: ConfigService.WEBDAV_DEFAULT_PORT,
+      protocol: ConfigService.WEBDAV_DEFAULT_PROTOCOL,
+    };
+
+    const fsStub = configServiceSandbox.stub(fs, 'readFile').withArgs(ConfigService.WEBDAV_CONFIGS_FILE).rejects();
+
+    const webdavConfigResult = await ConfigService.instance.readWebdavConfig();
+    expect(webdavConfigResult).to.be.eql(defaultWebdavConfig);
+    expect(fsStub).to.be.calledWith(ConfigService.WEBDAV_CONFIGS_FILE);
   });
 });

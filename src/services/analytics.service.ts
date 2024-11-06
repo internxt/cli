@@ -1,4 +1,4 @@
-import Rudderstack, { apiObject } from '@rudderstack/rudder-sdk-node';
+import { apiObject } from '@rudderstack/rudder-sdk-node';
 import { ConfigService } from './config.service';
 //import packageJSON from '../../package.json';
 //import os from 'os';
@@ -12,9 +12,9 @@ export const AnalyticsEvents = {
 export class AnalyticsService {
   public static readonly instance: AnalyticsService = new AnalyticsService(ConfigService.instance);
 
-  constructor(private config: ConfigService) {}
+  constructor(private readonly config: ConfigService) {}
 
-  private getRudderstack() {
+  /*private getRudderstack() {
     return new Rudderstack(this.config.get('RUDDERSTACK_WRITE_KEY'), {
       dataPlaneUrl: this.config.get('RUDDERSTACK_DATAPLANE_URL'),
     });
@@ -44,7 +44,7 @@ export class AnalyticsService {
       default:
         return 'Unknown';
     }
-  }
+  }*/
 
   track(
     eventKey: keyof typeof AnalyticsEvents,

@@ -23,4 +23,8 @@ export class ValidationService {
   public validateYesOrNoString = (message: string): boolean => {
     return message.length > 0 && /^(yes|no|y|n)$/i.test(message.toLowerCase().trim());
   };
+
+  public validateTCPIntegerPort = (port: string): boolean => {
+    return /^\d+$/.test(port) && Number(port) >= 1 && Number(port) <= 65535;
+  };
 }

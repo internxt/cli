@@ -1,32 +1,44 @@
 import { Request, Response } from 'express';
 import { WebDavMethodHandler } from '../../types/webdav.types';
-import { NotFoundError } from '../../utils/errors.utils';
 import { WebDavUtils } from '../../utils/webdav.utils';
 import { DriveDatabaseManager } from '../../services/database/drive-database-manager.service';
 import { TrashService } from '../../services/drive/trash.service';
 import { webdavLogger } from '../../utils/logger.utils';
+import { DriveFileService } from '../../services/drive/drive-file.service';
+import { DriveFolderService } from '../../services/drive/drive-folder.service';
 
 export class DELETERequestHandler implements WebDavMethodHandler {
-  constructor(private dependencies: { driveDatabaseManager: DriveDatabaseManager; trashService: TrashService }) {}
+  constructor(
+    private readonly dependencies: {
+      driveDatabaseManager: DriveDatabaseManager;
+      trashService: TrashService;
+      driveFileService: DriveFileService;
+      driveFolderService: DriveFolderService;
+    },
+  ) {}
+
   handle = async (req: Request, res: Response) => {
+    const { driveDatabaseManager, driveFileService, driveFolderService, trashService } = this.dependencies;
     webdavLogger.info('DELETE request received');
-    const resource = await WebDavUtils.getRequestedResource(req, this.dependencies.driveDatabaseManager);
-    webdavLogger.info('Resource found for DELETE request', { resource });
-    const databaseItem = await this.dependencies.driveDatabaseManager.findByRelativePath(resource.url);
+    const resource = await WebDavUtils.getRequestedResource(req);
+    webdavLogger.info('Resource received for DELETE request', { resource });
 
-    if (!databaseItem) throw new NotFoundError('Resource not found');
+    const driveItem = await WebDavUtils.getAndSearchItemFromResource({
+      resource,
+      driveDatabaseManager,
+      driveFolderService,
+      driveFileService: driveFileService,
+    });
 
-    webdavLogger.info(`Trashing ${resource.type} with UUID ${databaseItem.uuid}...`);
-    await this.dependencies.trashService.trashItems({
-      items: [{ type: resource.type, uuid: databaseItem.uuid }],
+    webdavLogger.info(`Trashing ${resource.type} with UUID ${driveItem.uuid}...`);
+    await trashService.trashItems({
+      items: [{ type: resource.type, uuid: driveItem.uuid }],
     });
 
     if (resource.type === 'folder') {
-      await this.dependencies.driveDatabaseManager.deleteFolder(databaseItem.id);
-    }
-
-    if (resource.type === 'file') {
-      await this.dependencies.driveDatabaseManager.deleteFile(databaseItem.id);
+      await driveDatabaseManager.deleteFolderById(driveItem.id);
+    } else if (resource.type === 'file') {
+      await driveDatabaseManager.deleteFileById(driveItem.id);
     }
 
     res.status(204).send();

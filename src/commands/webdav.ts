@@ -5,6 +5,7 @@ import { ConfigService } from '../services/config.service';
 import { AnalyticsService } from '../services/analytics.service';
 import { AuthService } from '../services/auth.service';
 import { DriveDatabaseManager } from '../services/database/drive-database-manager.service';
+
 export default class Webdav extends Command {
   static readonly description = 'Enable, disable, restart or get the status of the Internxt CLI WebDav server';
 
@@ -23,18 +24,24 @@ export default class Webdav extends Command {
       options: ['enable', 'disable', 'restart', 'status'],
     }),
   };
+
   public async enableWebDav() {
     CLIUtils.doing('Starting Internxt WebDav server...');
+    await DriveDatabaseManager.clean();
     await PM2Utils.connect();
     await PM2Utils.killWebDavServer();
     await PM2Utils.startWebDavServer();
     CLIUtils.done();
     const { status } = await PM2Utils.webdavServerStatus();
+    const webdavConfigs = await ConfigService.instance.readWebdavConfig();
 
     if (status === 'online') {
       ux.log(`\nWebDav server status: ${ux.colorize('green', 'online')}\n`);
       CLIUtils.success(
-        `Internxt WebDav server started successfully on https://${ConfigService.WEBDAV_LOCAL_URL}:${process.env.WEBDAV_SERVER_PORT}`,
+        `Internxt WebDav server started successfully at ${webdavConfigs.protocol}://${ConfigService.WEBDAV_LOCAL_URL}:${webdavConfigs.port}`,
+      );
+      ux.log(
+        `\n[If the above URL is not working, the WebDAV server can be accessed directly via your localhost IP at: ${webdavConfigs.protocol}://127.0.0.1:${webdavConfigs.port} ]\n`,
       );
       const authDetails = await AuthService.instance.getAuthDetails();
       await AnalyticsService.instance.track('WebDAVEnabled', { app: 'internxt-cli', userId: authDetails.user.uuid });

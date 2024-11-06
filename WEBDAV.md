@@ -38,14 +38,13 @@ Find below the methods that are supported in the latest version of the Internxt 
 | OPTIONS   | ✅        |
 | GET       | ✅        |
 | HEAD      | ✅        |
-| POST      | ❌        |
 | PUT       | ✅        |
 | DELETE    | ✅        |
 | PROPFIND  | ✅        |
 | PROPPATCH | ❌        |
 | MKCOL     | ✅        |
 | COPY      | ❌        |
-| MOVE      | ❌        |
+| MOVE      | ✅        |
 
 ## Requisites
 
@@ -61,6 +60,6 @@ Find below the methods that are supported in the latest version of the Internxt 
 
 ## Known issues
 
-- We use selfsigned certificates, so all the requests to the WebDav local server are encrypted, since the certificates are selfsigned, many WebDav clients will complain about the certificates trust. You can safely ignore this warning.
+- We use self-signed certificates when using HTTPS. This ensures that all requests to the local WebDAV server are encrypted. However, since the certificates are self-signed, many WebDAV clients may show warnings about certificate trust. You can safely ignore these warnings.
 
-- You may encounter issues with the DNS resolution of webdav.local.internxt.com. In such cases, you can safely replace this address with 127.0.0.1, or the corresponding IP where you have deployed the webdav server if you are connecting from another location.
+- You may encounter issues with DNS resolution for webdav.local.internxt.com. In such cases, you can safely replace this address with 127.0.0.1 or the IP address where the WebDAV server is deployed if connecting from a different location.
