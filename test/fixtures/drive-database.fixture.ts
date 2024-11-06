@@ -4,46 +4,41 @@ import { DriveFolder } from '../../src/services/database/drive-folder/drive-fold
 import { DriveDatabaseManager } from '../../src/services/database/drive-database-manager.service';
 import { DriveFileRepository } from '../../src/services/database/drive-file/drive-file.repository';
 import { DriveFolderRepository } from '../../src/services/database/drive-folder/drive-folder.repository';
+import { randomInt, randomUUID } from 'crypto';
 
-export const getDriveFileDatabaseFixture = (payload: Partial<DriveFile> = {}): DriveFile => {
-  // @ts-expect-error - We only mock the properties we need
-  const object: DriveFile = {
-    id: new Date().getTime(),
+export const getDriveFileDatabaseFixture = (): DriveFile => {
+  const object: DriveFile = new DriveFile({
+    id: randomInt(2000),
     name: `file_${new Date().getTime().toString()}`,
-    uuid: `uuid_${new Date().getTime().toString()}`,
-    relativePath: '',
+    uuid: randomUUID(),
+    relativePath: `file_${new Date().getTime().toString()}.txt`,
     createdAt: new Date(),
     updatedAt: new Date(),
     status: 'EXISTS',
     fileId: `file_id_${new Date().getTime().toString()}`,
-    folderId: 0,
+    folderId: randomInt(2000),
     bucket: new Date().getTime().toString(),
-    size: 0,
-  };
-
-  // @ts-expect-error - We only mock the properties we need
-  return {
-    ...object,
-    ...payload,
-  };
+    size: randomInt(2000),
+    folderUuid: randomUUID(),
+    type: 'txt',
+  });
+  return object;
 };
 
-export const getDriveFolderDatabaseFixture = (payload: Partial<DriveFolder> = {}): DriveFolder => {
-  // @ts-expect-error - We only mock the properties we need
-  const object: DriveFolder = {
-    id: new Date().getTime(),
+export const getDriveFolderDatabaseFixture = (): DriveFolder => {
+  const object: DriveFolder = new DriveFolder({
+    id: randomInt(2000),
     name: `folder_${new Date().getTime().toString()}`,
-    uuid: `uuid_${new Date().getTime().toString()}`,
+    uuid: randomUUID(),
     relativePath: '',
     createdAt: new Date(),
     updatedAt: new Date(),
-  };
+    parentId: randomInt(2000),
+    parentUuid: randomUUID(),
+    status: 'EXISTS',
+  });
 
-  // @ts-expect-error - We only mock the properties we need
-  return {
-    ...object,
-    ...payload,
-  };
+  return object;
 };
 
 export const getDriveDatabaseManager = (): DriveDatabaseManager => {

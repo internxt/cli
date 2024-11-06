@@ -22,7 +22,7 @@ import { DriveFolderService } from '../../../src/services/drive/drive-folder.ser
 import { TrashService } from '../../../src/services/drive/trash.service';
 import { WebDavRequestedResource } from '../../../src/types/webdav.types';
 import { WebDavUtils } from '../../../src/utils/webdav.utils';
-import { newFolderItem } from '../../fixtures/drive.fixture';
+import { newFileItem, newFolderItem } from '../../fixtures/drive.fixture';
 
 describe('PUT request handler', () => {
   const sandbox = sinon.createSandbox();
@@ -105,10 +105,6 @@ describe('PUT request handler', () => {
       status: sandbox.stub().returns({ send: sandbox.stub() }),
     });
 
-    const expectedError = new ConflictError(
-      `Parent resource not found for parent path ${requestedParentFolderResource.parentPath}`,
-    );
-
     const getRequestedResourceStub = sandbox
       .stub(WebDavUtils, 'getRequestedResource')
       .onFirstCall()
@@ -117,7 +113,7 @@ describe('PUT request handler', () => {
       .resolves(requestedParentFolderResource);
     const getAndSearchItemFromResourceStub = sandbox
       .stub(WebDavUtils, 'getAndSearchItemFromResource')
-      .throws(expectedError);
+      .resolves(undefined);
 
     try {
       await sut.handle(request, response);
@@ -194,5 +190,78 @@ describe('PUT request handler', () => {
     expect(uploadFromStreamStub.calledOnce).to.be.true;
     expect(createDriveFileStub.calledOnce).to.be.true;
     expect(createDBFileStub.calledOnce).to.be.true;
+  });
+
+  it('When a WebDav client sends a PUT request, and the file already exists, then it should upload and replace the file to the folder', async () => {
+    const driveDatabaseManager = getDriveDatabaseManager();
+    const downloadService = DownloadService.instance;
+    const uploadService = UploadService.instance;
+    const cryptoService = CryptoService.instance;
+    const authService = AuthService.instance;
+    const trashService = TrashService.instance;
+    const networkFacade = new NetworkFacade(getNetworkMock(), uploadService, downloadService, cryptoService);
+    const sut = new PUTRequestHandler({
+      driveFileService: DriveFileService.instance,
+      driveFolderService: DriveFolderService.instance,
+      authService: AuthService.instance,
+      trashService: TrashService.instance,
+      networkFacade,
+      driveDatabaseManager,
+    });
+
+    const requestedFileResource: WebDavRequestedResource = getRequestedFileResource();
+    const requestedParentFolderResource: WebDavRequestedResource = getRequestedFolderResource({
+      parentFolder: '/',
+      folderName: '',
+    });
+    const folderFixture = newFolderItem({ name: requestedParentFolderResource.name });
+    const fileFixture = newFileItem({ folderId: folderFixture.id, folderUuid: folderFixture.uuid });
+
+    const request = createWebDavRequestFixture({
+      method: 'PUT',
+      url: requestedFileResource.url,
+      headers: {
+        'content-length': '100',
+      },
+    });
+
+    const sendStub = sandbox.stub();
+    const response = createWebDavResponseFixture({
+      status: sandbox.stub().returns({ send: sendStub }),
+    });
+
+    const getRequestedResourceStub = sandbox
+      .stub(WebDavUtils, 'getRequestedResource')
+      .onFirstCall()
+      .resolves(requestedFileResource)
+      .onSecondCall()
+      .resolves(requestedParentFolderResource);
+    const getAndSearchItemFromResourceStub = sandbox
+      .stub(WebDavUtils, 'getAndSearchItemFromResource')
+      .onFirstCall()
+      .resolves(folderFixture)
+      .onSecondCall()
+      .resolves(fileFixture);
+    const deleteDBFileStub = sandbox.stub(driveDatabaseManager, 'deleteFileById').resolves();
+    const deleteDriveFileStub = sandbox.stub(trashService, 'trashItems').resolves();
+    const getAuthDetailsStub = sandbox
+      .stub(authService, 'getAuthDetails')
+      .resolves({ mnemonic: 'MNEMONIC', token: 'TOKEN', newToken: 'NEW_TOKEN', user: UserFixture });
+    const uploadFromStreamStub = sandbox
+      .stub(networkFacade, 'uploadFromStream')
+      .resolves([Promise.resolve({ fileId: '09218313209', hash: Buffer.from('test') }), new AbortController()]);
+    const createDriveFileStub = sandbox.stub(DriveFileService.instance, 'createFile').resolves();
+    const createDBFileStub = sandbox.stub(driveDatabaseManager, 'createFile').resolves();
+
+    await sut.handle(request, response);
+    expect(response.status.calledWith(200)).to.be.true;
+    expect(getRequestedResourceStub.calledTwice).to.be.true;
+    expect(getAndSearchItemFromResourceStub.calledTwice).to.be.true;
+    expect(getAuthDetailsStub.calledOnce).to.be.true;
+    expect(uploadFromStreamStub.calledOnce).to.be.true;
+    expect(createDriveFileStub.calledOnce).to.be.true;
+    expect(createDBFileStub.calledOnce).to.be.true;
+    expect(deleteDBFileStub.calledOnce).to.be.true;
+    expect(deleteDriveFileStub.calledOnce).to.be.true;
   });
 });

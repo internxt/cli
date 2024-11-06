@@ -55,12 +55,12 @@ export class PUTRequestHandler implements WebDavMethodHandler {
       })) as DriveFileItem;
       if (driveFileItem && driveFileItem.status === 'EXISTS') {
         webdavLogger.info(`File '${resource.name}' already exists in '${resource.path.dir}', trashing it before PUT`);
+        await driveDatabaseManager.deleteFileById(driveFileItem.id);
         await trashService.trashItems({
           items: [{ type: resource.type, uuid: driveFileItem.uuid }],
         });
-        await driveDatabaseManager.deleteFileById(driveFileItem.id);
       }
-    } catch (_) {
+    } catch {
       //noop
     }
 

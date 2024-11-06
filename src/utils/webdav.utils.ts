@@ -36,7 +36,9 @@ export class WebDavUtils {
     }
     const decodedUrl = decodeURIComponent(requestUrl);
     const parsedPath = path.parse(decodedUrl);
-    const parentPath = `/${path.dirname(decodedUrl).replace(/^(\/)|(\/)$/g, '')}/`.replaceAll('//', '/');
+    let parentPath = path.dirname(decodedUrl);
+    if (!parentPath.startsWith('/')) parentPath = '/'.concat(parentPath);
+    if (!parentPath.endsWith('/')) parentPath = parentPath.concat('/');
 
     const isFolder = requestUrl.endsWith('/');
 
