@@ -1,19 +1,15 @@
+import { UsageResponse } from '@internxt/sdk/dist/drive/storage/types';
 import { SdkManager } from './sdk-manager.service';
 
 export class UsageService {
   public static readonly instance: UsageService = new UsageService();
   public static readonly INFINITE_LIMIT = 99 * Math.pow(1024, 4);
 
-  public fetchTotalUsage = async (): Promise<number> => {
+  public fetchUsage = async (): Promise<UsageResponse> => {
     const storageClient = SdkManager.instance.getStorage();
-    const photosClient = SdkManager.instance.getPhotos();
+    const driveUsage = await storageClient.spaceUsage();
 
-    const [driveUsage, { usage: photosUsage }] = await Promise.all([
-      storageClient.spaceUsage(),
-      photosClient.photos.getUsage(),
-    ]);
-
-    return driveUsage.total + photosUsage;
+    return driveUsage;
   };
 
   public fetchSpaceLimit = async (): Promise<number> => {
