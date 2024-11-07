@@ -20,6 +20,7 @@ import crypto from 'crypto';
 import { NotFoundError } from '../../../src/utils/errors.utils';
 import { fail } from 'assert';
 import { UsageService } from '../../../src/services/usage.service';
+import { XMLUtils } from '../../../src/utils/xml.utils';
 
 describe('PROPFIND request handler', () => {
   const sandbox = sinon.createSandbox();
@@ -76,7 +77,7 @@ describe('PROPFIND request handler', () => {
     expect(response.status.calledWith(207)).to.be.true;
     expect(
       sendStub.calledWith(
-        `<?xml version="1.0" encoding="utf-8" ?><D:multistatus xmlns:D="DAV:"><D:response><D:href>${encodeURIComponent('/')}</D:href><D:propstat><D:status>HTTP/1.1 200 OK</D:status><D:prop><D:getcontenttype>application/octet-stream</D:getcontenttype><x1:lastmodified xmlns:x1="SAR:">${FormatUtils.formatDateForWebDav(folderFixture.updatedAt)}</x1:lastmodified><x2:executable xmlns:x2="http://apache.org/dav/props/">F</x2:executable><x3:Win32FileAttributes xmlns:x3="urn:schemas-microsoft-com:">00000030</x3:Win32FileAttributes><D:quota-available-bytes>${spaceLimitFixture - usageFixture.total}</D:quota-available-bytes><D:quota-used-bytes>${usageFixture.total}</D:quota-used-bytes><D:resourcetype><D:collection/></D:resourcetype></D:prop></D:propstat></D:response></D:multistatus>`,
+        `<?xml version="1.0" encoding="utf-8" ?><D:multistatus xmlns:D="DAV:"><D:response><D:href>${XMLUtils.encodeWebDavUri('/')}</D:href><D:propstat><D:status>HTTP/1.1 200 OK</D:status><D:prop><D:getcontenttype>application/octet-stream</D:getcontenttype><x1:lastmodified xmlns:x1="SAR:">${FormatUtils.formatDateForWebDav(folderFixture.updatedAt)}</x1:lastmodified><x2:executable xmlns:x2="http://apache.org/dav/props/">F</x2:executable><x3:Win32FileAttributes xmlns:x3="urn:schemas-microsoft-com:">00000030</x3:Win32FileAttributes><D:quota-available-bytes>${spaceLimitFixture - usageFixture.total}</D:quota-available-bytes><D:quota-used-bytes>${usageFixture.total}</D:quota-used-bytes><D:resourcetype><D:collection/></D:resourcetype></D:prop></D:propstat></D:response></D:multistatus>`,
       ),
     ).to.be.true;
     expect(getRequestedResourceStub.calledOnce).to.be.true;
@@ -140,7 +141,7 @@ describe('PROPFIND request handler', () => {
     expect(response.status.calledWith(207)).to.be.true;
     expect(
       sendStub.calledWith(
-        `<?xml version="1.0" encoding="utf-8" ?><D:multistatus xmlns:D="DAV:"><D:response><D:href>${encodeURIComponent('/')}</D:href><D:propstat><D:status>HTTP/1.1 200 OK</D:status><D:prop><D:getcontenttype>application/octet-stream</D:getcontenttype><x1:lastmodified xmlns:x1="SAR:">${FormatUtils.formatDateForWebDav(folderFixture.updatedAt)}</x1:lastmodified><x2:executable xmlns:x2="http://apache.org/dav/props/">F</x2:executable><x3:Win32FileAttributes xmlns:x3="urn:schemas-microsoft-com:">00000030</x3:Win32FileAttributes><D:quota-available-bytes>${spaceLimitFixture - usageFixture.total}</D:quota-available-bytes><D:quota-used-bytes>${usageFixture.total}</D:quota-used-bytes><D:resourcetype><D:collection/></D:resourcetype></D:prop></D:propstat></D:response><D:response><D:href>${encodeURIComponent(`/${paginatedFolder1.plainName}/`)}</D:href><D:propstat><D:status>HTTP/1.1 200 OK</D:status><D:prop><D:displayname>${paginatedFolder1.plainName}</D:displayname><D:getlastmodified>${FormatUtils.formatDateForWebDav(paginatedFolder1.updatedAt)}</D:getlastmodified><D:getcontentlength>0</D:getcontentlength><D:resourcetype><D:collection/></D:resourcetype></D:prop></D:propstat></D:response></D:multistatus>`,
+        `<?xml version="1.0" encoding="utf-8" ?><D:multistatus xmlns:D="DAV:"><D:response><D:href>${XMLUtils.encodeWebDavUri('/')}</D:href><D:propstat><D:status>HTTP/1.1 200 OK</D:status><D:prop><D:getcontenttype>application/octet-stream</D:getcontenttype><x1:lastmodified xmlns:x1="SAR:">${FormatUtils.formatDateForWebDav(folderFixture.updatedAt)}</x1:lastmodified><x2:executable xmlns:x2="http://apache.org/dav/props/">F</x2:executable><x3:Win32FileAttributes xmlns:x3="urn:schemas-microsoft-com:">00000030</x3:Win32FileAttributes><D:quota-available-bytes>${spaceLimitFixture - usageFixture.total}</D:quota-available-bytes><D:quota-used-bytes>${usageFixture.total}</D:quota-used-bytes><D:resourcetype><D:collection/></D:resourcetype></D:prop></D:propstat></D:response><D:response><D:href>${XMLUtils.encodeWebDavUri(`/${paginatedFolder1.plainName}/`)}</D:href><D:propstat><D:status>HTTP/1.1 200 OK</D:status><D:prop><D:displayname>${paginatedFolder1.plainName}</D:displayname><D:getlastmodified>${FormatUtils.formatDateForWebDav(paginatedFolder1.updatedAt)}</D:getlastmodified><D:getcontentlength>0</D:getcontentlength><D:resourcetype><D:collection/></D:resourcetype></D:prop></D:propstat></D:response></D:multistatus>`,
       ),
     ).to.be.true;
     expect(getRequestedResourceStub.calledOnce).to.be.true;
@@ -190,7 +191,7 @@ describe('PROPFIND request handler', () => {
     expect(response.status.calledWith(207)).to.be.true;
     expect(
       sendStub.calledWith(
-        `<?xml version="1.0" encoding="utf-8" ?><D:multistatus xmlns:D="DAV:"><D:response><D:href>${encodeURIComponent(requestedFileResource.url)}</D:href><D:propstat><D:status>HTTP/1.1 200 OK</D:status><D:prop><D:resourcetype></D:resourcetype><D:getetag>&quot;${etagFixture}&quot;</D:getetag><D:displayname>${fileFixture.name + '.' + fileFixture.type}</D:displayname><D:getcontenttype>${mimeFixture}</D:getcontenttype><D:getlastmodified>${FormatUtils.formatDateForWebDav(fileFixture.updatedAt)}</D:getlastmodified><D:getcontentlength>${fileFixture.size}</D:getcontentlength></D:prop></D:propstat></D:response></D:multistatus>`,
+        `<?xml version="1.0" encoding="utf-8" ?><D:multistatus xmlns:D="DAV:"><D:response><D:href>${XMLUtils.encodeWebDavUri(requestedFileResource.url)}</D:href><D:propstat><D:status>HTTP/1.1 200 OK</D:status><D:prop><D:resourcetype></D:resourcetype><D:getetag>&quot;${etagFixture}&quot;</D:getetag><D:displayname>${fileFixture.name + '.' + fileFixture.type}</D:displayname><D:getcontenttype>${mimeFixture}</D:getcontenttype><D:getlastmodified>${FormatUtils.formatDateForWebDav(fileFixture.updatedAt)}</D:getlastmodified><D:getcontentlength>${fileFixture.size}</D:getcontentlength></D:prop></D:propstat></D:response></D:multistatus>`,
       ),
     ).to.be.true;
     expect(getRequestedResourceStub.calledOnce).to.be.true;

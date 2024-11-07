@@ -21,4 +21,8 @@ export class XMLUtils {
   static addDefaultNamespace(key: string) {
     return `${XMLUtils.DEFAULT_NAMESPACE_LETTER}:${key}`;
   }
+
+  static encodeWebDavUri(uri: string) {
+    return encodeURIComponent(uri).replaceAll('%2F', '/');
+  }
 }
