@@ -211,7 +211,7 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
     const spaceLimit = await UsageService.instance.fetchSpaceLimit();
 
     const driveFolderXML = {
-      [XMLUtils.addDefaultNamespace('href')]: encodeURIComponent(relativePath),
+      [XMLUtils.addDefaultNamespace('href')]: XMLUtils.encodeWebDavUri(relativePath),
       [XMLUtils.addDefaultNamespace('propstat')]: {
         [XMLUtils.addDefaultNamespace('status')]: 'HTTP/1.1 200 OK',
         [XMLUtils.addDefaultNamespace('prop')]: {
@@ -243,7 +243,7 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
     const displayName = `${driveFolderItem.name}`;
 
     const driveFolderXML = {
-      [XMLUtils.addDefaultNamespace('href')]: encodeURIComponent(relativePath),
+      [XMLUtils.addDefaultNamespace('href')]: XMLUtils.encodeWebDavUri(relativePath),
       [XMLUtils.addDefaultNamespace('propstat')]: {
         [XMLUtils.addDefaultNamespace('status')]: 'HTTP/1.1 200 OK',
         [XMLUtils.addDefaultNamespace('prop')]: {
@@ -264,7 +264,7 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
     const displayName = driveFileItem.type ? `${driveFileItem.name}.${driveFileItem.type}` : driveFileItem.name;
 
     const driveFileXML = {
-      [XMLUtils.addDefaultNamespace('href')]: encodeURIComponent(relativePath),
+      [XMLUtils.addDefaultNamespace('href')]: XMLUtils.encodeWebDavUri(relativePath),
       [XMLUtils.addDefaultNamespace('propstat')]: {
         [XMLUtils.addDefaultNamespace('status')]: 'HTTP/1.1 200 OK',
         [XMLUtils.addDefaultNamespace('prop')]: {

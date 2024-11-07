@@ -1,5 +1,4 @@
 import * as NetworkUpload from '@internxt/sdk/dist/network/upload';
-
 import { NetworkFacade } from '../../../src/services/network/network-facade.service';
 import { SdkManager } from '../../../src/services/sdk-manager.service';
 import path from 'path';
@@ -217,7 +216,7 @@ describe('Network Facade Service', () => {
     const options = { progressCallback: sinon.stub() };
 
     networkFacadeSandbox.stub(axios, 'get').callsFake((_, config) => {
-      config?.onDownloadProgress?.({ loaded: 100, total: 100, bytes: 100 });
+      config?.onDownloadProgress?.({ loaded: 100, total: 100, bytes: 100, lengthComputable: true });
       return Promise.resolve({ data: readableContent });
     });
     /* networkFacadeSandbox.stub(superagent, 'get').returns({

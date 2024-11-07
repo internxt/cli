@@ -34,7 +34,7 @@ export class WebDavUtils {
     } else {
       requestUrl = urlObject.url;
     }
-    const decodedUrl = decodeURIComponent(requestUrl);
+    const decodedUrl = decodeURIComponent(requestUrl).replaceAll('/./', '/');
     const parsedPath = path.parse(decodedUrl);
     let parentPath = path.dirname(decodedUrl);
     if (!parentPath.startsWith('/')) parentPath = '/'.concat(parentPath);

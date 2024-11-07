@@ -43,7 +43,7 @@ describe('Download Service', () => {
     });
 
     sandbox.stub(axios, 'get').callsFake((_, config) => {
-      config?.onDownloadProgress?.({ loaded: 100, total: 100, bytes: 100 });
+      config?.onDownloadProgress?.({ loaded: 100, total: 100, bytes: 100, lengthComputable: true });
       return Promise.resolve({ data: readableContent });
     });
 

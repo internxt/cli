@@ -78,7 +78,7 @@ export class PUTRequestHandler implements WebDavMethodHandler {
 
     const file = await DriveFileService.instance.createFile({
       name: resource.path.name,
-      type: resource.path.ext.replaceAll('.', ''),
+      type: resource.path.ext.replace('.', ''),
       size: contentLength,
       folderId: parentFolderItem.id,
       fileId: uploadResult.fileId,
