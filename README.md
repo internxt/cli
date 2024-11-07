@@ -50,15 +50,20 @@ USAGE
 * [`internxt login`](#internxt-login)
 * [`internxt logout`](#internxt-logout)
 * [`internxt logs`](#internxt-logs)
-* [`internxt move`](#internxt-move)
+* [`internxt move-file`](#internxt-move-file)
+* [`internxt move-folder`](#internxt-move-folder)
+* [`internxt move file`](#internxt-move-file-1)
+* [`internxt move folder`](#internxt-move-folder-1)
 * [`internxt rename`](#internxt-rename)
 * [`internxt trash`](#internxt-trash)
 * [`internxt trash-clear`](#internxt-trash-clear)
 * [`internxt trash-list`](#internxt-trash-list)
-* [`internxt trash-restore`](#internxt-trash-restore)
+* [`internxt trash-restore-file`](#internxt-trash-restore-file)
+* [`internxt trash-restore-folder`](#internxt-trash-restore-folder)
 * [`internxt trash clear`](#internxt-trash-clear-1)
 * [`internxt trash list`](#internxt-trash-list-1)
-* [`internxt trash restore`](#internxt-trash-restore-1)
+* [`internxt trash restore file`](#internxt-trash-restore-file-1)
+* [`internxt trash restore folder`](#internxt-trash-restore-folder-1)
 * [`internxt upload`](#internxt-upload)
 * [`internxt webdav ACTION`](#internxt-webdav-action)
 * [`internxt webdav-config ACTION`](#internxt-webdav-config-action)
@@ -248,30 +253,113 @@ EXAMPLES
 
 _See code: [src/commands/logs.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/logs.ts)_
 
-## `internxt move`
+## `internxt move-file`
 
-Move a folder/file into a destination folder.
+Move a file into a destination folder.
 
 ```
 USAGE
-  $ internxt move [-n] [-i <value>] [-d <value>]
+  $ internxt move-file [-n] [-i <value>] [-d <value>]
 
 FLAGS
-  -d, --destination=<value>  The destination folder id where the item is going to be moved.
-  -i, --id=<value>           The item id to be moved (it can be a file id or a folder id).
+  -d, --destination=<value>  The destination folder id where the file is going to be moved.
+  -i, --id=<value>           The file id to be moved.
 
 HELPER FLAGS
   -n, --non-interactive  Blocks the cli from being interactive. If passed, the cli will not request data through the
                          console and will throw errors directly
 
 DESCRIPTION
-  Move a folder/file into a destination folder.
+  Move a file into a destination folder.
+
+ALIASES
+  $ internxt move file
 
 EXAMPLES
-  $ internxt move
+  $ internxt move-file
 ```
 
-_See code: [src/commands/move.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/move.ts)_
+_See code: [src/commands/move-file.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/move-file.ts)_
+
+## `internxt move-folder`
+
+Move a folder into a destination folder.
+
+```
+USAGE
+  $ internxt move-folder [-n] [-i <value>] [-d <value>]
+
+FLAGS
+  -d, --destination=<value>  The destination folder id where the folder is going to be moved.
+  -i, --id=<value>           The folder id to be moved.
+
+HELPER FLAGS
+  -n, --non-interactive  Blocks the cli from being interactive. If passed, the cli will not request data through the
+                         console and will throw errors directly
+
+DESCRIPTION
+  Move a folder into a destination folder.
+
+ALIASES
+  $ internxt move folder
+
+EXAMPLES
+  $ internxt move-folder
+```
+
+_See code: [src/commands/move-folder.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/move-folder.ts)_
+
+## `internxt move file`
+
+Move a file into a destination folder.
+
+```
+USAGE
+  $ internxt move file [-n] [-i <value>] [-d <value>]
+
+FLAGS
+  -d, --destination=<value>  The destination folder id where the file is going to be moved.
+  -i, --id=<value>           The file id to be moved.
+
+HELPER FLAGS
+  -n, --non-interactive  Blocks the cli from being interactive. If passed, the cli will not request data through the
+                         console and will throw errors directly
+
+DESCRIPTION
+  Move a file into a destination folder.
+
+ALIASES
+  $ internxt move file
+
+EXAMPLES
+  $ internxt move file
+```
+
+## `internxt move folder`
+
+Move a folder into a destination folder.
+
+```
+USAGE
+  $ internxt move folder [-n] [-i <value>] [-d <value>]
+
+FLAGS
+  -d, --destination=<value>  The destination folder id where the folder is going to be moved.
+  -i, --id=<value>           The folder id to be moved.
+
+HELPER FLAGS
+  -n, --non-interactive  Blocks the cli from being interactive. If passed, the cli will not request data through the
+                         console and will throw errors directly
+
+DESCRIPTION
+  Move a folder into a destination folder.
+
+ALIASES
+  $ internxt move folder
+
+EXAMPLES
+  $ internxt move folder
+```
 
 ## `internxt rename`
 
@@ -385,33 +473,61 @@ EXAMPLES
 
 _See code: [src/commands/trash-list.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/trash-list.ts)_
 
-## `internxt trash-restore`
+## `internxt trash-restore-file`
 
-Restore a trashed folder/file into a destination folder.
+Restore a trashed file into a destination folder.
 
 ```
 USAGE
-  $ internxt trash-restore [-n] [-i <value>] [-d <value>]
+  $ internxt trash-restore-file [-n] [-i <value>] [-d <value>]
 
 FLAGS
-  -d, --destination=<value>  The destination folder id where the item is going to be restored.
-  -i, --id=<value>           The item id to be restored from the trash (it can be a file id or a folder id).
+  -d, --destination=<value>  The folder id where the file is going to be restored. Leave empty for the root folder.
+  -i, --id=<value>           The file id to be restored from the trash.
 
 HELPER FLAGS
   -n, --non-interactive  Blocks the cli from being interactive. If passed, the cli will not request data through the
                          console and will throw errors directly
 
 DESCRIPTION
-  Restore a trashed folder/file into a destination folder.
+  Restore a trashed file into a destination folder.
 
 ALIASES
-  $ internxt trash restore
+  $ internxt trash restore file
 
 EXAMPLES
-  $ internxt trash-restore
+  $ internxt trash-restore-file
 ```
 
-_See code: [src/commands/trash-restore.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/trash-restore.ts)_
+_See code: [src/commands/trash-restore-file.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/trash-restore-file.ts)_
+
+## `internxt trash-restore-folder`
+
+Restore a trashed folder into a destination folder.
+
+```
+USAGE
+  $ internxt trash-restore-folder [-n] [-i <value>] [-d <value>]
+
+FLAGS
+  -d, --destination=<value>  The folder id where the folder is going to be restored. Leave empty for the root folder.
+  -i, --id=<value>           The folder id to be restored from the trash.
+
+HELPER FLAGS
+  -n, --non-interactive  Blocks the cli from being interactive. If passed, the cli will not request data through the
+                         console and will throw errors directly
+
+DESCRIPTION
+  Restore a trashed folder into a destination folder.
+
+ALIASES
+  $ internxt trash restore folder
+
+EXAMPLES
+  $ internxt trash-restore-folder
+```
+
+_See code: [src/commands/trash-restore-folder.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/trash-restore-folder.ts)_
 
 ## `internxt trash clear`
 
@@ -472,30 +588,56 @@ EXAMPLES
   $ internxt trash list
 ```
 
-## `internxt trash restore`
+## `internxt trash restore file`
 
-Restore a trashed folder/file into a destination folder.
+Restore a trashed file into a destination folder.
 
 ```
 USAGE
-  $ internxt trash restore [-n] [-i <value>] [-d <value>]
+  $ internxt trash restore file [-n] [-i <value>] [-d <value>]
 
 FLAGS
-  -d, --destination=<value>  The destination folder id where the item is going to be restored.
-  -i, --id=<value>           The item id to be restored from the trash (it can be a file id or a folder id).
+  -d, --destination=<value>  The folder id where the file is going to be restored. Leave empty for the root folder.
+  -i, --id=<value>           The file id to be restored from the trash.
 
 HELPER FLAGS
   -n, --non-interactive  Blocks the cli from being interactive. If passed, the cli will not request data through the
                          console and will throw errors directly
 
 DESCRIPTION
-  Restore a trashed folder/file into a destination folder.
+  Restore a trashed file into a destination folder.
 
 ALIASES
-  $ internxt trash restore
+  $ internxt trash restore file
 
 EXAMPLES
-  $ internxt trash restore
+  $ internxt trash restore file
+```
+
+## `internxt trash restore folder`
+
+Restore a trashed folder into a destination folder.
+
+```
+USAGE
+  $ internxt trash restore folder [-n] [-i <value>] [-d <value>]
+
+FLAGS
+  -d, --destination=<value>  The folder id where the folder is going to be restored. Leave empty for the root folder.
+  -i, --id=<value>           The folder id to be restored from the trash.
+
+HELPER FLAGS
+  -n, --non-interactive  Blocks the cli from being interactive. If passed, the cli will not request data through the
+                         console and will throw errors directly
+
+DESCRIPTION
+  Restore a trashed folder into a destination folder.
+
+ALIASES
+  $ internxt trash restore folder
+
+EXAMPLES
+  $ internxt trash restore folder
 ```
 
 ## `internxt upload`

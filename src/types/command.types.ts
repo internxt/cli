@@ -47,6 +47,13 @@ export class NotValidFolderUuidError extends Error {
     Object.setPrototypeOf(this, NotValidFolderUuidError.prototype);
   }
 }
+export class NotValidFileUuidError extends Error {
+  constructor() {
+    super('File UUID is not valid (it must be a valid v4 UUID)');
+
+    Object.setPrototypeOf(this, NotValidFileUuidError.prototype);
+  }
+}
 
 export class NotValidItemUuidError extends Error {
   constructor() {
