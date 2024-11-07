@@ -23,12 +23,12 @@ export default class Rename extends Command {
     ...CLIUtils.CommonFlags,
     id: Flags.string({
       char: 'i',
-      description: 'The item id to be renamed (it can be a file id or a folder id).',
+      description: 'The ID of the item to rename (can be a file ID or a folder ID).',
       required: false,
     }),
     name: Flags.string({
       char: 'n',
-      description: 'The new item name that the item is going to be have.',
+      description: 'The new name for the item.',
       required: false,
     }),
   };

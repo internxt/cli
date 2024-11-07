@@ -2,75 +2,43 @@ import { Command, Flags } from '@oclif/core';
 import { ConfigService } from '../services/config.service';
 import { DriveFolderService } from '../services/drive/drive-folder.service';
 import { CLIUtils } from '../utils/cli.utils';
-import {
-  ItemNotFoundError,
-  MissingCredentialsError,
-  NotValidFolderUuidError,
-  NotValidItemUuidError,
-} from '../types/command.types';
+import { MissingCredentialsError, NotValidFolderUuidError } from '../types/command.types';
 import { ValidationService } from '../services/validation.service';
-import { DriveFileService } from '../services/drive/drive-file.service';
-import { DriveFileItem, DriveFolderItem } from '../types/drive.types';
 import { ErrorUtils } from '../utils/errors.utils';
 
-export default class Move extends Command {
+export default class MoveFolder extends Command {
   static readonly args = {};
-  static readonly description = 'Move a folder/file into a destination folder.';
-
+  static readonly description = 'Move a folder into a destination folder.';
+  static readonly aliases = ['move:folder'];
   static readonly examples = ['<%= config.bin %> <%= command.id %>'];
 
   static readonly flags = {
     ...CLIUtils.CommonFlags,
     id: Flags.string({
       char: 'i',
-      description: 'The item id to be moved (it can be a file id or a folder id).',
+      description: 'The folder id to be moved.',
       required: false,
     }),
     destination: Flags.string({
       char: 'd',
-      description: 'The destination folder id where the item is going to be moved.',
+      description: 'The destination folder id where the folder is going to be moved.',
       required: false,
     }),
   };
 
   public async run() {
-    const { flags } = await this.parse(Move);
+    const { flags } = await this.parse(MoveFolder);
 
     const nonInteractive = flags['non-interactive'];
 
     const userCredentials = await ConfigService.instance.readUser();
     if (!userCredentials) throw new MissingCredentialsError();
 
-    const itemUuid = await this.getItemUuid(flags['id'], nonInteractive);
+    const folderUuid = await this.getFolderUuid(flags['id'], nonInteractive);
     const destinationFolderUuid = await this.getDestinationFolderUuid(flags['destination'], nonInteractive);
 
-    let item: DriveFileItem | DriveFolderItem | undefined;
-    let isFolder = false;
-    try {
-      if (!item) {
-        item = await DriveFileService.instance.getFileMetadata(itemUuid);
-        isFolder = false;
-      }
-    } catch {
-      /* noop */
-    }
-    try {
-      if (!item) {
-        item = await DriveFolderService.instance.getFolderMetaByUuid(itemUuid);
-        isFolder = true;
-      }
-    } catch {
-      /* noop */
-    }
-
-    if (!item) throw new ItemNotFoundError();
-
-    if (isFolder) {
-      await DriveFolderService.instance.moveFolder({ folderUuid: item.uuid, destinationFolderUuid });
-    } else {
-      await DriveFileService.instance.moveFile({ fileUuid: item.uuid, destinationFolderUuid });
-    }
-    CLIUtils.success(`${isFolder ? 'Folder' : 'File'} moved successfully to: ${destinationFolderUuid}`);
+    await DriveFolderService.instance.moveFolder({ folderUuid, destinationFolderUuid });
+    CLIUtils.success(`Folder moved successfully to: ${destinationFolderUuid}`);
   }
 
   async catch(error: Error) {
@@ -79,21 +47,21 @@ export default class Move extends Command {
     this.exit(1);
   }
 
-  public getItemUuid = async (itemUuidFlag: string | undefined, nonInteractive: boolean): Promise<string> => {
-    let itemUuid = CLIUtils.getValueFromFlag(
+  public getFolderUuid = async (folderUuidFlag: string | undefined, nonInteractive: boolean): Promise<string> => {
+    let folderUuid = CLIUtils.getValueFromFlag(
       {
-        value: itemUuidFlag,
-        name: Move.flags['id'].name,
-        error: new NotValidItemUuidError(),
+        value: folderUuidFlag,
+        name: MoveFolder.flags['id'].name,
+        error: new NotValidFolderUuidError(),
         canBeEmpty: true,
       },
       nonInteractive,
-      (itemUuid: string) => ValidationService.instance.validateUUIDv4(itemUuid),
+      (folderUuid: string) => ValidationService.instance.validateUUIDv4(folderUuid),
     );
-    if (!itemUuid) {
-      itemUuid = (await this.getItemUuidInteractively()).trim();
+    if (!folderUuid) {
+      folderUuid = (await this.getFolderUuidInteractively()).trim();
     }
-    return itemUuid;
+    return folderUuid;
   };
 
   public getDestinationFolderUuid = async (
@@ -103,7 +71,7 @@ export default class Move extends Command {
     let destinationFolderUuid = CLIUtils.getValueFromFlag(
       {
         value: destinationFolderUuidFlag,
-        name: Move.flags['destination'].name,
+        name: MoveFolder.flags['destination'].name,
         error: new NotValidFolderUuidError(),
         canBeEmpty: true,
       },
@@ -118,14 +86,14 @@ export default class Move extends Command {
 
   private static readonly MAX_ATTEMPTS = 3;
 
-  public getItemUuidInteractively = (): Promise<string> => {
+  public getFolderUuidInteractively = (): Promise<string> => {
     return CLIUtils.promptWithAttempts(
       {
-        message: 'What is the item id you want to move?',
+        message: 'What is the folder id you want to move?',
         options: { required: true },
-        error: new NotValidItemUuidError(),
+        error: new NotValidFolderUuidError(),
       },
-      Move.MAX_ATTEMPTS,
+      MoveFolder.MAX_ATTEMPTS,
       ValidationService.instance.validateUUIDv4,
     );
   };
@@ -137,7 +105,7 @@ export default class Move extends Command {
         options: { required: true },
         error: new NotValidFolderUuidError(),
       },
-      Move.MAX_ATTEMPTS,
+      MoveFolder.MAX_ATTEMPTS,
       ValidationService.instance.validateUUIDv4,
     );
   };

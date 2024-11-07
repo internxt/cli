@@ -31,7 +31,7 @@ $ npm install -g @internxt/cli
 $ internxt COMMAND
 running command...
 $ internxt (--version)
-@internxt/cli/1.3.5 win32-x64 node-v20.2.0
+@internxt/cli/1.3.0 win32-x64 node-v20.2.0
 $ internxt --help [COMMAND]
 USAGE
   $ internxt COMMAND
@@ -50,15 +50,20 @@ USAGE
 * [`internxt login`](#internxt-login)
 * [`internxt logout`](#internxt-logout)
 * [`internxt logs`](#internxt-logs)
-* [`internxt move`](#internxt-move)
+* [`internxt move-file`](#internxt-move-file)
+* [`internxt move-folder`](#internxt-move-folder)
+* [`internxt move file`](#internxt-move-file-1)
+* [`internxt move folder`](#internxt-move-folder-1)
 * [`internxt rename`](#internxt-rename)
 * [`internxt trash`](#internxt-trash)
 * [`internxt trash-clear`](#internxt-trash-clear)
 * [`internxt trash-list`](#internxt-trash-list)
-* [`internxt trash-restore`](#internxt-trash-restore)
+* [`internxt trash-restore-file`](#internxt-trash-restore-file)
+* [`internxt trash-restore-folder`](#internxt-trash-restore-folder)
 * [`internxt trash clear`](#internxt-trash-clear-1)
 * [`internxt trash list`](#internxt-trash-list-1)
-* [`internxt trash restore`](#internxt-trash-restore-1)
+* [`internxt trash restore file`](#internxt-trash-restore-file-1)
+* [`internxt trash restore folder`](#internxt-trash-restore-folder-1)
 * [`internxt upload`](#internxt-upload)
 * [`internxt webdav ACTION`](#internxt-webdav-action)
 * [`internxt webdav-config ACTION`](#internxt-webdav-config-action)
@@ -79,7 +84,7 @@ EXAMPLES
   $ internxt add-cert
 ```
 
-_See code: [src/commands/add-cert.ts](https://github.com/internxt/cli/blob/v1.3.5/src/commands/add-cert.ts)_
+_See code: [src/commands/add-cert.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/add-cert.ts)_
 
 ## `internxt config`
 
@@ -108,7 +113,7 @@ EXAMPLES
   $ internxt config
 ```
 
-_See code: [src/commands/config.ts](https://github.com/internxt/cli/blob/v1.3.5/src/commands/config.ts)_
+_See code: [src/commands/config.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/config.ts)_
 
 ## `internxt create-folder`
 
@@ -129,7 +134,7 @@ EXAMPLES
   $ internxt create-folder
 ```
 
-_See code: [src/commands/create-folder.ts](https://github.com/internxt/cli/blob/v1.3.5/src/commands/create-folder.ts)_
+_See code: [src/commands/create-folder.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/create-folder.ts)_
 
 ## `internxt download`
 
@@ -152,7 +157,7 @@ EXAMPLES
   $ internxt download
 ```
 
-_See code: [src/commands/download.ts](https://github.com/internxt/cli/blob/v1.3.5/src/commands/download.ts)_
+_See code: [src/commands/download.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/download.ts)_
 
 ## `internxt list`
 
@@ -186,7 +191,7 @@ EXAMPLES
   $ internxt list
 ```
 
-_See code: [src/commands/list.ts](https://github.com/internxt/cli/blob/v1.3.5/src/commands/list.ts)_
+_See code: [src/commands/list.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/list.ts)_
 
 ## `internxt login`
 
@@ -212,7 +217,7 @@ EXAMPLES
   $ internxt login
 ```
 
-_See code: [src/commands/login.ts](https://github.com/internxt/cli/blob/v1.3.5/src/commands/login.ts)_
+_See code: [src/commands/login.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/login.ts)_
 
 ## `internxt logout`
 
@@ -229,7 +234,7 @@ EXAMPLES
   $ internxt logout
 ```
 
-_See code: [src/commands/logout.ts](https://github.com/internxt/cli/blob/v1.3.5/src/commands/logout.ts)_
+_See code: [src/commands/logout.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/logout.ts)_
 
 ## `internxt logs`
 
@@ -246,32 +251,115 @@ EXAMPLES
   $ internxt logs
 ```
 
-_See code: [src/commands/logs.ts](https://github.com/internxt/cli/blob/v1.3.5/src/commands/logs.ts)_
+_See code: [src/commands/logs.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/logs.ts)_
 
-## `internxt move`
+## `internxt move-file`
 
-Move a folder/file into a destination folder.
+Move a file into a destination folder.
 
 ```
 USAGE
-  $ internxt move [-n] [-i <value>] [-d <value>]
+  $ internxt move-file [-n] [-i <value>] [-d <value>]
 
 FLAGS
-  -d, --destination=<value>  The destination folder id where the item is going to be moved.
-  -i, --id=<value>           The item id to be moved (it can be a file id or a folder id).
+  -d, --destination=<value>  The destination folder id where the file is going to be moved.
+  -i, --id=<value>           The file id to be moved.
 
 HELPER FLAGS
   -n, --non-interactive  Blocks the cli from being interactive. If passed, the cli will not request data through the
                          console and will throw errors directly
 
 DESCRIPTION
-  Move a folder/file into a destination folder.
+  Move a file into a destination folder.
+
+ALIASES
+  $ internxt move file
 
 EXAMPLES
-  $ internxt move
+  $ internxt move-file
 ```
 
-_See code: [src/commands/move.ts](https://github.com/internxt/cli/blob/v1.3.5/src/commands/move.ts)_
+_See code: [src/commands/move-file.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/move-file.ts)_
+
+## `internxt move-folder`
+
+Move a folder into a destination folder.
+
+```
+USAGE
+  $ internxt move-folder [-n] [-i <value>] [-d <value>]
+
+FLAGS
+  -d, --destination=<value>  The destination folder id where the folder is going to be moved.
+  -i, --id=<value>           The folder id to be moved.
+
+HELPER FLAGS
+  -n, --non-interactive  Blocks the cli from being interactive. If passed, the cli will not request data through the
+                         console and will throw errors directly
+
+DESCRIPTION
+  Move a folder into a destination folder.
+
+ALIASES
+  $ internxt move folder
+
+EXAMPLES
+  $ internxt move-folder
+```
+
+_See code: [src/commands/move-folder.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/move-folder.ts)_
+
+## `internxt move file`
+
+Move a file into a destination folder.
+
+```
+USAGE
+  $ internxt move file [-n] [-i <value>] [-d <value>]
+
+FLAGS
+  -d, --destination=<value>  The destination folder id where the file is going to be moved.
+  -i, --id=<value>           The file id to be moved.
+
+HELPER FLAGS
+  -n, --non-interactive  Blocks the cli from being interactive. If passed, the cli will not request data through the
+                         console and will throw errors directly
+
+DESCRIPTION
+  Move a file into a destination folder.
+
+ALIASES
+  $ internxt move file
+
+EXAMPLES
+  $ internxt move file
+```
+
+## `internxt move folder`
+
+Move a folder into a destination folder.
+
+```
+USAGE
+  $ internxt move folder [-n] [-i <value>] [-d <value>]
+
+FLAGS
+  -d, --destination=<value>  The destination folder id where the folder is going to be moved.
+  -i, --id=<value>           The folder id to be moved.
+
+HELPER FLAGS
+  -n, --non-interactive  Blocks the cli from being interactive. If passed, the cli will not request data through the
+                         console and will throw errors directly
+
+DESCRIPTION
+  Move a folder into a destination folder.
+
+ALIASES
+  $ internxt move folder
+
+EXAMPLES
+  $ internxt move folder
+```
 
 ## `internxt rename`
 
@@ -282,8 +370,8 @@ USAGE
   $ internxt rename [-n] [-i <value>] [-n <value>]
 
 FLAGS
-  -i, --id=<value>    The item id to be renamed (it can be a file id or a folder id).
-  -n, --name=<value>  The new item name that the item is going to be have.
+  -i, --id=<value>    The ID of the item to rename (can be a file ID or a folder ID).
+  -n, --name=<value>  The new name for the item.
 
 HELPER FLAGS
   -n, --non-interactive  Blocks the cli from being interactive. If passed, the cli will not request data through the
@@ -296,7 +384,7 @@ EXAMPLES
   $ internxt rename
 ```
 
-_See code: [src/commands/rename.ts](https://github.com/internxt/cli/blob/v1.3.5/src/commands/rename.ts)_
+_See code: [src/commands/rename.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/rename.ts)_
 
 ## `internxt trash`
 
@@ -320,7 +408,7 @@ EXAMPLES
   $ internxt trash
 ```
 
-_See code: [src/commands/trash.ts](https://github.com/internxt/cli/blob/v1.3.5/src/commands/trash.ts)_
+_See code: [src/commands/trash.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/trash.ts)_
 
 ## `internxt trash-clear`
 
@@ -347,7 +435,7 @@ EXAMPLES
   $ internxt trash-clear
 ```
 
-_See code: [src/commands/trash-clear.ts](https://github.com/internxt/cli/blob/v1.3.5/src/commands/trash-clear.ts)_
+_See code: [src/commands/trash-clear.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/trash-clear.ts)_
 
 ## `internxt trash-list`
 
@@ -383,35 +471,63 @@ EXAMPLES
   $ internxt trash-list
 ```
 
-_See code: [src/commands/trash-list.ts](https://github.com/internxt/cli/blob/v1.3.5/src/commands/trash-list.ts)_
+_See code: [src/commands/trash-list.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/trash-list.ts)_
 
-## `internxt trash-restore`
+## `internxt trash-restore-file`
 
-Restore a trashed folder/file into a destination folder.
+Restore a trashed file into a destination folder.
 
 ```
 USAGE
-  $ internxt trash-restore [-n] [-i <value>] [-d <value>]
+  $ internxt trash-restore-file [-n] [-i <value>] [-d <value>]
 
 FLAGS
-  -d, --destination=<value>  The destination folder id where the item is going to be restored.
-  -i, --id=<value>           The item id to be restored from the trash (it can be a file id or a folder id).
+  -d, --destination=<value>  The folder id where the file is going to be restored. Leave empty for the root folder.
+  -i, --id=<value>           The file id to be restored from the trash.
 
 HELPER FLAGS
   -n, --non-interactive  Blocks the cli from being interactive. If passed, the cli will not request data through the
                          console and will throw errors directly
 
 DESCRIPTION
-  Restore a trashed folder/file into a destination folder.
+  Restore a trashed file into a destination folder.
 
 ALIASES
-  $ internxt trash restore
+  $ internxt trash restore file
 
 EXAMPLES
-  $ internxt trash-restore
+  $ internxt trash-restore-file
 ```
 
-_See code: [src/commands/trash-restore.ts](https://github.com/internxt/cli/blob/v1.3.5/src/commands/trash-restore.ts)_
+_See code: [src/commands/trash-restore-file.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/trash-restore-file.ts)_
+
+## `internxt trash-restore-folder`
+
+Restore a trashed folder into a destination folder.
+
+```
+USAGE
+  $ internxt trash-restore-folder [-n] [-i <value>] [-d <value>]
+
+FLAGS
+  -d, --destination=<value>  The folder id where the folder is going to be restored. Leave empty for the root folder.
+  -i, --id=<value>           The folder id to be restored from the trash.
+
+HELPER FLAGS
+  -n, --non-interactive  Blocks the cli from being interactive. If passed, the cli will not request data through the
+                         console and will throw errors directly
+
+DESCRIPTION
+  Restore a trashed folder into a destination folder.
+
+ALIASES
+  $ internxt trash restore folder
+
+EXAMPLES
+  $ internxt trash-restore-folder
+```
+
+_See code: [src/commands/trash-restore-folder.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/trash-restore-folder.ts)_
 
 ## `internxt trash clear`
 
@@ -472,30 +588,56 @@ EXAMPLES
   $ internxt trash list
 ```
 
-## `internxt trash restore`
+## `internxt trash restore file`
 
-Restore a trashed folder/file into a destination folder.
+Restore a trashed file into a destination folder.
 
 ```
 USAGE
-  $ internxt trash restore [-n] [-i <value>] [-d <value>]
+  $ internxt trash restore file [-n] [-i <value>] [-d <value>]
 
 FLAGS
-  -d, --destination=<value>  The destination folder id where the item is going to be restored.
-  -i, --id=<value>           The item id to be restored from the trash (it can be a file id or a folder id).
+  -d, --destination=<value>  The folder id where the file is going to be restored. Leave empty for the root folder.
+  -i, --id=<value>           The file id to be restored from the trash.
 
 HELPER FLAGS
   -n, --non-interactive  Blocks the cli from being interactive. If passed, the cli will not request data through the
                          console and will throw errors directly
 
 DESCRIPTION
-  Restore a trashed folder/file into a destination folder.
+  Restore a trashed file into a destination folder.
 
 ALIASES
-  $ internxt trash restore
+  $ internxt trash restore file
 
 EXAMPLES
-  $ internxt trash restore
+  $ internxt trash restore file
+```
+
+## `internxt trash restore folder`
+
+Restore a trashed folder into a destination folder.
+
+```
+USAGE
+  $ internxt trash restore folder [-n] [-i <value>] [-d <value>]
+
+FLAGS
+  -d, --destination=<value>  The folder id where the folder is going to be restored. Leave empty for the root folder.
+  -i, --id=<value>           The folder id to be restored from the trash.
+
+HELPER FLAGS
+  -n, --non-interactive  Blocks the cli from being interactive. If passed, the cli will not request data through the
+                         console and will throw errors directly
+
+DESCRIPTION
+  Restore a trashed folder into a destination folder.
+
+ALIASES
+  $ internxt trash restore folder
+
+EXAMPLES
+  $ internxt trash restore folder
 ```
 
 ## `internxt upload`
@@ -520,7 +662,7 @@ EXAMPLES
   $ internxt upload
 ```
 
-_See code: [src/commands/upload.ts](https://github.com/internxt/cli/blob/v1.3.5/src/commands/upload.ts)_
+_See code: [src/commands/upload.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/upload.ts)_
 
 ## `internxt webdav ACTION`
 
@@ -543,7 +685,7 @@ EXAMPLES
   $ internxt webdav status
 ```
 
-_See code: [src/commands/webdav.ts](https://github.com/internxt/cli/blob/v1.3.5/src/commands/webdav.ts)_
+_See code: [src/commands/webdav.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/webdav.ts)_
 
 ## `internxt webdav-config ACTION`
 
@@ -571,7 +713,7 @@ EXAMPLES
   $ internxt webdav-config change-port
 ```
 
-_See code: [src/commands/webdav-config.ts](https://github.com/internxt/cli/blob/v1.3.5/src/commands/webdav-config.ts)_
+_See code: [src/commands/webdav-config.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/webdav-config.ts)_
 
 ## `internxt whoami`
 
@@ -588,7 +730,7 @@ EXAMPLES
   $ internxt whoami
 ```
 
-_See code: [src/commands/whoami.ts](https://github.com/internxt/cli/blob/v1.3.5/src/commands/whoami.ts)_
+_See code: [src/commands/whoami.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/whoami.ts)_
 <!-- commandsstop -->
 
 # Current Limitations
