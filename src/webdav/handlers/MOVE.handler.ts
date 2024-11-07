@@ -54,7 +54,7 @@ export class MOVERequestHandler implements WebDavMethodHandler {
         });
         await driveDatabaseManager.createFolder(folder, destinationResource.url);
       } else if (resource.type === 'file') {
-        const newType = destinationResource.path.ext.trim().length > 0 ? destinationResource.path.ext : null;
+        const newType = destinationResource.path.ext.replace('.', '');
         const file = originalDriveItem as DriveFileItem;
         await driveFileService.renameFile(file.uuid, {
           plainName: newName,
