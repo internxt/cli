@@ -55,22 +55,6 @@ export class NotValidFileUuidError extends Error {
   }
 }
 
-export class NotValidItemUuidError extends Error {
-  constructor() {
-    super('Item UUID is not valid (it must be a valid v4 UUID)');
-
-    Object.setPrototypeOf(this, NotValidItemUuidError.prototype);
-  }
-}
-
-export class ItemNotFoundError extends Error {
-  constructor() {
-    super('Item not found');
-
-    Object.setPrototypeOf(this, ItemNotFoundError.prototype);
-  }
-}
-
 export class NoRootFolderIdFoundError extends Error {
   constructor() {
     super('No root folder id found on your account');
@@ -95,11 +79,19 @@ export class NotValidYesOrNoError extends Error {
   }
 }
 
-export class EmptyItemNameError extends Error {
+export class EmptyFileNameError extends Error {
   constructor() {
-    super('Item name can not be empty');
+    super('File name can not be empty');
 
-    Object.setPrototypeOf(this, EmptyPasswordError.prototype);
+    Object.setPrototypeOf(this, EmptyFileNameError.prototype);
+  }
+}
+
+export class EmptyFolderNameError extends Error {
+  constructor() {
+    super('Folder name can not be empty');
+
+    Object.setPrototypeOf(this, EmptyFolderNameError.prototype);
   }
 }
 
