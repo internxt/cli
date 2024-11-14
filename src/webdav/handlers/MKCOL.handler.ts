@@ -35,8 +35,8 @@ export class MKCOLRequestHandler implements WebDavMethodHandler {
     }
 
     const [createFolder] = driveFolderService.createFolder({
-      folderName: resource.name,
-      parentFolderId: parentFolderItem.id,
+      plainName: resource.name,
+      parentFolderUuid: parentFolderItem.uuid,
     });
 
     const newFolder = await createFolder;
@@ -45,7 +45,7 @@ export class MKCOLRequestHandler implements WebDavMethodHandler {
 
     await driveDatabaseManager.createFolder(
       {
-        name: newFolder.plain_name,
+        name: newFolder.plainName,
         status: 'EXISTS',
         encryptedName: newFolder.name,
         bucket: newFolder.bucket,

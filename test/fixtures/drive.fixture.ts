@@ -1,4 +1,5 @@
 import {
+  CreateFolderResponse,
   EncryptionVersion,
   FetchPaginatedFile,
   FetchPaginatedFolder,
@@ -171,4 +172,28 @@ export const generateSubcontent = (uuid: string, countFolders: number, countFile
     files.push(newPaginatedFile({ folderUuid: uuid }));
   }
   return { folders, files };
+};
+
+export const newCreateFolderResponse = (attributes?: Partial<CreateFolderResponse>): CreateFolderResponse => {
+  const folder = {
+    id: randomInt(1, 100000),
+    parentId: randomInt(1, 100000),
+    parentUuid: randomUUID(),
+    name: crypto.randomBytes(16).toString('hex'),
+    bucket: crypto.randomBytes(16).toString('hex'),
+    userId: randomInt(1, 100000),
+    encryptVersion: EncryptionVersion.Aes03,
+    deleted: false,
+    deletedAt: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    uuid: randomUUID(),
+    plainName: wordlist[randomInt(wordlist.length)],
+    size: 0,
+    removed: false,
+    removedAt: null,
+    creationTime: new Date(),
+    modificationTime: new Date(),
+  };
+  return { ...folder, ...attributes };
 };
