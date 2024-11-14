@@ -11,7 +11,7 @@ describe('Format utils', () => {
   });
 
   it('When providing a size, it should return a formatted human readable size', () => {
-    const value = randomInt(500);
+    const value = randomInt(1, 500);
     const expectedSizes = [
       {
         value: value * Math.pow(1024, 0),
