@@ -175,7 +175,7 @@ export const generateSubcontent = (uuid: string, countFolders: number, countFile
 };
 
 export const newCreateFolderResponse = (attributes?: Partial<CreateFolderResponse>): CreateFolderResponse => {
-  const folder = {
+  const folder: CreateFolderResponse = {
     id: randomInt(1, 100000),
     parentId: randomInt(1, 100000),
     parentUuid: randomUUID(),
@@ -189,7 +189,6 @@ export const newCreateFolderResponse = (attributes?: Partial<CreateFolderRespons
     updatedAt: new Date(),
     uuid: randomUUID(),
     plainName: wordlist[randomInt(wordlist.length)],
-    size: 0,
     removed: false,
     removedAt: null,
     creationTime: new Date(),
