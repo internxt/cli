@@ -9,12 +9,13 @@ import { TrashService } from '../services/drive/trash.service';
 export default class TrashList extends Command {
   static readonly args = {};
   static readonly description = 'Lists the content of the trash.';
-  static readonly examples = ['<%= config.bin %> <%= command.id %>'];
   static readonly aliases = ['trash:list'];
+  static readonly examples = ['<%= config.bin %> <%= command.id %>'];
   static readonly flags = {
     ...CLIUtils.CommonFlags,
     ...ux.table.flags(),
   };
+  static readonly enableJsonFlag = true;
 
   public async run() {
     const { flags } = await this.parse(TrashList);
@@ -31,7 +32,7 @@ export default class TrashList extends Command {
           plainName: folder.plainName,
           uuid: folder.uuid,
           type: '',
-          size: BigInt(0),
+          size: 0,
           updatedAt: folder.updatedAt,
         };
       }),
@@ -41,7 +42,7 @@ export default class TrashList extends Command {
           plainName: file.plainName,
           uuid: file.uuid,
           type: file.type,
-          size: file.size,
+          size: Number(file.size),
           updatedAt: file.updatedAt,
         };
       }),
@@ -74,7 +75,7 @@ export default class TrashList extends Command {
             if (flags.output) {
               return row.isFolder ? '0' : row.size;
             } else {
-              return row.isFolder ? '' : FormatUtils.humanFileSize(Number(row.size));
+              return row.isFolder ? '' : FormatUtils.humanFileSize(row.size);
             }
           },
           extended: true,
@@ -89,11 +90,12 @@ export default class TrashList extends Command {
         ...flags,
       },
     );
+    return { success: true, list: allItems };
   }
 
   async catch(error: Error) {
-    ErrorUtils.report(error, { command: this.id });
-    CLIUtils.error(error.message);
+    ErrorUtils.report(this.error.bind(this), error, { command: this.id });
+    CLIUtils.error(this.log.bind(this), error.message);
     this.exit(1);
   }
 }

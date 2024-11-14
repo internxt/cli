@@ -21,7 +21,7 @@ const hook: Hook<'prerun'> = async function (opts) {
         newToken,
       });
     } catch (error) {
-      CLIUtils.error(new MissingCredentialsError().message);
+      CLIUtils.error(this.log.bind(this), new MissingCredentialsError().message);
       opts.context.exit(1);
     }
     CLIUtils.done();

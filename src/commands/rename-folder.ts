@@ -11,12 +11,11 @@ export default class RenameFolder extends Command {
   static readonly description = 'Rename a folder.';
   static readonly aliases = ['rename:folder'];
   static readonly examples = ['<%= config.bin %> <%= command.id %>'];
-
   static readonly flags = {
     ...CLIUtils.CommonFlags,
     id: Flags.string({
       char: 'i',
-      description: 'The ID of the folder to rename.',
+      description: 'The ID of the folder to be renamed.',
       required: false,
     }),
     name: Flags.string({
@@ -25,85 +24,71 @@ export default class RenameFolder extends Command {
       required: false,
     }),
   };
+  static readonly enableJsonFlag = true;
 
   public async run() {
     const { flags } = await this.parse(RenameFolder);
-
     const nonInteractive = flags['non-interactive'];
 
     const userCredentials = await ConfigService.instance.readUser();
     if (!userCredentials) throw new MissingCredentialsError();
 
     const folderUuid = await this.getFolderUuid(flags['id'], nonInteractive);
-    const name = await this.getNewName(flags['name'], nonInteractive);
+    const name = await this.getFolderName(flags['name'], nonInteractive);
 
     await DriveFolderService.instance.renameFolder({ folderUuid, name });
-    CLIUtils.success(`Folder renamed successfully with: ${name}`);
+    const message = `Folder renamed successfully with: ${name}`;
+    CLIUtils.success(this.log.bind(this), message);
+    return { success: true, message, folder: { uuid: folderUuid, plainName: name } };
   }
 
   async catch(error: Error) {
-    ErrorUtils.report(error, { command: this.id });
-    CLIUtils.error(error.message);
+    ErrorUtils.report(this.error.bind(this), error, { command: this.id });
+    CLIUtils.error(this.log.bind(this), error.message);
     this.exit(1);
   }
 
   public getFolderUuid = async (folderUuidFlag: string | undefined, nonInteractive: boolean): Promise<string> => {
-    let folderUuid = CLIUtils.getValueFromFlag(
+    const folderUuid = await CLIUtils.getValueFromFlag(
       {
         value: folderUuidFlag,
         name: RenameFolder.flags['id'].name,
-        error: new NotValidFolderUuidError(),
-        canBeEmpty: true,
       },
-      nonInteractive,
-      (folderUuid: string) => ValidationService.instance.validateUUIDv4(folderUuid),
+      {
+        nonInteractive,
+        prompt: {
+          message: 'What is the folder id you want to rename?',
+          options: { required: false },
+        },
+      },
+      {
+        validate: ValidationService.instance.validateUUIDv4,
+        error: new NotValidFolderUuidError(),
+      },
+      this.log.bind(this),
     );
-    if (!folderUuid) {
-      folderUuid = (await this.getFolderUuidInteractively()).trim();
-    }
     return folderUuid;
   };
 
-  public getNewName = async (newNameUuidFlag: string | undefined, nonInteractive: boolean): Promise<string> => {
-    let newName = CLIUtils.getValueFromFlag(
+  public getFolderName = async (folderNameFlag: string | undefined, nonInteractive: boolean): Promise<string> => {
+    const folderName = await CLIUtils.getValueFromFlag(
       {
-        value: newNameUuidFlag,
+        value: folderNameFlag,
         name: RenameFolder.flags['name'].name,
-        error: new EmptyFolderNameError(),
-        canBeEmpty: true,
       },
-      nonInteractive,
-      (password: string) => password.trim().length > 0,
-    );
-    if (!newName) {
-      newName = (await this.getNewNameInteractively()).trim();
-    }
-    return newName;
-  };
-
-  private static readonly MAX_ATTEMPTS = 3;
-
-  public getFolderUuidInteractively = (): Promise<string> => {
-    return CLIUtils.promptWithAttempts(
       {
-        message: 'What is the folder id you want to rename?',
-        options: { required: true },
-        error: new NotValidFolderUuidError(),
+        nonInteractive,
+        prompt: {
+          message: 'What is the new name of the folder?',
+          options: { required: false },
+        },
       },
-      RenameFolder.MAX_ATTEMPTS,
-      ValidationService.instance.validateUUIDv4,
-    );
-  };
-
-  public getNewNameInteractively = (): Promise<string> => {
-    return CLIUtils.promptWithAttempts(
       {
-        message: 'What is the new name of the folder?',
-        options: { required: false },
+        validate: ValidationService.instance.validateEmptyString,
         error: new EmptyFolderNameError(),
       },
-      RenameFolder.MAX_ATTEMPTS,
-      (newName: string) => newName.trim().length > 0,
+      this.log.bind(this),
     );
+    return folderName;
   };
 }

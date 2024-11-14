@@ -9,8 +9,8 @@ import { ValidationService } from '../services/validation.service';
 export default class TrashClear extends Command {
   static readonly args = {};
   static readonly description = 'Deletes permanently all the content of the trash. This action cannot be undone.';
-  static readonly examples = ['<%= config.bin %> <%= command.id %>'];
   static readonly aliases = ['trash:clear'];
+  static readonly examples = ['<%= config.bin %> <%= command.id %>'];
   static readonly flags = {
     ...CLIUtils.CommonFlags,
     force: Flags.boolean({
@@ -19,6 +19,7 @@ export default class TrashClear extends Command {
       required: false,
     }),
   };
+  static readonly enableJsonFlag = true;
 
   public async run() {
     const { flags } = await this.parse(TrashClear);
@@ -28,25 +29,28 @@ export default class TrashClear extends Command {
 
     if (!flags.force) {
       if (flags['non-interactive']) {
-        CLIUtils.error(
-          'The "non interactive" flag is enabled, but the "force" flag has not been provided. User confirmation is required to empty the trash permanently.',
-        );
-        return;
+        const message =
+          'The "non interactive" flag is enabled, but the "force" flag has not been provided. User confirmation is required to empty the trash permanently.';
+        CLIUtils.error(this.log.bind(this), message);
+        return { success: false, message };
       }
       const confirmation = await this.getConfirmation();
       if (confirmation !== 'y') {
-        CLIUtils.error('User confirmation is required to empty the trash permanently.');
-        return;
+        const message = 'User confirmation is required to empty the trash permanently.';
+        CLIUtils.error(this.log.bind(this), message);
+        return { success: false, message };
       }
     }
 
     await TrashService.instance.clearTrash();
-    CLIUtils.success('Trash emptied correctly');
+    const message = 'Trash emptied correctly';
+    CLIUtils.success(this.log.bind(this), message);
+    return { success: true, message };
   }
 
   async catch(error: Error) {
-    ErrorUtils.report(error, { command: this.id });
-    CLIUtils.error(error.message);
+    ErrorUtils.report(this.error.bind(this), error, { command: this.id });
+    CLIUtils.error(this.log.bind(this), error.message);
     this.exit(1);
   }
 
@@ -55,18 +59,18 @@ export default class TrashClear extends Command {
     if (confirmation.length === 0) {
       confirmation = 'no';
     }
-
-    if (!ValidationService.instance.validateYesOrNoString(confirmation)) {
-      throw new NotValidYesOrNoError();
-    }
     return confirmation.charAt(0);
   };
 
   public getConfirmationInteractively = (): Promise<string> => {
-    return CLIUtils.prompt({
-      message:
-        'Empty trash? All items in the Drive Trash will be permanently deleted. This action cannot be undone. [y/N]',
-      options: { required: false },
-    });
+    return CLIUtils.prompt(
+      {
+        message:
+          'Empty trash? All items in the Drive Trash will be permanently deleted. This action cannot be undone. [y/N]',
+        options: { required: false },
+        error: new NotValidYesOrNoError(),
+      },
+      ValidationService.instance.validateYesOrNoString,
+    );
   };
 }

@@ -11,7 +11,6 @@ export default class TrashFolder extends Command {
   static readonly description = 'Moves a given folder to the trash.';
   static readonly aliases = ['trash:folder'];
   static readonly examples = ['<%= config.bin %> <%= command.id %>'];
-
   static readonly flags = {
     ...CLIUtils.CommonFlags,
     id: Flags.string({
@@ -20,6 +19,7 @@ export default class TrashFolder extends Command {
       required: false,
     }),
   };
+  static readonly enableJsonFlag = true;
 
   public async run() {
     const { flags } = await this.parse(TrashFolder);
@@ -32,43 +32,36 @@ export default class TrashFolder extends Command {
     const uuid = await this.getFolderUuid(flags['id'], nonInteractive);
 
     await TrashService.instance.trashItems({ items: [{ uuid, type: 'folder' }] });
-    CLIUtils.success('Folder trashed successfully.');
+    const message = 'Folder trashed successfully.';
+    CLIUtils.success(this.log.bind(this), message);
+    return { success: true, message, folder: { uuid } };
   }
 
   async catch(error: Error) {
-    ErrorUtils.report(error, { command: this.id });
-    CLIUtils.error(error.message);
+    ErrorUtils.report(this.error.bind(this), error, { command: this.id });
+    CLIUtils.error(this.log.bind(this), error.message);
     this.exit(1);
   }
 
   public getFolderUuid = async (folderUuidFlag: string | undefined, nonInteractive: boolean): Promise<string> => {
-    let folderUuid = CLIUtils.getValueFromFlag(
+    const folderUuid = await CLIUtils.getValueFromFlag(
       {
         value: folderUuidFlag,
         name: TrashFolder.flags['id'].name,
-        error: new NotValidFolderUuidError(),
-        canBeEmpty: true,
       },
-      nonInteractive,
-      (folderUuid: string) => ValidationService.instance.validateUUIDv4(folderUuid),
-    );
-    if (!folderUuid) {
-      folderUuid = (await this.getFolderUuidInteractively()).trim();
-    }
-    return folderUuid;
-  };
-
-  private static readonly MAX_ATTEMPTS = 3;
-
-  public getFolderUuidInteractively = (): Promise<string> => {
-    return CLIUtils.promptWithAttempts(
       {
-        message: 'What is the folder id you want to trash?',
-        options: { required: true },
+        nonInteractive,
+        prompt: {
+          message: 'What is the folder id you want to trash?',
+          options: { required: false },
+        },
+      },
+      {
+        validate: ValidationService.instance.validateUUIDv4,
         error: new NotValidFolderUuidError(),
       },
-      TrashFolder.MAX_ATTEMPTS,
-      ValidationService.instance.validateUUIDv4,
+      this.log.bind(this),
     );
+    return folderUuid;
   };
 }

@@ -7,11 +7,14 @@ import { CLIUtils } from '../utils/cli.utils';
 import { ErrorUtils } from '../utils/errors.utils';
 
 export default class AddCert extends Command {
+  static readonly args = {};
   static readonly description = 'Add a self-signed certificate to the trusted store for macOS, Linux, and Windows.';
+  static readonly aliases = [];
+  static readonly examples = ['<%= config.bin %> <%= command.id %>'];
+  static readonly flags = {};
+  static readonly enableJsonFlag = true;
 
-  static examples = ['<%= config.bin %> <%= command.id %>'];
-
-  public async run(): Promise<void> {
+  public async run() {
     try {
       const certPath = path.join(ConfigService.WEBDAV_SSL_CERTS_DIR, 'cert.crt');
       const platform = os.platform();
@@ -28,15 +31,17 @@ export default class AddCert extends Command {
       }
 
       await this.executeCommand(command);
-      CLIUtils.success('Certificate successfully added to the trusted store.');
+      const message = 'Certificate successfully added to the trusted store.';
+      CLIUtils.success(this.log.bind(this), message);
+      return { success: true, message };
     } catch (error) {
       await this.catch(error as Error);
     }
   }
 
   async catch(error: Error) {
-    ErrorUtils.report(error, { command: this.id });
-    CLIUtils.error(error.message);
+    ErrorUtils.report(this.error.bind(this), error, { command: this.id });
+    CLIUtils.error(this.log.bind(this), error.message);
     this.exit(1);
   }
 

@@ -9,8 +9,8 @@ import { ErrorUtils } from '../utils/errors.utils';
 export default class TrashRestoreFile extends Command {
   static readonly args = {};
   static readonly description = 'Restore a trashed file into a destination folder.';
-  static readonly examples = ['<%= config.bin %> <%= command.id %>'];
   static readonly aliases = ['trash:restore:file'];
+  static readonly examples = ['<%= config.bin %> <%= command.id %>'];
   static readonly flags = {
     ...CLIUtils.CommonFlags,
     id: Flags.string({
@@ -25,6 +25,7 @@ export default class TrashRestoreFile extends Command {
       parse: CLIUtils.parseEmpty,
     }),
   };
+  static readonly enableJsonFlag = true;
 
   public async run() {
     const { flags } = await this.parse(TrashRestoreFile);
@@ -39,33 +40,40 @@ export default class TrashRestoreFile extends Command {
 
     if (destinationFolderUuid.trim().length === 0) {
       // destinationFolderUuid is empty from flags&prompt, which means we should use RootFolderUuid
-      destinationFolderUuid = userCredentials.root_folder_uuid;
+      destinationFolderUuid = userCredentials.user.rootFolderId;
     }
 
-    await DriveFileService.instance.moveFile({ fileUuid, destinationFolderUuid });
-    CLIUtils.success(`File restored successfully to: ${destinationFolderUuid}`);
+    const file = await DriveFileService.instance.moveFile({ fileUuid, destinationFolderUuid });
+    const message = `File restored successfully to: ${destinationFolderUuid}`;
+    CLIUtils.success(this.log.bind(this), message);
+    return { success: true, message, file };
   }
 
   async catch(error: Error) {
-    ErrorUtils.report(error, { command: this.id });
-    CLIUtils.error(error.message);
+    ErrorUtils.report(this.error.bind(this), error, { command: this.id });
+    CLIUtils.error(this.log.bind(this), error.message);
     this.exit(1);
   }
 
   public getFileUuid = async (fileUuidFlag: string | undefined, nonInteractive: boolean): Promise<string> => {
-    let fileUuid = CLIUtils.getValueFromFlag(
+    const fileUuid = await CLIUtils.getValueFromFlag(
       {
         value: fileUuidFlag,
         name: TrashRestoreFile.flags['id'].name,
-        error: new NotValidFileUuidError(),
-        canBeEmpty: true,
       },
-      nonInteractive,
-      (fileUuid: string) => ValidationService.instance.validateUUIDv4(fileUuid),
+      {
+        nonInteractive,
+        prompt: {
+          message: 'What is the file id you want to restore?',
+          options: { required: false },
+        },
+      },
+      {
+        validate: ValidationService.instance.validateUUIDv4,
+        error: new NotValidFileUuidError(),
+      },
+      this.log.bind(this),
     );
-    if (!fileUuid) {
-      fileUuid = (await this.getFileUuidInteractively()).trim();
-    }
     return fileUuid;
   };
 
@@ -73,40 +81,25 @@ export default class TrashRestoreFile extends Command {
     destinationFolderUuidFlag: string | undefined,
     nonInteractive: boolean,
   ): Promise<string> => {
-    let destinationFolderUuid = CLIUtils.getValueFromFlag(
+    const destinationFolderUuid = await CLIUtils.getValueFromFlag(
       {
         value: destinationFolderUuidFlag,
         name: TrashRestoreFile.flags['destination'].name,
+      },
+      {
+        nonInteractive,
+        prompt: {
+          message: 'What is the destination folder id? (leave empty for the root folder)',
+          options: { required: false },
+        },
+      },
+      {
+        validate: ValidationService.instance.validateUUIDv4,
         error: new NotValidFolderUuidError(),
         canBeEmpty: true,
       },
-      nonInteractive,
-      (folderUuid: string) => ValidationService.instance.validateUUIDv4(folderUuid),
+      this.log.bind(this),
     );
-    if (!destinationFolderUuid) {
-      destinationFolderUuid = (await this.getDestinationFolderUuidInteractively()).trim();
-    }
     return destinationFolderUuid;
-  };
-
-  private static readonly MAX_ATTEMPTS = 3;
-
-  public getFileUuidInteractively = (): Promise<string> => {
-    return CLIUtils.promptWithAttempts(
-      {
-        message: 'What is the file id you want to restore?',
-        options: { required: true },
-        error: new NotValidFileUuidError(),
-      },
-      TrashRestoreFile.MAX_ATTEMPTS,
-      ValidationService.instance.validateUUIDv4,
-    );
-  };
-
-  public getDestinationFolderUuidInteractively = (): Promise<string> => {
-    return CLIUtils.prompt({
-      message: 'What is the destination folder id? (leave empty for the root folder)',
-      options: { required: false },
-    });
   };
 }

@@ -11,7 +11,6 @@ export default class TrashFile extends Command {
   static readonly description = 'Moves a given file to the trash.';
   static readonly aliases = ['trash:file'];
   static readonly examples = ['<%= config.bin %> <%= command.id %>'];
-
   static readonly flags = {
     ...CLIUtils.CommonFlags,
     id: Flags.string({
@@ -20,6 +19,7 @@ export default class TrashFile extends Command {
       required: false,
     }),
   };
+  static readonly enableJsonFlag = true;
 
   public async run() {
     const { flags } = await this.parse(TrashFile);
@@ -32,43 +32,36 @@ export default class TrashFile extends Command {
     const uuid = await this.getFileUuid(flags['id'], nonInteractive);
 
     await TrashService.instance.trashItems({ items: [{ uuid, type: 'file' }] });
-    CLIUtils.success('File trashed successfully.');
+    const message = 'File trashed successfully.';
+    CLIUtils.success(this.log.bind(this), message);
+    return { success: true, message, file: { uuid } };
   }
 
   async catch(error: Error) {
-    ErrorUtils.report(error, { command: this.id });
-    CLIUtils.error(error.message);
+    ErrorUtils.report(this.error.bind(this), error, { command: this.id });
+    CLIUtils.error(this.log.bind(this), error.message);
     this.exit(1);
   }
 
   public getFileUuid = async (fileUuidFlag: string | undefined, nonInteractive: boolean): Promise<string> => {
-    let fileUuid = CLIUtils.getValueFromFlag(
+    const fileUuid = await CLIUtils.getValueFromFlag(
       {
         value: fileUuidFlag,
         name: TrashFile.flags['id'].name,
-        error: new NotValidFileUuidError(),
-        canBeEmpty: true,
       },
-      nonInteractive,
-      (fileUuid: string) => ValidationService.instance.validateUUIDv4(fileUuid),
-    );
-    if (!fileUuid) {
-      fileUuid = (await this.getFileUuidInteractively()).trim();
-    }
-    return fileUuid;
-  };
-
-  private static readonly MAX_ATTEMPTS = 3;
-
-  public getFileUuidInteractively = (): Promise<string> => {
-    return CLIUtils.promptWithAttempts(
       {
-        message: 'What is the file id you want to trash?',
-        options: { required: true },
+        nonInteractive,
+        prompt: {
+          message: 'What is the file id you want to trash?',
+          options: { required: false },
+        },
+      },
+      {
+        validate: ValidationService.instance.validateUUIDv4,
         error: new NotValidFileUuidError(),
       },
-      TrashFile.MAX_ATTEMPTS,
-      ValidationService.instance.validateUUIDv4,
+      this.log.bind(this),
     );
+    return fileUuid;
   };
 }
