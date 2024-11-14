@@ -66,9 +66,15 @@ export class PUTRequestHandler implements WebDavMethodHandler {
 
     const { user, mnemonic } = await authService.getAuthDetails();
 
+    let lastLoggedProgress = 0;
     const [uploadPromise] = await networkFacade.uploadFromStream(user.bucket, mnemonic, contentLength, req, {
       progressCallback: (progress) => {
-        webdavLogger.info(`Upload progress for file ${resource.name}: ${(100 * progress).toFixed(2)}%`);
+        const percentage = Math.floor(100 * progress);
+
+        if (percentage >= lastLoggedProgress + 1) {
+          lastLoggedProgress = percentage;
+          webdavLogger.info(`Upload progress for file ${resource.name}: ${percentage}%`);
+        }
       },
     });
 

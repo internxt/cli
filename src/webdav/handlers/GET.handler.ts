@@ -57,6 +57,7 @@ export class GETRequestHandler implements WebDavMethodHandler {
       },
     });
 
+    let lastLoggedProgress = 0;
     const [executeDownload] = await networkFacade.downloadToStream(
       driveFile.bucket,
       mnemonic,
@@ -64,7 +65,12 @@ export class GETRequestHandler implements WebDavMethodHandler {
       writable,
       {
         progressCallback: (progress) => {
-          webdavLogger.info(`Download progress for file ${resource.name}: ${(100 * progress).toFixed(2)}%`);
+          const percentage = Math.floor(100 * progress);
+
+          if (percentage >= lastLoggedProgress + 1) {
+            lastLoggedProgress = percentage;
+            webdavLogger.info(`Download progress for file ${resource.name}: ${percentage}%`);
+          }
         },
       },
     );
