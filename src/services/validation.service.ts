@@ -1,5 +1,6 @@
 import { auth } from '@internxt/lib';
 import { validateMnemonic } from 'bip39';
+import fs from 'fs/promises';
 
 export class ValidationService {
   public static readonly instance: ValidationService = new ValidationService();
@@ -21,10 +22,24 @@ export class ValidationService {
   };
 
   public validateYesOrNoString = (message: string): boolean => {
-    return message.length > 0 && /^(yes|no|y|n)$/i.test(message.toLowerCase().trim());
+    return message.length > 0 && /^(yes|no|y|n)$/i.test(message.trim());
   };
 
   public validateTCPIntegerPort = (port: string): boolean => {
     return /^\d+$/.test(port) && Number(port) >= 1 && Number(port) <= 65535;
+  };
+
+  public validateEmptyString = (str: string): boolean => {
+    return str.trim().length > 0;
+  };
+
+  public validateDirectoryExists = async (path: string): Promise<boolean> => {
+    const directoryStat = await fs.stat(path);
+    return directoryStat.isDirectory();
+  };
+
+  public validateFileExists = async (path: string): Promise<boolean> => {
+    const fileStat = await fs.stat(path);
+    return fileStat.isFile();
   };
 }
