@@ -10,6 +10,7 @@ import { DriveDatabaseManager } from '../../services/database/drive-database-man
 import { DriveFileItem, DriveFolderItem } from '../../types/drive.types';
 import { DriveFolderService } from '../../services/drive/drive-folder.service';
 import { TrashService } from '../../services/drive/trash.service';
+import { EncryptionVersion } from '@internxt/sdk/dist/drive/storage/types';
 
 export class PUTRequestHandler implements WebDavMethodHandler {
   constructor(
@@ -83,12 +84,14 @@ export class PUTRequestHandler implements WebDavMethodHandler {
     webdavLogger.info('✅ File uploaded to network');
 
     const file = await DriveFileService.instance.createFile({
-      name: resource.path.name,
+      plain_name: resource.path.name,
       type: resource.path.ext.replace('.', ''),
       size: contentLength,
-      folderId: parentFolderItem.id,
-      fileId: uploadResult.fileId,
+      folder_id: parentFolderItem.uuid,
+      id: uploadResult.fileId,
       bucket: user.bucket,
+      encrypt_version: EncryptionVersion.Aes03,
+      name: '',
     });
 
     webdavLogger.info('✅ File uploaded to internxt drive');

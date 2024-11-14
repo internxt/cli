@@ -12,9 +12,9 @@ import { UploadService } from '../services/network/upload.service';
 import { CryptoService } from '../services/crypto.service';
 import { DownloadService } from '../services/network/download.service';
 import { ErrorUtils } from '../utils/errors.utils';
-import { DriveFolderService } from '../services/drive/drive-folder.service';
 import { MissingCredentialsError, NotValidDirectoryError, NotValidFolderUuidError } from '../types/command.types';
 import { ValidationService } from '../services/validation.service';
+import { EncryptionVersion } from '@internxt/sdk/dist/drive/storage/types';
 
 export default class UploadFile extends Command {
   static readonly args = {};
@@ -57,8 +57,6 @@ export default class UploadFile extends Command {
       // destinationFolderUuid is empty from flags&prompt, which means we should use RootFolderUuid
       destinationFolderUuid = userCredentials.user.rootFolderId;
     }
-
-    const folderId = (await DriveFolderService.instance.getFolderMetaByUuid(destinationFolderUuid)).id;
 
     // 1. Prepare the network
     CLIUtils.doing('Preparing Network');
@@ -108,12 +106,14 @@ export default class UploadFile extends Command {
     // 3. Create the file in Drive
     const fileInfo = path.parse(filePath);
     const createdDriveFile = await DriveFileService.instance.createFile({
-      name: fileInfo.name,
+      plain_name: fileInfo.name,
       type: fileInfo.ext.replaceAll('.', ''),
       size: stat.size,
-      folderId: folderId,
-      fileId: uploadResult.fileId,
+      folder_id: destinationFolderUuid,
+      id: uploadResult.fileId,
       bucket: user.bucket,
+      encrypt_version: EncryptionVersion.Aes03,
+      name: '',
     });
 
     const uploadTime = timer.stop();

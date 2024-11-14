@@ -2,7 +2,7 @@ import sinon from 'sinon';
 import { DriveFileService } from '../../../src/services/drive/drive-file.service';
 import { SdkManager } from '../../../src/services/sdk-manager.service';
 import { expect } from 'chai';
-import Storage, { DriveFileData } from '@internxt/sdk/dist/drive/storage/types';
+import Storage, { DriveFileData, EncryptionVersion } from '@internxt/sdk/dist/drive/storage/types';
 import { Drive } from '@internxt/sdk';
 import { randomUUID } from 'crypto';
 import { CommonFixture } from '../../fixtures/common.fixture';
@@ -20,21 +20,26 @@ describe('Drive file Service', () => {
   });
 
   it('When a file is created, should be created correctly', async () => {
-    const payload = {
-      name: 'example.txt',
+    const payload: Storage.FileEntryByUuid = {
+      plain_name: 'example.txt',
       type: 'txt',
       size: 1024,
-      folderId: 1,
-      fileId: '123456',
+      folder_id: 'folder_uuid',
+      id: 'fileId_123456',
       bucket: 'bucket123',
+      encrypt_version: EncryptionVersion.Aes03,
+      name: '',
     };
 
     const storageClientMock: Partial<Drive.Storage> = {
-      createFileEntry: sinon.stub().resolves({
+      createFileEntryByUuid: sinon.stub().resolves({
+        id: 'example-id',
         uuid: 'example-uuid',
         createdAt: new Date(),
         updatedAt: new Date(),
-        id: 'example-id',
+        bucket: payload.bucket,
+        plain_name: payload.plain_name,
+        folderUuid: payload.folder_id,
       }),
     };
 
@@ -44,7 +49,8 @@ describe('Drive file Service', () => {
     const result = await sut.createFile(payload);
 
     expect(result.bucket).to.equal(payload.bucket);
-    expect(result.name).to.equal(payload.name);
+    expect(result.name).to.equal(payload.plain_name);
+    expect(result.folderUuid).to.equal(payload.folder_id);
   });
 
   it('When we want to obtain a file metadata, should return it correctly', async () => {
