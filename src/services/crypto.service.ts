@@ -10,7 +10,7 @@ export class CryptoService {
   public static readonly instance: CryptoService = new CryptoService();
 
   public static readonly cryptoProvider: CryptoProvider = {
-    encryptPasswordHash(password: Password, encryptedSalt: string): string {
+    async encryptPasswordHash(password: Password, encryptedSalt: string): Promise<string> {
       const salt = CryptoService.instance.decryptText(encryptedSalt);
       const hashObj = CryptoService.instance.passToHash({ password, salt });
       return CryptoService.instance.encryptText(hashObj.hash);
@@ -22,6 +22,16 @@ export class CryptoService {
         privateKeyEncrypted: privateKeyArmoredEncrypted,
         publicKey: publicKeyArmored,
         revocationCertificate: revocationCertificate,
+        keys: {
+          ecc: {
+            privateKeyEncrypted: privateKeyArmoredEncrypted,
+            publicKey: publicKeyArmored,
+          },
+          kyber: {
+            privateKeyEncrypted: '',
+            publicKey: '',
+          },
+        },
       };
       return keys;
     },

@@ -57,7 +57,7 @@ describe('Crypto service', () => {
     expect(spyConfigService).to.be.calledWith(envEndpoint.key);
   });
 
-  it('When a password is hashed using CryptoProvider, then it is hashed correctly', () => {
+  it('When a password is hashed using CryptoProvider, then it is hashed correctly', async () => {
     const envEndpoint: { key: keyof ConfigKeys; value: string } = {
       key: 'APP_CRYPTO_SECRET',
       value: crypto.randomBytes(16).toString('hex'),
@@ -73,7 +73,10 @@ describe('Crypto service', () => {
     };
 
     const encryptedSalt = CryptoService.instance.encryptText(password.salt);
-    const hashedAndEncryptedPassword = CryptoService.cryptoProvider.encryptPasswordHash(password.value, encryptedSalt);
+    const hashedAndEncryptedPassword = await CryptoService.cryptoProvider.encryptPasswordHash(
+      password.value,
+      encryptedSalt,
+    );
     const hashedPassword = CryptoService.instance.decryptText(hashedAndEncryptedPassword);
 
     const expectedHashedPassword = crypto
@@ -110,6 +113,16 @@ describe('Crypto service', () => {
       privateKeyEncrypted: keysReturned.privateKeyArmoredEncrypted,
       publicKey: keysReturned.publicKeyArmored,
       revocationCertificate: keysReturned.revocationCertificate,
+      keys: {
+        ecc: {
+          privateKeyEncrypted: keysReturned.privateKeyArmoredEncrypted,
+          publicKey: keysReturned.publicKeyArmored,
+        },
+        kyber: {
+          privateKeyEncrypted: '',
+          publicKey: '',
+        },
+      },
     };
 
     const resultedKeys = await CryptoService.cryptoProvider.generateKeys(password);

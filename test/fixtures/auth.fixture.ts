@@ -27,6 +27,17 @@ export const UserFixture = {
   createdAt: new Date(),
   avatar: crypto.randomBytes(16).toString('hex'),
   emailVerified: true,
+  keys: {
+    ecc: {
+      privateKey: crypto.randomBytes(16).toString('hex'),
+      publicKey: crypto.randomBytes(16).toString('hex'),
+      revocationKey: crypto.randomBytes(16).toString('hex'),
+    },
+    kyber: {
+      privateKyberKey: crypto.randomBytes(16).toString('hex'),
+      publicKyberKey: crypto.randomBytes(16).toString('hex'),
+    },
+  },
 };
 
 export const UserSettingsFixture: UserSettings = {
@@ -55,4 +66,15 @@ export const UserSettingsFixture: UserSettings = {
   avatar: UserFixture.avatar,
   emailVerified: UserFixture.emailVerified,
   uuid: UserFixture.uuid,
+  keys: {
+    ecc: {
+      privateKey: UserFixture.keys.ecc.privateKey,
+      publicKey: UserFixture.keys.ecc.publicKey,
+      revocationKey: UserFixture.keys.ecc.revocationKey,
+    },
+    kyber: {
+      privateKyberKey: UserFixture.keys.kyber.privateKyberKey,
+      publicKyberKey: UserFixture.keys.kyber.publicKyberKey,
+    },
+  },
 };
