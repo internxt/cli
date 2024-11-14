@@ -7,10 +7,6 @@ export interface LoginCredentials {
   mnemonic: string;
 }
 
-export interface CLICredentials extends LoginCredentials {
-  root_folder_uuid: string;
-}
-
 export interface WebdavConfig {
   port: string;
   protocol: 'http' | 'https';
@@ -103,11 +99,27 @@ export class NotValidPortError extends Error {
   }
 }
 
+export class NotValidDirectoryError extends Error {
+  constructor() {
+    super('The specified path is not a valid directory');
+
+    Object.setPrototypeOf(this, NotValidDirectoryError.prototype);
+  }
+}
+
+export class NotValidFileError extends Error {
+  constructor() {
+    super('The specified path is not a valid file.');
+
+    Object.setPrototypeOf(this, NotValidFileError.prototype);
+  }
+}
+
 export type PaginatedItem = {
   plainName: string;
   uuid: string;
   isFolder: boolean;
   type: string;
-  size: bigint;
+  size: number;
   updatedAt: Date;
 };

@@ -42,7 +42,6 @@ describe('WebDav server', () => {
       token: 'TOKEN',
       newToken: 'NEW_TOKEN',
       mnemonic: 'MNEMONIC',
-      root_folder_uuid: 'ROOT_FOLDER_UUID',
       user: UserSettingsFixture,
     });
     // @ts-expect-error - We stub the method partially
@@ -85,7 +84,6 @@ describe('WebDav server', () => {
       token: 'TOKEN',
       newToken: 'NEW_TOKEN',
       mnemonic: 'MNEMONIC',
-      root_folder_uuid: 'ROOT_FOLDER_UUID',
       user: UserSettingsFixture,
     });
     // @ts-expect-error - We stub the method partially

@@ -2,7 +2,7 @@ import path from 'path';
 import os from 'os';
 import fs from 'fs/promises';
 import { ConfigKeys } from '../types/config.types';
-import { CLICredentials, WebdavConfig } from '../types/command.types';
+import { LoginCredentials, WebdavConfig } from '../types/command.types';
 import { CryptoService } from './crypto.service';
 
 export class ConfigService {
@@ -35,7 +35,7 @@ export class ConfigService {
    * @param loginCredentials The user credentials to be saved
    * @async
    **/
-  public saveUser = async (loginCredentials: CLICredentials): Promise<void> => {
+  public saveUser = async (loginCredentials: LoginCredentials): Promise<void> => {
     await this.ensureInternxtCliDataDirExists();
     const credentialsString = JSON.stringify(loginCredentials);
     const encryptedCredentials = CryptoService.instance.encryptText(credentialsString);
@@ -58,7 +58,7 @@ export class ConfigService {
    * @returns {CLICredentials} The authenticated user credentials
    * @async
    **/
-  public readUser = async (): Promise<CLICredentials | undefined> => {
+  public readUser = async (): Promise<LoginCredentials | undefined> => {
     try {
       const encryptedCredentials = await fs.readFile(ConfigService.CREDENTIALS_FILE, 'utf8');
       const credentialsString = CryptoService.instance.decryptText(encryptedCredentials);
@@ -67,7 +67,7 @@ export class ConfigService {
           return new Date(value);
         }
         return value;
-      }) as CLICredentials;
+      }) as LoginCredentials;
       return loginCredentials;
     } catch {
       return;

@@ -38,7 +38,6 @@ describe('Auth middleware', () => {
     const userFixture = UserSettingsFixture;
     sandbox.stub(ConfigService.instance, 'readUser').resolves({
       user: userFixture,
-      root_folder_uuid: 'test_root_folder_uuid',
       mnemonic: 'MNEMONIC',
       newToken: 'NEW_TOKEN',
       token: 'TOKEN',

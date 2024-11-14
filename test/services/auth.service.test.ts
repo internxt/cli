@@ -103,7 +103,6 @@ describe('Auth service', () => {
 
     authServiceSandbox.stub(ConfigService.instance, 'readUser').resolves({
       user: UserFixture,
-      root_folder_uuid: 'test_root_folder_uuid',
       token: 'test_auth_token',
       newToken: 'test_new_auth_token',
       mnemonic: 'test_mnemonic',
@@ -194,7 +193,6 @@ describe('Auth service', () => {
 
     authServiceSandbox.stub(ConfigService.instance, 'readUser').resolves({
       user: UserFixture,
-      root_folder_uuid: 'test_root_folder_uuid',
       token: 'test_auth_token',
       newToken: 'test_new_auth_token',
       mnemonic: 'test_mnemonic',
