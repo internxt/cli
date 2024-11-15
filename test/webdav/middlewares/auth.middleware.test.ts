@@ -3,7 +3,7 @@ import { AuthMiddleware } from '../../../src/webdav/middewares/auth.middleware';
 import { createWebDavRequestFixture, createWebDavResponseFixture } from '../../fixtures/webdav.fixture';
 import { ConfigService } from '../../../src/services/config.service';
 import { expect } from 'chai';
-import { UserSettingsFixture } from '../../fixtures/auth.fixture';
+import { UserCredentialsFixture } from '../../fixtures/login.fixture';
 
 describe('Auth middleware', () => {
   const sandbox = sinon.createSandbox();
@@ -35,17 +35,11 @@ describe('Auth middleware', () => {
     });
     const res = createWebDavResponseFixture({});
     const next = sandbox.spy();
-    const userFixture = UserSettingsFixture;
-    sandbox.stub(ConfigService.instance, 'readUser').resolves({
-      user: userFixture,
-      mnemonic: 'MNEMONIC',
-      newToken: 'NEW_TOKEN',
-      token: 'TOKEN',
-    });
+    sandbox.stub(ConfigService.instance, 'readUser').resolves(UserCredentialsFixture);
 
     await AuthMiddleware(ConfigService.instance)(req, res, next);
 
     // @ts-expect-error - User is added to the request, but TS is not picking it as we specified null before
-    expect(req.user.rootFolderId).to.equal(userFixture.root_folder_id);
+    expect(req.user.rootFolderId).to.equal(UserCredentialsFixture.user.root_folder_id);
   });
 });

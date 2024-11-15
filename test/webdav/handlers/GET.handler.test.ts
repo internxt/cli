@@ -15,11 +15,12 @@ import { expect } from 'chai';
 import { NotFoundError, NotImplementedError } from '../../../src/utils/errors.utils';
 import { SdkManager } from '../../../src/services/sdk-manager.service';
 import { NetworkFacade } from '../../../src/services/network/network-facade.service';
-import { UserFixture } from '../../fixtures/auth.fixture';
 import { fail } from 'node:assert';
 import { WebDavUtils } from '../../../src/utils/webdav.utils';
 import { WebDavRequestedResource } from '../../../src/types/webdav.types';
 import { newFileItem } from '../../fixtures/drive.fixture';
+import { LoginCredentials } from '../../../src/types/command.types';
+import { UserCredentialsFixture } from '../../fixtures/login.fixture';
 
 describe('GET request handler', () => {
   const sandbox = sinon.createSandbox();
@@ -144,7 +145,7 @@ describe('GET request handler', () => {
     });
 
     const mockFile = newFileItem();
-    const mockAuthDetails = { mnemonic: 'MNEMONIC', token: 'TOKEN', newToken: 'NEW_TOKEN', user: UserFixture };
+    const mockAuthDetails: LoginCredentials = UserCredentialsFixture;
 
     const getRequestedResourceStub = sandbox.stub(WebDavUtils, 'getRequestedResource').resolves(requestedFileResource);
     const getAndSearchItemFromResourceStub = sandbox
@@ -160,6 +161,6 @@ describe('GET request handler', () => {
     expect(getRequestedResourceStub.calledOnce).to.be.true;
     expect(getAndSearchItemFromResourceStub.calledOnce).to.be.true;
     expect(authDetailsStub.calledOnce).to.be.true;
-    expect(downloadStreamStub.calledWith(mockFile.bucket, mockAuthDetails.mnemonic, mockFile.fileId)).to.be.true;
+    expect(downloadStreamStub.calledWith(mockFile.bucket, mockAuthDetails.user.mnemonic, mockFile.fileId)).to.be.true;
   });
 });

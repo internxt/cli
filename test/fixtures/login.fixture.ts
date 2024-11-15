@@ -12,5 +12,6 @@ export const UserCredentialsFixture: LoginCredentials = {
   user: { ...UserFixture, email: UserLoginFixture.email },
   token: crypto.randomBytes(16).toString('hex'),
   newToken: crypto.randomBytes(16).toString('hex'),
-  mnemonic: crypto.randomBytes(16).toString('hex'),
+  lastLoggedInAt: crypto.randomBytes(16).toString('hex'),
+  lastTokenRefreshAt: crypto.randomBytes(16).toString('hex'),
 };

@@ -63,7 +63,7 @@ export default class DownloadFile extends Command {
     const downloadPath = await this.getDownloadPath(downloadDirectory, driveFile, overwrite);
 
     // 2. Prepare the network
-    const user = await this.getUser();
+    const { user } = await AuthService.instance.getAuthDetails();
     const networkFacade = await this.prepareNetwork(user);
     // 3. Download the file
     const fileWriteStream = createWriteStream(downloadPath);
@@ -160,16 +160,6 @@ export default class DownloadFile extends Command {
       throw new Error('File not found');
     }
     return driveFile;
-  };
-
-  private getUser = async (): Promise<UserSettings> => {
-    const { mnemonic } = await AuthService.instance.getAuthDetails();
-    const user = await AuthService.instance.getUser();
-
-    return {
-      ...user,
-      mnemonic,
-    };
   };
 
   private getDownloadPath = async (downloadDirectory: string, driveFile: DriveFileItem, overwrite: boolean) => {

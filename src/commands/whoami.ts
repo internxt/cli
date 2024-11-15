@@ -1,7 +1,9 @@
 import { Command } from '@oclif/core';
-import { ConfigService } from '../services/config.service';
 import { CLIUtils } from '../utils/cli.utils';
 import { ErrorUtils } from '../utils/errors.utils';
+import { ConfigService } from '../services/config.service';
+import { ValidationService } from '../services/validation.service';
+import { LoginCredentials } from '../types/command.types';
 
 export default class Whoami extends Command {
   static readonly args = {};
@@ -13,14 +15,22 @@ export default class Whoami extends Command {
 
   public async run() {
     const userCredentials = await ConfigService.instance.readUser();
-    if (userCredentials?.user?.email) {
-      const message = `You are logged in with: ${userCredentials.user.email}.`;
-      CLIUtils.success(this.log.bind(this), message);
-      return { success: true, message, login: userCredentials };
-    } else {
+    if (!userCredentials) {
       const message = 'You are not logged in.';
       CLIUtils.error(this.log.bind(this), message);
       return { success: false, message };
+    } else {
+      const validCreds = await this.checkUserAndTokens(userCredentials);
+      if (!validCreds) {
+        const message = 'Your session has expired. You have been logged out. Please log in again.';
+        await ConfigService.instance.clearUser();
+        CLIUtils.error(this.log.bind(this), message);
+        return { success: false, message };
+      } else {
+        const message = `You are logged in as: ${userCredentials.user.email}.`;
+        CLIUtils.success(this.log.bind(this), message);
+        return { success: true, message, login: userCredentials };
+      }
     }
   }
 
@@ -28,5 +38,18 @@ export default class Whoami extends Command {
     ErrorUtils.report(this.error.bind(this), error, { command: this.id });
     CLIUtils.error(this.log.bind(this), error.message);
     this.exit(1);
+  }
+
+  public async checkUserAndTokens(loginCreds: LoginCredentials): Promise<boolean> {
+    if (!(loginCreds?.newToken && loginCreds?.token && loginCreds?.user?.mnemonic)) {
+      return false;
+    }
+    const oldTokenDetails = ValidationService.instance.validateTokenAndCheckExpiration(loginCreds.token);
+    const newTokenDetails = ValidationService.instance.validateTokenAndCheckExpiration(loginCreds.newToken);
+    const goodMnemonic = ValidationService.instance.validateMnemonic(loginCreds.user.mnemonic);
+    const goodToken = oldTokenDetails.isValid && !oldTokenDetails.expiration.expired;
+    const goodNewToken = newTokenDetails.isValid && !newTokenDetails.expiration.expired;
+
+    return goodToken && goodNewToken && goodMnemonic;
   }
 }

@@ -14,7 +14,6 @@ import { expect } from 'chai';
 import { ConflictError, UnsupportedMediaTypeError } from '../../../src/utils/errors.utils';
 import { SdkManager } from '../../../src/services/sdk-manager.service';
 import { NetworkFacade } from '../../../src/services/network/network-facade.service';
-import { UserFixture } from '../../fixtures/auth.fixture';
 import { PUTRequestHandler } from '../../../src/webdav/handlers/PUT.handler';
 import { getDriveDatabaseManager } from '../../fixtures/drive-database.fixture';
 import { fail } from 'assert';
@@ -23,6 +22,7 @@ import { TrashService } from '../../../src/services/drive/trash.service';
 import { WebDavRequestedResource } from '../../../src/types/webdav.types';
 import { WebDavUtils } from '../../../src/utils/webdav.utils';
 import { newFileItem, newFolderItem } from '../../fixtures/drive.fixture';
+import { UserCredentialsFixture } from '../../fixtures/login.fixture';
 
 describe('PUT request handler', () => {
   const sandbox = sinon.createSandbox();
@@ -173,9 +173,7 @@ describe('PUT request handler', () => {
       .resolves(folderFixture)
       .onSecondCall()
       .rejects();
-    const getAuthDetailsStub = sandbox
-      .stub(authService, 'getAuthDetails')
-      .resolves({ mnemonic: 'MNEMONIC', token: 'TOKEN', newToken: 'NEW_TOKEN', user: UserFixture });
+    const getAuthDetailsStub = sandbox.stub(authService, 'getAuthDetails').resolves(UserCredentialsFixture);
     const uploadFromStreamStub = sandbox
       .stub(networkFacade, 'uploadFromStream')
       .resolves([Promise.resolve({ fileId: '09218313209', hash: Buffer.from('test') }), new AbortController()]);
@@ -244,9 +242,7 @@ describe('PUT request handler', () => {
       .resolves(fileFixture);
     const deleteDBFileStub = sandbox.stub(driveDatabaseManager, 'deleteFileById').resolves();
     const deleteDriveFileStub = sandbox.stub(trashService, 'trashItems').resolves();
-    const getAuthDetailsStub = sandbox
-      .stub(authService, 'getAuthDetails')
-      .resolves({ mnemonic: 'MNEMONIC', token: 'TOKEN', newToken: 'NEW_TOKEN', user: UserFixture });
+    const getAuthDetailsStub = sandbox.stub(authService, 'getAuthDetails').resolves(UserCredentialsFixture);
     const uploadFromStreamStub = sandbox
       .stub(networkFacade, 'uploadFromStream')
       .resolves([Promise.resolve({ fileId: '09218313209', hash: Buffer.from('test') }), new AbortController()]);

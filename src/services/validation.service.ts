@@ -42,4 +42,41 @@ export class ValidationService {
     const fileStat = await fs.stat(path);
     return fileStat.isFile();
   };
+
+  public validateTokenAndCheckExpiration = (
+    token?: string,
+  ): {
+    isValid: boolean;
+    expiration: {
+      expired: boolean;
+      refreshRequired: boolean;
+    };
+  } => {
+    if (!token || typeof token !== 'string') {
+      return { isValid: false, expiration: { expired: true, refreshRequired: false } };
+    }
+
+    const parts = token.split('.');
+    if (parts.length !== 3) {
+      return { isValid: false, expiration: { expired: true, refreshRequired: false } };
+    }
+
+    try {
+      const payload = JSON.parse(atob(parts[1]));
+      if (typeof payload.exp !== 'number') {
+        return { isValid: false, expiration: { expired: true, refreshRequired: false } };
+      }
+
+      const currentTime = Math.floor(Date.now() / 1000);
+      const twoDaysInSeconds = 2 * 24 * 60 * 60;
+      const remainingSeconds = payload.exp - currentTime;
+
+      const expired = remainingSeconds <= 0;
+      const refreshRequired = remainingSeconds > 0 && remainingSeconds <= twoDaysInSeconds;
+
+      return { isValid: true, expiration: { expired, refreshRequired } };
+    } catch {
+      return { isValid: false, expiration: { expired: true, refreshRequired: false } };
+    }
+  };
 }

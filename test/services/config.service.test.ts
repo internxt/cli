@@ -5,7 +5,7 @@ import fs from 'fs/promises';
 import { ConfigService } from '../../src/services/config.service';
 import { CryptoService } from '../../src/services/crypto.service';
 import { LoginCredentials, WebdavConfig } from '../../src/types/command.types';
-import { UserFixture } from '../fixtures/auth.fixture';
+import { UserCredentialsFixture } from '../fixtures/login.fixture';
 
 import { config } from 'dotenv';
 config();
@@ -47,12 +47,7 @@ describe('Config service', () => {
   });
 
   it('When user credentials are saved, then they are written encrypted to a file', async () => {
-    const userCredentials: LoginCredentials = {
-      user: UserFixture,
-      token: crypto.randomBytes(16).toString('hex'),
-      newToken: crypto.randomBytes(16).toString('hex'),
-      mnemonic: crypto.randomBytes(16).toString('hex'),
-    };
+    const userCredentials: LoginCredentials = UserCredentialsFixture;
     const stringCredentials = JSON.stringify(userCredentials);
     const encryptedUserCredentials = CryptoService.instance.encryptText(stringCredentials);
 
@@ -71,12 +66,7 @@ describe('Config service', () => {
   });
 
   it('When user credentials are read, then they are read and decrypted from a file', async () => {
-    const userCredentials: LoginCredentials = {
-      user: UserFixture,
-      token: crypto.randomBytes(16).toString('hex'),
-      newToken: crypto.randomBytes(16).toString('hex'),
-      mnemonic: crypto.randomBytes(16).toString('hex'),
-    };
+    const userCredentials: LoginCredentials = UserCredentialsFixture;
     const stringCredentials = JSON.stringify(userCredentials);
     const encryptedUserCredentials = CryptoService.instance.encryptText(stringCredentials);
 

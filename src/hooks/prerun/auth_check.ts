@@ -6,7 +6,6 @@ import Logs from '../../commands/logs';
 import { CLIUtils } from '../../utils/cli.utils';
 import { SdkManager } from '../../services/sdk-manager.service';
 import { AuthService } from '../../services/auth.service';
-import { MissingCredentialsError } from '../../types/command.types';
 import Webdav from '../../commands/webdav';
 import WebDAVConfig from '../../commands/webdav-config';
 
@@ -21,7 +20,8 @@ const hook: Hook<'prerun'> = async function (opts) {
         newToken,
       });
     } catch (error) {
-      CLIUtils.error(this.log.bind(this), new MissingCredentialsError().message);
+      const err = error as Error;
+      CLIUtils.error(this.log.bind(this), err.message);
       opts.context.exit(1);
     }
     CLIUtils.done();

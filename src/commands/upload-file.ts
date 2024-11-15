@@ -60,8 +60,7 @@ export default class UploadFile extends Command {
 
     // 1. Prepare the network
     CLIUtils.doing('Preparing Network');
-    const { mnemonic } = await AuthService.instance.getAuthDetails();
-    const user = await AuthService.instance.getUser();
+    const { user } = await AuthService.instance.getAuthDetails();
     const networkModule = SdkManager.instance.getNetwork({
       user: user.bridgeUser,
       pass: user.userId,
@@ -85,7 +84,7 @@ export default class UploadFile extends Command {
     progressBar.start(1, 0);
     const [uploadPromise, abortable] = await networkFacade.uploadFromStream(
       user.bucket,
-      mnemonic,
+      user.mnemonic,
       stat.size,
       fileStream,
       {

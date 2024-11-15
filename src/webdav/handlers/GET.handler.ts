@@ -45,7 +45,7 @@ export class GETRequestHandler implements WebDavMethodHandler {
     res.set('Content-Type', 'application/octet-stream');
     res.set('Content-length', driveFile.size.toString());
 
-    const { mnemonic } = await authService.getAuthDetails();
+    const { user } = await authService.getAuthDetails();
     webdavLogger.info('✅ Network ready for download');
 
     const writable = new WritableStream({
@@ -60,7 +60,7 @@ export class GETRequestHandler implements WebDavMethodHandler {
     let lastLoggedProgress = 0;
     const [executeDownload] = await networkFacade.downloadToStream(
       driveFile.bucket,
-      mnemonic,
+      user.mnemonic,
       driveFile.fileId,
       writable,
       {

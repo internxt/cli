@@ -4,7 +4,8 @@ export interface LoginCredentials {
   user: UserSettings;
   token: string;
   newToken: string;
-  mnemonic: string;
+  lastLoggedInAt: string;
+  lastTokenRefreshAt: string;
 }
 
 export interface WebdavConfig {
@@ -61,9 +62,25 @@ export class NoRootFolderIdFoundError extends Error {
 
 export class MissingCredentialsError extends Error {
   constructor() {
-    super('Missing credentials, login first');
+    super('Missing credentials, please login first');
 
     Object.setPrototypeOf(this, MissingCredentialsError.prototype);
+  }
+}
+
+export class ExpiredCredentialsError extends Error {
+  constructor() {
+    super('The session has expired, please login again');
+
+    Object.setPrototypeOf(this, ExpiredCredentialsError.prototype);
+  }
+}
+
+export class InvalidCredentialsError extends Error {
+  constructor() {
+    super('Corrupted credentials, please login again');
+
+    Object.setPrototypeOf(this, InvalidCredentialsError.prototype);
   }
 }
 

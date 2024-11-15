@@ -15,8 +15,8 @@ import { AuthService } from '../../src/services/auth.service';
 import { CryptoService } from '../../src/services/crypto.service';
 import { NetworkUtils } from '../../src/utils/network.utils';
 import { TrashService } from '../../src/services/drive/trash.service';
-import { UserSettingsFixture } from '../fixtures/auth.fixture';
 import { WebdavConfig } from '../../src/types/command.types';
+import { UserCredentialsFixture } from '../fixtures/login.fixture';
 
 describe('WebDav server', () => {
   const sandbox = sinon.createSandbox();
@@ -38,12 +38,7 @@ describe('WebDav server', () => {
     };
 
     sandbox.stub(ConfigService.instance, 'readWebdavConfig').resolves(webdavConfig);
-    sandbox.stub(ConfigService.instance, 'readUser').resolves({
-      token: 'TOKEN',
-      newToken: 'NEW_TOKEN',
-      mnemonic: 'MNEMONIC',
-      user: UserSettingsFixture,
-    });
+    sandbox.stub(ConfigService.instance, 'readUser').resolves(UserCredentialsFixture);
     // @ts-expect-error - We stub the method partially
     const createHTTPSServerStub = sandbox.stub(https, 'createServer').returns({
       listen: sandbox.stub().resolves(),
@@ -80,12 +75,7 @@ describe('WebDav server', () => {
     };
 
     sandbox.stub(ConfigService.instance, 'readWebdavConfig').resolves(webdavConfig);
-    sandbox.stub(ConfigService.instance, 'readUser').resolves({
-      token: 'TOKEN',
-      newToken: 'NEW_TOKEN',
-      mnemonic: 'MNEMONIC',
-      user: UserSettingsFixture,
-    });
+    sandbox.stub(ConfigService.instance, 'readUser').resolves(UserCredentialsFixture);
     // @ts-expect-error - We stub the method partially
     const createHTTPServerStub = sandbox.stub(http, 'createServer').returns({
       listen: sandbox.stub().resolves(),
