@@ -1343,10 +1343,10 @@
     query-string "^7.1.0"
     uuid "^8.3.2"
 
-"@internxt/sdk@^1.6.0":
-  version "1.6.0"
-  resolved "https://npm.pkg.github.com/download/@internxt/sdk/1.6.0/4581c0f392ee42cafc62dda0a73dd39adb4e721d#4581c0f392ee42cafc62dda0a73dd39adb4e721d"
-  integrity sha512-eV4NC58En2enzk4raHEvF9rNaQzKzQeTYOcKlnndBZM7utZ4+H4uf/IXjM4i6aLBSBk+JkGnVdrXPNLlSeOQiw==
+"@internxt/sdk@^1.6.1":
+  version "1.6.1"
+  resolved "https://npm.pkg.github.com/download/@internxt/sdk/1.6.1/7ca6be97d58385c5986caa39d45d986d522169e4#7ca6be97d58385c5986caa39d45d986d522169e4"
+  integrity sha512-jBPS9D9CD6ANozgnIQQovhnR4czHj4yTHy3IBh4DDmlvq8mEuaH+EBidkFlmHU9Mappu6Q8AtA2VmrP1pxcomw==
   dependencies:
     axios "^0.28.0"
     query-string "^7.1.0"
