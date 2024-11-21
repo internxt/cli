@@ -1,4 +1,4 @@
-import { Command, Flags, ux } from '@oclif/core';
+import { Command, Flags } from '@oclif/core';
 import { DriveFileService } from '../services/drive/drive-file.service';
 import { CLIUtils } from '../utils/cli.utils';
 import { NetworkFacade } from '../services/network/network-facade.service';
@@ -7,11 +7,11 @@ import { CryptoService } from '../services/crypto.service';
 import { DownloadService } from '../services/network/download.service';
 import { UploadService } from '../services/network/upload.service';
 import { SdkManager } from '../services/sdk-manager.service';
-import { createWriteStream } from 'fs';
+import { createWriteStream } from 'node:fs';
 import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
 import { DriveFileItem } from '../types/drive.types';
-import fs from 'fs/promises';
-import path from 'path';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 import { StreamUtils } from '../utils/stream.utils';
 import { ErrorUtils } from '../utils/errors.utils';
 import { NotValidDirectoryError, NotValidFileUuidError } from '../types/command.types';
@@ -21,7 +21,7 @@ export default class DownloadFile extends Command {
   static readonly args = {};
   static readonly description =
     'Download and decrypts a file from Internxt Drive to a directory. The file name will be the same as the file name in your Drive.';
-  static readonly aliases = [];
+  static readonly aliases = ['download:file'];
   static readonly examples = ['<%= config.bin %> <%= command.id %>'];
   static readonly flags = {
     ...CLIUtils.CommonFlags,
@@ -44,7 +44,7 @@ export default class DownloadFile extends Command {
   };
   static readonly enableJsonFlag = true;
 
-  public async run() {
+  public run = async () => {
     const { flags } = await this.parse(DownloadFile);
     const nonInteractive = flags['non-interactive'];
     const overwrite = flags['overwrite'];
@@ -68,7 +68,7 @@ export default class DownloadFile extends Command {
     // 3. Download the file
     const fileWriteStream = createWriteStream(downloadPath);
 
-    const progressBar = ux.progress({
+    const progressBar = CLIUtils.progress({
       format: 'Downloading file [{bar}] {percentage}%',
       linewrap: true,
     });
@@ -99,13 +99,13 @@ export default class DownloadFile extends Command {
     const message = `File downloaded successfully to ${downloadPath}`;
     CLIUtils.success(this.log.bind(this), message);
     return { success: true, message, file: driveFile };
-  }
+  };
 
-  public async catch(error: Error) {
+  public catch = async (error: Error) => {
     ErrorUtils.report(this.error.bind(this), error, { command: this.id });
     CLIUtils.error(this.log.bind(this), error.message);
     this.exit(1);
-  }
+  };
 
   private getFileUuid = async (fileUuidFlag: string | undefined, nonInteractive: boolean): Promise<string> => {
     const fileUuid = await CLIUtils.getValueFromFlag(
@@ -117,7 +117,7 @@ export default class DownloadFile extends Command {
         nonInteractive,
         prompt: {
           message: 'What is the file id you want to download?',
-          options: { required: false },
+          options: { type: 'input' },
         },
       },
       {
@@ -139,7 +139,7 @@ export default class DownloadFile extends Command {
         nonInteractive,
         prompt: {
           message: 'Where would you like to download the file? (Enter the local folder path on your computer)',
-          options: { required: false },
+          options: { type: 'input' },
         },
       },
       {

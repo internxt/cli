@@ -26,7 +26,7 @@ export default class RenameFolder extends Command {
   };
   static readonly enableJsonFlag = true;
 
-  public async run() {
+  public run = async () => {
     const { flags } = await this.parse(RenameFolder);
     const nonInteractive = flags['non-interactive'];
 
@@ -40,15 +40,15 @@ export default class RenameFolder extends Command {
     const message = `Folder renamed successfully with: ${name}`;
     CLIUtils.success(this.log.bind(this), message);
     return { success: true, message, folder: { uuid: folderUuid, plainName: name } };
-  }
+  };
 
-  async catch(error: Error) {
+  public catch = async (error: Error) => {
     ErrorUtils.report(this.error.bind(this), error, { command: this.id });
     CLIUtils.error(this.log.bind(this), error.message);
     this.exit(1);
-  }
+  };
 
-  public getFolderUuid = async (folderUuidFlag: string | undefined, nonInteractive: boolean): Promise<string> => {
+  private getFolderUuid = async (folderUuidFlag: string | undefined, nonInteractive: boolean): Promise<string> => {
     const folderUuid = await CLIUtils.getValueFromFlag(
       {
         value: folderUuidFlag,
@@ -58,7 +58,7 @@ export default class RenameFolder extends Command {
         nonInteractive,
         prompt: {
           message: 'What is the folder id you want to rename?',
-          options: { required: false },
+          options: { type: 'input' },
         },
       },
       {
@@ -70,7 +70,7 @@ export default class RenameFolder extends Command {
     return folderUuid;
   };
 
-  public getFolderName = async (folderNameFlag: string | undefined, nonInteractive: boolean): Promise<string> => {
+  private getFolderName = async (folderNameFlag: string | undefined, nonInteractive: boolean): Promise<string> => {
     const folderName = await CLIUtils.getValueFromFlag(
       {
         value: folderNameFlag,
@@ -80,7 +80,7 @@ export default class RenameFolder extends Command {
         nonInteractive,
         prompt: {
           message: 'What is the new name of the folder?',
-          options: { required: false },
+          options: { type: 'input' },
         },
       },
       {

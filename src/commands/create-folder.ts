@@ -28,7 +28,7 @@ export default class CreateFolder extends Command {
   };
   static readonly enableJsonFlag = true;
 
-  public async run() {
+  public run = async () => {
     const { flags } = await this.parse(CreateFolder);
     const nonInteractive = flags['non-interactive'];
 
@@ -58,15 +58,15 @@ export default class CreateFolder extends Command {
     const message = `Folder ${newFolder.plainName} created successfully, view it at ${ConfigService.instance.get('DRIVE_URL')}/folder/${newFolder.uuid}`;
     CLIUtils.success(this.log.bind(this), message);
     return { success: true, message, folder: newFolder };
-  }
+  };
 
-  async catch(error: Error) {
+  public catch = async (error: Error) => {
     ErrorUtils.report(this.error.bind(this), error, { command: this.id });
     CLIUtils.error(this.log.bind(this), error.message);
     this.exit(1);
-  }
+  };
 
-  public getFolderName = async (folderNameFlag: string | undefined, nonInteractive: boolean): Promise<string> => {
+  private getFolderName = async (folderNameFlag: string | undefined, nonInteractive: boolean): Promise<string> => {
     const folderName = await CLIUtils.getValueFromFlag(
       {
         value: folderNameFlag,
@@ -76,7 +76,7 @@ export default class CreateFolder extends Command {
         nonInteractive,
         prompt: {
           message: 'What would you like to name the new folder?',
-          options: { required: false },
+          options: { type: 'input' },
         },
       },
       {
@@ -88,7 +88,7 @@ export default class CreateFolder extends Command {
     return folderName;
   };
 
-  public getFolderUuid = async (folderUuidFlag: string | undefined, nonInteractive: boolean): Promise<string> => {
+  private getFolderUuid = async (folderUuidFlag: string | undefined, nonInteractive: boolean): Promise<string> => {
     const folderUuid = await CLIUtils.getValueFromFlag(
       {
         value: folderUuidFlag,
@@ -99,7 +99,7 @@ export default class CreateFolder extends Command {
         prompt: {
           message:
             'What is the ID of the folder where you would like to create the new folder? (leave empty for the root folder)',
-          options: { required: false },
+          options: { type: 'input' },
         },
       },
       {

@@ -1,5 +1,5 @@
-import { Command, Flags, ux } from '@oclif/core';
-import fs from 'node:fs/promises';
+import { Command, Flags } from '@oclif/core';
+import { stat } from 'node:fs/promises';
 import { createReadStream } from 'node:fs';
 import { NetworkFacade } from '../services/network/network-facade.service';
 import { SdkManager } from '../services/sdk-manager.service';
@@ -37,7 +37,7 @@ export default class UploadFile extends Command {
   };
   static readonly enableJsonFlag = true;
 
-  public async run() {
+  public run = async () => {
     const { flags } = await this.parse(UploadFile);
 
     const nonInteractive = flags['non-interactive'];
@@ -47,8 +47,8 @@ export default class UploadFile extends Command {
 
     const filePath = await this.getFilePath(flags['file'], nonInteractive);
 
-    const stat = await fs.stat(filePath);
-    if (!stat.size) {
+    const stats = await stat(filePath);
+    if (!stats.size) {
       throw new Error('The file is empty. Uploading empty files is not allowed.');
     }
 
@@ -77,7 +77,7 @@ export default class UploadFile extends Command {
     const timer = CLIUtils.timer();
     // 2. Upload file to the Network
     const fileStream = createReadStream(filePath);
-    const progressBar = ux.progress({
+    const progressBar = CLIUtils.progress({
       format: 'Uploading file [{bar}] {percentage}%',
       linewrap: true,
     });
@@ -85,7 +85,7 @@ export default class UploadFile extends Command {
     const [uploadPromise, abortable] = await networkFacade.uploadFromStream(
       user.bucket,
       user.mnemonic,
-      stat.size,
+      stats.size,
       fileStream,
       {
         progressCallback: (progress) => {
@@ -107,7 +107,7 @@ export default class UploadFile extends Command {
     const createdDriveFile = await DriveFileService.instance.createFile({
       plain_name: fileInfo.name,
       type: fileInfo.ext.replaceAll('.', ''),
-      size: stat.size,
+      size: stats.size,
       folder_id: destinationFolderUuid,
       id: uploadResult.fileId,
       bucket: user.bucket,
@@ -120,15 +120,15 @@ export default class UploadFile extends Command {
     const message = `File uploaded in ${uploadTime}ms, view it at ${ConfigService.instance.get('DRIVE_URL')}/file/${createdDriveFile.uuid}`;
     CLIUtils.success(this.log.bind(this), message);
     return { success: true, message, file: createdDriveFile };
-  }
+  };
 
-  async catch(error: Error) {
+  public catch = async (error: Error) => {
     ErrorUtils.report(this.error.bind(this), error, { command: this.id });
     CLIUtils.error(this.log.bind(this), error.message);
     this.exit(1);
-  }
+  };
 
-  public getDestinationFolderUuid = async (
+  private getDestinationFolderUuid = async (
     destinationFolderUuidFlag: string | undefined,
     nonInteractive: boolean,
   ): Promise<string> => {
@@ -141,7 +141,7 @@ export default class UploadFile extends Command {
         nonInteractive,
         prompt: {
           message: 'What is the destination folder id? (leave empty for the root folder)',
-          options: { required: false },
+          options: { type: 'input' },
         },
       },
       {
@@ -164,7 +164,7 @@ export default class UploadFile extends Command {
         nonInteractive,
         prompt: {
           message: 'What is the path to the file on your computer?',
-          options: { required: false },
+          options: { type: 'input' },
         },
       },
       {

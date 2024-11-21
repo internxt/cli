@@ -1,22 +1,20 @@
-import { Command, ux } from '@oclif/core';
+import { Command } from '@oclif/core';
 import { ConfigService } from '../services/config.service';
 import { CLIUtils } from '../utils/cli.utils';
 import { ErrorUtils } from '../utils/errors.utils';
 import { UsageService } from '../services/usage.service';
 import { FormatUtils } from '../utils/format.utils';
+import { Header } from 'tty-table';
 
 export default class Config extends Command {
   static readonly args = {};
   static readonly description = 'Display useful information from the user logged into the Internxt CLI.';
   static readonly aliases = [];
   static readonly examples = ['<%= config.bin %> <%= command.id %>'];
-  static readonly flags = {
-    ...ux.table.flags(),
-  };
+  static readonly flags = {};
   static readonly enableJsonFlag = true;
 
-  public async run() {
-    const { flags } = await this.parse(Config);
+  public run = async () => {
     const userCredentials = await ConfigService.instance.readUser();
     if (userCredentials?.user) {
       const usedSpace = FormatUtils.humanFileSize((await UsageService.instance.fetchUsage()).total);
@@ -28,34 +26,23 @@ export default class Config extends Command {
         { key: 'Used space', value: usedSpace },
         { key: 'Available space', value: availableSpace },
       ];
-      ux.table(
-        configList,
-        {
-          key: {
-            header: 'Key',
-            get: (row) => row.key,
-          },
-          value: {
-            header: 'Value',
-            get: (row) => row.value,
-          },
-        },
-        {
-          printLine: this.log.bind(this),
-          ...flags,
-        },
-      );
+      const header: Header[] = [
+        { value: 'key', alias: 'Key' },
+        { value: 'value', alias: 'Value' },
+      ];
+      CLIUtils.table(this.log.bind(this), header, configList);
+
       return { success: true, config: Object.fromEntries(configList.map(({ key, value }) => [key, value])) };
     } else {
       const message = 'You are not logged in.';
       CLIUtils.error(this.log.bind(this), message);
       return { success: false, message };
     }
-  }
+  };
 
-  async catch(error: Error) {
+  public catch = async (error: Error) => {
     ErrorUtils.report(this.error.bind(this), error, { command: this.id });
     CLIUtils.error(this.log.bind(this), error.message);
     this.exit(1);
-  }
+  };
 }

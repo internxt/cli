@@ -84,14 +84,6 @@ export class InvalidCredentialsError extends Error {
   }
 }
 
-export class NotValidYesOrNoError extends Error {
-  constructor() {
-    super('Only yes or not -> ["yes", "no", "y", "n"] options are valid');
-
-    Object.setPrototypeOf(this, NotValidYesOrNoError.prototype);
-  }
-}
-
 export class EmptyFileNameError extends Error {
   constructor() {
     super('File name can not be empty');
@@ -132,11 +124,15 @@ export class NotValidFileError extends Error {
   }
 }
 
-export type PaginatedItem = {
-  plainName: string;
-  uuid: string;
-  isFolder: boolean;
+export interface PaginatedItem {
+  name: string;
   type: string;
-  size: number;
-  updatedAt: Date;
-};
+  id: string;
+  size: string;
+  modified: string;
+}
+
+export interface PromptOptions {
+  type: 'input' | 'password' | 'mask' | 'confirm';
+  confirm?: { default: boolean };
+}

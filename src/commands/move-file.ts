@@ -27,7 +27,7 @@ export default class MoveFile extends Command {
   };
   static readonly enableJsonFlag = true;
 
-  public async run() {
+  public run = async () => {
     const { flags } = await this.parse(MoveFile);
     const nonInteractive = flags['non-interactive'];
 
@@ -45,15 +45,15 @@ export default class MoveFile extends Command {
     const message = `File moved successfully to: ${destinationFolderUuid}`;
     CLIUtils.success(this.log.bind(this), message);
     return { success: true, message, file: newFile };
-  }
+  };
 
-  async catch(error: Error) {
+  public catch = async (error: Error) => {
     ErrorUtils.report(this.error.bind(this), error, { command: this.id });
     CLIUtils.error(this.log.bind(this), error.message);
     this.exit(1);
-  }
+  };
 
-  public getFileUuid = async (fileUuidFlag: string | undefined, nonInteractive: boolean): Promise<string> => {
+  private getFileUuid = async (fileUuidFlag: string | undefined, nonInteractive: boolean): Promise<string> => {
     const fileUuid = await CLIUtils.getValueFromFlag(
       {
         value: fileUuidFlag,
@@ -63,7 +63,7 @@ export default class MoveFile extends Command {
         nonInteractive,
         prompt: {
           message: 'What is the file id you want to move?',
-          options: { required: false },
+          options: { type: 'input' },
         },
       },
       {
@@ -75,7 +75,7 @@ export default class MoveFile extends Command {
     return fileUuid;
   };
 
-  public getDestinationFolderUuid = async (
+  private getDestinationFolderUuid = async (
     destinationFolderUuidFlag: string | undefined,
     nonInteractive: boolean,
   ): Promise<string> => {
@@ -88,7 +88,7 @@ export default class MoveFile extends Command {
         nonInteractive,
         prompt: {
           message: 'What is the destination folder id? (leave empty for the root folder)',
-          options: { required: false },
+          options: { type: 'input' },
         },
       },
       {

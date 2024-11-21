@@ -27,7 +27,7 @@ export default class TrashRestoreFolder extends Command {
   };
   static readonly enableJsonFlag = true;
 
-  public async run() {
+  public run = async () => {
     const { flags } = await this.parse(TrashRestoreFolder);
 
     const nonInteractive = flags['non-interactive'];
@@ -47,15 +47,15 @@ export default class TrashRestoreFolder extends Command {
     const message = `Folder restored successfully to: ${destinationFolderUuid}`;
     CLIUtils.success(this.log.bind(this), message);
     return { success: true, message, folder };
-  }
+  };
 
-  async catch(error: Error) {
+  public catch = async (error: Error) => {
     ErrorUtils.report(this.error.bind(this), error, { command: this.id });
     CLIUtils.error(this.log.bind(this), error.message);
     this.exit(1);
-  }
+  };
 
-  public getFolderUuid = async (folderUuidFlag: string | undefined, nonInteractive: boolean): Promise<string> => {
+  private getFolderUuid = async (folderUuidFlag: string | undefined, nonInteractive: boolean): Promise<string> => {
     const folderUuid = await CLIUtils.getValueFromFlag(
       {
         value: folderUuidFlag,
@@ -65,7 +65,7 @@ export default class TrashRestoreFolder extends Command {
         nonInteractive,
         prompt: {
           message: 'What is the folder id you want to restore?',
-          options: { required: false },
+          options: { type: 'input' },
         },
       },
       {
@@ -77,7 +77,7 @@ export default class TrashRestoreFolder extends Command {
     return folderUuid;
   };
 
-  public getDestinationFolderUuid = async (
+  private getDestinationFolderUuid = async (
     destinationFolderUuidFlag: string | undefined,
     nonInteractive: boolean,
   ): Promise<string> => {
@@ -90,7 +90,7 @@ export default class TrashRestoreFolder extends Command {
         nonInteractive,
         prompt: {
           message: 'What is the destination folder id? (leave empty for the root folder)',
-          options: { required: false },
+          options: { type: 'input' },
         },
       },
       {

@@ -31,7 +31,7 @@ export default class WebDAVConfig extends Command {
   };
   static readonly enableJsonFlag = true;
 
-  public async run() {
+  public run = async () => {
     const { flags } = await this.parse(WebDAVConfig);
     const webdavConfig = await ConfigService.instance.readWebdavConfig();
 
@@ -58,11 +58,11 @@ export default class WebDAVConfig extends Command {
     const message = `On the next start, the WebDAV server will use the next config: ${JSON.stringify(webdavConfig)}`;
     CLIUtils.success(this.log.bind(this), message);
     return { success: true, message, config: webdavConfig };
-  }
+  };
 
-  async catch(error: Error) {
+  public catch = async (error: Error) => {
     ErrorUtils.report(this.error.bind(this), error, { command: this.id });
     CLIUtils.error(this.log.bind(this), error.message);
     this.exit(1);
-  }
+  };
 }

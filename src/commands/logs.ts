@@ -11,15 +11,15 @@ export default class Logs extends Command {
   static readonly flags = {};
   static readonly enableJsonFlag = true;
 
-  public async run() {
+  public run = async () => {
     const message = `Internxt CLI logs are located at ${ConfigService.INTERNXT_CLI_LOGS_DIR}`;
     CLIUtils.log(this.log.bind(this), message);
     return { success: true, message, path: ConfigService.INTERNXT_CLI_LOGS_DIR };
-  }
+  };
 
-  async catch(error: Error) {
+  public catch = async (error: Error) => {
     ErrorUtils.report(this.error.bind(this), error, { command: this.id });
     CLIUtils.error(this.log.bind(this), error.message);
     this.exit(1);
-  }
+  };
 }

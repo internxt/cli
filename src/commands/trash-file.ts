@@ -21,7 +21,7 @@ export default class TrashFile extends Command {
   };
   static readonly enableJsonFlag = true;
 
-  public async run() {
+  public run = async () => {
     const { flags } = await this.parse(TrashFile);
 
     const nonInteractive = flags['non-interactive'];
@@ -35,15 +35,15 @@ export default class TrashFile extends Command {
     const message = 'File trashed successfully.';
     CLIUtils.success(this.log.bind(this), message);
     return { success: true, message, file: { uuid } };
-  }
+  };
 
-  async catch(error: Error) {
+  public catch = async (error: Error) => {
     ErrorUtils.report(this.error.bind(this), error, { command: this.id });
     CLIUtils.error(this.log.bind(this), error.message);
     this.exit(1);
-  }
+  };
 
-  public getFileUuid = async (fileUuidFlag: string | undefined, nonInteractive: boolean): Promise<string> => {
+  private getFileUuid = async (fileUuidFlag: string | undefined, nonInteractive: boolean): Promise<string> => {
     const fileUuid = await CLIUtils.getValueFromFlag(
       {
         value: fileUuidFlag,
@@ -53,7 +53,7 @@ export default class TrashFile extends Command {
         nonInteractive,
         prompt: {
           message: 'What is the file id you want to trash?',
-          options: { required: false },
+          options: { type: 'input' },
         },
       },
       {

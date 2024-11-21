@@ -23,7 +23,7 @@ export default class Webdav extends Command {
   static readonly flags = {};
   static readonly enableJsonFlag = true;
 
-  public async run() {
+  public run = async () => {
     const { args } = await this.parse(Webdav);
 
     let message = '';
@@ -56,9 +56,9 @@ export default class Webdav extends Command {
       }
     }
     return { success, message, action: args.action };
-  }
+  };
 
-  async catch(error: Error) {
+  public catch = async (error: Error) => {
     ErrorUtils.report(this.error.bind(this), error, { command: this.id });
     if (error instanceof Error) {
       CLIUtils.error(this.log.bind(this), error.message);
@@ -66,9 +66,9 @@ export default class Webdav extends Command {
       CLIUtils.error(this.log.bind(this), JSON.stringify(error));
     }
     this.exit(1);
-  }
+  };
 
-  public async enableWebDav(): Promise<string> {
+  private enableWebDav = async (): Promise<string> => {
     CLIUtils.doing('Starting Internxt WebDav server...');
     await DriveDatabaseManager.clean();
     await PM2Utils.connect();
@@ -86,17 +86,15 @@ export default class Webdav extends Command {
         this.log.bind(this),
         `\n[If the above URL is not working, the WebDAV server can be accessed directly via your localhost IP at: ${webdavConfigs.protocol}://127.0.0.1:${webdavConfigs.port} ]\n`,
       );
-      //const authDetails = await AuthService.instance.getAuthDetails();
-      //await AnalyticsService.instance.track('WebDAVEnabled', { app: 'internxt-cli', userId: authDetails.user.uuid });
       return message;
     } else {
       const message = `WebDav server status: ${ux.colorize('red', status)}`;
       CLIUtils.log(this.log.bind(this), message);
       return message;
     }
-  }
+  };
 
-  public async disableWebDav(): Promise<string> {
+  private disableWebDav = async (): Promise<string> => {
     CLIUtils.doing('Stopping Internxt WebDav server...');
     await PM2Utils.connect();
     await PM2Utils.killWebDavServer();
@@ -104,9 +102,9 @@ export default class Webdav extends Command {
     const message = 'Internxt WebDav server stopped successfully';
     CLIUtils.success(this.log.bind(this), message);
     return message;
-  }
+  };
 
-  public async restartWebDav(): Promise<string> {
+  private restartWebDav = async (): Promise<string> => {
     CLIUtils.doing('Restarting Internxt WebDav server...');
     await DriveDatabaseManager.clean();
     await PM2Utils.connect();
@@ -124,13 +122,13 @@ export default class Webdav extends Command {
       CLIUtils.error(this.log.bind(this), message);
       return message;
     }
-  }
+  };
 
-  public async webDAVStatus(): Promise<string> {
+  private webDAVStatus = async (): Promise<string> => {
     await PM2Utils.connect();
     const { status } = await PM2Utils.webdavServerStatus();
     const message = `Internxt WebDAV server status: ${status}`;
     CLIUtils.log(this.log.bind(this), message);
     return message;
-  }
+  };
 }

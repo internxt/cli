@@ -7,7 +7,6 @@ import { CLIUtils } from '../utils/cli.utils';
 import { ErrorUtils } from '../utils/errors.utils';
 import { SdkManager } from '../services/sdk-manager.service';
 import { DriveDatabaseManager } from '../services/database/drive-database-manager.service';
-import { AnalyticsService } from '../services/analytics.service';
 
 export default class Login extends Command {
   static readonly args = {};
@@ -42,7 +41,7 @@ export default class Login extends Command {
   };
   static readonly enableJsonFlag = true;
 
-  public async run() {
+  public run = async () => {
     const { flags } = await this.parse(Login);
 
     const nonInteractive = flags['non-interactive'];
@@ -65,7 +64,6 @@ export default class Login extends Command {
     await ConfigService.instance.saveUser(loginCredentials);
     await DriveDatabaseManager.init();
     await DriveDatabaseManager.clean();
-    AnalyticsService.instance.track('CLILogin', { app: 'internxt-cli', userId: loginCredentials.user.uuid });
     const message = `Succesfully logged in to: ${loginCredentials.user.email}`;
     CLIUtils.success(this.log.bind(this), message);
     return {
@@ -73,15 +71,15 @@ export default class Login extends Command {
       message,
       login: loginCredentials,
     };
-  }
+  };
 
-  async catch(error: Error) {
+  public catch = async (error: Error) => {
     ErrorUtils.report(this.error.bind(this), error, { command: this.id });
     CLIUtils.error(this.log.bind(this), error.message);
     this.exit(1);
-  }
+  };
 
-  public getEmail = async (emailFlag: string | undefined, nonInteractive: boolean): Promise<string> => {
+  private getEmail = async (emailFlag: string | undefined, nonInteractive: boolean): Promise<string> => {
     const email = await CLIUtils.getValueFromFlag(
       {
         value: emailFlag,
@@ -91,7 +89,7 @@ export default class Login extends Command {
         nonInteractive,
         prompt: {
           message: 'What is your email?',
-          options: { required: false },
+          options: { type: 'input' },
         },
       },
       {
@@ -103,7 +101,7 @@ export default class Login extends Command {
     return email;
   };
 
-  public getPassword = async (passwordFlag: string | undefined, nonInteractive: boolean): Promise<string> => {
+  private getPassword = async (passwordFlag: string | undefined, nonInteractive: boolean): Promise<string> => {
     const password = await CLIUtils.getValueFromFlag(
       {
         value: passwordFlag,
@@ -113,7 +111,7 @@ export default class Login extends Command {
         nonInteractive,
         prompt: {
           message: 'What is your password?',
-          options: { required: false, type: 'hide' },
+          options: { type: 'password' },
         },
       },
       {
@@ -125,7 +123,7 @@ export default class Login extends Command {
     return password;
   };
 
-  public getTwoFactorCode = async (twoFactorFlag: string | undefined, nonInteractive: boolean): Promise<string> => {
+  private getTwoFactorCode = async (twoFactorFlag: string | undefined, nonInteractive: boolean): Promise<string> => {
     const twoFactor = await CLIUtils.getValueFromFlag(
       {
         value: twoFactorFlag,
@@ -135,7 +133,7 @@ export default class Login extends Command {
         nonInteractive,
         prompt: {
           message: 'What is your two-factor token?',
-          options: { required: false, type: 'mask' },
+          options: { type: 'mask' },
         },
       },
       {

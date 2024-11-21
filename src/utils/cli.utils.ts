@@ -1,4 +1,8 @@
 import { ux, Flags } from '@oclif/core';
+import cliProgress from 'cli-progress';
+import Table, { Header } from 'tty-table';
+import { PromptOptions } from '../types/command.types';
+import { InquirerUtils } from './inquirer.utils';
 
 export class CLIUtils {
   static readonly clearPreviousLine = () => {
@@ -30,6 +34,25 @@ export class CLIUtils {
     ux.action.stop(ux.colorize('green', 'done ✓'));
   };
 
+  static readonly progress = (opts: cliProgress.Options) => {
+    return new cliProgress.SingleBar(
+      { noTTYOutput: Boolean(!process.stdin.isTTY), ...opts },
+      cliProgress.Presets.shades_classic,
+    );
+  };
+
+  static readonly table = (reporter: (message: string) => void, header: Header[], rows: object[]) => {
+    const table = Table(header, rows);
+    reporter(table.render());
+  };
+
+  static readonly generateTableHeaderFromType = <T extends object>(): Header[] => {
+    return Object.keys({} as T).map((key) => ({
+      value: key,
+      alias: key.charAt(0).toUpperCase() + key.slice(1),
+    }));
+  };
+
   static readonly CommonFlags = {
     'non-interactive': Flags.boolean({
       char: 'n',
@@ -49,7 +72,7 @@ export class CLIUtils {
     command: {
       nonInteractive: boolean;
       maxAttempts?: number;
-      prompt: { message: string; options?: ux.IPromptOptions };
+      prompt: { message: string; options: PromptOptions };
     },
     validation: {
       validate: (value: string) => Promise<boolean> | boolean;
@@ -83,7 +106,7 @@ export class CLIUtils {
   };
 
   private static readonly promptWithAttempts = async (
-    prompt: { message: string; options?: ux.IPromptOptions },
+    prompt: { message: string; options: PromptOptions },
     maxAttempts = 3,
     validation: {
       validate: (value: string) => Promise<boolean> | boolean;
@@ -96,7 +119,7 @@ export class CLIUtils {
     let currentAttempts = 0;
     let promptValue = '';
     do {
-      promptValue = await ux.prompt(prompt.message, prompt.options);
+      promptValue = await InquirerUtils.prompt(prompt.message, prompt.options);
       if (validation.canBeEmpty) {
         if (!promptValue || promptValue.trim().length === 0) {
           return '';
@@ -118,20 +141,6 @@ export class CLIUtils {
     }
   };
 
-  static readonly prompt = async (
-    prompt: { message: string; options?: ux.IPromptOptions; error?: Error },
-    validate?: (value: string) => boolean,
-  ): Promise<string> => {
-    const promptValue = await ux.prompt(prompt.message, prompt.options);
-    if (validate) {
-      const isValid = validate(promptValue);
-      if (!isValid) {
-        throw prompt.error;
-      }
-    }
-    return promptValue;
-  };
-
   static readonly timer = () => {
     const start = new Date();
     return {
@@ -146,7 +155,7 @@ export class CLIUtils {
   static readonly parseEmpty = async (input: string) => (input.trim().length === 0 ? ' ' : input);
 }
 
-class NoFlagProvidedError extends Error {
+export class NoFlagProvidedError extends Error {
   constructor(flag: string) {
     super(`No ${flag} flag has been provided`);
 

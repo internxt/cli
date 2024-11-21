@@ -1,10 +1,10 @@
 import { Command, Flags } from '@oclif/core';
 import { ConfigService } from '../services/config.service';
 import { CLIUtils } from '../utils/cli.utils';
-import { MissingCredentialsError, NotValidYesOrNoError } from '../types/command.types';
+import { MissingCredentialsError } from '../types/command.types';
 import { ErrorUtils } from '../utils/errors.utils';
 import { TrashService } from '../services/drive/trash.service';
-import { ValidationService } from '../services/validation.service';
+import { InquirerUtils } from '../utils/inquirer.utils';
 
 export default class TrashClear extends Command {
   static readonly args = {};
@@ -21,7 +21,7 @@ export default class TrashClear extends Command {
   };
   static readonly enableJsonFlag = true;
 
-  public async run() {
+  public run = async () => {
     const { flags } = await this.parse(TrashClear);
 
     const userCredentials = await ConfigService.instance.readUser();
@@ -43,18 +43,18 @@ export default class TrashClear extends Command {
     }
 
     await TrashService.instance.clearTrash();
-    const message = 'Trash emptied correctly';
+    const message = 'Trash emptied successfully.';
     CLIUtils.success(this.log.bind(this), message);
     return { success: true, message };
-  }
+  };
 
-  async catch(error: Error) {
+  public catch = async (error: Error) => {
     ErrorUtils.report(this.error.bind(this), error, { command: this.id });
     CLIUtils.error(this.log.bind(this), error.message);
     this.exit(1);
-  }
+  };
 
-  public getConfirmation = async (): Promise<string> => {
+  private getConfirmation = async (): Promise<string> => {
     let confirmation = (await this.getConfirmationInteractively()).trim().toLowerCase();
     if (confirmation.length === 0) {
       confirmation = 'no';
@@ -62,15 +62,13 @@ export default class TrashClear extends Command {
     return confirmation.charAt(0);
   };
 
-  public getConfirmationInteractively = (): Promise<string> => {
-    return CLIUtils.prompt(
+  private getConfirmationInteractively = (): Promise<string> => {
+    return InquirerUtils.prompt(
+      'Empty trash? All items in the Drive Trash will be permanently deleted. This action cannot be undone.',
       {
-        message:
-          'Empty trash? All items in the Drive Trash will be permanently deleted. This action cannot be undone. [y/N]',
-        options: { required: false },
-        error: new NotValidYesOrNoError(),
+        type: 'confirm',
+        confirm: { default: false },
       },
-      ValidationService.instance.validateYesOrNoString,
     );
   };
 }

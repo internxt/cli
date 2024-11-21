@@ -12,7 +12,7 @@ export default class Logout extends Command {
   static readonly flags = {};
   static readonly enableJsonFlag = true;
 
-  public async run() {
+  public run = async () => {
     const user = await ConfigService.instance.readUser();
     if (user) {
       await ConfigService.instance.clearUser();
@@ -25,11 +25,11 @@ export default class Logout extends Command {
       CLIUtils.error(this.log.bind(this), message);
       return { success: false, message };
     }
-  }
+  };
 
-  async catch(error: Error) {
+  public catch = async (error: Error) => {
     ErrorUtils.report(this.error.bind(this), error, { command: this.id });
     CLIUtils.error(this.log.bind(this), error.message);
     this.exit(1);
-  }
+  };
 }
