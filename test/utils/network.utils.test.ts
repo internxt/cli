@@ -1,19 +1,35 @@
-import { expect } from 'chai';
-import Sinon, { SinonSandbox } from 'sinon';
-import fs from 'fs';
-import crypto, { randomBytes } from 'crypto';
-import selfsigned from 'selfsigned';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { randomBytes, X509Certificate } from 'node:crypto';
+import selfsigned, { GenerateResult } from 'selfsigned';
+import { readFile, stat, writeFile } from 'node:fs/promises';
 import { NetworkUtils } from '../../src/utils/network.utils';
+import { Stats } from 'node:fs';
+
+vi.mock('node:fs/promises', async () => {
+  const actual = await vi.importActual<typeof import('node:fs/promises')>('node:fs/promises');
+  return {
+    ...(actual as object),
+    readFile: vi.fn().mockImplementation(actual.readFile),
+    writeFile: vi.fn().mockImplementation(actual.writeFile),
+    stat: vi.fn().mockImplementation(actual.stat),
+  };
+});
+const mockReadFile = vi.mocked(readFile);
+const mockWriteFile = vi.mocked(writeFile);
+const mockStat = vi.mocked(stat);
+
+vi.mock('node:crypto', async () => {
+  const actual = await vi.importActual<typeof import('node:crypto')>('node:crypto');
+  return {
+    ...(actual as object),
+    X509Certificate: vi.fn().mockImplementation((_) => new actual.X509Certificate(_)),
+  };
+});
+const mock509Certificate = vi.mocked(X509Certificate);
 
 describe('Network utils', () => {
-  let networkUtilsSandbox: SinonSandbox;
-
   beforeEach(() => {
-    networkUtilsSandbox = Sinon.createSandbox();
-  });
-
-  afterEach(() => {
-    networkUtilsSandbox.restore();
+    vi.restoreAllMocks();
   });
 
   it('When obtaining auth credentials, should return the password as a SHA256 hash', async () => {
@@ -26,28 +42,28 @@ describe('Network utils', () => {
   });
 
   it('When webdav ssl certs are required but they dont exist, then they are generated and self signed on the fly, and they are also saved to files', async () => {
-    const sslSelfSigned: selfsigned.GenerateResult = {
+    const sslSelfSigned: GenerateResult = {
       private: randomBytes(8).toString('hex'),
       public: randomBytes(8).toString('hex'),
       cert: randomBytes(8).toString('hex'),
       fingerprint: randomBytes(8).toString('hex'),
     };
-    networkUtilsSandbox.stub(fs, 'existsSync').returns(false);
 
-    const stubGerateSelfsignedCerts = networkUtilsSandbox
-      .stub(selfsigned, 'generate')
-      // @ts-expect-error - We stub the stat method partially
-      .returns(sslSelfSigned);
+    mockReadFile.mockImplementation(() => {
+      throw new Error();
+    });
+    mockWriteFile.mockImplementation(async () => {});
+    mockStat.mockImplementation(async () => {
+      return Promise.reject();
+    });
+    const selfsignedSpy = vi.spyOn(selfsigned, 'generate').mockImplementation(() => sslSelfSigned);
 
-    const stubSaveCerts = networkUtilsSandbox.stub(fs, 'writeFileSync').returns();
-
-    networkUtilsSandbox.stub(fs, 'readFileSync').rejects();
-
-    const result = NetworkUtils.getWebdavSSLCerts();
+    const result = await NetworkUtils.getWebdavSSLCerts();
 
     expect(result).to.deep.equal({ cert: sslSelfSigned.cert, key: sslSelfSigned.private });
-    expect(stubGerateSelfsignedCerts.calledOnce).to.be.true;
-    expect(stubSaveCerts.calledTwice).to.be.true;
+    expect(selfsignedSpy).toHaveBeenCalledOnce();
+    expect(mockWriteFile).toHaveBeenCalledTimes(2);
+    expect(mockReadFile).not.toHaveBeenCalled();
   });
 
   it('When webdav ssl certs are required but they exist, then they are read from the files', async () => {
@@ -55,26 +71,38 @@ describe('Network utils', () => {
       private: randomBytes(8).toString('hex'),
       cert: randomBytes(8).toString('hex'),
     };
-    networkUtilsSandbox.stub(fs, 'existsSync').returns(true);
-    networkUtilsSandbox.stub(fs, 'writeFileSync').rejects();
 
-    networkUtilsSandbox
-      .stub(fs, 'readFileSync')
-      .withArgs(NetworkUtils.WEBDAV_SSL_CERTS_PATH.cert)
-      .returns(sslMock.cert)
-      .withArgs(NetworkUtils.WEBDAV_SSL_CERTS_PATH.privateKey)
-      .returns(sslMock.private);
+    mockReadFile
+      .mockImplementationOnce(async () => {
+        return Promise.resolve(sslMock.cert);
+      })
+      .mockImplementationOnce(async () => {
+        return Promise.resolve(sslMock.private);
+      });
+    mockWriteFile.mockImplementation(() => {
+      throw new Error();
+    });
+    mockStat.mockImplementation(async () => {
+      return Promise.resolve({} as Stats);
+    });
+
     const future = new Date();
     future.setDate(future.getDate() + 1);
-    networkUtilsSandbox.stub(crypto, 'X509Certificate').returns({ validTo: future });
+    // @ts-expect-error - We stub the stat method partially
+    mock509Certificate.mockImplementation(() => ({
+      validTo: future.toDateString(),
+    }));
 
-    const result = NetworkUtils.getWebdavSSLCerts();
+    const result = await NetworkUtils.getWebdavSSLCerts();
 
     expect(result).to.deep.equal({ cert: sslMock.cert, key: sslMock.private });
+    expect(mock509Certificate).toHaveBeenCalledOnce();
+    expect(mockWriteFile).not.toHaveBeenCalled();
+    expect(mockReadFile).toHaveBeenCalledTimes(2);
   });
 
   it('When webdav ssl certs are required and they exist, but they are expired, then they are generated and saved to files', async () => {
-    const sslSelfSigned: selfsigned.GenerateResult = {
+    const sslSelfSigned: GenerateResult = {
       private: randomBytes(8).toString('hex'),
       public: randomBytes(8).toString('hex'),
       cert: randomBytes(8).toString('hex'),
@@ -84,28 +112,34 @@ describe('Network utils', () => {
       private: randomBytes(8).toString('hex'),
       cert: randomBytes(8).toString('hex'),
     };
-    networkUtilsSandbox.stub(fs, 'existsSync').returns(true);
-    const stubSaveCerts = networkUtilsSandbox.stub(fs, 'writeFileSync').returns();
 
-    networkUtilsSandbox
-      .stub(fs, 'readFileSync')
-      .withArgs(NetworkUtils.WEBDAV_SSL_CERTS_PATH.cert)
-      .returns(sslMock.cert)
-      .withArgs(NetworkUtils.WEBDAV_SSL_CERTS_PATH.privateKey)
-      .returns(sslMock.private);
+    mockReadFile
+      .mockImplementationOnce(async () => {
+        return Promise.resolve(sslMock.cert);
+      })
+      .mockImplementationOnce(async () => {
+        return Promise.resolve(sslMock.private);
+      });
+    mockWriteFile.mockImplementation(async () => {});
+    mockStat.mockImplementation(async () => {
+      return Promise.resolve({} as Stats);
+    });
+
     const past = new Date();
     past.setDate(past.getDate() - 1);
-    networkUtilsSandbox.stub(crypto, 'X509Certificate').returns({ validTo: past });
+    // @ts-expect-error - We stub the stat method partially
+    mock509Certificate.mockImplementation(() => ({
+      validTo: past.toDateString(),
+    }));
 
-    const stubGerateSelfsignedCerts = networkUtilsSandbox
-      .stub(selfsigned, 'generate')
-      // @ts-expect-error - We stub the stat method partially
-      .returns(sslSelfSigned);
+    const selfsignedSpy = vi.spyOn(selfsigned, 'generate').mockImplementation(() => sslSelfSigned);
 
-    const result = NetworkUtils.getWebdavSSLCerts();
+    const result = await NetworkUtils.getWebdavSSLCerts();
 
     expect(result).to.deep.equal({ cert: sslSelfSigned.cert, key: sslSelfSigned.private });
-    expect(stubGerateSelfsignedCerts.calledOnce).to.be.true;
-    expect(stubSaveCerts.calledTwice).to.be.true;
+    expect(selfsignedSpy).toHaveBeenCalledOnce();
+    expect(mock509Certificate).toHaveBeenCalledOnce();
+    expect(mockWriteFile).toHaveBeenCalledTimes(2);
+    expect(mockReadFile).toHaveBeenCalledTimes(2);
   });
 });

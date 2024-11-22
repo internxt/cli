@@ -1,49 +1,43 @@
-import sinon from 'sinon';
-import { expect } from 'chai';
-import { randomUUID } from 'crypto';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { randomUUID } from 'node:crypto';
 import { Storage } from '@internxt/sdk/dist/drive';
 import { DriveFolderService } from '../../../src/services/drive/drive-folder.service';
 import { SdkManager } from '../../../src/services/sdk-manager.service';
 import { DriveUtils } from '../../../src/utils/drive.utils';
 import { generateSubcontent, newCreateFolderResponse, newFolderMeta } from '../../fixtures/drive.fixture';
-import { CreateFolderResponse } from '@internxt/sdk/dist/drive/storage/types';
+import { CreateFolderResponse, FetchPaginatedFile, FetchPaginatedFolder } from '@internxt/sdk/dist/drive/storage/types';
 
 describe('Drive folder Service', () => {
-  let sut: DriveFolderService;
-  const sandbox = sinon.createSandbox();
+  const sut = DriveFolderService.instance;
 
   beforeEach(() => {
-    sut = DriveFolderService.instance;
+    vi.restoreAllMocks();
   });
 
-  afterEach(() => {
-    sandbox.restore();
-  });
-
-  it('When folder metadata is requested by UUID, it is aquired correctly', async () => {
+  it('When folder metadata is requested by UUID, it is aquired successfully', async () => {
     const expectedFolderMeta = newFolderMeta();
     const expectedFolderItem = DriveUtils.driveFolderMetaToItem(expectedFolderMeta);
 
-    const spy = sandbox.stub(Storage.prototype, 'getFolderMeta').resolves(expectedFolderMeta);
-    sandbox.stub(SdkManager.instance, 'getStorage').returns(Storage.prototype);
+    const spy = vi.spyOn(Storage.prototype, 'getFolderMeta').mockResolvedValue(expectedFolderMeta);
+    vi.spyOn(SdkManager.instance, 'getStorage').mockReturnValue(Storage.prototype);
 
     const resultMetadata = await sut.getFolderMetaByUuid(expectedFolderMeta.uuid);
 
     expect(resultMetadata).to.deep.equal(expectedFolderItem);
-    expect(spy).to.be.calledWith(expectedFolderMeta.uuid);
+    expect(spy).toHaveBeenCalledWith(expectedFolderMeta.uuid);
   });
 
-  it('When folder metadata is requested by ID, it is aquired correctly', async () => {
+  it('When folder metadata is requested by ID, it is aquired successfully', async () => {
     const expectedFolderMeta = newFolderMeta();
     const expectedFolderItem = DriveUtils.driveFolderMetaToItem(expectedFolderMeta);
 
-    const spy = sandbox.stub(Storage.prototype, 'getFolderMetaById').resolves(expectedFolderMeta);
-    sandbox.stub(SdkManager.instance, 'getStorage').returns(Storage.prototype);
+    const spy = vi.spyOn(Storage.prototype, 'getFolderMetaById').mockResolvedValue(expectedFolderMeta);
+    vi.spyOn(SdkManager.instance, 'getStorage').mockReturnValue(Storage.prototype);
 
     const resultMetadata = await sut.getFolderMetaById(expectedFolderMeta.id);
 
     expect(resultMetadata).to.deep.equal(expectedFolderItem);
-    expect(spy).to.be.calledWith(expectedFolderMeta.id);
+    expect(spy).toHaveBeenCalledWith(expectedFolderMeta.id);
   });
 
   it('When folder content is requested, then all its subfolders and subfiles are returned', async () => {
@@ -51,27 +45,33 @@ describe('Drive folder Service', () => {
     const subContentFixture = generateSubcontent(parentUuid, 112, 117); //112 subfolders and 117 subfiles
     const requestCancelerMock = { cancel: () => {} };
 
-    sandbox
-      .stub(Storage.prototype, 'getFolderFoldersByUuid')
-      .withArgs(parentUuid, 0)
-      .returns([Promise.resolve({ folders: subContentFixture.folders.slice(0, 50) }), requestCancelerMock])
-      .withArgs(parentUuid, 50)
-      .returns([Promise.resolve({ folders: subContentFixture.folders.slice(50, 100) }), requestCancelerMock])
-      .withArgs(parentUuid, 100)
-      .returns([Promise.resolve({ folders: subContentFixture.folders.slice(100, 112) }), requestCancelerMock])
-      .withArgs(parentUuid, 112)
-      .returns([Promise.resolve({ folders: [] }), requestCancelerMock]);
-    sandbox
-      .stub(Storage.prototype, 'getFolderFilesByUuid')
-      .withArgs(parentUuid, 0)
-      .returns([Promise.resolve({ files: subContentFixture.files.slice(0, 50) }), requestCancelerMock])
-      .withArgs(parentUuid, 50)
-      .returns([Promise.resolve({ files: subContentFixture.files.slice(50, 100) }), requestCancelerMock])
-      .withArgs(parentUuid, 100)
-      .returns([Promise.resolve({ files: subContentFixture.files.slice(100, 117) }), requestCancelerMock])
-      .withArgs(parentUuid, 117)
-      .returns([Promise.resolve({ files: [] }), requestCancelerMock]);
-    sandbox.stub(SdkManager.instance, 'getStorage').returns(Storage.prototype);
+    vi.spyOn(Storage.prototype, 'getFolderFoldersByUuid').mockImplementation((_: string, offset) => {
+      let foldersContent: FetchPaginatedFolder[] = [];
+      if (offset === 0) {
+        foldersContent = subContentFixture.folders.slice(0, 50);
+      } else if (offset === 50) {
+        foldersContent = subContentFixture.folders.slice(50, 100);
+      } else if (offset === 100) {
+        foldersContent = subContentFixture.folders.slice(100, 117);
+      } else if (offset === 117) {
+        foldersContent = [];
+      }
+      return [Promise.resolve({ folders: foldersContent }), requestCancelerMock];
+    });
+    vi.spyOn(Storage.prototype, 'getFolderFilesByUuid').mockImplementation((_: string, offset) => {
+      let filesContent: FetchPaginatedFile[] = [];
+      if (offset === 0) {
+        filesContent = subContentFixture.files.slice(0, 50);
+      } else if (offset === 50) {
+        filesContent = subContentFixture.files.slice(50, 100);
+      } else if (offset === 100) {
+        filesContent = subContentFixture.files.slice(100, 117);
+      } else if (offset === 117) {
+        filesContent = [];
+      }
+      return [Promise.resolve({ files: filesContent }), requestCancelerMock];
+    });
+    vi.spyOn(SdkManager.instance, 'getStorage').mockReturnValue(Storage.prototype);
 
     const resultContent = await sut.getFolderContent(parentUuid);
 
@@ -81,10 +81,11 @@ describe('Drive folder Service', () => {
   it('When a folder is created, the new folder and a request canceler are returned', async () => {
     const newFolderResponse = newCreateFolderResponse();
 
-    sandbox
-      .stub(Storage.prototype, 'createFolderByUuid')
-      .returns([Promise.resolve<CreateFolderResponse>(newFolderResponse), { cancel: () => {} }]);
-    sandbox.stub(SdkManager.instance, 'getStorage').returns(Storage.prototype);
+    vi.spyOn(Storage.prototype, 'createFolderByUuid').mockReturnValue([
+      Promise.resolve<CreateFolderResponse>(newFolderResponse),
+      { cancel: () => {} },
+    ]);
+    vi.spyOn(SdkManager.instance, 'getStorage').mockReturnValue(Storage.prototype);
 
     const [createFolder] = sut.createFolder({
       plainName: newFolderResponse.plainName,
@@ -92,6 +93,6 @@ describe('Drive folder Service', () => {
     });
 
     const newFolder = await createFolder;
-    expect(newFolder).to.be.eq(newFolderResponse);
+    expect(newFolder).to.be.equal(newFolderResponse);
   });
 });

@@ -1,14 +1,11 @@
-import sinon from 'sinon';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { OPTIONSRequestHandler } from '../../../src/webdav/handlers/OPTIONS.handler';
 import { UserSettingsFixture } from '../../fixtures/auth.fixture';
 import { createWebDavRequestFixture, createWebDavResponseFixture } from '../../fixtures/webdav.fixture';
-import { expect } from 'chai';
 
 describe('OPTIONS request handler', () => {
-  const sandbox = sinon.createSandbox();
-
-  afterEach(() => {
-    sandbox.restore();
+  beforeEach(() => {
+    vi.restoreAllMocks();
   });
 
   it('When a WebDav client sends an OPTIONS request, it should return the allowed methods', async () => {
@@ -19,19 +16,17 @@ describe('OPTIONS request handler', () => {
       user: UserSettingsFixture,
     });
     const response = createWebDavResponseFixture({
-      header: sinon.stub(),
-      status: sinon.stub().returns({ send: sinon.stub() }),
+      header: vi.fn(),
+      status: vi.fn().mockReturnValue({ send: vi.fn() }),
     });
 
     await requestHandler.handle(request, response);
 
-    expect(response.status.calledWith(200)).to.be.true;
-    expect(
-      response.header.calledWith(
-        'Allow',
-        'OPTIONS, GET, HEAD, POST, PUT, DELETE, PROPFIND, PROPPATCH, MKCOL, COPY, MOVE, LOCK, UNLOCK',
-      ),
-    ).to.be.true;
-    expect(response.header.calledWith('DAV', '1, 2, ordered-collections')).to.be.true;
+    expect(response.status).toHaveBeenCalledWith(200);
+    expect(response.header).toHaveBeenCalledWith(
+      'Allow',
+      'OPTIONS, GET, HEAD, POST, PUT, DELETE, PROPFIND, PROPPATCH, MKCOL, COPY, MOVE, LOCK, UNLOCK',
+    );
+    expect(response.header).toHaveBeenCalledWith('DAV', '1, 2, ordered-collections');
   });
 });

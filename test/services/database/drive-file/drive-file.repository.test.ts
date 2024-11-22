@@ -1,13 +1,12 @@
-import sinon from 'sinon';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { DriveFileRepository } from '../../../../src/services/database/drive-file/drive-file.repository';
 import DriveFileModel from '../../../../src/services/database/drive-file/drive-file.model';
-import { expect } from 'chai';
 
 describe('Drive File repository', () => {
-  const sandbox = sinon.createSandbox();
-  afterEach(() => {
-    sandbox.restore();
+  beforeEach(() => {
+    vi.restoreAllMocks();
   });
+
   it('When a file is found by ID, should map it to a DriveFile object', async () => {
     const sut = new DriveFileRepository();
 
@@ -26,11 +25,14 @@ describe('Drive File repository', () => {
       updatedAt: new Date(),
       toJSON: () => databaseItem,
     };
-    const driveFileModelFindStub = sandbox.stub(DriveFileModel, 'findByPk').resolves(databaseItem as DriveFileModel);
+    const driveFileModelFindStub = vi
+      .spyOn(DriveFileModel, 'findByPk')
+      .mockResolvedValue(databaseItem as DriveFileModel);
     const result = await sut.findById(123);
 
-    expect(driveFileModelFindStub.calledOnce).to.be.true;
-
-    expect(result?.type).to.eq('png');
+    expect(driveFileModelFindStub).to.toHaveBeenCalledOnce();
+    expect(result?.type).to.be.equal('png');
+    expect(result?.name).to.be.equal('file1');
+    expect(result?.uuid).to.be.equal('44444555');
   });
 });

@@ -1,7 +1,6 @@
-import { expect } from 'chai';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import express from 'express';
-import sinon from 'sinon';
-import { randomBytes, randomInt } from 'crypto';
+import { randomBytes, randomInt } from 'node:crypto';
 import http from 'http';
 import https from 'https';
 import { ConfigService } from '../../src/services/config.service';
@@ -19,10 +18,8 @@ import { WebdavConfig } from '../../src/types/command.types';
 import { UserCredentialsFixture } from '../fixtures/login.fixture';
 
 describe('WebDav server', () => {
-  const sandbox = sinon.createSandbox();
-
-  afterEach(() => {
-    sandbox.restore();
+  beforeEach(() => {
+    vi.restoreAllMocks();
   });
 
   it('When the WebDav server is started with https, it should generate self-signed certificates', async () => {
@@ -37,17 +34,20 @@ describe('WebDav server', () => {
       fingerprint: randomBytes(8).toString('hex'),
     };
 
-    sandbox.stub(ConfigService.instance, 'readWebdavConfig').resolves(webdavConfig);
-    sandbox.stub(ConfigService.instance, 'readUser').resolves(UserCredentialsFixture);
+    vi.spyOn(ConfigService.instance, 'readWebdavConfig').mockResolvedValue(webdavConfig);
+    vi.spyOn(ConfigService.instance, 'readUser').mockResolvedValue(UserCredentialsFixture);
     // @ts-expect-error - We stub the method partially
-    const createHTTPSServerStub = sandbox.stub(https, 'createServer').returns({
-      listen: sandbox.stub().resolves(),
+    const createHTTPSServerStub = vi.spyOn(https, 'createServer').mockReturnValue({
+      listen: vi.fn().mockResolvedValue({}),
     });
     // @ts-expect-error - We stub the method partially
-    const createHTTPServerStub = sandbox.stub(http, 'createServer').returns({
-      listen: sandbox.stub().rejects(),
+    const createHTTPServerStub = vi.spyOn(http, 'createServer').mockReturnValue({
+      listen: vi.fn().mockRejectedValue(new Error()),
     });
-    sandbox.stub(NetworkUtils, 'getWebdavSSLCerts').returns({ cert: sslSelfSigned.cert, key: sslSelfSigned.private });
+    vi.spyOn(NetworkUtils, 'getWebdavSSLCerts').mockResolvedValue({
+      cert: sslSelfSigned.cert,
+      key: sslSelfSigned.private,
+    });
 
     const app = express();
     const server = new WebDavServer(
@@ -64,8 +64,9 @@ describe('WebDav server', () => {
     );
     await server.start();
 
-    expect(createHTTPSServerStub).to.be.calledOnceWith({ cert: sslSelfSigned.cert, key: sslSelfSigned.private });
-    expect(createHTTPServerStub.called).to.be.false;
+    expect(createHTTPSServerStub).toHaveBeenCalledOnce();
+    expect(createHTTPSServerStub).toHaveBeenCalledWith({ cert: sslSelfSigned.cert, key: sslSelfSigned.private }, app);
+    expect(createHTTPServerStub).not.toHaveBeenCalled();
   });
 
   it('When the WebDav server is started with http, it should run http', async () => {
@@ -74,15 +75,15 @@ describe('WebDav server', () => {
       protocol: 'http',
     };
 
-    sandbox.stub(ConfigService.instance, 'readWebdavConfig').resolves(webdavConfig);
-    sandbox.stub(ConfigService.instance, 'readUser').resolves(UserCredentialsFixture);
+    vi.spyOn(ConfigService.instance, 'readWebdavConfig').mockResolvedValue(webdavConfig);
+    vi.spyOn(ConfigService.instance, 'readUser').mockResolvedValue(UserCredentialsFixture);
     // @ts-expect-error - We stub the method partially
-    const createHTTPServerStub = sandbox.stub(http, 'createServer').returns({
-      listen: sandbox.stub().resolves(),
+    const createHTTPServerStub = vi.spyOn(http, 'createServer').mockReturnValue({
+      listen: vi.fn().mockResolvedValue({}),
     });
     // @ts-expect-error - We stub the method partially
-    const createHTTPSServerStub = sandbox.stub(https, 'createServer').returns({
-      listen: sandbox.stub().rejects(),
+    const createHTTPSServerStub = vi.spyOn(https, 'createServer').mockReturnValue({
+      listen: vi.fn().mockRejectedValue(new Error()),
     });
 
     const app = express();
@@ -100,7 +101,8 @@ describe('WebDav server', () => {
     );
     await server.start();
 
-    expect(createHTTPServerStub.calledOnce).to.be.true;
-    expect(createHTTPSServerStub.called).to.be.false;
+    expect(createHTTPServerStub).toHaveBeenCalledOnce();
+    expect(createHTTPServerStub).toHaveBeenCalledWith(app);
+    expect(createHTTPSServerStub).not.toHaveBeenCalled();
   });
 });

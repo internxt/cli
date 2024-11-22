@@ -1,12 +1,11 @@
-import { expect } from 'chai';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ErrorUtils } from '../../src/utils/errors.utils';
-import sinon from 'sinon';
 
 describe('Errors Utils', () => {
-  const reporter = sinon.spy();
+  const reporter = vi.fn();
 
-  afterEach(() => {
-    reporter.resetHistory();
+  beforeEach(() => {
+    vi.restoreAllMocks();
   });
 
   it('When reporting an error, should call console.error with the expected message and properties', () => {
@@ -15,11 +14,10 @@ describe('Errors Utils', () => {
 
     ErrorUtils.report(reporter, error, props);
 
-    expect(reporter.calledOnce).to.be.true;
-    expect(reporter.firstCall.args[0]).to.contain('[REPORTED_ERROR]');
-    expect(reporter.firstCall.args[0]).to.contain(error.message);
-    expect(reporter.firstCall.args[0]).to.contain(JSON.stringify(props, null, 2));
-    expect(reporter.firstCall.args[0]).to.contain(error.stack);
+    expect(reporter).toHaveBeenCalledOnce();
+    expect(reporter).toHaveBeenCalledWith(
+      `[REPORTED_ERROR]: ${error.message}\nProperties => ${JSON.stringify(props, null, 2)}\nStack => ${error.stack}`,
+    );
   });
 
   it('When reporting an object, should call console.error with the expected message and properties', () => {
@@ -28,8 +26,9 @@ describe('Errors Utils', () => {
 
     ErrorUtils.report(reporter, error, props);
 
-    expect(reporter.calledOnce).to.be.true;
-    expect(reporter.firstCall.args[0]).to.contain('[REPORTED_ERROR]');
-    expect(reporter.firstCall.args[0]).to.contain(JSON.stringify(props, null, 2));
+    expect(reporter).toHaveBeenCalledOnce();
+    expect(reporter).toHaveBeenCalledWith(
+      `[REPORTED_ERROR]: ${JSON.stringify(error)}\nProperties => ${JSON.stringify(props, null, 2)}\n`,
+    );
   });
 });

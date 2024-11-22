@@ -1,25 +1,19 @@
-import sinon from 'sinon';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { DriveFileService } from '../../../src/services/drive/drive-file.service';
 import { SdkManager } from '../../../src/services/sdk-manager.service';
-import { expect } from 'chai';
 import Storage, { DriveFileData, EncryptionVersion } from '@internxt/sdk/dist/drive/storage/types';
 import { Drive } from '@internxt/sdk';
-import { randomUUID } from 'crypto';
+import { randomUUID } from 'node:crypto';
 import { CommonFixture } from '../../fixtures/common.fixture';
 
 describe('Drive file Service', () => {
-  let sut: DriveFileService;
-  const sandbox = sinon.createSandbox();
+  const sut = DriveFileService.instance;
 
   beforeEach(() => {
-    sut = DriveFileService.instance;
+    vi.restoreAllMocks();
   });
 
-  afterEach(() => {
-    sandbox.restore();
-  });
-
-  it('When a file is created, should be created correctly', async () => {
+  it('When a file is created, should be created successfully', async () => {
     const payload: Storage.FileEntryByUuid = {
       plain_name: 'example.txt',
       type: 'txt',
@@ -32,7 +26,7 @@ describe('Drive file Service', () => {
     };
 
     const storageClientMock: Partial<Drive.Storage> = {
-      createFileEntryByUuid: sinon.stub().resolves({
+      createFileEntryByUuid: vi.fn().mockResolvedValue({
         id: 'example-id',
         uuid: 'example-uuid',
         createdAt: new Date(),
@@ -44,16 +38,16 @@ describe('Drive file Service', () => {
     };
 
     // @ts-expect-error - We only stub the method we need to test
-    sandbox.stub(SdkManager.instance, 'getStorage').returns(storageClientMock);
+    vi.spyOn(SdkManager.instance, 'getStorage').mockReturnValue(storageClientMock);
 
     const result = await sut.createFile(payload);
 
-    expect(result.bucket).to.equal(payload.bucket);
-    expect(result.name).to.equal(payload.plain_name);
-    expect(result.folderUuid).to.equal(payload.folder_id);
+    expect(result.bucket).to.be.equal(payload.bucket);
+    expect(result.name).to.be.equal(payload.plain_name);
+    expect(result.folderUuid).to.be.equal(payload.folder_id);
   });
 
-  it('When we want to obtain a file metadata, should return it correctly', async () => {
+  it('When we want to obtain a file metadata, should return it successfully', async () => {
     const fakeFileData: DriveFileData = {
       uuid: randomUUID(),
       bucket: CommonFixture.createObjectId(),
@@ -77,15 +71,15 @@ describe('Drive file Service', () => {
       folderUuid: randomUUID(),
     };
     const storageClientMock: Partial<Storage> = {
-      getFile: sinon.stub().returns([Promise.resolve(fakeFileData)]),
+      getFile: vi.fn().mockReturnValue([Promise.resolve(fakeFileData)]),
     };
 
     // @ts-expect-error - We only stub the method we need to test
-    sandbox.stub(SdkManager.instance, 'getStorage').returns(storageClientMock);
+    vi.spyOn(SdkManager.instance, 'getStorage').mockReturnValue(storageClientMock);
 
     const result = await sut.getFileMetadata(fakeFileData.uuid);
 
-    expect(result.bucket).to.equal(fakeFileData.bucket);
-    expect(result.uuid).to.equal(fakeFileData.uuid);
+    expect(result.bucket).to.be.equal(fakeFileData.bucket);
+    expect(result.uuid).to.be.equal(fakeFileData.uuid);
   });
 });

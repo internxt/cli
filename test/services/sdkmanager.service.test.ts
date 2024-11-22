@@ -1,7 +1,5 @@
-import chai, { expect } from 'chai';
-import sinon, { SinonSandbox } from 'sinon';
-import sinonChai from 'sinon-chai';
-import crypto from 'crypto';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import crypto from 'node:crypto';
 import { Auth, Drive, Network } from '@internxt/sdk';
 import { Trash } from '@internxt/sdk/dist/drive';
 import { SdkManager, SdkManagerApiSecurity } from '../../src/services/sdk-manager.service';
@@ -9,59 +7,49 @@ import { ConfigKeys } from '../../src/types/config.types';
 import { ConfigService } from '../../src/services/config.service';
 import { AppDetails } from '@internxt/sdk/dist/shared';
 import packageJson from '../../package.json';
-
-chai.use(sinonChai);
+import { fail } from 'node:assert';
+import { ApiSecurityFixture } from '../fixtures/login.fixture';
 
 describe('SDKManager service', () => {
-  let sdkManagerServiceSandbox: SinonSandbox;
-
-  const apiSecurity: SdkManagerApiSecurity = {
-    newToken: crypto.randomBytes(16).toString('hex'),
-    token: crypto.randomBytes(16).toString('hex'),
-  };
   const appDetails: AppDetails = {
     clientName: crypto.randomBytes(16).toString('hex'),
     clientVersion: crypto.randomBytes(16).toString('hex'),
   };
 
   beforeEach(() => {
-    sdkManagerServiceSandbox = sinon.createSandbox();
+    vi.restoreAllMocks();
   });
 
-  afterEach(() => {
-    sdkManagerServiceSandbox.restore();
-  });
-
-  it('When SDKManager apiSecurity is requested, then it is returned from static property', () => {
-    const apiSecurity: SdkManagerApiSecurity = {
+  it('When SDKManager ApiSecurityFixture is requested, then it is returned from static property', () => {
+    const ApiSecurityFixture: SdkManagerApiSecurity = {
       newToken: crypto.randomBytes(16).toString('hex'),
       token: crypto.randomBytes(16).toString('hex'),
     };
-    SdkManager.init(apiSecurity);
+    SdkManager.init(ApiSecurityFixture);
 
-    expect(SdkManager.getApiSecurity()).to.eql(apiSecurity);
+    expect(SdkManager.getApiSecurity()).to.be.deep.equal(ApiSecurityFixture);
   });
 
-  it('When SDKManager apiSecurity is requested but it is not started, then an error is thrown', () => {
+  it('When SDKManager ApiSecurityFixture is requested but it is not started, then an error is thrown', () => {
     try {
       SdkManager.getApiSecurity();
-      expect(false).to.be.true; //should throw error
+      fail('Expected function to throw an error, but it did not.');
     } catch {
       /* no op */
     }
   });
 
-  it('When SDKManager is cleaned, then apiSecurity property is cleaned', () => {
-    SdkManager.init(apiSecurity);
+  it('When SDKManager is cleaned, then ApiSecurityFixture property is cleaned', () => {
+    SdkManager.init(ApiSecurityFixture);
     SdkManager.clean();
     try {
       SdkManager.getApiSecurity({ throwErrorOnMissingCredentials: true });
-      expect(false).to.be.true; //should throw error
+      fail('Expected function to throw an error, but it did not.');
     } catch {
       /* no op */
     }
     const apiSecurityResponse = SdkManager.getApiSecurity({ throwErrorOnMissingCredentials: false });
-    expect(apiSecurityResponse).to.be.undefined;
+    expect(apiSecurityResponse).to.be.equal(undefined);
   });
 
   it('When getAppDetails is requested, then it is generated using packageJson values', () => {
@@ -69,11 +57,11 @@ describe('SDKManager service', () => {
       clientName: packageJson.name,
       clientVersion: packageJson.version,
     };
-    /*sdkManagerServiceSandbox.stub(packageJson, 'name').returns(appDetails.clientName);
-    sdkManagerServiceSandbox.stub(packageJson, 'version').returns(appDetails.clientVersion);*/
+    /*vi.spyOn(packageJson, 'name').mockReturnValue(appDetails.clientName);
+    vi.spyOn(packageJson, 'version').mockReturnValue(appDetails.clientVersion);*/
 
     const appDetailsResponse = SdkManager.getAppDetails();
-    expect(expectedAppdetails).to.eql(appDetailsResponse);
+    expect(expectedAppdetails).to.be.deep.equal(appDetailsResponse);
   });
 
   it('When Auth client is requested, then it is generated using internxt sdk', () => {
@@ -81,23 +69,19 @@ describe('SDKManager service', () => {
       key: 'DRIVE_API_URL',
       value: 'test/api',
     };
-    SdkManager.init(apiSecurity);
+    SdkManager.init(ApiSecurityFixture);
 
-    const authClient = Auth.client(envEndpoint.value, appDetails, apiSecurity);
+    const authClient = Auth.client(envEndpoint.value, appDetails, ApiSecurityFixture);
 
-    const spyConfigService = sdkManagerServiceSandbox
-      .stub(ConfigService.instance, 'get')
-      .withArgs(envEndpoint.key)
-      .returns(envEndpoint.value);
-    sdkManagerServiceSandbox.stub(SdkManager, 'getApiSecurity').returns(apiSecurity);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    sdkManagerServiceSandbox.stub(SdkManager, <any>'getAppDetails').returns(appDetails);
-    sdkManagerServiceSandbox.stub(Auth, 'client').returns(authClient);
+    const spyConfigService = vi.spyOn(ConfigService.instance, 'get').mockReturnValue(envEndpoint.value);
+    vi.spyOn(SdkManager, 'getApiSecurity').mockReturnValue(ApiSecurityFixture);
+    vi.spyOn(SdkManager, 'getAppDetails').mockReturnValue(appDetails);
+    vi.spyOn(Auth, 'client').mockReturnValue(authClient);
 
     const auth = SdkManager.instance.getAuth();
 
-    expect(spyConfigService).to.be.calledWith(envEndpoint.key);
-    expect(auth).to.eql(authClient);
+    expect(spyConfigService).toHaveBeenCalledWith(envEndpoint.key);
+    expect(auth).to.be.deep.equal(authClient);
   });
 
   it('When Auth client is requested with useNewApi, then it is generated using internxt sdk using the new API endpoint', () => {
@@ -105,23 +89,19 @@ describe('SDKManager service', () => {
       key: 'DRIVE_NEW_API_URL',
       value: 'test/new-api',
     };
-    SdkManager.init(apiSecurity);
+    SdkManager.init(ApiSecurityFixture);
 
-    const authClient = Auth.client(envEndpoint.value, appDetails, apiSecurity);
+    const authClient = Auth.client(envEndpoint.value, appDetails, ApiSecurityFixture);
 
-    const spyConfigService = sdkManagerServiceSandbox
-      .stub(ConfigService.instance, 'get')
-      .withArgs(envEndpoint.key)
-      .returns(envEndpoint.value);
-    sdkManagerServiceSandbox.stub(SdkManager, 'getApiSecurity').returns(apiSecurity);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    sdkManagerServiceSandbox.stub(SdkManager, <any>'getAppDetails').returns(appDetails);
-    sdkManagerServiceSandbox.stub(Auth, 'client').returns(authClient);
+    const spyConfigService = vi.spyOn(ConfigService.instance, 'get').mockReturnValue(envEndpoint.value);
+    vi.spyOn(SdkManager, 'getApiSecurity').mockReturnValue(ApiSecurityFixture);
+    vi.spyOn(SdkManager, 'getAppDetails').mockReturnValue(appDetails);
+    vi.spyOn(Auth, 'client').mockReturnValue(authClient);
 
     const auth = SdkManager.instance.getAuth(true);
 
-    expect(spyConfigService).to.be.calledWith(envEndpoint.key);
-    expect(auth).to.eql(authClient);
+    expect(spyConfigService).toHaveBeenCalledWith(envEndpoint.key);
+    expect(auth).to.be.deep.equal(authClient);
   });
 
   it('When Payments client is requested, then it is generated using internxt sdk', () => {
@@ -129,23 +109,19 @@ describe('SDKManager service', () => {
       key: 'PAYMENTS_API_URL',
       value: 'test/api',
     };
-    SdkManager.init(apiSecurity);
+    SdkManager.init(ApiSecurityFixture);
 
-    const client = Drive.Payments.client(envEndpoint.value, appDetails, apiSecurity);
+    const client = Drive.Payments.client(envEndpoint.value, appDetails, ApiSecurityFixture);
 
-    const spyConfigService = sdkManagerServiceSandbox
-      .stub(ConfigService.instance, 'get')
-      .withArgs(envEndpoint.key)
-      .returns(envEndpoint.value);
-    sdkManagerServiceSandbox.stub(SdkManager, 'getApiSecurity').returns(apiSecurity);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    sdkManagerServiceSandbox.stub(SdkManager, <any>'getAppDetails').returns(appDetails);
-    sdkManagerServiceSandbox.stub(Drive.Payments, 'client').returns(client);
+    const spyConfigService = vi.spyOn(ConfigService.instance, 'get').mockReturnValue(envEndpoint.value);
+    vi.spyOn(SdkManager, 'getApiSecurity').mockReturnValue(ApiSecurityFixture);
+    vi.spyOn(SdkManager, 'getAppDetails').mockReturnValue(appDetails);
+    vi.spyOn(Drive.Payments, 'client').mockReturnValue(client);
 
     const newClient = SdkManager.instance.getPayments();
 
-    expect(spyConfigService).to.be.calledWith(envEndpoint.key);
-    expect(newClient).to.eql(client);
+    expect(spyConfigService).toHaveBeenCalledWith(envEndpoint.key);
+    expect(newClient).to.be.deep.equal(client);
   });
 
   it('When Users client is requested, then it is generated using internxt sdk', () => {
@@ -153,23 +129,19 @@ describe('SDKManager service', () => {
       key: 'DRIVE_API_URL',
       value: 'test/api',
     };
-    SdkManager.init(apiSecurity);
+    SdkManager.init(ApiSecurityFixture);
 
-    const client = Drive.Users.client(envEndpoint.value, appDetails, apiSecurity);
+    const client = Drive.Users.client(envEndpoint.value, appDetails, ApiSecurityFixture);
 
-    const spyConfigService = sdkManagerServiceSandbox
-      .stub(ConfigService.instance, 'get')
-      .withArgs(envEndpoint.key)
-      .returns(envEndpoint.value);
-    sdkManagerServiceSandbox.stub(SdkManager, 'getApiSecurity').returns(apiSecurity);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    sdkManagerServiceSandbox.stub(SdkManager, <any>'getAppDetails').returns(appDetails);
-    sdkManagerServiceSandbox.stub(Drive.Users, 'client').returns(client);
+    const spyConfigService = vi.spyOn(ConfigService.instance, 'get').mockReturnValue(envEndpoint.value);
+    vi.spyOn(SdkManager, 'getApiSecurity').mockReturnValue(ApiSecurityFixture);
+    vi.spyOn(SdkManager, 'getAppDetails').mockReturnValue(appDetails);
+    vi.spyOn(Drive.Users, 'client').mockReturnValue(client);
 
     const newClient = SdkManager.instance.getUsers();
 
-    expect(spyConfigService).to.be.calledWith(envEndpoint.key);
-    expect(newClient).to.eql(client);
+    expect(spyConfigService).toHaveBeenCalledWith(envEndpoint.key);
+    expect(newClient).to.be.deep.equal(client);
   });
 
   it('When Referrals client is requested, then it is generated using internxt sdk', () => {
@@ -177,23 +149,19 @@ describe('SDKManager service', () => {
       key: 'DRIVE_API_URL',
       value: 'test/api',
     };
-    SdkManager.init(apiSecurity);
+    SdkManager.init(ApiSecurityFixture);
 
-    const client = Drive.Referrals.client(envEndpoint.value, appDetails, apiSecurity);
+    const client = Drive.Referrals.client(envEndpoint.value, appDetails, ApiSecurityFixture);
 
-    const spyConfigService = sdkManagerServiceSandbox
-      .stub(ConfigService.instance, 'get')
-      .withArgs(envEndpoint.key)
-      .returns(envEndpoint.value);
-    sdkManagerServiceSandbox.stub(SdkManager, 'getApiSecurity').returns(apiSecurity);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    sdkManagerServiceSandbox.stub(SdkManager, <any>'getAppDetails').returns(appDetails);
-    sdkManagerServiceSandbox.stub(Drive.Referrals, 'client').returns(client);
+    const spyConfigService = vi.spyOn(ConfigService.instance, 'get').mockReturnValue(envEndpoint.value);
+    vi.spyOn(SdkManager, 'getApiSecurity').mockReturnValue(ApiSecurityFixture);
+    vi.spyOn(SdkManager, 'getAppDetails').mockReturnValue(appDetails);
+    vi.spyOn(Drive.Referrals, 'client').mockReturnValue(client);
 
     const newClient = SdkManager.instance.getReferrals();
 
-    expect(spyConfigService).to.be.calledWith(envEndpoint.key);
-    expect(newClient).to.eql(client);
+    expect(spyConfigService).toHaveBeenCalledWith(envEndpoint.key);
+    expect(newClient).to.be.deep.equal(client);
   });
 
   it('When Storage client is requested, then it is generated using internxt sdk', () => {
@@ -201,23 +169,19 @@ describe('SDKManager service', () => {
       key: 'DRIVE_API_URL',
       value: 'test/api',
     };
-    SdkManager.init(apiSecurity);
+    SdkManager.init(ApiSecurityFixture);
 
-    const client = Drive.Storage.client(envEndpoint.value, appDetails, apiSecurity);
+    const client = Drive.Storage.client(envEndpoint.value, appDetails, ApiSecurityFixture);
 
-    const spyConfigService = sdkManagerServiceSandbox
-      .stub(ConfigService.instance, 'get')
-      .withArgs(envEndpoint.key)
-      .returns(envEndpoint.value);
-    sdkManagerServiceSandbox.stub(SdkManager, 'getApiSecurity').returns(apiSecurity);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    sdkManagerServiceSandbox.stub(SdkManager, <any>'getAppDetails').returns(appDetails);
-    sdkManagerServiceSandbox.stub(Drive.Storage, 'client').returns(client);
+    const spyConfigService = vi.spyOn(ConfigService.instance, 'get').mockReturnValue(envEndpoint.value);
+    vi.spyOn(SdkManager, 'getApiSecurity').mockReturnValue(ApiSecurityFixture);
+    vi.spyOn(SdkManager, 'getAppDetails').mockReturnValue(appDetails);
+    vi.spyOn(Drive.Storage, 'client').mockReturnValue(client);
 
     const newClient = SdkManager.instance.getStorage();
 
-    expect(spyConfigService).to.be.calledWith(envEndpoint.key);
-    expect(newClient).to.eql(client);
+    expect(spyConfigService).toHaveBeenCalledWith(envEndpoint.key);
+    expect(newClient).to.be.deep.equal(client);
   });
 
   it('When Storage client is requested with useNewApi, then it is generated using internxt sdk using the new API endpoint', () => {
@@ -225,23 +189,19 @@ describe('SDKManager service', () => {
       key: 'DRIVE_NEW_API_URL',
       value: 'test/new-api',
     };
-    SdkManager.init(apiSecurity);
+    SdkManager.init(ApiSecurityFixture);
 
-    const client = Drive.Storage.client(envEndpoint.value, appDetails, apiSecurity);
+    const client = Drive.Storage.client(envEndpoint.value, appDetails, ApiSecurityFixture);
 
-    const spyConfigService = sdkManagerServiceSandbox
-      .stub(ConfigService.instance, 'get')
-      .withArgs(envEndpoint.key)
-      .returns(envEndpoint.value);
-    sdkManagerServiceSandbox.stub(SdkManager, 'getApiSecurity').returns(apiSecurity);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    sdkManagerServiceSandbox.stub(SdkManager, <any>'getAppDetails').returns(appDetails);
-    sdkManagerServiceSandbox.stub(Drive.Storage, 'client').returns(client);
+    const spyConfigService = vi.spyOn(ConfigService.instance, 'get').mockReturnValue(envEndpoint.value);
+    vi.spyOn(SdkManager, 'getApiSecurity').mockReturnValue(ApiSecurityFixture);
+    vi.spyOn(SdkManager, 'getAppDetails').mockReturnValue(appDetails);
+    vi.spyOn(Drive.Storage, 'client').mockReturnValue(client);
 
     const newClient = SdkManager.instance.getStorage(true);
 
-    expect(spyConfigService).to.be.calledWith(envEndpoint.key);
-    expect(newClient).to.eql(client);
+    expect(spyConfigService).toHaveBeenCalledWith(envEndpoint.key);
+    expect(newClient).to.be.deep.equal(client);
   });
 
   it('When Trash client is requested, then it is generated using internxt sdk', () => {
@@ -249,23 +209,19 @@ describe('SDKManager service', () => {
       key: 'DRIVE_NEW_API_URL',
       value: 'test/api',
     };
-    SdkManager.init(apiSecurity);
+    SdkManager.init(ApiSecurityFixture);
 
-    const client = Trash.client(envEndpoint.value, appDetails, apiSecurity);
+    const client = Trash.client(envEndpoint.value, appDetails, ApiSecurityFixture);
 
-    const spyConfigService = sdkManagerServiceSandbox
-      .stub(ConfigService.instance, 'get')
-      .withArgs(envEndpoint.key)
-      .returns(envEndpoint.value);
-    sdkManagerServiceSandbox.stub(SdkManager, 'getApiSecurity').returns(apiSecurity);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    sdkManagerServiceSandbox.stub(SdkManager, <any>'getAppDetails').returns(appDetails);
-    sdkManagerServiceSandbox.stub(Trash, 'client').returns(client);
+    const spyConfigService = vi.spyOn(ConfigService.instance, 'get').mockReturnValue(envEndpoint.value);
+    vi.spyOn(SdkManager, 'getApiSecurity').mockReturnValue(ApiSecurityFixture);
+    vi.spyOn(SdkManager, 'getAppDetails').mockReturnValue(appDetails);
+    vi.spyOn(Trash, 'client').mockReturnValue(client);
 
     const newClient = SdkManager.instance.getTrash();
 
-    expect(spyConfigService).to.be.calledWith(envEndpoint.key);
-    expect(newClient).to.eql(client);
+    expect(spyConfigService).toHaveBeenCalledWith(envEndpoint.key);
+    expect(newClient).to.be.deep.equal(client);
   });
 
   it('When Share client is requested, then it is generated using internxt sdk', () => {
@@ -273,23 +229,19 @@ describe('SDKManager service', () => {
       key: 'DRIVE_NEW_API_URL',
       value: 'test/api',
     };
-    SdkManager.init(apiSecurity);
+    SdkManager.init(ApiSecurityFixture);
 
-    const client = Drive.Share.client(envEndpoint.value, appDetails, apiSecurity);
+    const client = Drive.Share.client(envEndpoint.value, appDetails, ApiSecurityFixture);
 
-    const spyConfigService = sdkManagerServiceSandbox
-      .stub(ConfigService.instance, 'get')
-      .withArgs(envEndpoint.key)
-      .returns(envEndpoint.value);
-    sdkManagerServiceSandbox.stub(SdkManager, 'getApiSecurity').returns(apiSecurity);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    sdkManagerServiceSandbox.stub(SdkManager, <any>'getAppDetails').returns(appDetails);
-    sdkManagerServiceSandbox.stub(Drive.Share, 'client').returns(client);
+    const spyConfigService = vi.spyOn(ConfigService.instance, 'get').mockReturnValue(envEndpoint.value);
+    vi.spyOn(SdkManager, 'getApiSecurity').mockReturnValue(ApiSecurityFixture);
+    vi.spyOn(SdkManager, 'getAppDetails').mockReturnValue(appDetails);
+    vi.spyOn(Drive.Share, 'client').mockReturnValue(client);
 
     const newClient = SdkManager.instance.getShare();
 
-    expect(spyConfigService).to.be.calledWith(envEndpoint.key);
-    expect(newClient).to.eql(client);
+    expect(spyConfigService).toHaveBeenCalledWith(envEndpoint.key);
+    expect(newClient).to.be.deep.equal(client);
   });
 
   it('When Network client is requested, then it is generated using internxt sdk', () => {
@@ -297,28 +249,24 @@ describe('SDKManager service', () => {
       key: 'NETWORK_URL',
       value: 'test/network',
     };
-    SdkManager.init(apiSecurity);
+    SdkManager.init(ApiSecurityFixture);
 
     const client = Network.Network.client(envEndpoint.value, appDetails, {
       bridgeUser: 'bridgeUser',
       userId: 'userId',
     });
 
-    const spyConfigService = sdkManagerServiceSandbox
-      .stub(ConfigService.instance, 'get')
-      .withArgs(envEndpoint.key)
-      .returns(envEndpoint.value);
-    sdkManagerServiceSandbox.stub(SdkManager, 'getApiSecurity').returns(apiSecurity);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    sdkManagerServiceSandbox.stub(SdkManager, <any>'getAppDetails').returns(appDetails);
-    sdkManagerServiceSandbox.stub(Network.Network, 'client').returns(client);
+    const spyConfigService = vi.spyOn(ConfigService.instance, 'get').mockReturnValue(envEndpoint.value);
+    vi.spyOn(SdkManager, 'getApiSecurity').mockReturnValue(ApiSecurityFixture);
+    vi.spyOn(SdkManager, 'getAppDetails').mockReturnValue(appDetails);
+    vi.spyOn(Network.Network, 'client').mockReturnValue(client);
 
     const newClient = SdkManager.instance.getNetwork({
       user: 'bridgeUser',
       pass: '123',
     });
 
-    expect(spyConfigService).to.be.calledWith(envEndpoint.key);
-    expect(newClient).to.eql(client);
+    expect(spyConfigService).toHaveBeenCalledWith(envEndpoint.key);
+    expect(newClient).to.be.deep.equal(client);
   });
 });

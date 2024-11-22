@@ -1,26 +1,80 @@
-import { expect } from 'chai';
-import test from '@oclif/test';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ConfigService } from '../../src/services/config.service';
 import { UserCredentialsFixture } from '../fixtures/login.fixture';
+import { DriveDatabaseManager } from '../../src/services/database/drive-database-manager.service';
+import Whoami from '../../src/commands/whoami';
+import { ValidationService } from '../../src/services/validation.service';
 
-describe.skip('Whoami Command', () => {
-  describe('When user is logged in and whoami is called, then the current user logged in is printed', () => {
-    test
-      .stdout()
-      .stub(ConfigService.instance, 'readUser', (stub) => stub.resolves(UserCredentialsFixture))
-      .command(['whoami'])
-      .it('runs whoami and expects user to be logged in', (ctx) => {
-        expect(ctx.stdout).to.be.equal(`✓ You are logged in with: ${UserCredentialsFixture.user.email}\n`);
-      });
+describe('Whoami Command', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
   });
 
-  describe('When user is logged out and whoami is called, then no user is printed', () => {
-    test
-      .stdout()
-      .stub(ConfigService.instance, 'readUser', (stub) => stub.resolves(undefined))
-      .command(['whoami'])
-      .it('runs whoami and expects user to not be logged', (ctx) => {
-        expect(ctx.stdout).to.be.equal('⚠ Error: You are not logged in\n');
-      });
+  it('When user is logged out, then it returns false', async () => {
+    const readUserSpy = vi.spyOn(ConfigService.instance, 'readUser').mockResolvedValue(undefined);
+    const clearUserSpy = vi.spyOn(ConfigService.instance, 'clearUser').mockRejectedValue(new Error());
+    const cleanSpy = vi.spyOn(DriveDatabaseManager, 'clean').mockRejectedValue(new Error());
+    const validateTokensSpy = vi
+      .spyOn(ValidationService.instance, 'validateTokenAndCheckExpiration')
+      .mockRejectedValue(new Error());
+    const validateMnemonicSpy = vi.spyOn(ValidationService.instance, 'validateMnemonic').mockRejectedValue(new Error());
+
+    const message = 'You are not logged in.';
+    const expected = { success: false, message };
+
+    const result = await Whoami.run();
+
+    expect(result).to.be.deep.equal(expected);
+    expect(readUserSpy).toHaveBeenCalledOnce();
+    expect(clearUserSpy).not.toHaveBeenCalled();
+    expect(cleanSpy).not.toHaveBeenCalled();
+    expect(validateTokensSpy).not.toHaveBeenCalled();
+    expect(validateMnemonicSpy).not.toHaveBeenCalled();
+  });
+
+  it('When user is logged in with expired credentials, then it returns the user credentials', async () => {
+    const readUserSpy = vi.spyOn(ConfigService.instance, 'readUser').mockResolvedValue(UserCredentialsFixture);
+    const clearUserSpy = vi.spyOn(ConfigService.instance, 'clearUser').mockResolvedValue();
+    const cleanSpy = vi.spyOn(DriveDatabaseManager, 'clean').mockResolvedValue();
+    const validateTokensSpy = vi
+      .spyOn(ValidationService.instance, 'validateTokenAndCheckExpiration')
+      .mockReturnValueOnce({ expiration: { expired: true, refreshRequired: false }, isValid: true }) // token
+      .mockReturnValueOnce({ expiration: { expired: false, refreshRequired: true }, isValid: false }); // newtoken
+    const validateMnemonicSpy = vi.spyOn(ValidationService.instance, 'validateMnemonic').mockReturnValue(true);
+
+    const message = 'Your session has expired. You have been logged out. Please log in again.';
+    const expected = { success: false, message };
+
+    const result = await Whoami.run();
+
+    expect(result).to.be.deep.equal(expected);
+    expect(readUserSpy).toHaveBeenCalledOnce();
+    expect(clearUserSpy).toHaveBeenCalledOnce();
+    expect(cleanSpy).toHaveBeenCalledOnce();
+    expect(validateTokensSpy).toHaveBeenCalledTimes(2);
+    expect(validateMnemonicSpy).toHaveBeenCalledOnce();
+  });
+
+  it('When user is logged in with valid credentials, then it returns the user credentials', async () => {
+    const readUserSpy = vi.spyOn(ConfigService.instance, 'readUser').mockResolvedValue(UserCredentialsFixture);
+    const clearUserSpy = vi.spyOn(ConfigService.instance, 'clearUser').mockResolvedValue();
+    const cleanSpy = vi.spyOn(DriveDatabaseManager, 'clean').mockResolvedValue();
+    const validateTokensSpy = vi
+      .spyOn(ValidationService.instance, 'validateTokenAndCheckExpiration')
+      .mockReturnValueOnce({ expiration: { expired: false, refreshRequired: false }, isValid: true }) // token
+      .mockReturnValueOnce({ expiration: { expired: false, refreshRequired: false }, isValid: true }); // newtoken
+    const validateMnemonicSpy = vi.spyOn(ValidationService.instance, 'validateMnemonic').mockReturnValue(true);
+
+    const message = `You are logged in as: ${UserCredentialsFixture.user.email}.`;
+    const expected = { success: true, message, login: UserCredentialsFixture };
+
+    const result = await Whoami.run();
+
+    expect(result).to.be.deep.equal(expected);
+    expect(readUserSpy).toHaveBeenCalledOnce();
+    expect(clearUserSpy).not.toHaveBeenCalled();
+    expect(cleanSpy).not.toHaveBeenCalled();
+    expect(validateTokensSpy).toHaveBeenCalledTimes(2);
+    expect(validateMnemonicSpy).toHaveBeenCalledOnce();
   });
 });

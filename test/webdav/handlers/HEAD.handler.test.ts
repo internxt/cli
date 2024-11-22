@@ -1,13 +1,10 @@
-import sinon from 'sinon';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { HEADRequestHandler } from '../../../src/webdav/handlers/HEAD.handler';
 import { createWebDavRequestFixture, createWebDavResponseFixture } from '../../fixtures/webdav.fixture';
-import { expect } from 'chai';
 
 describe('HEAD request handler', () => {
-  const sandbox = sinon.createSandbox();
-
-  afterEach(() => {
-    sandbox.restore();
+  beforeEach(() => {
+    vi.restoreAllMocks();
   });
 
   it('When a WebDav client sends a HEAD request, it should reply with a 405', async () => {
@@ -17,10 +14,10 @@ describe('HEAD request handler', () => {
       method: 'HEAD',
     });
     const response = createWebDavResponseFixture({
-      status: sandbox.stub().returns({ send: sandbox.stub() }),
+      status: vi.fn().mockReturnValue({ send: vi.fn() }),
     });
 
     await requestHandler.handle(request, response);
-    expect(response.status.calledWith(405)).to.be.true;
+    expect(response.status).toHaveBeenCalledWith(405);
   });
 });

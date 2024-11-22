@@ -1,5 +1,5 @@
 import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
-import crypto from 'crypto';
+import crypto from 'node:crypto';
 
 export const UserFixture = {
   userId: crypto.randomBytes(16).toString('hex'),

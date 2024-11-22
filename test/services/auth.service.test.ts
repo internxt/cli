@@ -1,6 +1,5 @@
-import { expect } from 'chai';
-import sinon, { SinonSandbox } from 'sinon';
-import crypto from 'crypto';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import crypto from 'node:crypto';
 import { Auth, LoginDetails, SecurityDetails } from '@internxt/sdk';
 import { AuthService } from '../../src/services/auth.service';
 import { KeysService } from '../../src/services/keys.service';
@@ -16,17 +15,11 @@ import {
   MissingCredentialsError,
 } from '../../src/types/command.types';
 import { UserCredentialsFixture } from '../fixtures/login.fixture';
-import { fail } from 'assert';
+import { fail } from 'node:assert';
 
 describe('Auth service', () => {
-  let authServiceSandbox: SinonSandbox;
-
   beforeEach(() => {
-    authServiceSandbox = sinon.createSandbox();
-  });
-
-  afterEach(() => {
-    authServiceSandbox.restore();
+    vi.restoreAllMocks();
   });
 
   it('When user logs in, then login user credentials are generated', async () => {
@@ -38,13 +31,13 @@ describe('Auth service', () => {
     };
     const mockDate = new Date().toISOString();
 
-    authServiceSandbox.stub(Auth.prototype, 'login').resolves(loginResponse);
-    authServiceSandbox.stub(SdkManager.instance, 'getAuth').returns(Auth.prototype);
-    authServiceSandbox.stub(KeysService.instance, 'decryptPrivateKey').returns(loginResponse.user.privateKey);
-    authServiceSandbox.stub(KeysService.instance, 'assertPrivateKeyIsValid').resolves();
-    authServiceSandbox.stub(KeysService.instance, 'assertValidateKeys').resolves();
-    authServiceSandbox.stub(CryptoService.instance, 'decryptTextWithKey').returns(loginResponse.user.mnemonic);
-    authServiceSandbox.stub(Date.prototype, 'toISOString').returns(mockDate);
+    vi.spyOn(Auth.prototype, 'login').mockResolvedValue(loginResponse);
+    vi.spyOn(SdkManager.instance, 'getAuth').mockReturnValue(Auth.prototype);
+    vi.spyOn(KeysService.instance, 'decryptPrivateKey').mockReturnValue(loginResponse.user.privateKey);
+    vi.spyOn(KeysService.instance, 'assertPrivateKeyIsValid').mockResolvedValue();
+    vi.spyOn(KeysService.instance, 'assertValidateKeys').mockResolvedValue();
+    vi.spyOn(CryptoService.instance, 'decryptTextWithKey').mockReturnValue(loginResponse.user.mnemonic);
+    vi.spyOn(Date.prototype, 'toISOString').mockReturnValue(mockDate);
 
     const responseLogin = await AuthService.instance.doLogin(
       loginResponse.user.email,
@@ -59,7 +52,7 @@ describe('Auth service', () => {
       lastLoggedInAt: mockDate,
       lastTokenRefreshAt: mockDate,
     };
-    expect(responseLogin).to.eql(expectedResponseLogin);
+    expect(responseLogin).to.be.deep.equal(expectedResponseLogin);
   });
 
   it('When user logs in and credentials are not correct, then an error is thrown', async () => {
@@ -69,11 +62,8 @@ describe('Auth service', () => {
       tfaCode: crypto.randomInt(1, 999999).toString().padStart(6, '0'),
     };
 
-    const loginStub = authServiceSandbox
-      .stub(Auth.prototype, 'login')
-      .withArgs(loginDetails, CryptoService.cryptoProvider)
-      .rejects();
-    authServiceSandbox.stub(SdkManager.instance, 'getAuth').returns(Auth.prototype);
+    const loginStub = vi.spyOn(Auth.prototype, 'login').mockRejectedValue(new Error('Login failed'));
+    vi.spyOn(SdkManager.instance, 'getAuth').mockReturnValue(Auth.prototype);
 
     try {
       await AuthService.instance.doLogin(loginDetails.email, loginDetails.password, loginDetails.tfaCode || '');
@@ -81,7 +71,7 @@ describe('Auth service', () => {
     } catch {
       /* no op */
     }
-    expect(loginStub.calledOnce).to.be.true;
+    expect(loginStub).toHaveBeenCalledOnce();
   });
 
   it('When two factor authentication property is enabled at securityDetails endpoint, then it is returned from is2FANeeded functionality', async () => {
@@ -91,19 +81,19 @@ describe('Auth service', () => {
       tfaEnabled: true,
     };
 
-    authServiceSandbox.stub(Auth.prototype, 'securityDetails').withArgs(email).resolves(securityDetails);
-    authServiceSandbox.stub(SdkManager.instance, 'getAuth').returns(Auth.prototype);
+    vi.spyOn(Auth.prototype, 'securityDetails').mockResolvedValue(securityDetails);
+    vi.spyOn(SdkManager.instance, 'getAuth').mockReturnValue(Auth.prototype);
 
     const responseLogin = await AuthService.instance.is2FANeeded(email);
 
-    expect(responseLogin).to.equal(securityDetails.tfaEnabled);
+    expect(responseLogin).to.be.equal(securityDetails.tfaEnabled);
   });
 
   it('When email is not correct when checking two factor authentication property, then an error is thrown', async () => {
     const email = crypto.randomBytes(16).toString('hex');
 
-    const securityStub = authServiceSandbox.stub(Auth.prototype, 'securityDetails').withArgs(email).rejects();
-    authServiceSandbox.stub(SdkManager.instance, 'getAuth').returns(Auth.prototype);
+    const securityStub = vi.spyOn(Auth.prototype, 'securityDetails').mockRejectedValue(new Error());
+    vi.spyOn(SdkManager.instance, 'getAuth').mockReturnValue(Auth.prototype);
 
     try {
       await AuthService.instance.is2FANeeded(email);
@@ -111,7 +101,7 @@ describe('Auth service', () => {
     } catch {
       /* no op */
     }
-    expect(securityStub.calledOnce).to.be.true;
+    expect(securityStub).toHaveBeenCalledOnce();
   });
 
   it('When getting auth details, should get them if all are found', async () => {
@@ -126,20 +116,18 @@ describe('Auth service', () => {
       },
     };
 
-    authServiceSandbox.stub(ConfigService.instance, 'readUser').resolves(loginCreds);
+    vi.spyOn(ConfigService.instance, 'readUser').mockResolvedValue(loginCreds);
 
-    const validateTokensStub = authServiceSandbox
-      .stub(ValidationService.instance, 'validateTokenAndCheckExpiration')
-      .onFirstCall()
-      .returns(mockTokens)
-      .onSecondCall()
-      .returns(mockTokens);
-    const validateMnemonicStub = authServiceSandbox.stub(ValidationService.instance, 'validateMnemonic').returns(true);
+    const validateTokensStub = vi
+      .spyOn(ValidationService.instance, 'validateTokenAndCheckExpiration')
+      .mockImplementationOnce(() => mockTokens)
+      .mockImplementationOnce(() => mockTokens);
+    const validateMnemonicStub = vi.spyOn(ValidationService.instance, 'validateMnemonic').mockReturnValue(true);
 
     const result = await sut.getAuthDetails();
 
-    expect(validateTokensStub.calledTwice).to.be.true;
-    expect(validateMnemonicStub).to.be.calledOnceWith(loginCreds.user.mnemonic);
+    expect(validateTokensStub).toHaveBeenCalledTimes(2);
+    expect(validateMnemonicStub).toHaveBeenCalledWith(loginCreds.user.mnemonic);
 
     expect(result).to.deep.equal(loginCreds);
   });
@@ -147,21 +135,21 @@ describe('Auth service', () => {
   it('When credentials are missing, should throw an error', async () => {
     const sut = AuthService.instance;
 
-    const readUserStub = authServiceSandbox.stub(ConfigService.instance, 'readUser').resolves(undefined);
+    const readUserStub = vi.spyOn(ConfigService.instance, 'readUser').mockResolvedValue(undefined);
 
     try {
       await sut.getAuthDetails();
       fail('Expected function to throw an error, but it did not.');
     } catch (error) {
-      expect((error as Error).message).to.equal(new MissingCredentialsError().message);
+      expect((error as Error).message).to.be.equal(new MissingCredentialsError().message);
     }
-    expect(readUserStub.calledOnce).to.be.true;
+    expect(readUserStub).toHaveBeenCalledOnce();
   });
 
   it('When auth token is missing, should throw an error', async () => {
     const sut = AuthService.instance;
 
-    const readUserStub = authServiceSandbox.stub(ConfigService.instance, 'readUser').resolves({
+    const readUserStub = vi.spyOn(ConfigService.instance, 'readUser').mockResolvedValue({
       user: UserFixture,
       // @ts-expect-error - We are faking a missing auth token
       token: undefined,
@@ -172,15 +160,15 @@ describe('Auth service', () => {
       await sut.getAuthDetails();
       fail('Expected function to throw an error, but it did not.');
     } catch (error) {
-      expect((error as Error).message).to.equal(new MissingCredentialsError().message);
+      expect((error as Error).message).to.be.equal(new MissingCredentialsError().message);
     }
-    expect(readUserStub.calledOnce).to.be.true;
+    expect(readUserStub).toHaveBeenCalledOnce();
   });
 
   it('When new auth token is missing, should throw an error', async () => {
     const sut = AuthService.instance;
 
-    const readUserStub = authServiceSandbox.stub(ConfigService.instance, 'readUser').resolves({
+    const readUserStub = vi.spyOn(ConfigService.instance, 'readUser').mockResolvedValue({
       user: UserFixture,
       token: 'test_auth_token',
       // @ts-expect-error - We are faking a missing auth token
@@ -191,9 +179,9 @@ describe('Auth service', () => {
       await sut.getAuthDetails();
       fail('Expected function to throw an error, but it did not.');
     } catch (error) {
-      expect((error as Error).message).to.equal(new MissingCredentialsError().message);
+      expect((error as Error).message).to.be.equal(new MissingCredentialsError().message);
     }
-    expect(readUserStub.calledOnce).to.be.true;
+    expect(readUserStub).toHaveBeenCalledOnce();
   });
 
   it('When mnemonic is invalid, should throw an error', async () => {
@@ -207,24 +195,22 @@ describe('Auth service', () => {
       },
     };
 
-    const authStub = authServiceSandbox.stub(ConfigService.instance, 'readUser').resolves(UserCredentialsFixture);
-    const validateTokensStub = authServiceSandbox
-      .stub(ValidationService.instance, 'validateTokenAndCheckExpiration')
-      .onFirstCall()
-      .returns(mockTokens)
-      .onSecondCall()
-      .returns(mockTokens);
-    const validateMnemonicStub = authServiceSandbox.stub(ValidationService.instance, 'validateMnemonic').returns(false);
+    const authStub = vi.spyOn(ConfigService.instance, 'readUser').mockResolvedValue(UserCredentialsFixture);
+    const validateTokensStub = vi
+      .spyOn(ValidationService.instance, 'validateTokenAndCheckExpiration')
+      .mockImplementationOnce(() => mockTokens)
+      .mockImplementationOnce(() => mockTokens);
+    const validateMnemonicStub = vi.spyOn(ValidationService.instance, 'validateMnemonic').mockReturnValue(false);
 
     try {
       await sut.getAuthDetails();
       fail('Expected function to throw an error, but it did not.');
     } catch (error) {
-      expect((error as Error).message).to.equal(new InvalidCredentialsError().message);
+      expect((error as Error).message).to.be.equal(new InvalidCredentialsError().message);
     }
-    expect(authStub.calledOnce).to.be.true;
-    expect(validateTokensStub.calledTwice).to.be.true;
-    expect(validateMnemonicStub).to.be.calledOnceWith(UserCredentialsFixture.user.mnemonic);
+    expect(authStub).toHaveBeenCalledOnce();
+    expect(validateTokensStub).toHaveBeenCalledTimes(2);
+    expect(validateMnemonicStub).toHaveBeenCalledWith(UserCredentialsFixture.user.mnemonic);
   });
 
   it('When token has expired, should throw an error', async () => {
@@ -238,24 +224,22 @@ describe('Auth service', () => {
       },
     };
 
-    const authStub = authServiceSandbox.stub(ConfigService.instance, 'readUser').resolves(UserCredentialsFixture);
-    const validateTokensStub = authServiceSandbox
-      .stub(ValidationService.instance, 'validateTokenAndCheckExpiration')
-      .onFirstCall()
-      .returns(mockTokens)
-      .onSecondCall()
-      .returns(mockTokens);
-    const validateMnemonicStub = authServiceSandbox.stub(ValidationService.instance, 'validateMnemonic').returns(true);
+    const authStub = vi.spyOn(ConfigService.instance, 'readUser').mockResolvedValue(UserCredentialsFixture);
+    const validateTokensStub = vi
+      .spyOn(ValidationService.instance, 'validateTokenAndCheckExpiration')
+      .mockImplementationOnce(() => mockTokens)
+      .mockImplementationOnce(() => mockTokens);
+    const validateMnemonicStub = vi.spyOn(ValidationService.instance, 'validateMnemonic').mockReturnValue(true);
 
     try {
       await sut.getAuthDetails();
       fail('Expected function to throw an error, but it did not.');
     } catch (error) {
-      expect((error as Error).message).to.equal(new ExpiredCredentialsError().message);
+      expect((error as Error).message).to.be.equal(new ExpiredCredentialsError().message);
     }
-    expect(authStub.calledOnce).to.be.true;
-    expect(validateTokensStub.calledTwice).to.be.true;
-    expect(validateMnemonicStub).to.be.calledOnceWith(UserCredentialsFixture.user.mnemonic);
+    expect(authStub).toHaveBeenCalledOnce();
+    expect(validateTokensStub).toHaveBeenCalledTimes(2);
+    expect(validateMnemonicStub).toHaveBeenCalledWith(UserCredentialsFixture.user.mnemonic);
   });
 
   it('When tokens are going to expire soon, then they are refreshed', async () => {
@@ -269,20 +253,18 @@ describe('Auth service', () => {
       },
     };
 
-    const authStub = authServiceSandbox.stub(ConfigService.instance, 'readUser').resolves(UserCredentialsFixture);
-    const validateTokensStub = authServiceSandbox
-      .stub(ValidationService.instance, 'validateTokenAndCheckExpiration')
-      .onFirstCall()
-      .returns(mockTokens)
-      .onSecondCall()
-      .returns(mockTokens);
-    const validateMnemonicStub = authServiceSandbox.stub(ValidationService.instance, 'validateMnemonic').returns(true);
-    const refreshTokensStub = authServiceSandbox.stub(sut, 'refreshUserTokens').resolves(UserCredentialsFixture);
+    const authStub = vi.spyOn(ConfigService.instance, 'readUser').mockResolvedValue(UserCredentialsFixture);
+    const validateTokensStub = vi
+      .spyOn(ValidationService.instance, 'validateTokenAndCheckExpiration')
+      .mockImplementationOnce(() => mockTokens)
+      .mockImplementationOnce(() => mockTokens);
+    const validateMnemonicStub = vi.spyOn(ValidationService.instance, 'validateMnemonic').mockReturnValue(true);
+    const refreshTokensStub = vi.spyOn(sut, 'refreshUserTokens').mockResolvedValue(UserCredentialsFixture);
 
     await sut.getAuthDetails();
-    expect(authStub.calledOnce).to.be.true;
-    expect(validateTokensStub.calledTwice).to.be.true;
-    expect(validateMnemonicStub).to.be.calledOnceWith(UserCredentialsFixture.user.mnemonic);
-    expect(refreshTokensStub.calledOnce).to.be.true;
+    expect(authStub).toHaveBeenCalledOnce();
+    expect(validateTokensStub).toHaveBeenCalledTimes(2);
+    expect(validateMnemonicStub).toHaveBeenCalledWith(UserCredentialsFixture.user.mnemonic);
+    expect(refreshTokensStub).toHaveBeenCalledOnce();
   });
 });

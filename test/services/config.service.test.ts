@@ -1,11 +1,11 @@
-import { expect } from 'chai';
-import crypto, { randomInt } from 'crypto';
-import Sinon, { SinonSandbox } from 'sinon';
-import fs from 'fs/promises';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import crypto from 'node:crypto';
+import fs from 'node:fs/promises';
 import { ConfigService } from '../../src/services/config.service';
 import { CryptoService } from '../../src/services/crypto.service';
 import { LoginCredentials, WebdavConfig } from '../../src/types/command.types';
 import { UserCredentialsFixture } from '../fixtures/login.fixture';
+import { fail } from 'node:assert';
 
 import { config } from 'dotenv';
 config();
@@ -13,15 +13,9 @@ config();
 const env = Object.assign({}, process.env);
 
 describe('Config service', () => {
-  let configServiceSandbox: SinonSandbox;
-
   beforeEach(() => {
-    configServiceSandbox = Sinon.createSandbox();
-  });
-
-  afterEach(() => {
     process.env = env;
-    configServiceSandbox.restore();
+    vi.restoreAllMocks();
   });
 
   it('When an env property is requested, then the get method return its value', async () => {
@@ -30,7 +24,7 @@ describe('Config service', () => {
     process.env[envKey] = envValue;
 
     const newEnvValue = ConfigService.instance.get(envKey);
-    expect(newEnvValue).to.equal(envValue);
+    expect(newEnvValue).to.be.equal(envValue);
   });
 
   it('When an env property that do not have value is requested, then an error is thrown', async () => {
@@ -39,10 +33,10 @@ describe('Config service', () => {
 
     try {
       ConfigService.instance.get(envKey);
-      expect(false).to.be.true; //should throw error
+      fail('Expected function to throw an error, but it did not.');
     } catch (err) {
       const error = err as Error;
-      expect(error.message).to.equal(`Config key ${envKey} was not found in process.env`);
+      expect(error.message).to.be.equal(`Config key ${envKey} was not found in process.env`);
     }
   });
 
@@ -51,18 +45,12 @@ describe('Config service', () => {
     const stringCredentials = JSON.stringify(userCredentials);
     const encryptedUserCredentials = CryptoService.instance.encryptText(stringCredentials);
 
-    const configServiceStub = configServiceSandbox
-      .stub(CryptoService.instance, 'encryptText')
-      .withArgs(stringCredentials)
-      .returns(encryptedUserCredentials);
-    const fsStub = configServiceSandbox
-      .stub(fs, 'writeFile')
-      .withArgs(ConfigService.CREDENTIALS_FILE, encryptedUserCredentials)
-      .resolves();
+    const configServiceStub = vi.spyOn(CryptoService.instance, 'encryptText').mockReturnValue(encryptedUserCredentials);
+    const fsStub = vi.spyOn(fs, 'writeFile').mockResolvedValue();
 
     await ConfigService.instance.saveUser(userCredentials);
-    expect(configServiceStub).to.be.calledWith(stringCredentials);
-    expect(fsStub).to.be.calledWith(ConfigService.CREDENTIALS_FILE, encryptedUserCredentials);
+    expect(configServiceStub).toHaveBeenCalledWith(stringCredentials);
+    expect(fsStub).toHaveBeenCalledWith(ConfigService.CREDENTIALS_FILE, encryptedUserCredentials, 'utf8');
   });
 
   it('When user credentials are read, then they are read and decrypted from a file', async () => {
@@ -70,111 +58,90 @@ describe('Config service', () => {
     const stringCredentials = JSON.stringify(userCredentials);
     const encryptedUserCredentials = CryptoService.instance.encryptText(stringCredentials);
 
-    const fsStub = configServiceSandbox
-      .stub(fs, 'readFile')
-      .withArgs(ConfigService.CREDENTIALS_FILE)
-      .resolves(encryptedUserCredentials);
-    const configServiceStub = configServiceSandbox
-      .stub(CryptoService.instance, 'decryptText')
-      .withArgs(encryptedUserCredentials)
-      .returns(stringCredentials);
+    const fsStub = vi.spyOn(fs, 'readFile').mockResolvedValue(encryptedUserCredentials);
+    const configServiceStub = vi.spyOn(CryptoService.instance, 'decryptText').mockReturnValue(stringCredentials);
 
     const loginCredentials = await ConfigService.instance.readUser();
-    expect(userCredentials).to.be.eql(loginCredentials);
-    expect(fsStub).to.be.calledWith(ConfigService.CREDENTIALS_FILE);
-    expect(configServiceStub).to.be.calledWith(encryptedUserCredentials);
+    expect(userCredentials).to.be.deep.equal(loginCredentials);
+    expect(fsStub).toHaveBeenCalledWith(ConfigService.CREDENTIALS_FILE, 'utf8');
+    expect(configServiceStub).toHaveBeenCalledWith(encryptedUserCredentials);
   });
 
   it('When user credentials are read but they dont exist, then they are not returned', async () => {
-    const fsStub = configServiceSandbox.stub(fs, 'readFile').withArgs(ConfigService.CREDENTIALS_FILE).rejects();
-    const configServiceStub = configServiceSandbox.stub(CryptoService.instance, 'decryptText');
+    const fsStub = vi.spyOn(fs, 'readFile').mockRejectedValue(new Error());
+    const configServiceStub = vi.spyOn(CryptoService.instance, 'decryptText');
 
     const loginCredentials = await ConfigService.instance.readUser();
-    expect(loginCredentials).to.be.undefined;
-    expect(fsStub).to.be.calledWith(ConfigService.CREDENTIALS_FILE);
-    expect(configServiceStub).to.not.be.called;
+    expect(loginCredentials).to.be.equal(undefined);
+    expect(fsStub).toHaveBeenCalledWith(ConfigService.CREDENTIALS_FILE, 'utf8');
+    expect(configServiceStub).not.toHaveBeenCalled();
   });
 
   it('When user credentials are cleared, then they are cleared from file', async () => {
-    const writeFileStub = configServiceSandbox
-      .stub(fs, 'writeFile')
-      .withArgs(ConfigService.CREDENTIALS_FILE, '')
-      .resolves();
-    const readFileStub = configServiceSandbox
-      .stub(fs, 'readFile')
-      .withArgs(ConfigService.CREDENTIALS_FILE)
-      .resolves('');
-    const existFileStub = configServiceSandbox
-      .stub(fs, 'stat')
-      .withArgs(ConfigService.CREDENTIALS_FILE)
+    const writeFileStub = vi.spyOn(fs, 'writeFile').mockResolvedValue();
+    const readFileStub = vi.spyOn(fs, 'readFile').mockResolvedValue('');
+    const existFileStub = vi
+      .spyOn(fs, 'stat')
       // @ts-expect-error - We stub the stat method partially
-      .resolves({ size: BigInt(crypto.randomInt(1, 100000)) });
+      .mockResolvedValue({ size: BigInt(crypto.randomInt(1, 100000)) });
 
     await ConfigService.instance.clearUser();
     const credentialsFileContent = await fs.readFile(ConfigService.CREDENTIALS_FILE, 'utf8');
 
-    expect(writeFileStub).to.have.been.calledWith(ConfigService.CREDENTIALS_FILE, '');
-    expect(readFileStub).to.have.been.calledWith(ConfigService.CREDENTIALS_FILE);
-    expect(existFileStub).to.have.been.calledWith(ConfigService.CREDENTIALS_FILE);
-    expect(credentialsFileContent).to.be.empty;
+    expect(writeFileStub).toHaveBeenCalledWith(ConfigService.CREDENTIALS_FILE, '', 'utf8');
+    expect(readFileStub).toHaveBeenCalledWith(ConfigService.CREDENTIALS_FILE, 'utf8');
+    expect(existFileStub).toHaveBeenCalledWith(ConfigService.CREDENTIALS_FILE);
+    expect(credentialsFileContent).to.be.equal('');
   });
 
   it('When user credentials are cleared and the file is empty, then an error is thrown', async () => {
-    configServiceSandbox
-      .stub(fs, 'stat')
-      .withArgs(ConfigService.CREDENTIALS_FILE)
+    vi.spyOn(fs, 'stat')
       // @ts-expect-error - We stub the stat method partially
-      .resolves({ size: 0 });
+      .mockResolvedValue({ size: 0 });
 
     try {
       await ConfigService.instance.clearUser();
-      expect(false).to.be.true;
+      fail('Expected function to throw an error, but it did not.');
     } catch (error) {
-      expect((error as Error).message).to.equal('Credentials file is already empty');
+      expect((error as Error).message).to.be.equal('Credentials file is already empty');
     }
   });
 
   it('When webdav certs directory is required to exist, then it is created', async () => {
-    configServiceSandbox.stub(fs, 'access').withArgs(ConfigService.WEBDAV_SSL_CERTS_DIR).rejects();
+    vi.spyOn(fs, 'access').mockRejectedValue(new Error());
 
-    const stubMkdir = configServiceSandbox.stub(fs, 'mkdir').withArgs(ConfigService.WEBDAV_SSL_CERTS_DIR).resolves();
+    const stubMkdir = vi.spyOn(fs, 'mkdir').mockResolvedValue('');
 
     await ConfigService.instance.ensureWebdavCertsDirExists();
 
-    expect(stubMkdir).to.be.calledOnceWith(ConfigService.WEBDAV_SSL_CERTS_DIR);
+    expect(stubMkdir).toHaveBeenCalledWith(ConfigService.WEBDAV_SSL_CERTS_DIR);
   });
 
   it('When webdav config options are saved, then they are written to a file', async () => {
     const webdavConfig: WebdavConfig = {
-      port: String(randomInt(65000)),
+      port: String(crypto.randomInt(65000)),
       protocol: 'https',
     };
     const stringConfig = JSON.stringify(webdavConfig);
 
-    const fsStub = configServiceSandbox
-      .stub(fs, 'writeFile')
-      .withArgs(ConfigService.WEBDAV_CONFIGS_FILE, stringConfig)
-      .resolves();
+    const fsStub = vi.spyOn(fs, 'writeFile').mockResolvedValue();
 
     await ConfigService.instance.saveWebdavConfig(webdavConfig);
-    expect(fsStub).to.be.calledWith(ConfigService.WEBDAV_CONFIGS_FILE, stringConfig);
+    expect(fsStub).toHaveBeenCalledWith(ConfigService.WEBDAV_CONFIGS_FILE, stringConfig, 'utf8');
   });
 
   it('When webdav config options are read and exist, then they are read from a file', async () => {
     const webdavConfig: WebdavConfig = {
-      port: String(randomInt(65000)),
+      port: String(crypto.randomInt(65000)),
       protocol: 'http',
     };
     const stringConfig = JSON.stringify(webdavConfig);
 
-    const fsStub = configServiceSandbox
-      .stub(fs, 'readFile')
-      .withArgs(ConfigService.WEBDAV_CONFIGS_FILE)
-      .resolves(stringConfig);
+    const fsStub = vi.spyOn(fs, 'readFile').mockResolvedValue(stringConfig);
 
     const webdavConfigResult = await ConfigService.instance.readWebdavConfig();
-    expect(webdavConfigResult).to.be.eql(webdavConfig);
-    expect(fsStub).to.be.calledWith(ConfigService.WEBDAV_CONFIGS_FILE);
+    expect(webdavConfigResult).to.be.deep.equal(webdavConfig);
+    expect(fsStub).toHaveBeenCalledWith(ConfigService.WEBDAV_CONFIGS_FILE, 'utf8');
   });
 
   it('When webdav config options are read but not exist, then they are returned from defaults', async () => {
@@ -183,14 +150,11 @@ describe('Config service', () => {
       protocol: ConfigService.WEBDAV_DEFAULT_PROTOCOL,
     };
 
-    const fsStub = configServiceSandbox
-      .stub(fs, 'readFile')
-      .withArgs(ConfigService.WEBDAV_CONFIGS_FILE)
-      .resolves(undefined);
+    const fsStub = vi.spyOn(fs, 'readFile').mockResolvedValue('');
 
     const webdavConfigResult = await ConfigService.instance.readWebdavConfig();
-    expect(webdavConfigResult).to.be.eql(defaultWebdavConfig);
-    expect(fsStub).to.be.calledWith(ConfigService.WEBDAV_CONFIGS_FILE);
+    expect(webdavConfigResult).to.be.deep.equal(defaultWebdavConfig);
+    expect(fsStub).toHaveBeenCalledWith(ConfigService.WEBDAV_CONFIGS_FILE, 'utf8');
   });
 
   it('When webdav config options are read but an error is thrown, then they are returned from defaults', async () => {
@@ -199,10 +163,10 @@ describe('Config service', () => {
       protocol: ConfigService.WEBDAV_DEFAULT_PROTOCOL,
     };
 
-    const fsStub = configServiceSandbox.stub(fs, 'readFile').withArgs(ConfigService.WEBDAV_CONFIGS_FILE).rejects();
+    const fsStub = vi.spyOn(fs, 'readFile').mockRejectedValue(new Error());
 
     const webdavConfigResult = await ConfigService.instance.readWebdavConfig();
-    expect(webdavConfigResult).to.be.eql(defaultWebdavConfig);
-    expect(fsStub).to.be.calledWith(ConfigService.WEBDAV_CONFIGS_FILE);
+    expect(webdavConfigResult).to.be.deep.equal(defaultWebdavConfig);
+    expect(fsStub).toHaveBeenCalledWith(ConfigService.WEBDAV_CONFIGS_FILE, 'utf8');
   });
 });
