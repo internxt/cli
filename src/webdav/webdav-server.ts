@@ -155,7 +155,7 @@ export class WebDavServer {
     if (plainHttp) {
       server = http.createServer(this.app);
     } else {
-      const httpsCerts = NetworkUtils.getWebdavSSLCerts();
+      const httpsCerts = await NetworkUtils.getWebdavSSLCerts();
       server = https.createServer(httpsCerts, this.app);
     }
 
