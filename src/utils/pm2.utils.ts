@@ -1,4 +1,4 @@
-import path from 'path';
+import path from 'node:path';
 import pm2 from 'pm2';
 
 export type WebDavProcessStatus = 'online' | 'unknown' | 'errored';

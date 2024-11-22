@@ -1,6 +1,6 @@
-import path from 'path';
+import path from 'node:path';
 import os from 'os';
-import fs from 'fs/promises';
+import fs from 'node:fs/promises';
 import { ConfigKeys } from '../types/config.types';
 import { LoginCredentials, WebdavConfig } from '../types/command.types';
 import { CryptoService } from './crypto.service';

@@ -1,6 +1,6 @@
 import { auth } from '@internxt/lib';
 import { validateMnemonic } from 'bip39';
-import fs from 'fs/promises';
+import fs from 'node:fs/promises';
 
 export class ValidationService {
   public static readonly instance: ValidationService = new ValidationService();

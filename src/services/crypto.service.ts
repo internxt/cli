@@ -1,10 +1,10 @@
 import { CryptoProvider } from '@internxt/sdk';
 import { Keys, Password } from '@internxt/sdk/dist/auth';
-import crypto, { createCipheriv, createDecipheriv } from 'node:crypto';
+import { createCipheriv, createDecipheriv, createHash, pbkdf2Sync, randomBytes } from 'node:crypto';
+import { Transform } from 'node:stream';
 import { KeysService } from './keys.service';
 import { ConfigService } from '../services/config.service';
 import { StreamUtils } from '../utils/stream.utils';
-import { Transform } from 'stream';
 
 export class CryptoService {
   public static readonly instance: CryptoService = new CryptoService();
@@ -43,10 +43,8 @@ export class CryptoService {
    * @returns The hashed password and the salt
    **/
   public passToHash = (passObject: { password: string; salt?: string | null }): { salt: string; hash: string } => {
-    const salt = passObject.salt ? passObject.salt : crypto.randomBytes(128 / 8).toString('hex');
-    const hash = crypto
-      .pbkdf2Sync(passObject.password, Buffer.from(salt, 'hex'), 10000, 256 / 8, 'sha1')
-      .toString('hex');
+    const salt = passObject.salt ? passObject.salt : randomBytes(128 / 8).toString('hex');
+    const hash = pbkdf2Sync(passObject.password, Buffer.from(salt, 'hex'), 10000, 256 / 8, 'sha1').toString('hex');
     const hashedObjetc = {
       salt,
       hash,
@@ -83,10 +81,10 @@ export class CryptoService {
    * @returns The encrypted private string in 'hex' encoding
    **/
   public encryptTextWithKey = (textToEncrypt: string, secret: string) => {
-    const salt = crypto.randomBytes(8);
+    const salt = randomBytes(8);
     const { key, iv } = this.getKeyAndIvFrom(secret, salt);
 
-    const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
+    const cipher = createCipheriv('aes-256-cbc', key, iv);
 
     const encrypted = Buffer.concat([cipher.update(textToEncrypt, 'utf8'), cipher.final()]);
 
@@ -113,7 +111,7 @@ export class CryptoService {
     const salt = cypherText.subarray(8, 16);
     const { key, iv } = this.getKeyAndIvFrom(secret, salt);
 
-    const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
+    const decipher = createDecipheriv('aes-256-cbc', key, iv);
 
     const contentsToDecrypt = cypherText.subarray(16);
 
@@ -169,7 +167,7 @@ export class CryptoService {
     let digest = password;
 
     for (let i = 0; i < TRANSFORM_ROUNDS; i++) {
-      md5Hashes[i] = crypto.createHash('md5').update(digest).digest();
+      md5Hashes[i] = createHash('md5').update(digest).digest();
       digest = Buffer.concat([md5Hashes[i], password]);
     }
 
