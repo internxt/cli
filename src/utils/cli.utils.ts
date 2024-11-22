@@ -90,24 +90,23 @@ export class CLIUtils {
       const isValid = await validation.validate(flag.value);
       if (isValid) {
         return flag.value;
+      } else if (command.nonInteractive) {
+        throw validation.error;
       } else {
-        if (command.nonInteractive) {
-          throw validation.error;
-        } else {
-          CLIUtils.error(reporter, validation.error.message);
-        }
+        CLIUtils.error(reporter, validation.error.message);
       }
     }
     if (command.nonInteractive) {
       throw new NoFlagProvidedError(flag.name);
     } else {
-      return await CLIUtils.promptWithAttempts(command.prompt, command.maxAttempts, validation, reporter);
+      const maxAttempts = command.maxAttempts ?? 3;
+      return await CLIUtils.promptWithAttempts(command.prompt, maxAttempts, validation, reporter);
     }
   };
 
   private static readonly promptWithAttempts = async (
     prompt: { message: string; options: PromptOptions },
-    maxAttempts = 3,
+    maxAttempts: number,
     validation: {
       validate: (value: string) => Promise<boolean> | boolean;
       error: Error;
