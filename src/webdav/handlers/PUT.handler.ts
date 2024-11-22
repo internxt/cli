@@ -3,7 +3,7 @@ import { DriveFileService } from '../../services/drive/drive-file.service';
 import { NetworkFacade } from '../../services/network/network-facade.service';
 import { AuthService } from '../../services/auth.service';
 import { WebDavMethodHandler } from '../../types/webdav.types';
-import { ConflictError, UnsupportedMediaTypeError } from '../../utils/errors.utils';
+import { UnsupportedMediaTypeError } from '../../utils/errors.utils';
 import { WebDavUtils } from '../../utils/webdav.utils';
 import { webdavLogger } from '../../utils/logger.utils';
 import { DriveDatabaseManager } from '../../services/database/drive-database-manager.service';
@@ -41,10 +41,6 @@ export class PUTRequestHandler implements WebDavMethodHandler {
       driveDatabaseManager,
       driveFolderService,
     })) as DriveFolderItem;
-
-    if (!parentFolderItem) {
-      throw new ConflictError(`Parent resource not found for parent path ${resource.parentPath}`);
-    }
 
     try {
       // If the file already exists, the WebDAV specification states that 'PUT /…/file' should replace it.
