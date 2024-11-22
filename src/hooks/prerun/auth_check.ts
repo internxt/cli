@@ -19,13 +19,15 @@ const hook: Hook<'prerun'> = async function (opts) {
         token,
         newToken,
       });
+      CLIUtils.done();
+      CLIUtils.clearPreviousLine();
     } catch (error) {
       const err = error as Error;
+      CLIUtils.done();
+      CLIUtils.clearPreviousLine();
       CLIUtils.error(this.log.bind(this), err.message);
       opts.context.exit(1);
     }
-    CLIUtils.done();
-    CLIUtils.clearPreviousLine();
   }
 };
 
