@@ -1,19 +1,12 @@
-import { expect } from 'chai';
-import Sinon, { SinonSandbox } from 'sinon';
-import { randomInt, randomUUID } from 'crypto';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { randomInt, randomUUID } from 'node:crypto';
 import { Storage } from '@internxt/sdk/dist/drive';
 import { UsageService } from '../../src/services/usage.service';
 import { SdkManager } from '../../src/services/sdk-manager.service';
 
 describe('Usage Service', () => {
-  let usageServiceSandbox: SinonSandbox;
-
   beforeEach(() => {
-    usageServiceSandbox = Sinon.createSandbox();
-  });
-
-  afterEach(() => {
-    usageServiceSandbox.restore();
+    vi.restoreAllMocks();
   });
 
   it('When getting user usage, it should return the total usage', async () => {
@@ -22,19 +15,19 @@ describe('Usage Service', () => {
     const total = drive + backups;
     const driveSpaceUsage = { _id: randomUUID(), total, drive, backups };
 
-    usageServiceSandbox.stub(Storage.prototype, 'spaceUsage').resolves(driveSpaceUsage);
-    usageServiceSandbox.stub(SdkManager.instance, 'getStorage').returns(Storage.prototype);
+    vi.spyOn(Storage.prototype, 'spaceUsage').mockResolvedValue(driveSpaceUsage);
+    vi.spyOn(SdkManager.instance, 'getStorage').mockReturnValue(Storage.prototype);
 
     const result = await UsageService.instance.fetchUsage();
 
-    expect(result).to.be.eql(driveSpaceUsage);
+    expect(result).to.be.deep.equal(driveSpaceUsage);
   });
 
   it('When getting user space limit, it should return the total usage', async () => {
     const driveSpaceLimit = { maxSpaceBytes: randomInt(5000000000) };
 
-    usageServiceSandbox.stub(Storage.prototype, 'spaceLimit').resolves(driveSpaceLimit);
-    usageServiceSandbox.stub(SdkManager.instance, 'getStorage').returns(Storage.prototype);
+    vi.spyOn(Storage.prototype, 'spaceLimit').mockResolvedValue(driveSpaceLimit);
+    vi.spyOn(SdkManager.instance, 'getStorage').mockReturnValue(Storage.prototype);
 
     const result = await UsageService.instance.fetchSpaceLimit();
 

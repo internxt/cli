@@ -1,5 +1,4 @@
-import { expect } from 'chai';
-import sinon from 'sinon';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { WebDavUtils } from '../../src/utils/webdav.utils';
 import { createWebDavRequestFixture } from '../fixtures/webdav.fixture';
 import {
@@ -11,37 +10,35 @@ import { WebDavRequestedResource } from '../../src/types/webdav.types';
 import { newFileItem, newFolderItem } from '../fixtures/drive.fixture';
 import { DriveFolderService } from '../../src/services/drive/drive-folder.service';
 import { DriveFileService } from '../../src/services/drive/drive-file.service';
-import { fail } from 'assert';
+import { fail } from 'node:assert';
 import { NotFoundError } from '../../src/utils/errors.utils';
 
 describe('Webdav utils', () => {
-  const sandbox = sinon.createSandbox();
-
-  afterEach(() => {
-    sandbox.restore();
+  beforeEach(() => {
+    vi.restoreAllMocks();
   });
 
   describe('joinURL', () => {
     it('When a list of path components are given, then it should generate a correct href', () => {
       const href = WebDavUtils.joinURL('/path', 'to', 'file');
-      expect(href).to.equal('/path/to/file');
+      expect(href).to.be.equal('/path/to/file');
     });
 
     it('When a list of path components are given, should generate a correct href and remove incorrect characters', () => {
       const href = WebDavUtils.joinURL('/path', 'to', 'folder/');
-      expect(href).to.equal('/path/to/folder/');
+      expect(href).to.be.equal('/path/to/folder/');
     });
   });
 
   describe('removeHostFromURL', () => {
     it('When a list of path components are given, then it should generate a correct href', () => {
-      expect(WebDavUtils.removeHostFromURL('https://test.com/folder1')).to.equal('/folder1');
-      expect(WebDavUtils.removeHostFromURL('http://test.com/folder1')).to.equal('/folder1');
-      expect(WebDavUtils.removeHostFromURL('test.com/folder1')).to.equal('/folder1');
-      expect(WebDavUtils.removeHostFromURL('https://test.com/folder1/folder2/folder3/')).to.equal(
+      expect(WebDavUtils.removeHostFromURL('https://test.com/folder1')).to.be.equal('/folder1');
+      expect(WebDavUtils.removeHostFromURL('http://test.com/folder1')).to.be.equal('/folder1');
+      expect(WebDavUtils.removeHostFromURL('test.com/folder1')).to.be.equal('/folder1');
+      expect(WebDavUtils.removeHostFromURL('https://test.com/folder1/folder2/folder3/')).to.be.equal(
         '/folder1/folder2/folder3/',
       );
-      expect(WebDavUtils.removeHostFromURL('https://test.com/folder1/test.jpg')).to.equal('/folder1/test.jpg');
+      expect(WebDavUtils.removeHostFromURL('https://test.com/folder1/test.jpg')).to.be.equal('/folder1/test.jpg');
     });
   });
 
@@ -154,36 +151,36 @@ describe('Webdav utils', () => {
     it('When folder request is given, then it should return the requested resource', async () => {
       const driveDatabaseManager = getDriveDatabaseManager();
       const folder = getDriveFolderDatabaseFixture();
-      const findFolderStub = sandbox.stub(driveDatabaseManager, 'findFolderByRelativePath').resolves(folder);
-      const findFileStub = sandbox.stub(driveDatabaseManager, 'findFileByRelativePath').rejects();
+      const findFolderStub = vi.spyOn(driveDatabaseManager, 'findFolderByRelativePath').mockResolvedValue(folder);
+      const findFileStub = vi.spyOn(driveDatabaseManager, 'findFileByRelativePath').mockRejectedValue(new Error());
 
       const item = await WebDavUtils.getDatabaseItemFromResource(requestFolderFixture, driveDatabaseManager);
-      expect(item).to.eql(folder.toItem());
-      expect(findFolderStub.calledOnce).to.be.true;
-      expect(findFileStub.called).to.be.false;
+      expect(item).to.be.deep.equal(folder.toItem());
+      expect(findFolderStub).toHaveBeenCalledOnce();
+      expect(findFileStub).not.toHaveBeenCalled();
     });
 
     it('When file request is given, then it should return the requested resource', async () => {
       const driveDatabaseManager = getDriveDatabaseManager();
       const file = getDriveFileDatabaseFixture();
-      const findFileStub = sandbox.stub(driveDatabaseManager, 'findFileByRelativePath').resolves(file);
-      const findFolderStub = sandbox.stub(driveDatabaseManager, 'findFolderByRelativePath').rejects();
+      const findFileStub = vi.spyOn(driveDatabaseManager, 'findFileByRelativePath').mockResolvedValue(file);
+      const findFolderStub = vi.spyOn(driveDatabaseManager, 'findFolderByRelativePath').mockRejectedValue(new Error());
 
       const item = await WebDavUtils.getDatabaseItemFromResource(requestFileFixture, driveDatabaseManager);
-      expect(item).to.eql(file.toItem());
-      expect(findFileStub.calledOnce).to.be.true;
-      expect(findFolderStub.called).to.be.false;
+      expect(item).to.be.deep.equal(file.toItem());
+      expect(findFileStub).toHaveBeenCalledOnce();
+      expect(findFolderStub).not.toHaveBeenCalled();
     });
 
     it('When file item is not found, then it should return null', async () => {
       const driveDatabaseManager = getDriveDatabaseManager();
-      const findFileStub = sandbox.stub(driveDatabaseManager, 'findFileByRelativePath').resolves(null);
-      const findFolderStub = sandbox.stub(driveDatabaseManager, 'findFolderByRelativePath').rejects();
+      const findFileStub = vi.spyOn(driveDatabaseManager, 'findFileByRelativePath').mockResolvedValue(null);
+      const findFolderStub = vi.spyOn(driveDatabaseManager, 'findFolderByRelativePath').mockRejectedValue(new Error());
 
       const item = await WebDavUtils.getDatabaseItemFromResource(requestFileFixture, driveDatabaseManager);
-      expect(item).to.be.null;
-      expect(findFileStub.calledOnce).to.be.true;
-      expect(findFolderStub.called).to.be.false;
+      expect(item).to.be.equal(null);
+      expect(findFileStub).toHaveBeenCalledOnce();
+      expect(findFolderStub).not.toHaveBeenCalled();
     });
   });
 
@@ -191,8 +188,8 @@ describe('Webdav utils', () => {
     it('When folder item is saved, then it is persisted to the database', async () => {
       const driveDatabaseManager = getDriveDatabaseManager();
       const expectedFolder = getDriveFolderDatabaseFixture();
-      const createFolderStub = sandbox.stub(driveDatabaseManager, 'createFolder').resolves(expectedFolder);
-      const createFileStub = sandbox.stub(driveDatabaseManager, 'createFile').rejects();
+      const createFolderStub = vi.spyOn(driveDatabaseManager, 'createFolder').mockResolvedValue(expectedFolder);
+      const createFileStub = vi.spyOn(driveDatabaseManager, 'createFile').mockRejectedValue(new Error());
 
       const driveFolder = await WebDavUtils.setDatabaseItem(
         'folder',
@@ -200,21 +197,21 @@ describe('Webdav utils', () => {
         driveDatabaseManager,
         'relative-path',
       );
-      expect(driveFolder).to.eql(expectedFolder);
-      expect(createFolderStub.calledOnce).to.be.true;
-      expect(createFileStub.called).to.be.false;
+      expect(driveFolder).to.be.deep.equal(expectedFolder);
+      expect(createFolderStub).toHaveBeenCalledOnce();
+      expect(createFileStub).not.toHaveBeenCalled();
     });
 
     it('When file item is saved, then it is persisted to the database', async () => {
       const driveDatabaseManager = getDriveDatabaseManager();
       const expectedFile = getDriveFileDatabaseFixture();
-      const createFileStub = sandbox.stub(driveDatabaseManager, 'createFile').resolves(expectedFile);
-      const createFolderStub = sandbox.stub(driveDatabaseManager, 'createFolder').rejects();
+      const createFileStub = vi.spyOn(driveDatabaseManager, 'createFile').mockResolvedValue(expectedFile);
+      const createFolderStub = vi.spyOn(driveDatabaseManager, 'createFolder').mockRejectedValue(new Error());
 
       const driveFile = await WebDavUtils.setDatabaseItem('file', newFileItem(), driveDatabaseManager, 'relative-path');
-      expect(driveFile).to.eql(expectedFile);
-      expect(createFileStub.calledOnce).to.be.true;
-      expect(createFolderStub.called).to.be.false;
+      expect(driveFile).to.be.deep.equal(expectedFile);
+      expect(createFileStub).toHaveBeenCalledOnce();
+      expect(createFolderStub).not.toHaveBeenCalled();
     });
   });
 
@@ -248,34 +245,36 @@ describe('Webdav utils', () => {
 
     it('When folder resource is looked by its path, then it is returned', async () => {
       const expectedFolder = newFolderItem();
-      const findFolderStub = sandbox
-        .stub(DriveFolderService.instance, 'getFolderMetadataByPath')
-        .resolves(expectedFolder);
-      const findFileStub = sandbox.stub(DriveFileService.instance, 'getFileMetadataByPath').rejects();
+      const findFolderStub = vi
+        .spyOn(DriveFolderService.instance, 'getFolderMetadataByPath')
+        .mockResolvedValue(expectedFolder);
+      const findFileStub = vi.spyOn(DriveFileService.instance, 'getFileMetadataByPath').mockRejectedValue(new Error());
 
       const driveFolderItem = await WebDavUtils.getDriveItemFromResource(
         requestFolderFixture,
         DriveFolderService.instance,
         undefined,
       );
-      expect(driveFolderItem).to.eql(expectedFolder);
-      expect(findFolderStub.calledOnce).to.be.true;
-      expect(findFileStub.called).to.be.false;
+      expect(driveFolderItem).to.be.deep.equal(expectedFolder);
+      expect(findFolderStub).toHaveBeenCalledOnce();
+      expect(findFileStub).not.toHaveBeenCalled();
     });
 
     it('When file resource is looked by its path, then it is returned', async () => {
       const expectedFile = newFileItem();
-      const findFileStub = sandbox.stub(DriveFileService.instance, 'getFileMetadataByPath').resolves(expectedFile);
-      const findFolderStub = sandbox.stub(DriveFolderService.instance, 'getFolderMetadataByPath').rejects();
+      const findFileStub = vi.spyOn(DriveFileService.instance, 'getFileMetadataByPath').mockResolvedValue(expectedFile);
+      const findFolderStub = vi
+        .spyOn(DriveFolderService.instance, 'getFolderMetadataByPath')
+        .mockRejectedValue(new Error());
 
       const driveFileItem = await WebDavUtils.getDriveItemFromResource(
         requestFileFixture,
         undefined,
         DriveFileService.instance,
       );
-      expect(driveFileItem).to.eql(expectedFile);
-      expect(findFileStub.calledOnce).to.be.true;
-      expect(findFolderStub.called).to.be.false;
+      expect(driveFileItem).to.be.deep.equal(expectedFile);
+      expect(findFileStub).toHaveBeenCalledOnce();
+      expect(findFolderStub).not.toHaveBeenCalled();
     });
   });
 
@@ -310,76 +309,76 @@ describe('Webdav utils', () => {
     it('When folder item is looked by the resource and exists in the local db, then it is returned from db', async () => {
       const driveDatabaseManager = getDriveDatabaseManager();
       const expectedFolder = newFolderItem();
-      const findFolderStub = sandbox.stub(WebDavUtils, 'getDatabaseItemFromResource').resolves(expectedFolder);
-      const findFolderOnDriveStub = sandbox.stub(WebDavUtils, 'getDriveItemFromResource').rejects();
-      const saveFolderOnLocalStub = sandbox.stub(WebDavUtils, 'setDatabaseItem').rejects();
+      const findFolderStub = vi.spyOn(WebDavUtils, 'getDatabaseItemFromResource').mockResolvedValue(expectedFolder);
+      const findFolderOnDriveStub = vi.spyOn(WebDavUtils, 'getDriveItemFromResource').mockRejectedValue(new Error());
+      const saveFolderOnLocalStub = vi.spyOn(WebDavUtils, 'setDatabaseItem').mockRejectedValue(new Error());
 
       const driveFolderItem = await WebDavUtils.getAndSearchItemFromResource({
         resource: requestFolderFixture,
         driveDatabaseManager,
       });
-      expect(driveFolderItem).to.eql(expectedFolder);
-      expect(findFolderStub.calledOnce).to.be.true;
-      expect(findFolderOnDriveStub.called).to.be.false;
-      expect(saveFolderOnLocalStub.called).to.be.false;
+      expect(driveFolderItem).to.be.deep.equal(expectedFolder);
+      expect(findFolderStub).toHaveBeenCalledOnce();
+      expect(findFolderOnDriveStub).not.toHaveBeenCalled();
+      expect(saveFolderOnLocalStub).not.toHaveBeenCalled();
     });
 
     it('When file item is looked by the resource and exists in the local db, then it is returned from db', async () => {
       const driveDatabaseManager = getDriveDatabaseManager();
       const expectedFile = newFileItem();
-      const findFileStub = sandbox.stub(WebDavUtils, 'getDatabaseItemFromResource').resolves(expectedFile);
-      const findFileOnDriveStub = sandbox.stub(WebDavUtils, 'getDriveItemFromResource').rejects();
-      const saveFileOnLocalStub = sandbox.stub(WebDavUtils, 'setDatabaseItem').rejects();
+      const findFileStub = vi.spyOn(WebDavUtils, 'getDatabaseItemFromResource').mockResolvedValue(expectedFile);
+      const findFileOnDriveStub = vi.spyOn(WebDavUtils, 'getDriveItemFromResource').mockRejectedValue(new Error());
+      const saveFileOnLocalStub = vi.spyOn(WebDavUtils, 'setDatabaseItem').mockRejectedValue(new Error());
 
       const driveFolderItem = await WebDavUtils.getAndSearchItemFromResource({
         resource: requestFileFixture,
         driveDatabaseManager,
       });
-      expect(driveFolderItem).to.eql(expectedFile);
-      expect(findFileStub.calledOnce).to.be.true;
-      expect(findFileOnDriveStub.called).to.be.false;
-      expect(saveFileOnLocalStub.called).to.be.false;
+      expect(driveFolderItem).to.be.deep.equal(expectedFile);
+      expect(findFileStub).toHaveBeenCalledOnce();
+      expect(findFileOnDriveStub).not.toHaveBeenCalled();
+      expect(saveFileOnLocalStub).not.toHaveBeenCalled();
     });
 
     it('When folder item is looked by the resource and not exists in the local db, then it is returned from drive', async () => {
       const driveDatabaseManager = getDriveDatabaseManager();
       const expectedFolder = newFolderItem();
-      const findFolderStub = sandbox.stub(WebDavUtils, 'getDatabaseItemFromResource').resolves(null);
-      const findFolderOnDriveStub = sandbox.stub(WebDavUtils, 'getDriveItemFromResource').resolves(expectedFolder);
-      const saveFolderOnLocalStub = sandbox.stub(WebDavUtils, 'setDatabaseItem').resolves();
+      const findFolderStub = vi.spyOn(WebDavUtils, 'getDatabaseItemFromResource').mockResolvedValue(null);
+      const findFolderOnDriveStub = vi.spyOn(WebDavUtils, 'getDriveItemFromResource').mockResolvedValue(expectedFolder);
+      const saveFolderOnLocalStub = vi.spyOn(WebDavUtils, 'setDatabaseItem').mockResolvedValue(undefined);
 
       const driveFolderItem = await WebDavUtils.getAndSearchItemFromResource({
         resource: requestFolderFixture,
         driveDatabaseManager,
       });
-      expect(driveFolderItem).to.eql(expectedFolder);
-      expect(findFolderStub.calledOnce).to.be.true;
-      expect(findFolderOnDriveStub.calledOnce).to.be.true;
-      expect(saveFolderOnLocalStub.calledOnce).to.be.true;
+      expect(driveFolderItem).to.be.deep.equal(expectedFolder);
+      expect(findFolderStub).toHaveBeenCalledOnce();
+      expect(findFolderOnDriveStub).toHaveBeenCalledOnce();
+      expect(saveFolderOnLocalStub).toHaveBeenCalledOnce();
     });
 
     it('When file item is looked by the resource and not exists in the local db, then it is returned from drive', async () => {
       const driveDatabaseManager = getDriveDatabaseManager();
       const expectedFile = newFileItem();
-      const findFileStub = sandbox.stub(WebDavUtils, 'getDatabaseItemFromResource').resolves(null);
-      const findFileOnDriveStub = sandbox.stub(WebDavUtils, 'getDriveItemFromResource').resolves(expectedFile);
-      const saveFileOnLocalStub = sandbox.stub(WebDavUtils, 'setDatabaseItem').resolves();
+      const findFileStub = vi.spyOn(WebDavUtils, 'getDatabaseItemFromResource').mockResolvedValue(null);
+      const findFileOnDriveStub = vi.spyOn(WebDavUtils, 'getDriveItemFromResource').mockResolvedValue(expectedFile);
+      const saveFileOnLocalStub = vi.spyOn(WebDavUtils, 'setDatabaseItem').mockResolvedValue(undefined);
 
       const driveFolderItem = await WebDavUtils.getAndSearchItemFromResource({
         resource: requestFileFixture,
         driveDatabaseManager,
       });
-      expect(driveFolderItem).to.eql(expectedFile);
-      expect(findFileStub.calledOnce).to.be.true;
-      expect(findFileOnDriveStub.called).to.be.true;
-      expect(saveFileOnLocalStub.called).to.be.true;
+      expect(driveFolderItem).to.be.deep.equal(expectedFile);
+      expect(findFileStub).toHaveBeenCalledOnce();
+      expect(findFileOnDriveStub).toHaveBeenCalledOnce();
+      expect(saveFileOnLocalStub).toHaveBeenCalledOnce();
     });
 
     it('When file item is looked by the resource and not exists in the local db nor drive, then a not found error is thrown', async () => {
       const driveDatabaseManager = getDriveDatabaseManager();
-      const findItemStub = sandbox.stub(WebDavUtils, 'getDatabaseItemFromResource').resolves(null);
-      const findItemOnDriveStub = sandbox.stub(WebDavUtils, 'getDriveItemFromResource').resolves(undefined);
-      const saveItemOnLocalStub = sandbox.stub(WebDavUtils, 'setDatabaseItem').rejects();
+      const findItemStub = vi.spyOn(WebDavUtils, 'getDatabaseItemFromResource').mockResolvedValue(null);
+      const findItemOnDriveStub = vi.spyOn(WebDavUtils, 'getDriveItemFromResource').mockResolvedValue(undefined);
+      const saveItemOnLocalStub = vi.spyOn(WebDavUtils, 'setDatabaseItem').mockRejectedValue(new Error());
 
       try {
         await WebDavUtils.getAndSearchItemFromResource({ resource: requestFileFixture, driveDatabaseManager });
@@ -387,9 +386,9 @@ describe('Webdav utils', () => {
       } catch (error) {
         expect(error).to.be.instanceOf(NotFoundError);
       }
-      expect(findItemStub.calledOnce).to.be.true;
-      expect(findItemOnDriveStub.called).to.be.true;
-      expect(saveItemOnLocalStub.called).to.be.false;
+      expect(findItemStub).toHaveBeenCalledOnce();
+      expect(findItemOnDriveStub).toHaveBeenCalledOnce();
+      expect(saveItemOnLocalStub).not.toHaveBeenCalled();
     });
   });
 });

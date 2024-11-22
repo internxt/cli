@@ -5,7 +5,7 @@ import { DriveFolderService } from '../../services/drive/drive-folder.service';
 import { DriveFileService } from '../../services/drive/drive-file.service';
 import { FormatUtils } from '../../utils/format.utils';
 import { Request, Response } from 'express';
-import { randomUUID } from 'crypto';
+import { randomUUID } from 'node:crypto';
 import mime from 'mime-types';
 import { DriveDatabaseManager } from '../../services/database/drive-database-manager.service';
 import { WebDavUtils } from '../../utils/webdav.utils';

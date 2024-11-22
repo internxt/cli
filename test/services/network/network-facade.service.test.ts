@@ -1,32 +1,28 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as NetworkUpload from '@internxt/sdk/dist/network/upload';
 import { NetworkFacade } from '../../../src/services/network/network-facade.service';
 import { SdkManager } from '../../../src/services/sdk-manager.service';
-import path from 'path';
-import { createReadStream } from 'fs';
-import sinon, { SinonSandbox } from 'sinon';
-import { expect } from 'chai';
+import path from 'node:path';
+import { createReadStream } from 'node:fs';
 import { UploadService } from '../../../src/services/network/upload.service';
 import { CryptoService } from '../../../src/services/crypto.service';
 import { DownloadService } from '../../../src/services/network/download.service';
-import { Readable } from 'stream';
+import { Readable } from 'node:stream';
 import axios from 'axios';
+import { fail } from 'node:assert';
 
 describe('Network Facade Service', () => {
-  let networkFacadeSandbox: SinonSandbox;
-
   beforeEach(() => {
-    networkFacadeSandbox = sinon.createSandbox();
+    vi.restoreAllMocks();
   });
 
-  afterEach(() => {
-    networkFacadeSandbox.restore();
-  });
   const getNetworkMock = () => {
     return SdkManager.instance.getNetwork({
       user: 'user',
       pass: 'pass',
     });
   };
+
   it('When a file is prepared to upload, should return an abort controller and a promise to execute the upload', async () => {
     const sut = new NetworkFacade(
       getNetworkMock(),
@@ -37,7 +33,7 @@ describe('Network Facade Service', () => {
     const file = path.join(process.cwd(), 'test/fixtures/test-content.fixture.txt');
     const readStream = createReadStream(file);
     const options = {
-      progressCallback: sinon.stub(),
+      progressCallback: vi.fn(),
       abortController: new AbortController(),
     };
 
@@ -63,11 +59,11 @@ describe('Network Facade Service', () => {
     const file = path.join(process.cwd(), 'test/fixtures/test-content.fixture.txt');
     const readStream = createReadStream(file);
     const options = {
-      progressCallback: sinon.stub(),
+      progressCallback: vi.fn(),
       abortController: new AbortController(),
     };
 
-    networkFacadeSandbox.stub(NetworkUpload, 'uploadFile').resolves('uploaded_file_id');
+    vi.spyOn(NetworkUpload, 'uploadFile').mockResolvedValue('uploaded_file_id');
     const [executeUpload] = await sut.uploadFromStream(
       'f1858bc9675f9e4f7ab29429',
       'animal fog wink trade december thumb sight cousin crunch plunge captain enforce letter creek text',
@@ -92,7 +88,7 @@ describe('Network Facade Service', () => {
     });
 
     const networkMock = getNetworkMock();
-    networkFacadeSandbox.stub(networkMock, 'getDownloadLinks').resolves({
+    vi.spyOn(networkMock, 'getDownloadLinks').mockResolvedValue({
       index: '29f07b8914d8353b663ab783f4bbe9950fdde680a69524405790cecca9c549f9',
       bucket: bucket,
       created: new Date(),
@@ -108,7 +104,7 @@ describe('Network Facade Service', () => {
       version: 2,
     });
     const downloadServiceStub = DownloadService.instance;
-    networkFacadeSandbox.stub(downloadServiceStub, 'downloadFile').resolves(readableContent);
+    vi.spyOn(downloadServiceStub, 'downloadFile').mockResolvedValue(readableContent);
     const sut = new NetworkFacade(networkMock, UploadService.instance, downloadServiceStub, CryptoService.instance);
 
     const chunks: Uint8Array[] = [];
@@ -129,7 +125,7 @@ describe('Network Facade Service', () => {
     await executeDownload;
     const fileContent = Buffer.concat(chunks);
 
-    expect(fileContent.toString('utf-8')).to.equal('encrypted-content');
+    expect(fileContent.toString('utf-8')).to.be.equal('encrypted-content');
   });
 
   it('When a file download is aborted, should abort the download', async () => {
@@ -143,7 +139,7 @@ describe('Network Facade Service', () => {
     });
 
     const networkMock = getNetworkMock();
-    networkFacadeSandbox.stub(networkMock, 'getDownloadLinks').resolves({
+    vi.spyOn(networkMock, 'getDownloadLinks').mockResolvedValue({
       index: '29f07b8914d8353b663ab783f4bbe9950fdde680a69524405790cecca9c549f9',
       bucket: bucket,
       created: new Date(),
@@ -159,7 +155,7 @@ describe('Network Facade Service', () => {
       version: 2,
     });
     const downloadServiceStub = DownloadService.instance;
-    networkFacadeSandbox.stub(downloadServiceStub, 'downloadFile').resolves(readableContent);
+    vi.spyOn(downloadServiceStub, 'downloadFile').mockResolvedValue(readableContent);
     const sut = new NetworkFacade(networkMock, UploadService.instance, downloadServiceStub, CryptoService.instance);
 
     const writable = new WritableStream<Uint8Array>();
@@ -174,7 +170,7 @@ describe('Network Facade Service', () => {
     try {
       abort.abort();
       await executeDownload;
-      expect(false).to.be.true;
+      fail('Expected function to throw an error, but it did not.');
     } catch (error) {
       expect((error as Error).message).to.be.equal('Download aborted');
     }
@@ -192,7 +188,7 @@ describe('Network Facade Service', () => {
     });
 
     const networkMock = getNetworkMock();
-    networkFacadeSandbox.stub(networkMock, 'getDownloadLinks').resolves({
+    vi.spyOn(networkMock, 'getDownloadLinks').mockResolvedValue({
       index: '29f07b8914d8353b663ab783f4bbe9950fdde680a69524405790cecca9c549f9',
       bucket: bucket,
       created: new Date(),
@@ -213,15 +209,12 @@ describe('Network Facade Service', () => {
 
     const writable = new WritableStream<Uint8Array>();
 
-    const options = { progressCallback: sinon.stub() };
+    const options = { progressCallback: vi.fn() };
 
-    networkFacadeSandbox.stub(axios, 'get').callsFake((_, config) => {
+    vi.spyOn(axios, 'get').mockImplementation((_, config) => {
       config?.onDownloadProgress?.({ loaded: 100, total: 100, bytes: 100, lengthComputable: true });
       return Promise.resolve({ data: readableContent });
     });
-    /* networkFacadeSandbox.stub(superagent, 'get').returns({
-      on: sinon.stub().withArgs('progress').yields({ total: 100, loaded: 100 }).resolves(readableContent),
-    }); */
 
     const [executeDownload] = await sut.downloadToStream(
       bucket,
@@ -233,6 +226,6 @@ describe('Network Facade Service', () => {
 
     await executeDownload;
 
-    expect(options.progressCallback.calledWith(1)).to.be.true;
+    expect(options.progressCallback).toHaveBeenCalledWith(1);
   });
 });

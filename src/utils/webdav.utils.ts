@@ -1,5 +1,5 @@
 import { Request } from 'express';
-import path from 'path';
+import path from 'node:path';
 import { WebDavRequestedResource } from '../types/webdav.types';
 import { DriveFile } from '../services/database/drive-file/drive-file.domain';
 import { DriveFolder } from '../services/database/drive-folder/drive-folder.domain';

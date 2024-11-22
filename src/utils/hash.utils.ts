@@ -1,5 +1,5 @@
-import { createHash, Hash } from 'crypto';
-import { Transform, TransformCallback, TransformOptions } from 'stream';
+import { createHash, Hash } from 'node:crypto';
+import { Transform, TransformCallback, TransformOptions } from 'node:stream';
 
 export class HashStream extends Transform {
   hasher: Hash;

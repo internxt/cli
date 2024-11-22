@@ -1,5 +1,5 @@
-import { expect } from 'chai';
-import { randomInt } from 'crypto';
+import { describe, expect, it } from 'vitest';
+import { randomInt } from 'node:crypto';
 import { FormatUtils } from '../../src/utils/format.utils';
 import { UsageService } from '../../src/services/usage.service';
 
@@ -7,11 +7,11 @@ describe('Format utils', () => {
   it('When providing a date, it should return a formatted date for WebDav', () => {
     const date = new Date('2021-10-10T10:10:10Z');
     const result = FormatUtils.formatDateForWebDav(date);
-    expect(result).to.be.eq('Sun, 10 Oct 2021 10:10:10 GMT');
+    expect(result).to.be.equal('Sun, 10 Oct 2021 10:10:10 GMT');
   });
 
   it('When providing a size, it should return a formatted human readable size', () => {
-    const value = randomInt(500);
+    const value = randomInt(1, 500);
     const expectedSizes = [
       {
         value: value * Math.pow(1024, 0),

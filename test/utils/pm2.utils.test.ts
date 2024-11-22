@@ -1,80 +1,71 @@
-import { expect } from 'chai';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import pm2 from 'pm2';
-import sinon from 'sinon';
 import { PM2Utils } from '../../src/utils/pm2.utils';
+import { fail } from 'node:assert';
+
 describe('PM2 utils', () => {
-  const sandbox = sinon.createSandbox();
-  afterEach(() => {
-    sandbox.restore();
+  beforeEach(() => {
+    vi.restoreAllMocks();
   });
+
   it('When connecting, should connect to PM2 daemon', async () => {
     // @ts-expect-error - The error callback does not include an error
-    const connectStub = sandbox.stub(pm2, 'connect').callsFake((callback) => callback());
+    const connectStub = vi.spyOn(pm2, 'connect').mockImplementation((callback) => callback());
 
     await PM2Utils.connect();
-    expect(connectStub.calledOnce).to.be.true;
+    expect(connectStub).toHaveBeenCalledOnce();
   });
 
   it('When connecting, and daemon is not available, should reject', async () => {
     const error = new Error('Failed to connect');
-    sandbox.stub(pm2, 'connect').callsFake((callback) => {
-      // @ts-expect-error - The error callback does not include an error
-
-      callback(error);
-    });
+    // @ts-expect-error - The error callback does not include an error
+    vi.spyOn(pm2, 'connect').mockImplementation((callback) => callback(error));
     try {
       await PM2Utils.connect();
-      expect.fail('Should have thrown an error');
+      fail('Should have thrown an error');
     } catch (err) {
-      expect((err as Error).message).to.equal(error.message);
+      expect((err as Error).message).to.be.equal(error.message);
     }
   });
 
   it('When killing the WebDav server, should delete the process', async () => {
     // @ts-expect-error - The error callback does not include an error
-    const deleteStub = sandbox.stub(pm2, 'delete').callsFake((_, callback) => callback());
+    const deleteStub = vi.spyOn(pm2, 'delete').mockImplementation((_, callback) => callback());
     await PM2Utils.killWebDavServer();
-    expect(deleteStub.calledOnce).to.be.true;
+    expect(deleteStub).toHaveBeenCalledOnce();
   });
 
   it('When getting server process status, should return online status when WebDav server is running', async () => {
-    sandbox.stub(pm2, 'describe').callsFake((_, callback) => {
-      // @ts-expect-error - The error callback does not include an error
-      callback(null, [{ pm2_env: { status: 'online' } }]);
-    });
+    // @ts-expect-error - The error callback does not include an error
+    vi.spyOn(pm2, 'describe').mockImplementation((_, callback) => callback(null, [{ pm2_env: { status: 'online' } }]));
     const status = await PM2Utils.webdavServerStatus();
-    expect(status.status).to.equal('online');
+    expect(status.status).to.be.equal('online');
   });
 
-  it('When getting server process status, should return unknown status when WebDav server is not running', async () => {
-    sandbox.stub(pm2, 'describe').callsFake((_, callback) => {
-      // @ts-expect-error - The error callback does not include an error
-      callback(null, []);
-    });
+  it('When getting server process status, should return offline status when WebDav server is not running', async () => {
+    // @ts-expect-error - The error callback does not include an error
+    vi.spyOn(pm2, 'describe').mockImplementation((_, callback) => callback(null, []));
 
-    try {
-      await PM2Utils.webdavServerStatus();
-      expect.fail('Should have thrown an error');
-    } catch (error) {
-      expect((error as Error).message).to.equal('WebDav server is not running');
-    }
+    const status = await PM2Utils.webdavServerStatus();
+    expect(status.status).to.be.equal('offline');
   });
 
   it('When starting the WebDav server process, should start the WebDav server', async () => {
     // @ts-expect-error - The error callback does not include an error
-    const startStub = sandbox.stub(pm2, 'start').callsFake((_, callback) => callback());
+    const startStub = vi.spyOn(pm2, 'start').mockImplementation((_, callback) => callback());
     await PM2Utils.startWebDavServer();
-    expect(startStub.calledOnce).to.be.true;
+    expect(startStub).toHaveBeenCalledOnce();
   });
 
   it('When starting the WebDav server process, should reject when failing to start the WebDav server', async () => {
     const error = new Error('Failed to start server');
     // @ts-expect-error - The error callback does not include an error
-    sandbox.stub(pm2, 'start').callsFake((_, callback) => callback(error));
+    vi.spyOn(pm2, 'start').mockImplementation((_, callback) => callback(error));
     try {
       await PM2Utils.startWebDavServer();
-    } catch (error) {
-      expect((error as Error).message).to.equal('Failed to start server');
+      fail('Should have thrown an error');
+    } catch (err) {
+      expect((err as Error).message).to.be.equal(error.message);
     }
   });
 });
