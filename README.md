@@ -72,6 +72,7 @@ USAGE
 * [`internxt trash restore file`](#internxt-trash-restore-file)
 * [`internxt trash restore folder`](#internxt-trash-restore-folder)
 * [`internxt upload-file`](#internxt-upload-file)
+* [`internxt upload file`](#internxt-upload-file)
 * [`internxt webdav ACTION`](#internxt-webdav-action)
 * [`internxt webdav-config`](#internxt-webdav-config)
 * [`internxt whoami`](#internxt-whoami)
@@ -916,11 +917,43 @@ GLOBAL FLAGS
 DESCRIPTION
   Upload a file to Internxt Drive
 
+ALIASES
+  $ internxt upload file
+
 EXAMPLES
   $ internxt upload-file
 ```
 
 _See code: [src/commands/upload-file.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/upload-file.ts)_
+
+## `internxt upload file`
+
+Upload a file to Internxt Drive
+
+```
+USAGE
+  $ internxt upload file [--json] [-n] [-f <value>] [-i <value>]
+
+FLAGS
+  -f, --file=<value>         The path to the file on your system.
+  -i, --destination=<value>  The folder id where the file is going to be uploaded to. Leave empty for the root folder.
+
+HELPER FLAGS
+  -n, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
+                         the console and will throw errors directly.
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Upload a file to Internxt Drive
+
+ALIASES
+  $ internxt upload file
+
+EXAMPLES
+  $ internxt upload file
+```
 
 ## `internxt webdav ACTION`
 

@@ -19,7 +19,7 @@ import { EncryptionVersion } from '@internxt/sdk/dist/drive/storage/types';
 export default class UploadFile extends Command {
   static readonly args = {};
   static readonly description = 'Upload a file to Internxt Drive';
-  static readonly aliases = [];
+  static readonly aliases = ['upload:file'];
   static readonly examples = ['<%= config.bin %> <%= command.id %>'];
   static readonly flags = {
     ...CLIUtils.CommonFlags,
