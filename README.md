@@ -31,7 +31,7 @@ $ npm install -g @internxt/cli
 $ internxt COMMAND
 running command...
 $ internxt (--version)
-@internxt/cli/1.3.0 win32-x64 node-v20.2.0
+@internxt/cli/1.3.0 win32-x64 node-v20.9.0
 $ internxt --help [COMMAND]
 USAGE
   $ internxt COMMAND
@@ -46,30 +46,31 @@ USAGE
 * [`internxt config`](#internxt-config)
 * [`internxt create-folder`](#internxt-create-folder)
 * [`internxt download-file`](#internxt-download-file)
+* [`internxt download file`](#internxt-download-file)
 * [`internxt list`](#internxt-list)
 * [`internxt login`](#internxt-login)
 * [`internxt logout`](#internxt-logout)
 * [`internxt logs`](#internxt-logs)
 * [`internxt move-file`](#internxt-move-file)
 * [`internxt move-folder`](#internxt-move-folder)
-* [`internxt move file`](#internxt-move-file-1)
-* [`internxt move folder`](#internxt-move-folder-1)
+* [`internxt move file`](#internxt-move-file)
+* [`internxt move folder`](#internxt-move-folder)
 * [`internxt rename-file`](#internxt-rename-file)
 * [`internxt rename-folder`](#internxt-rename-folder)
-* [`internxt rename file`](#internxt-rename-file-1)
-* [`internxt rename folder`](#internxt-rename-folder-1)
+* [`internxt rename file`](#internxt-rename-file)
+* [`internxt rename folder`](#internxt-rename-folder)
 * [`internxt trash-clear`](#internxt-trash-clear)
 * [`internxt trash-file`](#internxt-trash-file)
 * [`internxt trash-folder`](#internxt-trash-folder)
 * [`internxt trash-list`](#internxt-trash-list)
 * [`internxt trash-restore-file`](#internxt-trash-restore-file)
 * [`internxt trash-restore-folder`](#internxt-trash-restore-folder)
-* [`internxt trash clear`](#internxt-trash-clear-1)
-* [`internxt trash file`](#internxt-trash-file-1)
-* [`internxt trash folder`](#internxt-trash-folder-1)
-* [`internxt trash list`](#internxt-trash-list-1)
-* [`internxt trash restore file`](#internxt-trash-restore-file-1)
-* [`internxt trash restore folder`](#internxt-trash-restore-folder-1)
+* [`internxt trash clear`](#internxt-trash-clear)
+* [`internxt trash file`](#internxt-trash-file)
+* [`internxt trash folder`](#internxt-trash-folder)
+* [`internxt trash list`](#internxt-trash-list)
+* [`internxt trash restore file`](#internxt-trash-restore-file)
+* [`internxt trash restore folder`](#internxt-trash-restore-folder)
 * [`internxt upload-file`](#internxt-upload-file)
 * [`internxt webdav ACTION`](#internxt-webdav-action)
 * [`internxt webdav-config`](#internxt-webdav-config)
@@ -101,19 +102,7 @@ Display useful information from the user logged into the Internxt CLI.
 
 ```
 USAGE
-  $ internxt config [--json] [--columns <value> | -x] [--filter <value>] [--no-header | [--csv |
-    --no-truncate]] [--output csv|json|yaml |  | ] [--sort <value>]
-
-FLAGS
-  -x, --extended         show extra columns
-      --columns=<value>  only show provided columns (comma-separated)
-      --csv              output is csv format [alias: --output=csv]
-      --filter=<value>   filter property by partial string matching, ex: name=foo
-      --no-header        hide table header from output
-      --no-truncate      do not truncate output to fit screen
-      --output=<option>  output in a more machine friendly format
-                         <options: csv|json|yaml>
-      --sort=<value>     property to sort by (prepend '-' for descending)
+  $ internxt config [--json]
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -180,11 +169,45 @@ DESCRIPTION
   Download and decrypts a file from Internxt Drive to a directory. The file name will be the same as the file name in
   your Drive.
 
+ALIASES
+  $ internxt download file
+
 EXAMPLES
   $ internxt download-file
 ```
 
 _See code: [src/commands/download-file.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/download-file.ts)_
+
+## `internxt download file`
+
+Download and decrypts a file from Internxt Drive to a directory. The file name will be the same as the file name in your Drive.
+
+```
+USAGE
+  $ internxt download file [--json] [-n] [-i <value>] [-d <value>] [-o]
+
+FLAGS
+  -d, --directory=<value>  The directory to download the file to. Leave empty for the current folder.
+  -i, --id=<value>         The id of the file to download. Use internxt list to view your files ids
+  -o, --overwrite          Overwrite the file if it already exists
+
+HELPER FLAGS
+  -n, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
+                         the console and will throw errors directly.
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Download and decrypts a file from Internxt Drive to a directory. The file name will be the same as the file name in
+  your Drive.
+
+ALIASES
+  $ internxt download file
+
+EXAMPLES
+  $ internxt download file
+```
 
 ## `internxt list`
 
@@ -192,20 +215,11 @@ Lists the content of a folder id.
 
 ```
 USAGE
-  $ internxt list [--json] [-n] [-f <value>] [--columns <value> | -x] [--filter <value>] [--no-header |
-    [--csv | --no-truncate]] [--output csv|json|yaml |  | ] [--sort <value>]
+  $ internxt list [--json] [-n] [-f <value>] [-e]
 
 FLAGS
-  -f, --id=<value>       The folder id to list. Leave empty for the root folder.
-  -x, --extended         show extra columns
-      --columns=<value>  only show provided columns (comma-separated)
-      --csv              output is csv format [alias: --output=csv]
-      --filter=<value>   filter property by partial string matching, ex: name=foo
-      --no-header        hide table header from output
-      --no-truncate      do not truncate output to fit screen
-      --output=<option>  output in a more machine friendly format
-                         <options: csv|json|yaml>
-      --sort=<value>     property to sort by (prepend '-' for descending)
+  -e, --extended    Displays additional information in the list.
+  -f, --id=<value>  The folder id to list. Leave empty for the root folder.
 
 HELPER FLAGS
   -n, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
@@ -229,7 +243,7 @@ Logs into an Internxt account. If the account is two-factor protected, then an e
 
 ```
 USAGE
-  $ internxt login [--json] [-n] [-e <value>] [-p <value>] [-w <value>]
+  $ internxt login [--json] [-n] [-e <value>] [-p <value>] [-w 123456]
 
 FLAGS
   -e, --email=<value>     The email to log in
@@ -632,23 +646,10 @@ Lists the content of the trash.
 
 ```
 USAGE
-  $ internxt trash-list [--json] [-n] [--columns <value> | -x] [--filter <value>] [--no-header | [--csv |
-    --no-truncate]] [--output csv|json|yaml |  | ] [--sort <value>]
+  $ internxt trash-list [--json] [-e]
 
 FLAGS
-  -x, --extended         show extra columns
-      --columns=<value>  only show provided columns (comma-separated)
-      --csv              output is csv format [alias: --output=csv]
-      --filter=<value>   filter property by partial string matching, ex: name=foo
-      --no-header        hide table header from output
-      --no-truncate      do not truncate output to fit screen
-      --output=<option>  output in a more machine friendly format
-                         <options: csv|json|yaml>
-      --sort=<value>     property to sort by (prepend '-' for descending)
-
-HELPER FLAGS
-  -n, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
-                         the console and will throw errors directly.
+  -e, --extended  Displays additional information in the trash list.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -817,23 +818,10 @@ Lists the content of the trash.
 
 ```
 USAGE
-  $ internxt trash list [--json] [-n] [--columns <value> | -x] [--filter <value>] [--no-header | [--csv |
-    --no-truncate]] [--output csv|json|yaml |  | ] [--sort <value>]
+  $ internxt trash list [--json] [-e]
 
 FLAGS
-  -x, --extended         show extra columns
-      --columns=<value>  only show provided columns (comma-separated)
-      --csv              output is csv format [alias: --output=csv]
-      --filter=<value>   filter property by partial string matching, ex: name=foo
-      --no-header        hide table header from output
-      --no-truncate      do not truncate output to fit screen
-      --output=<option>  output in a more machine friendly format
-                         <options: csv|json|yaml>
-      --sort=<value>     property to sort by (prepend '-' for descending)
-
-HELPER FLAGS
-  -n, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
-                         the console and will throw errors directly.
+  -e, --extended  Displays additional information in the trash list.
 
 GLOBAL FLAGS
   --json  Format output as json.
