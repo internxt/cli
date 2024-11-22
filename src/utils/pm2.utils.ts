@@ -1,9 +1,19 @@
 import path from 'node:path';
 import pm2 from 'pm2';
 
-export type WebDavProcessStatus = 'online' | 'unknown' | 'errored';
+export type WebDavProcessStatus =
+  | 'online'
+  | 'stopping'
+  | 'stopped'
+  | 'launching'
+  | 'errored'
+  | 'one-launch-status'
+  | 'offline'
+  | 'unknown';
+
 export class PM2Utils {
   private static WEBDAV_APP_NAME = 'Internxt CLI WebDav';
+
   static connect() {
     return new Promise<void>((resolve, reject) => {
       pm2.connect((err) => {
@@ -30,7 +40,9 @@ export class PM2Utils {
         if (err) {
           reject(err);
         } else if (processDescription.length === 0) {
-          reject(new Error('WebDav server is not running'));
+          resolve({
+            status: 'offline',
+          });
         } else {
           const process = processDescription[0];
           resolve({
