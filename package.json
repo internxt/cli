@@ -1,6 +1,6 @@
 {
   "author": "Internxt <hello@internxt.com>",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "description": "Internxt CLI to manage your encrypted storage",
   "scripts": {
     "build": "tsc",
@@ -37,7 +37,7 @@
   "dependencies": {
     "@internxt/inxt-js": "^2.0.11",
     "@internxt/lib": "^1.2.1",
-    "@internxt/sdk": "^1.5.25",
+    "@internxt/sdk": "1.6.4",
     "@oclif/core": "^3",
     "axios": "^1.7.7",
     "bip39": "^3.1.0",

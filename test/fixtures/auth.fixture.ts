@@ -1,7 +1,7 @@
 import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
 import crypto from 'crypto';
 
-export const UserFixture = {
+export const UserFixture: UserSettings = {
   userId: crypto.randomBytes(16).toString('hex'),
   uuid: crypto.randomBytes(16).toString('hex'),
   email: crypto.randomBytes(16).toString('hex'),
@@ -20,6 +20,17 @@ export const UserFixture = {
   privateKey: crypto.randomBytes(16).toString('hex'),
   publicKey: crypto.randomBytes(16).toString('hex'),
   revocationKey: crypto.randomBytes(16).toString('hex'),
+  keys: {
+    ecc: {
+      privateKey: crypto.randomBytes(16).toString('hex'),
+      publicKey: crypto.randomBytes(16).toString('hex'),
+      revocationKey: crypto.randomBytes(16).toString('hex'),
+    },
+    kyber: {
+      privateKyberKey: crypto.randomBytes(16).toString('hex'),
+      publicKyberKey: crypto.randomBytes(16).toString('hex'),
+    }
+  },
   teams: false,
   appSumoDetails: null,
   registerCompleted: true,
@@ -47,6 +58,17 @@ export const UserSettingsFixture: UserSettings = {
   privateKey: UserFixture.privateKey,
   publicKey: UserFixture.publicKey,
   revocationKey: UserFixture.revocationKey,
+  keys: {
+    ecc: {
+      privateKey: UserFixture.keys.ecc.privateKey,
+      publicKey: UserFixture.keys.ecc.publicKey,
+      revocationKey: UserFixture.revocationKey,
+    },
+    kyber: {
+      privateKyberKey: UserFixture.keys.kyber.privateKyberKey,
+      publicKyberKey: UserFixture.keys.kyber.publicKyberKey,
+    }
+  },
   teams: UserFixture.teams,
   appSumoDetails: UserFixture.appSumoDetails,
   registerCompleted: UserFixture.registerCompleted,
