@@ -50,12 +50,19 @@ describe('MKCOL request handler', () => {
       bucket: 'bucket1',
       id: 0,
       name: 'folder-1',
-      plain_name: 'FolderA',
-      createdAt: '',
-      updatedAt: '',
+      plainName: 'FolderA',
+      createdAt: new Date(),
+      updatedAt: new Date(),
       userId: 0,
       uuid: '1234-5678-9012-3456',
       parentUuid: '0123-5678-9012-3456',
+      removed: false,
+      removedAt: null,
+      creationTime: new Date(),
+      deleted: false,
+      deletedAt: null,
+      encryptVersion: 'aes-03',
+      modificationTime: new Date(),
     };
 
     const getRequestedResourceStub = sandbox

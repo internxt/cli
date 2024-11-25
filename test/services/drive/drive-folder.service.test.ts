@@ -84,12 +84,19 @@ describe('Drive folder Service', () => {
       bucket: 'bucket1',
       id: 0,
       name: 'folder-1',
-      plain_name: 'folder-1',
-      createdAt: '',
-      updatedAt: '',
+      plainName: 'folder-1',
+      createdAt: new Date(),
+      updatedAt: new Date(),
       userId: 0,
       uuid: '1234-5678-9012-3456',
       parentUuid: '0123-5678-9012-3456',
+      encryptVersion: 'aes-03',
+      creationTime: new Date(),
+      deleted: false,
+      deletedAt: null,
+      modificationTime: new Date(),
+      removed: false,
+      removedAt: null,
     };
     sandbox
       .stub(Storage.prototype, 'createFolder')
@@ -101,6 +108,6 @@ describe('Drive folder Service', () => {
     });
 
     const newFolder = await createFolder;
-    expect(newFolder.plain_name).to.be.eq('folder-1');
+    expect(newFolder.plainName).to.be.eq('folder-1');
   });
 });

@@ -45,7 +45,7 @@ export class MKCOLRequestHandler implements WebDavMethodHandler {
 
     await driveDatabaseManager.createFolder(
       {
-        name: newFolder.plain_name,
+        name: newFolder.plainName,
         status: 'EXISTS',
         encryptedName: newFolder.name,
         bucket: newFolder.bucket,

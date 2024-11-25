@@ -57,7 +57,7 @@ export default class CreateFolder extends Command {
     const newFolder = await createNewFolder;
     CLIUtils.done();
     CLIUtils.success(
-      `Folder ${newFolder.plain_name} created successfully, view it at view it at ${ConfigService.instance.get('DRIVE_URL')}/folder/${newFolder.uuid}`,
+      `Folder ${newFolder.plainName} created successfully, view it at view it at ${ConfigService.instance.get('DRIVE_URL')}/folder/${newFolder.uuid}`,
     );
   }
 }
