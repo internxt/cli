@@ -31,7 +31,7 @@ $ npm install -g @internxt/cli
 $ internxt COMMAND
 running command...
 $ internxt (--version)
-@internxt/cli/1.3.0 win32-x64 node-v20.2.0
+@internxt/cli/1.3.1 darwin-x64 node-v20.12.2
 $ internxt --help [COMMAND]
 USAGE
   $ internxt COMMAND
@@ -52,18 +52,18 @@ USAGE
 * [`internxt logs`](#internxt-logs)
 * [`internxt move-file`](#internxt-move-file)
 * [`internxt move-folder`](#internxt-move-folder)
-* [`internxt move file`](#internxt-move-file-1)
-* [`internxt move folder`](#internxt-move-folder-1)
+* [`internxt move file`](#internxt-move-file)
+* [`internxt move folder`](#internxt-move-folder)
 * [`internxt rename`](#internxt-rename)
 * [`internxt trash`](#internxt-trash)
 * [`internxt trash-clear`](#internxt-trash-clear)
 * [`internxt trash-list`](#internxt-trash-list)
 * [`internxt trash-restore-file`](#internxt-trash-restore-file)
 * [`internxt trash-restore-folder`](#internxt-trash-restore-folder)
-* [`internxt trash clear`](#internxt-trash-clear-1)
-* [`internxt trash list`](#internxt-trash-list-1)
-* [`internxt trash restore file`](#internxt-trash-restore-file-1)
-* [`internxt trash restore folder`](#internxt-trash-restore-folder-1)
+* [`internxt trash clear`](#internxt-trash-clear)
+* [`internxt trash list`](#internxt-trash-list)
+* [`internxt trash restore file`](#internxt-trash-restore-file)
+* [`internxt trash restore folder`](#internxt-trash-restore-folder)
 * [`internxt upload`](#internxt-upload)
 * [`internxt webdav ACTION`](#internxt-webdav-action)
 * [`internxt webdav-config ACTION`](#internxt-webdav-config-action)
@@ -84,7 +84,7 @@ EXAMPLES
   $ internxt add-cert
 ```
 
-_See code: [src/commands/add-cert.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/add-cert.ts)_
+_See code: [src/commands/add-cert.ts](https://github.com/internxt/cli/blob/v1.3.1/src/commands/add-cert.ts)_
 
 ## `internxt config`
 
@@ -113,7 +113,7 @@ EXAMPLES
   $ internxt config
 ```
 
-_See code: [src/commands/config.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/config.ts)_
+_See code: [src/commands/config.ts](https://github.com/internxt/cli/blob/v1.3.1/src/commands/config.ts)_
 
 ## `internxt create-folder`
 
@@ -134,7 +134,7 @@ EXAMPLES
   $ internxt create-folder
 ```
 
-_See code: [src/commands/create-folder.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/create-folder.ts)_
+_See code: [src/commands/create-folder.ts](https://github.com/internxt/cli/blob/v1.3.1/src/commands/create-folder.ts)_
 
 ## `internxt download`
 
@@ -157,7 +157,7 @@ EXAMPLES
   $ internxt download
 ```
 
-_See code: [src/commands/download.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/download.ts)_
+_See code: [src/commands/download.ts](https://github.com/internxt/cli/blob/v1.3.1/src/commands/download.ts)_
 
 ## `internxt list`
 
@@ -191,7 +191,7 @@ EXAMPLES
   $ internxt list
 ```
 
-_See code: [src/commands/list.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/list.ts)_
+_See code: [src/commands/list.ts](https://github.com/internxt/cli/blob/v1.3.1/src/commands/list.ts)_
 
 ## `internxt login`
 
@@ -199,7 +199,7 @@ Logs into an Internxt account. If the account is two-factor protected, then an e
 
 ```
 USAGE
-  $ internxt login [-n] [-e <value>] [-p <value>] [-w <value>]
+  $ internxt login [-n] [-e <value>] [-p <value>] [-w 123456]
 
 FLAGS
   -e, --email=<value>     The email to log in
@@ -217,7 +217,7 @@ EXAMPLES
   $ internxt login
 ```
 
-_See code: [src/commands/login.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/login.ts)_
+_See code: [src/commands/login.ts](https://github.com/internxt/cli/blob/v1.3.1/src/commands/login.ts)_
 
 ## `internxt logout`
 
@@ -234,7 +234,7 @@ EXAMPLES
   $ internxt logout
 ```
 
-_See code: [src/commands/logout.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/logout.ts)_
+_See code: [src/commands/logout.ts](https://github.com/internxt/cli/blob/v1.3.1/src/commands/logout.ts)_
 
 ## `internxt logs`
 
@@ -251,7 +251,7 @@ EXAMPLES
   $ internxt logs
 ```
 
-_See code: [src/commands/logs.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/logs.ts)_
+_See code: [src/commands/logs.ts](https://github.com/internxt/cli/blob/v1.3.1/src/commands/logs.ts)_
 
 ## `internxt move-file`
 
@@ -279,7 +279,7 @@ EXAMPLES
   $ internxt move-file
 ```
 
-_See code: [src/commands/move-file.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/move-file.ts)_
+_See code: [src/commands/move-file.ts](https://github.com/internxt/cli/blob/v1.3.1/src/commands/move-file.ts)_
 
 ## `internxt move-folder`
 
@@ -307,7 +307,7 @@ EXAMPLES
   $ internxt move-folder
 ```
 
-_See code: [src/commands/move-folder.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/move-folder.ts)_
+_See code: [src/commands/move-folder.ts](https://github.com/internxt/cli/blob/v1.3.1/src/commands/move-folder.ts)_
 
 ## `internxt move file`
 
@@ -384,7 +384,7 @@ EXAMPLES
   $ internxt rename
 ```
 
-_See code: [src/commands/rename.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/rename.ts)_
+_See code: [src/commands/rename.ts](https://github.com/internxt/cli/blob/v1.3.1/src/commands/rename.ts)_
 
 ## `internxt trash`
 
@@ -408,7 +408,7 @@ EXAMPLES
   $ internxt trash
 ```
 
-_See code: [src/commands/trash.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/trash.ts)_
+_See code: [src/commands/trash.ts](https://github.com/internxt/cli/blob/v1.3.1/src/commands/trash.ts)_
 
 ## `internxt trash-clear`
 
@@ -435,7 +435,7 @@ EXAMPLES
   $ internxt trash-clear
 ```
 
-_See code: [src/commands/trash-clear.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/trash-clear.ts)_
+_See code: [src/commands/trash-clear.ts](https://github.com/internxt/cli/blob/v1.3.1/src/commands/trash-clear.ts)_
 
 ## `internxt trash-list`
 
@@ -471,7 +471,7 @@ EXAMPLES
   $ internxt trash-list
 ```
 
-_See code: [src/commands/trash-list.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/trash-list.ts)_
+_See code: [src/commands/trash-list.ts](https://github.com/internxt/cli/blob/v1.3.1/src/commands/trash-list.ts)_
 
 ## `internxt trash-restore-file`
 
@@ -499,7 +499,7 @@ EXAMPLES
   $ internxt trash-restore-file
 ```
 
-_See code: [src/commands/trash-restore-file.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/trash-restore-file.ts)_
+_See code: [src/commands/trash-restore-file.ts](https://github.com/internxt/cli/blob/v1.3.1/src/commands/trash-restore-file.ts)_
 
 ## `internxt trash-restore-folder`
 
@@ -527,7 +527,7 @@ EXAMPLES
   $ internxt trash-restore-folder
 ```
 
-_See code: [src/commands/trash-restore-folder.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/trash-restore-folder.ts)_
+_See code: [src/commands/trash-restore-folder.ts](https://github.com/internxt/cli/blob/v1.3.1/src/commands/trash-restore-folder.ts)_
 
 ## `internxt trash clear`
 
@@ -662,7 +662,7 @@ EXAMPLES
   $ internxt upload
 ```
 
-_See code: [src/commands/upload.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/upload.ts)_
+_See code: [src/commands/upload.ts](https://github.com/internxt/cli/blob/v1.3.1/src/commands/upload.ts)_
 
 ## `internxt webdav ACTION`
 
@@ -685,7 +685,7 @@ EXAMPLES
   $ internxt webdav status
 ```
 
-_See code: [src/commands/webdav.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/webdav.ts)_
+_See code: [src/commands/webdav.ts](https://github.com/internxt/cli/blob/v1.3.1/src/commands/webdav.ts)_
 
 ## `internxt webdav-config ACTION`
 
@@ -713,7 +713,7 @@ EXAMPLES
   $ internxt webdav-config change-port
 ```
 
-_See code: [src/commands/webdav-config.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/webdav-config.ts)_
+_See code: [src/commands/webdav-config.ts](https://github.com/internxt/cli/blob/v1.3.1/src/commands/webdav-config.ts)_
 
 ## `internxt whoami`
 
@@ -730,7 +730,7 @@ EXAMPLES
   $ internxt whoami
 ```
 
-_See code: [src/commands/whoami.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/whoami.ts)_
+_See code: [src/commands/whoami.ts](https://github.com/internxt/cli/blob/v1.3.1/src/commands/whoami.ts)_
 <!-- commandsstop -->
 
 # Current Limitations
