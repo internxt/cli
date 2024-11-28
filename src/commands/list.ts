@@ -34,7 +34,7 @@ export default class List extends Command {
 
     let folderUuid = await this.getFolderUuid(flags['id'], nonInteractive);
 
-    if (folderUuid.trim().length === 0) {
+    if (!folderUuid || folderUuid.trim().length === 0) {
       // folderId is empty from flags&prompt, which means we should use RootFolderUuid
       folderUuid = userCredentials.root_folder_uuid;
     }
@@ -114,7 +114,7 @@ export default class List extends Command {
     this.exit(1);
   }
 
-  public getFolderUuid = async (folderUuidFlag: string | undefined, nonInteractive: boolean): Promise<string> => {
+  public getFolderUuid = async (folderUuidFlag: string | undefined, nonInteractive: boolean): Promise<string | undefined> => {
     let folderUuid = CLIUtils.getValueFromFlag(
       {
         value: folderUuidFlag,
@@ -125,7 +125,7 @@ export default class List extends Command {
       nonInteractive,
       (folderUuid: string) => ValidationService.instance.validateUUIDv4(folderUuid),
     );
-    if (!folderUuid) {
+    if (!folderUuid && !nonInteractive) {
       folderUuid = (await this.getFolderUuidInteractively()).trim();
     }
     return folderUuid;
