@@ -1,7 +1,7 @@
 import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
 import crypto from 'node:crypto';
 
-export const UserFixture = {
+export const UserFixture: UserSettings = {
   userId: crypto.randomBytes(16).toString('hex'),
   uuid: crypto.randomBytes(16).toString('hex'),
   email: crypto.randomBytes(16).toString('hex'),

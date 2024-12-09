@@ -1,6 +1,6 @@
 {
   "author": "Internxt <hello@internxt.com>",
-  "version": "1.3.0",
+  "version": "1.3.3",
   "description": "Internxt CLI to manage your encrypted storage",
   "scripts": {
     "build": "yarn clean && tsc",
@@ -39,7 +39,7 @@
     "@inquirer/prompts": "^7.1.0",
     "@internxt/inxt-js": "^2.0.11",
     "@internxt/lib": "^1.2.1",
-    "@internxt/sdk": "^1.6.3",
+    "@internxt/sdk": "^1.6.4",
     "@oclif/core": "^4.0.33",
     "@types/validator": "^13.12.2",
     "axios": "^1.7.7",

@@ -1250,10 +1250,19 @@
   version "1.0.2"
   resolved "https://codeload.github.com/internxt/prettier-config/tar.gz/9fa74e9a2805e1538b50c3809324f1c9d0f3e4f9"
 
-"@internxt/sdk@^1.4.27", "@internxt/sdk@^1.6.3":
+"@internxt/sdk@^1.4.27":
   version "1.6.3"
   resolved "https://registry.yarnpkg.com/@internxt/sdk/-/sdk-1.6.3.tgz#2df5732bd7643a704107f69e30eb0e892159c6a1"
   integrity sha512-Q27nxj3gwjMQ+YWJX8wXpVrMrSxb0Kxm4immVPiQokizCIffc8Ars+90WL+pNWqEj24ttMKPf3K38cZXMiynWA==
+  dependencies:
+    axios "^0.28.0"
+    query-string "^7.1.0"
+    uuid "^11.0.2"
+
+"@internxt/sdk@^1.6.4":
+  version "1.7.0"
+  resolved "https://registry.yarnpkg.com/@internxt/sdk/-/sdk-1.7.0.tgz#4d6aac6f5efa18d64d44e5e155f3df175c04f90a"
+  integrity sha512-K5ScK87gFCW5DBO0qt84x/EdroR42+pA5CCQZ8FbEmB8t5J14wxjiuyRedyYhPsqCB9jZptkFB9ZqHIP2zRNIA==
   dependencies:
     axios "^0.28.0"
     query-string "^7.1.0"
