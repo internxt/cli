@@ -8,7 +8,7 @@ describe('Errors Utils', () => {
     vi.restoreAllMocks();
   });
 
-  it('When reporting an error, should call console.error with the expected message and properties', () => {
+  it('When reporting an error, should call reporter with the expected message and properties', () => {
     const error = new Error('Test Error');
     const props = { key: 'value' };
 
@@ -20,7 +20,7 @@ describe('Errors Utils', () => {
     );
   });
 
-  it('When reporting an object, should call console.error with the expected message and properties', () => {
+  it('When reporting an object, should call reporter with the expected message and properties', () => {
     const error = { data: 'error data' };
     const props = { key: 'value' };
 

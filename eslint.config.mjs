@@ -7,9 +7,7 @@ export default [
     ...eslintConfigInternxt,
     {
         rules: {
-            'no-console': 'off',
             'max-len': 'off',
-            '@typescript-eslint/no-empty-function': 'off',
         }
     }
 ];
