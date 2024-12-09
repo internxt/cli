@@ -41,7 +41,7 @@ describe('Network utils', () => {
     expect(result.password).to.be.equal('5751a44782594819e4cb8aa27c2c9d87a420af82bc6a5a05bc7f19c3bb00452b');
   });
 
-  it('When webdav ssl certs are required but they dont exist, then they are generated and self signed on the fly, and they are also saved to files', async () => {
+  it('When webdav ssl certs do not exist, then they are generated, self signed on the fly, and saved to files', async () => {
     const sslSelfSigned: GenerateResult = {
       private: randomBytes(8).toString('hex'),
       public: randomBytes(8).toString('hex'),
@@ -66,7 +66,7 @@ describe('Network utils', () => {
     expect(mockReadFile).not.toHaveBeenCalled();
   });
 
-  it('When webdav ssl certs are required but they exist, then they are read from the files', async () => {
+  it('When webdav ssl certs exist, then they are read from the files', async () => {
     const sslMock = {
       private: randomBytes(8).toString('hex'),
       cert: randomBytes(8).toString('hex'),
@@ -101,7 +101,7 @@ describe('Network utils', () => {
     expect(mockReadFile).toHaveBeenCalledTimes(2);
   });
 
-  it('When webdav ssl certs are required and they exist, but they are expired, then they are generated and saved to files', async () => {
+  it('When webdav ssl certs exist but they are expired, then they are generated and saved to files', async () => {
     const sslSelfSigned: GenerateResult = {
       private: randomBytes(8).toString('hex'),
       public: randomBytes(8).toString('hex'),

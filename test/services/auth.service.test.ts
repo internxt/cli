@@ -74,7 +74,7 @@ describe('Auth service', () => {
     expect(loginStub).toHaveBeenCalledOnce();
   });
 
-  it('When two factor authentication property is enabled at securityDetails endpoint, then it is returned from is2FANeeded functionality', async () => {
+  it('When two factor authentication property is enabled, then it is returned from is2FANeeded functionality', async () => {
     const email = crypto.randomBytes(16).toString('hex');
     const securityDetails: SecurityDetails = {
       encryptedSalt: crypto.randomBytes(16).toString('hex'),

@@ -20,6 +20,7 @@ import { ValidationService } from '../services/validation.service';
 export default class DownloadFile extends Command {
   static readonly args = {};
   static readonly description =
+    // eslint-disable-next-line max-len
     'Download and decrypts a file from Internxt Drive to a directory. The file name will be the same as the file name in your Drive.';
   static readonly aliases = ['download:file'];
   static readonly examples = ['<%= config.bin %> <%= command.id %>'];

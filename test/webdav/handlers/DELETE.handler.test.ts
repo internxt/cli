@@ -21,7 +21,7 @@ describe('DELETE request handler', () => {
     vi.restoreAllMocks();
   });
 
-  it('When a WebDav client sends a DELETE request, it should reply with a 404 if the item is not found', async () => {
+  it('When the item does not exist, it should reply with a 404 error', async () => {
     const driveDatabaseManager = getDriveDatabaseManager();
     const requestHandler = new DELETERequestHandler({
       driveDatabaseManager,
@@ -59,7 +59,7 @@ describe('DELETE request handler', () => {
     expect(getAndSearchItemFromResourceStub).toHaveBeenCalledOnce();
   });
 
-  it('When a WebDav client sends a DELETE request for a file, it should reply with a 204 if the item is deleted successfully', async () => {
+  it('When the file exists, then it should reply with a 204 response', async () => {
     const driveDatabaseManager = getDriveDatabaseManager();
     const trashService = TrashService.instance;
     const requestHandler = new DELETERequestHandler({
@@ -98,7 +98,7 @@ describe('DELETE request handler', () => {
     expect(deleteFolderStub).not.toHaveBeenCalled();
   });
 
-  it('When a WebDav client sends a DELETE request for a folder, it should reply with a 204 if the item is deleted successfully', async () => {
+  it('When folder exists, then it should reply with a 204 response', async () => {
     const driveDatabaseManager = getDriveDatabaseManager();
     const trashService = TrashService.instance;
     const requestHandler = new DELETERequestHandler({

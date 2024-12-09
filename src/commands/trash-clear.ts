@@ -30,6 +30,7 @@ export default class TrashClear extends Command {
     if (!flags.force) {
       if (flags['non-interactive']) {
         const message =
+          // eslint-disable-next-line max-len
           'The "non interactive" flag is enabled, but the "force" flag has not been provided. User confirmation is required to empty the trash permanently.';
         CLIUtils.error(this.log.bind(this), message);
         return { success: false, message };

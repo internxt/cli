@@ -5,9 +5,4 @@ export default [
         ignores: ['dist', 'tmp', 'scripts'],
     },
     ...eslintConfigInternxt,
-    {
-        rules: {
-            'max-len': 'off',
-        }
-    }
 ];

@@ -84,7 +84,7 @@ describe('SDKManager service', () => {
     expect(auth).to.be.deep.equal(authClient);
   });
 
-  it('When Auth client is requested with useNewApi, then it is generated using internxt sdk using the new API endpoint', () => {
+  it('When Auth client is requested with useNewApi, then it returns the sdk that uses the new API endpoint', () => {
     const envEndpoint: { key: keyof ConfigKeys; value: string } = {
       key: 'DRIVE_NEW_API_URL',
       value: 'test/new-api',
@@ -184,7 +184,7 @@ describe('SDKManager service', () => {
     expect(newClient).to.be.deep.equal(client);
   });
 
-  it('When Storage client is requested with useNewApi, then it is generated using internxt sdk using the new API endpoint', () => {
+  it('When Storage client is requested with useNewApi, then it returns the sdk that uses the new API endpoint', () => {
     const envEndpoint: { key: keyof ConfigKeys; value: string } = {
       key: 'DRIVE_NEW_API_URL',
       value: 'test/new-api',

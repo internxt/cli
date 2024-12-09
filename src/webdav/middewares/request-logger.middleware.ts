@@ -10,7 +10,11 @@ export const RequestLoggerMiddleware = (config: RequestLoggerConfig): RequestHan
     if (!config.enable) return next();
     if (config.methods && !config.methods.includes(req.method)) return next();
     webdavLogger.info(
-      `WebDav request received\nMethod: ${req.method}\nURL: ${req.url}\nBody: ${JSON.stringify(req.body)}\nHeaders: ${JSON.stringify(req.headers)}`,
+      'WebDav request received\n' +
+        `Method: ${req.method}\n` +
+        `URL: ${req.url}\n` +
+        `Body: ${JSON.stringify(req.body)}\n` +
+        `Headers: ${JSON.stringify(req.headers)}`,
     );
     next();
   };

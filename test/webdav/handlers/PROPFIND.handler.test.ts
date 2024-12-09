@@ -36,7 +36,7 @@ describe('PROPFIND request handler', () => {
     vi.restoreAllMocks();
   });
 
-  it('When a WebDav client sends a PROPFIND request for the root folder, and there is no content, should return the correct XML', async () => {
+  it('When the root folder exists and there is no content, then itshould return the correct XML', async () => {
     const driveFolderService = DriveFolderService.instance;
     const driveFileService = DriveFileService.instance;
     const requestHandler = new PROPFINDRequestHandler({
@@ -83,6 +83,7 @@ describe('PROPFIND request handler', () => {
     await requestHandler.handle(request, response);
     expect(response.status).toHaveBeenCalledWith(207);
     expect(response.send).toHaveBeenCalledWith(
+      // eslint-disable-next-line max-len
       `<?xml version="1.0" encoding="utf-8" ?><D:multistatus xmlns:D="DAV:"><D:response><D:href>${XMLUtils.encodeWebDavUri('/')}</D:href><D:propstat><D:status>HTTP/1.1 200 OK</D:status><D:prop><D:getcontenttype>application/octet-stream</D:getcontenttype><x1:lastmodified xmlns:x1="SAR:">${FormatUtils.formatDateForWebDav(folderFixture.updatedAt)}</x1:lastmodified><x2:executable xmlns:x2="http://apache.org/dav/props/">F</x2:executable><x3:Win32FileAttributes xmlns:x3="urn:schemas-microsoft-com:">00000030</x3:Win32FileAttributes><D:quota-available-bytes>${spaceLimitFixture - usageFixture.total}</D:quota-available-bytes><D:quota-used-bytes>${usageFixture.total}</D:quota-used-bytes><D:resourcetype><D:collection/></D:resourcetype></D:prop></D:propstat></D:response></D:multistatus>`,
     );
     expect(getRequestedResourceStub).toHaveBeenCalledOnce();
@@ -92,7 +93,7 @@ describe('PROPFIND request handler', () => {
     expect(spaceLimitStub).toHaveBeenCalledOnce();
   });
 
-  it('When a WebDav client sends a PROPFIND request for the root folder, and there is content, should return the correct XML', async () => {
+  it('When the root folder exists and there is content, then it should return the correct XML', async () => {
     const driveFolderService = DriveFolderService.instance;
     const driveFileService = DriveFileService.instance;
     const requestHandler = new PROPFINDRequestHandler({
@@ -144,6 +145,7 @@ describe('PROPFIND request handler', () => {
     await requestHandler.handle(request, response);
     expect(response.status).toHaveBeenCalledWith(207);
     expect(response.send).toHaveBeenCalledWith(
+      // eslint-disable-next-line max-len
       `<?xml version="1.0" encoding="utf-8" ?><D:multistatus xmlns:D="DAV:"><D:response><D:href>${XMLUtils.encodeWebDavUri('/')}</D:href><D:propstat><D:status>HTTP/1.1 200 OK</D:status><D:prop><D:getcontenttype>application/octet-stream</D:getcontenttype><x1:lastmodified xmlns:x1="SAR:">${FormatUtils.formatDateForWebDav(folderFixture.updatedAt)}</x1:lastmodified><x2:executable xmlns:x2="http://apache.org/dav/props/">F</x2:executable><x3:Win32FileAttributes xmlns:x3="urn:schemas-microsoft-com:">00000030</x3:Win32FileAttributes><D:quota-available-bytes>${spaceLimitFixture - usageFixture.total}</D:quota-available-bytes><D:quota-used-bytes>${usageFixture.total}</D:quota-used-bytes><D:resourcetype><D:collection/></D:resourcetype></D:prop></D:propstat></D:response><D:response><D:href>${XMLUtils.encodeWebDavUri(`/${paginatedFolder1.plainName}/`)}</D:href><D:propstat><D:status>HTTP/1.1 200 OK</D:status><D:prop><D:displayname>${paginatedFolder1.plainName}</D:displayname><D:getlastmodified>${FormatUtils.formatDateForWebDav(paginatedFolder1.updatedAt)}</D:getlastmodified><D:getcontentlength>0</D:getcontentlength><D:resourcetype><D:collection/></D:resourcetype></D:prop></D:propstat></D:response></D:multistatus>`,
     );
     expect(getRequestedResourceStub).toHaveBeenCalledOnce();
@@ -153,7 +155,7 @@ describe('PROPFIND request handler', () => {
     expect(spaceLimitStub).toHaveBeenCalledOnce();
   });
 
-  it('When a WebDav client sends a PROPFIND request for a file, should return the correct XML', async () => {
+  it('When the file exists, then it should return the correct XML', async () => {
     const driveFolderService = DriveFolderService.instance;
     const driveFileService = DriveFileService.instance;
     const requestHandler = new PROPFINDRequestHandler({
@@ -194,6 +196,7 @@ describe('PROPFIND request handler', () => {
     await requestHandler.handle(request, response);
     expect(response.status).toHaveBeenCalledWith(207);
     expect(response.send).toHaveBeenCalledWith(
+      // eslint-disable-next-line max-len
       `<?xml version="1.0" encoding="utf-8" ?><D:multistatus xmlns:D="DAV:"><D:response><D:href>${XMLUtils.encodeWebDavUri(requestedFileResource.url)}</D:href><D:propstat><D:status>HTTP/1.1 200 OK</D:status><D:prop><D:resourcetype></D:resourcetype><D:getetag>&quot;${etagFixture}&quot;</D:getetag><D:displayname>${fileFixture.name + '.' + fileFixture.type}</D:displayname><D:getcontenttype>${mimeFixture}</D:getcontenttype><D:getlastmodified>${FormatUtils.formatDateForWebDav(fileFixture.updatedAt)}</D:getlastmodified><D:getcontentlength>${fileFixture.size}</D:getcontentlength></D:prop></D:propstat></D:response></D:multistatus>`,
     );
     expect(getRequestedResourceStub).toHaveBeenCalledOnce();
@@ -202,7 +205,7 @@ describe('PROPFIND request handler', () => {
     expect(mimeLookupStub).toHaveBeenCalledOnce();
   });
 
-  it('When a WebDav client sends a PROPFIND request for a folder, should return the correct XML', async () => {
+  it('When the folder exists, then it should return the correct XML', async () => {
     const driveFolderService = DriveFolderService.instance;
     const driveFileService = DriveFileService.instance;
     const requestHandler = new PROPFINDRequestHandler({
@@ -246,7 +249,7 @@ describe('PROPFIND request handler', () => {
     expect(getFolderContentStub).toHaveBeenCalledOnce();
   });
 
-  it('When a WebDav client sends a PROPFIND request for a folder and it does not exists, should return a 404', async () => {
+  it('When the folder does not exists, then it should return a 404', async () => {
     const driveFolderService = DriveFolderService.instance;
     const driveFileService = DriveFileService.instance;
     const requestHandler = new PROPFINDRequestHandler({

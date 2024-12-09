@@ -39,7 +39,7 @@ describe('Keys service', () => {
     }
   });
 
-  it('When keys can be used to decrypt but they are not working good to encrypt/decrypt, then the validation throws an error', async () => {
+  it('When keys are not working good to encrypt/decrypt, then the validation throws an error', async () => {
     vi.spyOn(openpgp, 'readKey').mockResolvedValue({} as openpgp.Key);
     vi.spyOn(openpgp, 'readPrivateKey').mockResolvedValue({} as openpgp.PrivateKey);
     vi.spyOn(openpgp, 'createMessage').mockResolvedValue({} as openpgp.Message<openpgp.MaybeStream<Uint8Array>>);

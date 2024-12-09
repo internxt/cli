@@ -23,6 +23,7 @@ export default class AddCert extends Command {
       let command = '';
 
       if (platform === 'win32') {
+        // eslint-disable-next-line max-len
         command = `powershell -ExecutionPolicy Bypass -File "${path.join(scriptBasePath, 'add-cert.ps1')}" -certPath "${certPath}"`;
       } else if (platform === 'darwin' || platform === 'linux') {
         command = `bash "${path.join(scriptBasePath, 'add-cert.sh')}" "${certPath}"`;

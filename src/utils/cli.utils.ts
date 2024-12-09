@@ -59,6 +59,7 @@ export class CLIUtils {
       env: 'INXT_NONINTERACTIVE',
       helpGroup: 'helper',
       description:
+        // eslint-disable-next-line max-len
         'Prevents the CLI from being interactive. When enabled, the CLI will not request input through the console and will throw errors directly.',
       required: false,
     }),

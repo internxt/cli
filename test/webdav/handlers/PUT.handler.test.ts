@@ -35,7 +35,7 @@ describe('PUT request handler', () => {
     vi.restoreAllMocks();
   });
 
-  it('When a WebDav client sends a PUT request and it contains a content-length of 0, then it should throw an UnsupportedMediaTypeError', async () => {
+  it('When the content-length request is 0, then it should throw an UnsupportedMediaTypeError', async () => {
     const networkFacade = new NetworkFacade(
       getNetworkMock(),
       UploadService.instance,
@@ -71,7 +71,7 @@ describe('PUT request handler', () => {
     }
   });
 
-  it('When a WebDav client sends a PUT request, and the Drive destination folder is found, then it should upload the file to the folder', async () => {
+  it('When the Drive destination folder is found, then it should upload the file to the folder', async () => {
     const driveDatabaseManager = getDriveDatabaseManager();
     const downloadService = DownloadService.instance;
     const uploadService = UploadService.instance;
@@ -137,7 +137,7 @@ describe('PUT request handler', () => {
     expect(createDBFileStub).toHaveBeenCalledOnce();
   });
 
-  it('When a WebDav client sends a PUT request, and the file already exists, then it should upload and replace the file to the folder', async () => {
+  it('When the file already exists, then it should upload and replace the file to the folder', async () => {
     const driveDatabaseManager = getDriveDatabaseManager();
     const downloadService = DownloadService.instance;
     const uploadService = UploadService.instance;

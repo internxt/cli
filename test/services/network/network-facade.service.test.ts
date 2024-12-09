@@ -23,7 +23,7 @@ describe('Network Facade Service', () => {
     });
   };
 
-  it('When a file is prepared to upload, should return an abort controller and a promise to execute the upload', async () => {
+  it('When a file is prepared to upload, then it should return the abort controller and upload promise', async () => {
     const sut = new NetworkFacade(
       getNetworkMock(),
       UploadService.instance,
@@ -117,6 +117,7 @@ describe('Network Facade Service', () => {
 
     const [executeDownload] = await sut.downloadToStream(
       bucket,
+      // eslint-disable-next-line max-len
       'index course habit soon assist dragon tragic helmet salute stuff later twice consider grit pulse cement obvious trick sponsor stereo hello win royal more',
       'f1858bc9675f9e4f7ab29429',
       writable,
@@ -162,6 +163,7 @@ describe('Network Facade Service', () => {
 
     const [executeDownload, abort] = await sut.downloadToStream(
       bucket,
+      // eslint-disable-next-line max-len
       'index course habit soon assist dragon tragic helmet salute stuff later twice consider grit pulse cement obvious trick sponsor stereo hello win royal more',
       'f1858bc9675f9e4f7ab29429',
       writable,
@@ -218,6 +220,7 @@ describe('Network Facade Service', () => {
 
     const [executeDownload] = await sut.downloadToStream(
       bucket,
+      // eslint-disable-next-line max-len
       'index course habit soon assist dragon tragic helmet salute stuff later twice consider grit pulse cement obvious trick sponsor stereo hello win royal more',
       'f1858bc9675f9e4f7ab29429',
       writable,

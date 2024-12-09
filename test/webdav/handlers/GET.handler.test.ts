@@ -33,7 +33,7 @@ describe('GET request handler', () => {
     vi.restoreAllMocks();
   });
 
-  it('When a WebDav client sends a GET request, and it contains a content-range header, then it should throw a NotImplementedError', async () => {
+  it('When the request contains a content-range header, then it should throw a NotImplementedError', async () => {
     const networkFacade = new NetworkFacade(
       getNetworkMock(),
       UploadService.instance,
@@ -69,7 +69,7 @@ describe('GET request handler', () => {
     }
   });
 
-  it('When a WebDav client sends a GET request, and the Drive file is not found, should throw a NotFoundError', async () => {
+  it('When the Drive file is not found, then it should throw a NotFoundError', async () => {
     const driveDatabaseManager = getDriveDatabaseManager();
     const downloadService = DownloadService.instance;
     const uploadService = UploadService.instance;
@@ -115,7 +115,7 @@ describe('GET request handler', () => {
     expect(getAndSearchItemFromResourceStub).toHaveBeenCalledOnce();
   });
 
-  it('When a WebDav client sends a GET request, and the Drive file is found, should write a response with the content', async () => {
+  it('When the Drive file is found, then it should write a response with the content', async () => {
     const driveDatabaseManager = getDriveDatabaseManager();
     const downloadService = DownloadService.instance;
     const uploadService = UploadService.instance;

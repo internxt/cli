@@ -306,7 +306,7 @@ describe('Webdav utils', () => {
       },
     };
 
-    it('When folder item is looked by the resource and exists in the local db, then it is returned from db', async () => {
+    it('When folder item exists in the local db, then it is returned from db', async () => {
       const driveDatabaseManager = getDriveDatabaseManager();
       const expectedFolder = newFolderItem();
       const findFolderStub = vi.spyOn(WebDavUtils, 'getDatabaseItemFromResource').mockResolvedValue(expectedFolder);
@@ -323,7 +323,7 @@ describe('Webdav utils', () => {
       expect(saveFolderOnLocalStub).not.toHaveBeenCalled();
     });
 
-    it('When file item is looked by the resource and exists in the local db, then it is returned from db', async () => {
+    it('When file item exists in the local db, then it is returned from db', async () => {
       const driveDatabaseManager = getDriveDatabaseManager();
       const expectedFile = newFileItem();
       const findFileStub = vi.spyOn(WebDavUtils, 'getDatabaseItemFromResource').mockResolvedValue(expectedFile);
@@ -340,7 +340,7 @@ describe('Webdav utils', () => {
       expect(saveFileOnLocalStub).not.toHaveBeenCalled();
     });
 
-    it('When folder item is looked by the resource and not exists in the local db, then it is returned from drive', async () => {
+    it('When folder item does not exist in the local db, then it is returned from drive', async () => {
       const driveDatabaseManager = getDriveDatabaseManager();
       const expectedFolder = newFolderItem();
       const findFolderStub = vi.spyOn(WebDavUtils, 'getDatabaseItemFromResource').mockResolvedValue(null);
@@ -357,7 +357,7 @@ describe('Webdav utils', () => {
       expect(saveFolderOnLocalStub).toHaveBeenCalledOnce();
     });
 
-    it('When file item is looked by the resource and not exists in the local db, then it is returned from drive', async () => {
+    it('When file item does not exist in the local db, then it is returned from drive', async () => {
       const driveDatabaseManager = getDriveDatabaseManager();
       const expectedFile = newFileItem();
       const findFileStub = vi.spyOn(WebDavUtils, 'getDatabaseItemFromResource').mockResolvedValue(null);
@@ -374,7 +374,7 @@ describe('Webdav utils', () => {
       expect(saveFileOnLocalStub).toHaveBeenCalledOnce();
     });
 
-    it('When file item is looked by the resource and not exists in the local db nor drive, then a not found error is thrown', async () => {
+    it('When file does not exist in the local db nor drive, then a not found error is thrown', async () => {
       const driveDatabaseManager = getDriveDatabaseManager();
       const findItemStub = vi.spyOn(WebDavUtils, 'getDatabaseItemFromResource').mockResolvedValue(null);
       const findItemOnDriveStub = vi.spyOn(WebDavUtils, 'getDriveItemFromResource').mockResolvedValue(undefined);

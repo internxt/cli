@@ -55,6 +55,7 @@ export default class CreateFolder extends Command {
 
     const newFolder = await createNewFolder;
     CLIUtils.done();
+    // eslint-disable-next-line max-len
     const message = `Folder ${newFolder.plainName} created successfully, view it at ${ConfigService.instance.get('DRIVE_URL')}/folder/${newFolder.uuid}`;
     CLIUtils.success(this.log.bind(this), message);
     return { success: true, message, folder: newFolder };
@@ -98,6 +99,7 @@ export default class CreateFolder extends Command {
         nonInteractive,
         prompt: {
           message:
+            // eslint-disable-next-line max-len
             'What is the ID of the folder where you would like to create the new folder? (leave empty for the root folder)',
           options: { type: 'input' },
         },

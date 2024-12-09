@@ -79,11 +79,13 @@ export default class Webdav extends Command {
     const webdavConfigs = await ConfigService.instance.readWebdavConfig();
 
     if (status === 'online') {
+      // eslint-disable-next-line max-len
       const message = `Internxt WebDav server started successfully at ${webdavConfigs.protocol}://${ConfigService.WEBDAV_LOCAL_URL}:${webdavConfigs.port}`;
       CLIUtils.log(this.log.bind(this), `\nWebDav server status: ${ux.colorize('green', 'online')}\n`);
       CLIUtils.success(this.log.bind(this), message);
       CLIUtils.log(
         this.log.bind(this),
+        // eslint-disable-next-line max-len
         `\n[If the above URL is not working, the WebDAV server can be accessed directly via your localhost IP at: ${webdavConfigs.protocol}://127.0.0.1:${webdavConfigs.port} ]\n`,
       );
       return message;
