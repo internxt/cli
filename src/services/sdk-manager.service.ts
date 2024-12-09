@@ -56,23 +56,17 @@ export class SdkManager {
   };
 
   /** Auth SDK */
-  getAuthV2() {
-    const DRIVE_NEW_API_URL = ConfigService.instance.get('DRIVE_NEW_API_URL');
+  getAuth(useNewApi = false) {
+    const DRIVE_API_URL = useNewApi
+      ? ConfigService.instance.get('DRIVE_NEW_API_URL')
+      : ConfigService.instance.get('DRIVE_API_URL');
 
     const apiSecurity = SdkManager.getApiSecurity({ throwErrorOnMissingCredentials: false });
     const appDetails = SdkManager.getAppDetails();
 
-    return Auth.client(DRIVE_NEW_API_URL, appDetails, apiSecurity);
-  }
-
-  /** Auth old client SDK */
-  getAuth() {
-    const DRIVE_API_URL = ConfigService.instance.get('DRIVE_API_URL');
-
-    const apiSecurity = SdkManager.getApiSecurity({ throwErrorOnMissingCredentials: false });
-    const appDetails = SdkManager.getAppDetails();
-
-    return Auth.client(DRIVE_API_URL, appDetails, apiSecurity);
+    return Auth.client(DRIVE_API_URL, appDetails, {
+      token: useNewApi ? apiSecurity?.newToken : apiSecurity?.token,
+    });
   }
 
   /** Payments SDK */
@@ -89,13 +83,17 @@ export class SdkManager {
   }
 
   /** Users SDK */
-  getUsers() {
-    const DRIVE_API_URL = ConfigService.instance.get('DRIVE_API_URL');
+  getUsers(useNewApi = false) {
+    const DRIVE_API_URL = useNewApi
+      ? ConfigService.instance.get('DRIVE_NEW_API_URL')
+      : ConfigService.instance.get('DRIVE_API_URL');
 
     const apiSecurity = SdkManager.getApiSecurity({ throwErrorOnMissingCredentials: false });
     const appDetails = SdkManager.getAppDetails();
 
-    return Drive.Users.client(DRIVE_API_URL, appDetails, apiSecurity);
+    return Drive.Users.client(DRIVE_API_URL, appDetails, {
+      token: useNewApi ? apiSecurity.newToken : apiSecurity.token,
+    });
   }
 
   /** Referrals SDK */

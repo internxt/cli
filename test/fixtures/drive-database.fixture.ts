@@ -1,10 +1,10 @@
-import sinon from 'sinon';
+import { vi } from 'vitest';
 import { DriveFile } from '../../src/services/database/drive-file/drive-file.domain';
 import { DriveFolder } from '../../src/services/database/drive-folder/drive-folder.domain';
 import { DriveDatabaseManager } from '../../src/services/database/drive-database-manager.service';
 import { DriveFileRepository } from '../../src/services/database/drive-file/drive-file.repository';
 import { DriveFolderRepository } from '../../src/services/database/drive-folder/drive-folder.repository';
-import { randomInt, randomUUID } from 'crypto';
+import { randomInt, randomUUID } from 'node:crypto';
 
 export const getDriveFileDatabaseFixture = (): DriveFile => {
   const object: DriveFile = new DriveFile({
@@ -44,15 +44,15 @@ export const getDriveFolderDatabaseFixture = (): DriveFolder => {
 export const getDriveDatabaseManager = (): DriveDatabaseManager => {
   // @ts-expect-error - We only mock the properties we need
   const driveFileRepository: DriveFileRepository = {
-    findByRelativePath: sinon.stub(),
-    findById: sinon.stub(),
+    findByRelativePath: vi.fn(),
+    findById: vi.fn(),
   };
 
   // @ts-expect-error - We only mock the properties we need
   const driveFolderRepository: DriveFolderRepository = {
-    findById: sinon.stub(),
-    findByRelativePath: sinon.stub(),
-    createFolder: sinon.stub(),
+    findById: vi.fn(),
+    findByRelativePath: vi.fn(),
+    createFolder: vi.fn(),
   };
   return new DriveDatabaseManager(driveFileRepository, driveFolderRepository);
 };

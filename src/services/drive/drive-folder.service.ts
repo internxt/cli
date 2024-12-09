@@ -63,22 +63,18 @@ export class DriveFolderService {
   };
 
   /**
-   * Creates a new folder in Drive with the given folder name and parent folder ID.
+   * Creates a new folder in Drive with the given folder name and parent folder UUID.
    *
-   * @param {Object} payload - The payload object containing the folder name and parent folder ID.
+   * @param {Object} payload - The payload object containing the folder name and parent folder UUID.
    * @param {string} payload.folderName - The name of the folder to be created.
    * @param {number} payload.parentFolderId - The ID of the parent folder.
    * @return {[Promise<StorageTypes.CreateFolderResponse>, RequestCanceler]} - A tuple containing a promise that resolves to the response of creating the folder and a request canceler.
    */
-  public createFolder(payload: {
-    folderName: string;
-    parentFolderId: number;
-  }): [Promise<StorageTypes.CreateFolderResponse>, RequestCanceler] {
-    const storageClient = SdkManager.instance.getStorage();
-    return storageClient.createFolder({
-      folderName: payload.folderName,
-      parentFolderId: payload.parentFolderId,
-    });
+  public createFolder(
+    payload: StorageTypes.CreateFolderByUuidPayload,
+  ): [Promise<StorageTypes.CreateFolderResponse>, RequestCanceler] {
+    const storageClient = SdkManager.instance.getStorage(true);
+    return storageClient.createFolderByUuid(payload);
   }
 
   public renameFolder = (payload: { folderUuid: string; name: string }): Promise<void> => {

@@ -1,8 +1,0 @@
-{
-  "extends": "@internxt/eslint-config-internxt",
-  "rules": {
-    "no-console": "off",
-    "max-len": "off",
-    "@typescript-eslint/no-empty-function": "off"
-  }
-}

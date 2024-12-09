@@ -1,15 +1,15 @@
-import { expect } from 'chai';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { StreamUtils } from '../../src/utils/stream.utils';
-import { createReadStream, createWriteStream, readFileSync, writeFileSync } from 'fs';
-import path from 'path';
-import sinon from 'sinon';
+import { createReadStream, readFileSync, WriteStream } from 'node:fs';
+import path from 'node:path';
 
 describe('Stream utils', () => {
   const fileWithContent = path.join(process.cwd(), 'test/fixtures/test-content.fixture.txt');
-  const fileToWrite = path.join(process.cwd(), 'test/fixtures/test-writable.fixture.txt');
-  afterEach(() => {
-    writeFileSync(fileToWrite, '');
+
+  beforeEach(() => {
+    vi.restoreAllMocks();
   });
+
   it('When a ReadStream is given, should return a ReadableStream', async () => {
     const content = readFileSync(fileWithContent, 'utf-8');
 
@@ -20,13 +20,15 @@ describe('Stream utils', () => {
     const reader = readable.getReader();
     const read = await reader.read();
 
-    expect(Buffer.from(read.value as Uint8Array).toString('utf-8')).to.equal(content);
+    expect(Buffer.from(read.value as Uint8Array).toString('utf-8')).to.be.equal(content);
   });
 
   it('When a WriteStream is given, should return a WritableStream', async () => {
-    const writeStream = createWriteStream(fileToWrite);
-
-    const writeStub = sinon.stub(writeStream, 'write');
+    const writeStub = vi.fn();
+    // @ts-expect-error - We only mock the properties we need
+    const writeStream: WriteStream = {
+      write: writeStub,
+    };
 
     const writableStream = StreamUtils.writeStreamToWritableStream(writeStream);
 
@@ -37,10 +39,8 @@ describe('Stream utils', () => {
     await writer.write(chunk1);
     await writer.write(chunk2);
 
-    expect(writeStub).to.have.been.calledWith(chunk1);
-    expect(writeStub).to.have.been.calledWith(chunk2);
-    expect(writeStub).to.have.been.calledTwice;
-
-    writeStub.restore();
+    expect(writeStub).toHaveBeenCalledWith(chunk1);
+    expect(writeStub).toHaveBeenCalledWith(chunk2);
+    expect(writeStub).toHaveBeenCalledTimes(2);
   });
 });

@@ -1,5 +1,5 @@
 import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
-import crypto from 'crypto';
+import crypto from 'node:crypto';
 
 export const UserFixture: UserSettings = {
   userId: crypto.randomBytes(16).toString('hex'),
@@ -20,6 +20,13 @@ export const UserFixture: UserSettings = {
   privateKey: crypto.randomBytes(16).toString('hex'),
   publicKey: crypto.randomBytes(16).toString('hex'),
   revocationKey: crypto.randomBytes(16).toString('hex'),
+  teams: false,
+  appSumoDetails: null,
+  registerCompleted: true,
+  hasReferralsProgram: false,
+  createdAt: new Date(),
+  avatar: crypto.randomBytes(16).toString('hex'),
+  emailVerified: true,
   keys: {
     ecc: {
       privateKey: crypto.randomBytes(16).toString('hex'),
@@ -29,15 +36,8 @@ export const UserFixture: UserSettings = {
     kyber: {
       privateKyberKey: crypto.randomBytes(16).toString('hex'),
       publicKyberKey: crypto.randomBytes(16).toString('hex'),
-    }
+    },
   },
-  teams: false,
-  appSumoDetails: null,
-  registerCompleted: true,
-  hasReferralsProgram: false,
-  createdAt: new Date(),
-  avatar: crypto.randomBytes(16).toString('hex'),
-  emailVerified: true,
 };
 
 export const UserSettingsFixture: UserSettings = {
@@ -58,17 +58,6 @@ export const UserSettingsFixture: UserSettings = {
   privateKey: UserFixture.privateKey,
   publicKey: UserFixture.publicKey,
   revocationKey: UserFixture.revocationKey,
-  keys: {
-    ecc: {
-      privateKey: UserFixture.keys.ecc.privateKey,
-      publicKey: UserFixture.keys.ecc.publicKey,
-      revocationKey: UserFixture.revocationKey,
-    },
-    kyber: {
-      privateKyberKey: UserFixture.keys.kyber.privateKyberKey,
-      publicKyberKey: UserFixture.keys.kyber.publicKyberKey,
-    }
-  },
   teams: UserFixture.teams,
   appSumoDetails: UserFixture.appSumoDetails,
   registerCompleted: UserFixture.registerCompleted,
@@ -77,4 +66,15 @@ export const UserSettingsFixture: UserSettings = {
   avatar: UserFixture.avatar,
   emailVerified: UserFixture.emailVerified,
   uuid: UserFixture.uuid,
+  keys: {
+    ecc: {
+      privateKey: UserFixture.keys.ecc.privateKey,
+      publicKey: UserFixture.keys.ecc.publicKey,
+      revocationKey: UserFixture.keys.ecc.revocationKey,
+    },
+    kyber: {
+      privateKyberKey: UserFixture.keys.kyber.privateKyberKey,
+      publicKyberKey: UserFixture.keys.kyber.publicKyberKey,
+    },
+  },
 };

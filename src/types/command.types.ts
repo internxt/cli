@@ -4,11 +4,8 @@ export interface LoginCredentials {
   user: UserSettings;
   token: string;
   newToken: string;
-  mnemonic: string;
-}
-
-export interface CLICredentials extends LoginCredentials {
-  root_folder_uuid: string;
+  lastLoggedInAt: string;
+  lastTokenRefreshAt: string;
 }
 
 export interface WebdavConfig {
@@ -55,22 +52,6 @@ export class NotValidFileUuidError extends Error {
   }
 }
 
-export class NotValidItemUuidError extends Error {
-  constructor() {
-    super('Item UUID is not valid (it must be a valid v4 UUID)');
-
-    Object.setPrototypeOf(this, NotValidItemUuidError.prototype);
-  }
-}
-
-export class ItemNotFoundError extends Error {
-  constructor() {
-    super('Item not found');
-
-    Object.setPrototypeOf(this, ItemNotFoundError.prototype);
-  }
-}
-
 export class NoRootFolderIdFoundError extends Error {
   constructor() {
     super('No root folder id found on your account');
@@ -81,25 +62,41 @@ export class NoRootFolderIdFoundError extends Error {
 
 export class MissingCredentialsError extends Error {
   constructor() {
-    super('Missing credentials, login first');
+    super('Missing credentials, please login first');
 
     Object.setPrototypeOf(this, MissingCredentialsError.prototype);
   }
 }
 
-export class NotValidYesOrNoError extends Error {
+export class ExpiredCredentialsError extends Error {
   constructor() {
-    super('Only yes or not -> ["yes", "no", "y", "n"] options are valid');
+    super('The session has expired, please login again');
 
-    Object.setPrototypeOf(this, NotValidYesOrNoError.prototype);
+    Object.setPrototypeOf(this, ExpiredCredentialsError.prototype);
   }
 }
 
-export class EmptyItemNameError extends Error {
+export class InvalidCredentialsError extends Error {
   constructor() {
-    super('Item name can not be empty');
+    super('Corrupted credentials, please login again');
 
-    Object.setPrototypeOf(this, EmptyPasswordError.prototype);
+    Object.setPrototypeOf(this, InvalidCredentialsError.prototype);
+  }
+}
+
+export class EmptyFileNameError extends Error {
+  constructor() {
+    super('File name can not be empty');
+
+    Object.setPrototypeOf(this, EmptyFileNameError.prototype);
+  }
+}
+
+export class EmptyFolderNameError extends Error {
+  constructor() {
+    super('Folder name can not be empty');
+
+    Object.setPrototypeOf(this, EmptyFolderNameError.prototype);
   }
 }
 
@@ -111,11 +108,31 @@ export class NotValidPortError extends Error {
   }
 }
 
-export type PaginatedItem = {
-  plainName: string;
-  uuid: string;
-  isFolder: boolean;
+export class NotValidDirectoryError extends Error {
+  constructor() {
+    super('The specified path is not a valid directory');
+
+    Object.setPrototypeOf(this, NotValidDirectoryError.prototype);
+  }
+}
+
+export class NotValidFileError extends Error {
+  constructor() {
+    super('The specified path is not a valid file.');
+
+    Object.setPrototypeOf(this, NotValidFileError.prototype);
+  }
+}
+
+export interface PaginatedItem {
+  name: string;
   type: string;
-  size: bigint;
-  updatedAt: Date;
-};
+  id: string;
+  size: string;
+  modified: string;
+}
+
+export interface PromptOptions {
+  type: 'input' | 'password' | 'mask' | 'confirm';
+  confirm?: { default: boolean };
+}

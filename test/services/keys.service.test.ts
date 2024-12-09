@@ -1,36 +1,29 @@
-import { expect } from 'chai';
-import sinon, { SinonSandbox } from 'sinon';
-import crypto from 'crypto';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import crypto from 'node:crypto';
 import { aes } from '@internxt/lib';
 import * as openpgp from 'openpgp';
 import { KeysService } from '../../src/services/keys.service';
 import { ConfigService } from '../../src/services/config.service';
 import { AesInit, CorruptedEncryptedPrivateKeyError } from '../../src/types/keys.types';
-import { fail } from 'assert';
+import { fail } from 'node:assert';
 
 describe('Keys service', () => {
-  let keysServiceSandbox: SinonSandbox;
-
   const aesInit: AesInit = {
     iv: crypto.randomBytes(16).toString('hex'),
     salt: crypto.randomBytes(64).toString('hex'),
   };
 
   beforeEach(() => {
-    keysServiceSandbox = sinon.createSandbox();
-  });
-
-  afterEach(() => {
-    keysServiceSandbox.restore();
+    vi.restoreAllMocks();
   });
 
   it('When public and private keys are validated, then there is no error thrown', async () => {
-    keysServiceSandbox.stub(openpgp, 'readKey').resolves();
-    keysServiceSandbox.stub(openpgp, 'readPrivateKey').resolves();
-    keysServiceSandbox.stub(openpgp, 'createMessage').resolves();
-    keysServiceSandbox.stub(openpgp, 'encrypt').resolves();
-    keysServiceSandbox.stub(openpgp, 'readMessage').resolves();
-    keysServiceSandbox.stub(openpgp, 'decrypt').resolves({ data: 'validate-keys' } as openpgp.DecryptMessageResult & {
+    vi.spyOn(openpgp, 'readKey').mockResolvedValue({} as openpgp.Key);
+    vi.spyOn(openpgp, 'readPrivateKey').mockResolvedValue({} as openpgp.PrivateKey);
+    vi.spyOn(openpgp, 'createMessage').mockResolvedValue({} as openpgp.Message<openpgp.MaybeStream<Uint8Array>>);
+    vi.spyOn(openpgp, 'encrypt').mockResolvedValue({} as openpgp.Message<openpgp.MaybeStream<openpgp.Data>>);
+    vi.spyOn(openpgp, 'readMessage').mockResolvedValue({} as openpgp.Message<openpgp.MaybeStream<Uint8Array>>);
+    vi.spyOn(openpgp, 'decrypt').mockResolvedValue({ data: 'validate-keys' } as openpgp.DecryptMessageResult & {
       data: openpgp.MaybeStream<string>;
     });
 
@@ -46,58 +39,62 @@ describe('Keys service', () => {
     }
   });
 
-  it('When keys can be used to decrypt but they are not working good to encrypt/decrypt, then the validation throws an error', async () => {
-    keysServiceSandbox.stub(openpgp, 'readKey').resolves();
-    keysServiceSandbox.stub(openpgp, 'readPrivateKey').resolves();
-    keysServiceSandbox.stub(openpgp, 'createMessage').resolves();
-    keysServiceSandbox.stub(openpgp, 'encrypt').resolves();
-    keysServiceSandbox.stub(openpgp, 'readMessage').resolves();
-    keysServiceSandbox.stub(openpgp, 'decrypt').resolves({ data: 'bad-validation' } as openpgp.DecryptMessageResult & {
+  it('When keys are not working good to encrypt/decrypt, then the validation throws an error', async () => {
+    vi.spyOn(openpgp, 'readKey').mockResolvedValue({} as openpgp.Key);
+    vi.spyOn(openpgp, 'readPrivateKey').mockResolvedValue({} as openpgp.PrivateKey);
+    vi.spyOn(openpgp, 'createMessage').mockResolvedValue({} as openpgp.Message<openpgp.MaybeStream<Uint8Array>>);
+    vi.spyOn(openpgp, 'encrypt').mockResolvedValue({} as openpgp.Message<openpgp.MaybeStream<openpgp.Data>>);
+    vi.spyOn(openpgp, 'readMessage').mockResolvedValue({} as openpgp.Message<openpgp.MaybeStream<Uint8Array>>);
+    vi.spyOn(openpgp, 'decrypt').mockResolvedValue({ data: 'bad-validation' } as openpgp.DecryptMessageResult & {
       data: openpgp.MaybeStream<string>;
     });
-    //every dependency method resolves (no error thrown), but nothing should be encrypted/decrypted, so the result should not be valid
+    //every dependency method mockResolvedValue (no error thrown), but nothing should be encrypted/decrypted, so the result should not be valid
     try {
       await KeysService.instance.assertValidateKeys('dontcareprivate', 'dontcarepublic');
       fail('Expected function to throw an error, but it did not.');
     } catch (err) {
       const error = err as Error;
-      expect(error.message).to.equal('Keys do not match');
+      expect(error.message).to.be.equal('Keys do not match');
     }
   });
 
   it('When encryption fails, then it throws an error', async () => {
-    keysServiceSandbox.stub(openpgp, 'readKey').resolves();
-    keysServiceSandbox.stub(openpgp, 'readPrivateKey').resolves();
-    keysServiceSandbox.stub(openpgp, 'createMessage').resolves();
-    keysServiceSandbox.stub(openpgp, 'encrypt').rejects(new Error('Encryption failed'));
-    keysServiceSandbox.stub(openpgp, 'readMessage').resolves();
-    keysServiceSandbox.stub(openpgp, 'decrypt').resolves();
+    vi.spyOn(openpgp, 'readKey').mockResolvedValue({} as openpgp.Key);
+    vi.spyOn(openpgp, 'readPrivateKey').mockResolvedValue({} as openpgp.PrivateKey);
+    vi.spyOn(openpgp, 'createMessage').mockResolvedValue({} as openpgp.Message<openpgp.MaybeStream<Uint8Array>>);
+    vi.spyOn(openpgp, 'encrypt').mockRejectedValue(new Error('Encryption failed'));
+    vi.spyOn(openpgp, 'readMessage').mockResolvedValue({} as openpgp.Message<openpgp.MaybeStream<Uint8Array>>);
+    vi.spyOn(openpgp, 'decrypt').mockResolvedValue(
+      {} as openpgp.DecryptMessageResult & {
+        data: openpgp.MaybeStream<string>;
+      },
+    );
 
     //encrypt method throws an exception as it can not encrypt the message (something with the encryptionKeys is bad)
     try {
       await KeysService.instance.assertValidateKeys('dontcareprivate', 'dontcarepublic');
-      expect(false).to.be.true; //should throw error
+      fail('Expected function to throw an error, but it did not.');
     } catch (err) {
       const error = err as Error;
-      expect(error.message).to.equal('Encryption failed');
+      expect(error.message).to.be.equal('Encryption failed');
     }
   });
 
   it('When decryption fails, then it throws an error', async () => {
-    keysServiceSandbox.stub(openpgp, 'readKey').resolves();
-    keysServiceSandbox.stub(openpgp, 'readPrivateKey').resolves();
-    keysServiceSandbox.stub(openpgp, 'createMessage').resolves();
-    keysServiceSandbox.stub(openpgp, 'encrypt').resolves();
-    keysServiceSandbox.stub(openpgp, 'readMessage').resolves();
-    keysServiceSandbox.stub(openpgp, 'decrypt').rejects(new Error('Decryption failed'));
+    vi.spyOn(openpgp, 'readKey').mockResolvedValue({} as openpgp.Key);
+    vi.spyOn(openpgp, 'readPrivateKey').mockResolvedValue({} as openpgp.PrivateKey);
+    vi.spyOn(openpgp, 'createMessage').mockResolvedValue({} as openpgp.Message<openpgp.MaybeStream<Uint8Array>>);
+    vi.spyOn(openpgp, 'encrypt').mockResolvedValue({} as openpgp.Message<openpgp.MaybeStream<openpgp.Data>>);
+    vi.spyOn(openpgp, 'readMessage').mockResolvedValue({} as openpgp.Message<openpgp.MaybeStream<Uint8Array>>);
+    vi.spyOn(openpgp, 'decrypt').mockRejectedValue(new Error('Decryption failed'));
 
     //decrypt method throws an exception as it can not decrypt the message (something with the decryptionKeys is bad)
     try {
       await KeysService.instance.assertValidateKeys('dontcareprivate', 'dontcarepublic');
-      expect(false).to.be.true; //should throw error
+      fail('Expected function to throw an error, but it did not.');
     } catch (err) {
       const error = err as Error;
-      expect(error.message).to.equal('Decryption failed');
+      expect(error.message).to.be.equal('Decryption failed');
     }
   });
 
@@ -107,29 +104,29 @@ describe('Keys service', () => {
 
     const encryptedPrivateKey = aes.encrypt(plainPrivateKey, password, aesInit);
 
-    keysServiceSandbox.stub(KeysService.instance, 'decryptPrivateKey').resolves();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    keysServiceSandbox.stub(KeysService.instance, <any>'isValidKey').resolves(true);
+    vi.spyOn(KeysService.instance, 'decryptPrivateKey').mockReturnValue('');
+    vi.spyOn(KeysService.instance, 'isValidKey').mockResolvedValue(true);
 
     await KeysService.instance.assertPrivateKeyIsValid(encryptedPrivateKey, password);
   });
 
-  it('When private key is encrypted with bad iterations, then it throws a WrongIterationsToEncryptPrivateKey error', async () => {
+  it('When private key is encrypted with bad iterations, then it should throw an error', async () => {
     const plainPrivateKey = crypto.randomBytes(16).toString('hex');
     const password = crypto.randomBytes(8).toString('hex');
 
     const badEncryptionPrivateKey = aes.encrypt(plainPrivateKey, password, aesInit, 9999);
 
-    keysServiceSandbox.stub(KeysService.instance, 'decryptPrivateKey').rejects();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    keysServiceSandbox.stub(KeysService.instance, <any>'isValidKey').resolves(true);
+    vi.spyOn(KeysService.instance, 'decryptPrivateKey').mockImplementation(() => {
+      throw new Error();
+    });
+    vi.spyOn(KeysService.instance, 'isValidKey').mockResolvedValue(true);
 
     try {
       await KeysService.instance.assertPrivateKeyIsValid(badEncryptionPrivateKey, password);
-      expect(false).to.be.true; //should throw error
+      fail('Expected function to throw an error, but it did not.');
     } catch (err) {
       const error = err as Error;
-      expect(error.message).to.equal('Private key was encrypted using the wrong iterations number');
+      expect(error.message).to.be.equal('Private key was encrypted using the wrong iterations number');
     }
   });
 
@@ -139,18 +136,17 @@ describe('Keys service', () => {
 
     const badEncryptionPrivateKey = aes.encrypt(plainPrivateKey, password, aesInit);
 
-    keysServiceSandbox
-      .stub(KeysService.instance, 'decryptPrivateKey')
-      .throwsException(CorruptedEncryptedPrivateKeyError);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    keysServiceSandbox.stub(KeysService.instance, <any>'isValidKey').resolves(false);
+    vi.spyOn(KeysService.instance, 'decryptPrivateKey').mockImplementation(() => {
+      throw new CorruptedEncryptedPrivateKeyError();
+    });
+    vi.spyOn(KeysService.instance, 'isValidKey').mockResolvedValue(false);
 
     try {
       await KeysService.instance.assertPrivateKeyIsValid(badEncryptionPrivateKey, password);
-      expect(false).to.be.true; //should throw error
+      fail('Expected function to throw an error, but it did not.');
     } catch (err) {
       const error = err as Error;
-      expect(error.message).to.equal('Private key is corrupted');
+      expect(error.message).to.be.equal('Private key is corrupted');
     }
   });
 
@@ -160,43 +156,42 @@ describe('Keys service', () => {
 
     const badEncodedPrivateKey = aes.encrypt(plainPrivateKey, password, aesInit);
 
-    keysServiceSandbox.stub(KeysService.instance, 'decryptPrivateKey').resolves();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    keysServiceSandbox.stub(KeysService.instance, <any>'isValidKey').resolves(false);
+    vi.spyOn(KeysService.instance, 'decryptPrivateKey').mockReturnValue(plainPrivateKey);
+    vi.spyOn(KeysService.instance, 'isValidKey').mockResolvedValue(false);
 
     try {
       await KeysService.instance.assertPrivateKeyIsValid(badEncodedPrivateKey, password);
-      expect(false).to.be.true; //should throw error
+      fail('Expected function to throw an error, but it did not.');
     } catch (err) {
       const error = err as Error;
-      expect(error.message).to.equal('Private key is bad encoded');
+      expect(error.message).to.be.equal('Private key is bad encoded');
     }
   });
 
   it('When the key is not valid, then isValid method returns false', async () => {
-    keysServiceSandbox.stub(openpgp, 'readKey').rejects();
+    vi.spyOn(openpgp, 'readKey').mockRejectedValue(new Error());
 
-    expect(await KeysService.instance.isValidKey('key')).to.be.false;
+    expect(await KeysService.instance.isValidKey('key')).to.be.equal(false);
   });
 
   it('When the key is valid, then isValid method returns true', async () => {
-    keysServiceSandbox.stub(openpgp, 'readKey').resolves();
+    vi.spyOn(openpgp, 'readKey').mockResolvedValue({} as openpgp.Key);
 
-    expect(await KeysService.instance.isValidKey('key')).to.be.true;
+    expect(await KeysService.instance.isValidKey('key')).to.be.equal(true);
   });
 
   it('When message is encrypted with private key & password, then it can be decrypted using same data', async () => {
     const plainPrivateKey = crypto.randomBytes(16).toString('hex');
     const password = crypto.randomBytes(8).toString('hex');
 
-    const configServiceInstanceStub = keysServiceSandbox.stub(ConfigService.instance, 'get');
-    configServiceInstanceStub.withArgs('APP_MAGIC_IV').returns(aesInit.iv);
-    configServiceInstanceStub.withArgs('APP_MAGIC_SALT').returns(aesInit.salt);
+    const configServiceInstancespyOn = vi.spyOn(ConfigService.instance, 'get');
+    configServiceInstancespyOn.mockReturnValueOnce(aesInit.iv);
+    configServiceInstancespyOn.mockReturnValueOnce(aesInit.salt);
 
     const encryptedPrivateKey = KeysService.instance.encryptPrivateKey(plainPrivateKey, password);
     const decryptedPrivateKey = KeysService.instance.decryptPrivateKey(encryptedPrivateKey, password);
 
-    expect(decryptedPrivateKey).to.equal(plainPrivateKey);
+    expect(decryptedPrivateKey).to.be.equal(plainPrivateKey);
   });
 
   it('When new pgp keys are required, then it generates them from the openpgp library', async () => {
@@ -215,13 +210,13 @@ describe('Keys service', () => {
 
     const password = crypto.randomBytes(8).toString('hex');
 
-    keysServiceSandbox.stub(openpgp, 'generateKey').resolves(pgpKeys);
-    keysServiceSandbox
-      .stub(KeysService.instance, 'encryptPrivateKey')
-      .returns(pgpKeysWithEncrypted.privateKeyArmoredEncrypted);
+    vi.spyOn(openpgp, 'generateKey').mockResolvedValue(pgpKeys);
+    vi.spyOn(KeysService.instance, 'encryptPrivateKey').mockReturnValue(
+      pgpKeysWithEncrypted.privateKeyArmoredEncrypted,
+    );
 
     const newKeys = await KeysService.instance.generateNewKeysWithEncrypted(password);
 
-    expect(newKeys).to.eql(pgpKeysWithEncrypted);
+    expect(newKeys).to.be.deep.equal(pgpKeysWithEncrypted);
   });
 });

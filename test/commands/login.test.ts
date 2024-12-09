@@ -1,149 +1,163 @@
-import { expect } from 'chai';
-import { test } from '@oclif/test';
-import { ux } from '@oclif/core';
-import { ValidationService } from '../../src/services/validation.service';
-import { AuthService } from '../../src/services/auth.service';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ConfigService } from '../../src/services/config.service';
-import { DriveDatabaseManager } from '../../src/services/database/drive-database-manager.service';
 import { UserCredentialsFixture, UserLoginFixture } from '../fixtures/login.fixture';
+import { DriveDatabaseManager } from '../../src/services/database/drive-database-manager.service';
+import { fail } from 'node:assert';
+import Login from '../../src/commands/login';
+import { AuthService } from '../../src/services/auth.service';
+import { CLIUtils, NoFlagProvidedError } from '../../src/utils/cli.utils';
 
-describe.skip('Login Command', () => {
-  describe('When user logs in using flags and 2fa is enabled, then its credentials are saved into a file', () => {
-    test
-      .stdout()
-      .stub(ValidationService.instance, 'validateEmail', (stub) => stub.returns(true))
-      .stub(ValidationService.instance, 'validate2FA', (stub) => stub.returns(true))
-      .stub(AuthService.instance, 'is2FANeeded', (stub) => stub.resolves(true))
-      .stub(AuthService.instance, 'doLogin', (stub) => stub.resolves(UserCredentialsFixture))
-      .stub(ConfigService.instance, 'saveUser', (stub) => stub.resolves())
-      .stub(DriveDatabaseManager, 'clean', (stub) => stub.resolves())
-      .command([
-        'login',
-        `-e ${UserLoginFixture.email}`,
-        `-p ${UserLoginFixture.password}`,
-        `-w ${UserLoginFixture.twoFactor}`,
-      ])
-      .it('runs login with 2fa using flags', (ctx) => {
-        expect(ctx.stdout).to.be.equal(`✓ Succesfully logged in to: ${UserLoginFixture.email}\n`);
-      });
-
-    test
-      .stdout()
-      .stub(ValidationService.instance, 'validateEmail', (stub) => stub.returns(true))
-      .stub(AuthService.instance, 'is2FANeeded', (stub) => stub.resolves(false))
-      .stub(AuthService.instance, 'doLogin', (stub) => stub.resolves(UserCredentialsFixture))
-      .stub(ConfigService.instance, 'saveUser', (stub) => stub.resolves())
-      .stub(DriveDatabaseManager, 'clean', (stub) => stub.resolves())
-      .command(['login', `-e ${UserLoginFixture.email}`, `-p ${UserLoginFixture.password}`])
-      .it('runs login without 2fa using flags', (ctx) => {
-        expect(ctx.stdout).to.be.equal(`✓ Succesfully logged in to: ${UserLoginFixture.email}\n`);
-      });
+describe('Login Command', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
   });
 
-  describe('When user logs in forcing non-interactive flags and 2fa is enabled, then its credentials are saved into a file', () => {
-    test
-      .stdout()
-      .stub(ValidationService.instance, 'validateEmail', (stub) => stub.returns(true))
-      .stub(ValidationService.instance, 'validate2FA', (stub) => stub.returns(true))
-      .stub(AuthService.instance, 'is2FANeeded', (stub) => stub.resolves(true))
-      .stub(AuthService.instance, 'doLogin', (stub) => stub.resolves(UserCredentialsFixture))
-      .stub(ConfigService.instance, 'saveUser', (stub) => stub.resolves())
-      .stub(DriveDatabaseManager, 'clean', (stub) => stub.resolves())
-      .command([
-        'login',
-        '-n',
-        `-e ${UserLoginFixture.email}`,
-        `-p ${UserLoginFixture.password}`,
-        `-w ${UserLoginFixture.twoFactor}`,
-      ])
-      .it('runs login forcing non-interactive flags', (ctx) => {
-        expect(ctx.stdout).to.be.equal(`✓ Succesfully logged in to: ${UserLoginFixture.email}\n`);
-      });
+  it('When user logs in with non-interactive and no email, then it throws error', async () => {
+    const getValueFromFlagsSpy = vi
+      .spyOn(CLIUtils, 'getValueFromFlag')
+      .mockRejectedValueOnce(new NoFlagProvidedError('email')) // email
+      .mockRejectedValueOnce(new Error()) // password
+      .mockRejectedValueOnce(new Error()) // two factor code
+      .mockRejectedValue(new Error()); // default
+    const is2FaNeededSpy = vi.spyOn(AuthService.instance, 'is2FANeeded').mockRejectedValue(new Error());
+    const doLoginSpy = vi.spyOn(AuthService.instance, 'doLogin').mockRejectedValue(new Error());
+    const saveUserSpy = vi.spyOn(ConfigService.instance, 'saveUser').mockRejectedValue(new Error());
+    const initStub = vi.spyOn(DriveDatabaseManager, 'init').mockRejectedValue(new Error());
+    const cleanStub = vi.spyOn(DriveDatabaseManager, 'clean').mockRejectedValue(new Error());
+
+    try {
+      await Login.run(['--non-interactive', `--password="${UserLoginFixture.password}"`]);
+      fail('Expected function to throw an error, but it did not.');
+    } catch (error) {
+      expect((error as Error).message).to.contain(new NoFlagProvidedError('email').message);
+    }
+
+    expect(getValueFromFlagsSpy).toHaveBeenCalledOnce();
+    expect(is2FaNeededSpy).not.toHaveBeenCalled();
+    expect(doLoginSpy).not.toHaveBeenCalled();
+    expect(saveUserSpy).not.toHaveBeenCalled();
+    expect(initStub).not.toHaveBeenCalled();
+    expect(cleanStub).not.toHaveBeenCalled();
   });
 
-  describe('When user logs in forcing non-interactive flags but any param is missing, then an error is thrown', () => {
-    test
-      .stdout()
-      .stub(ConfigService.instance, 'saveUser', (stub) => stub.resolves())
-      .stub(DriveDatabaseManager, 'clean', (stub) => stub.resolves())
-      .command(['login', '-n', `-p ${UserLoginFixture.password}`, `-w ${UserLoginFixture.twoFactor}`])
-      .exit(1)
-      .it('runs login forcing non-interactive flags without email and expects an error');
+  it('When user logs in with non-interactive and no password, then it throws error', async () => {
+    const getValueFromFlagsSpy = vi
+      .spyOn(CLIUtils, 'getValueFromFlag')
+      .mockResolvedValueOnce(UserLoginFixture.email) // email
+      .mockRejectedValueOnce(new NoFlagProvidedError('password')) // password
+      .mockRejectedValueOnce(new Error()) // two factor code
+      .mockRejectedValue(new Error()); // default
+    const is2FaNeededSpy = vi.spyOn(AuthService.instance, 'is2FANeeded').mockRejectedValue(new Error());
+    const doLoginSpy = vi.spyOn(AuthService.instance, 'doLogin').mockRejectedValue(new Error());
+    const saveUserSpy = vi.spyOn(ConfigService.instance, 'saveUser').mockRejectedValue(new Error());
+    const initStub = vi.spyOn(DriveDatabaseManager, 'init').mockRejectedValue(new Error());
+    const cleanStub = vi.spyOn(DriveDatabaseManager, 'clean').mockRejectedValue(new Error());
 
-    test
-      .stdout()
-      .stub(ConfigService.instance, 'saveUser', (stub) => stub.resolves())
-      .stub(DriveDatabaseManager, 'clean', (stub) => stub.resolves())
-      .command(['login', '-n', `-e ${UserLoginFixture.email}`, `-w ${UserLoginFixture.twoFactor}`])
-      .exit(1)
-      .it('runs login forcing non-interactive flags without password and expects an error');
+    try {
+      await Login.run(['--non-interactive', `--email="${UserLoginFixture.email}"`]);
+      fail('Expected function to throw an error, but it did not.');
+    } catch (error) {
+      expect((error as Error).message).to.contain(new NoFlagProvidedError('password').message);
+    }
 
-    test
-      .stdout()
-      .stub(ValidationService.instance, 'validateEmail', (stub) => stub.returns(true))
-      .stub(AuthService.instance, 'is2FANeeded', (stub) => stub.resolves(true))
-      .stub(AuthService.instance, 'doLogin', (stub) => stub.resolves(UserCredentialsFixture))
-      .stub(ConfigService.instance, 'saveUser', (stub) => stub.resolves())
-      .stub(DriveDatabaseManager, 'clean', (stub) => stub.resolves())
-      .command(['login', '-n', `-e ${UserLoginFixture.email}`, `-p ${UserLoginFixture.password}`])
-      .exit(1)
-      .it('runs login forcing non-interactive flags without 2fa and expects an error');
+    expect(getValueFromFlagsSpy).toHaveBeenCalledTimes(2);
+    expect(is2FaNeededSpy).not.toHaveBeenCalled();
+    expect(doLoginSpy).not.toHaveBeenCalled();
+    expect(saveUserSpy).not.toHaveBeenCalled();
+    expect(initStub).not.toHaveBeenCalled();
+    expect(cleanStub).not.toHaveBeenCalled();
   });
 
-  describe('When user logs in interactively, then its credentials are saved into a file', () => {
-    test
-      .stdout()
-      .stub(ValidationService.instance, 'validateEmail', (stub) => stub.returns(true))
-      .stub(ValidationService.instance, 'validate2FA', (stub) => stub.returns(true))
-      .stub(AuthService.instance, 'is2FANeeded', (stub) => stub.resolves(true))
-      .stub(AuthService.instance, 'doLogin', (stub) => stub.resolves(UserCredentialsFixture))
-      .stub(ConfigService.instance, 'saveUser', (stub) => stub.resolves())
-      .stub(DriveDatabaseManager, 'clean', (stub) => stub.resolves())
-      .stub(ux, 'prompt', (stub) => stub.resolves('any input'))
-      // commented because is not working, but i wish it would
-      //.stub(ux, 'prompt', (stub) => stub.withArgs('What is your email?').resolves(UserLogin.email))
-      //.stub(ux, 'prompt', (stub) => stub.withArgs('What is your password?').resolves(UserLogin.password))
-      //.stub(ux, 'prompt', (stub) => stub.withArgs('What is your two-factor token?').resolves(UserLogin.twoFactor))
-      .command(['login'])
-      .it('runs login interactively', (ctx) => {
-        expect(ctx.stdout).to.be.equal(`✓ Succesfully logged in to: ${UserLoginFixture.email}\n`);
-      });
+  it('When user logs in with non-interactive and no two factor code, then it throws error', async () => {
+    const getValueFromFlagsSpy = vi
+      .spyOn(CLIUtils, 'getValueFromFlag')
+      .mockResolvedValueOnce(UserLoginFixture.email) // email
+      .mockResolvedValueOnce(UserLoginFixture.password) // password
+      .mockRejectedValueOnce(new NoFlagProvidedError('twofactor')) // two factor code
+      .mockRejectedValue(new Error()); // default
+    const is2FaNeededSpy = vi.spyOn(AuthService.instance, 'is2FANeeded').mockResolvedValue(true);
+    const doLoginSpy = vi.spyOn(AuthService.instance, 'doLogin').mockRejectedValue(new Error());
+    const saveUserSpy = vi.spyOn(ConfigService.instance, 'saveUser').mockRejectedValue(new Error());
+    const initStub = vi.spyOn(DriveDatabaseManager, 'init').mockRejectedValue(new Error());
+    const cleanStub = vi.spyOn(DriveDatabaseManager, 'clean').mockRejectedValue(new Error());
+
+    try {
+      await Login.run([
+        '--non-interactive',
+        `--email="${UserLoginFixture.email}"`,
+        `--password="${UserLoginFixture.password}"`,
+      ]);
+      fail('Expected function to throw an error, but it did not.');
+    } catch (error) {
+      expect((error as Error).message).to.contain(new NoFlagProvidedError('twofactor').message);
+    }
+
+    expect(getValueFromFlagsSpy).toHaveBeenCalledTimes(3);
+    expect(is2FaNeededSpy).toHaveBeenCalledOnce();
+    expect(doLoginSpy).not.toHaveBeenCalled();
+    expect(saveUserSpy).not.toHaveBeenCalled();
+    expect(initStub).not.toHaveBeenCalled();
+    expect(cleanStub).not.toHaveBeenCalled();
   });
 
-  describe('When user logs in interactively but email is not valid, then an error is thrown', () => {
-    test
-      .stdout()
-      .stub(ValidationService.instance, 'validateEmail', (stub) => stub.returns(false))
-      .stub(ux, 'prompt', (stub) => stub.returns('any input'))
-      .stub(ConfigService.instance, 'saveUser', (stub) => stub.resolves())
-      .stub(DriveDatabaseManager, 'clean', (stub) => stub.resolves())
-      .command(['login'])
-      .exit(1)
-      .it('runs login interactively and expects error (app exit with code 1)');
+  it('When two factor is not needed, then it saves and returns the credentials', async () => {
+    const getValueFromFlagsSpy = vi
+      .spyOn(CLIUtils, 'getValueFromFlag')
+      .mockResolvedValueOnce(UserLoginFixture.email) // email
+      .mockResolvedValueOnce(UserLoginFixture.password) // password
+      .mockRejectedValueOnce(new Error()) // two factor code
+      .mockRejectedValue(new Error()); // default
+    const is2FaNeededSpy = vi.spyOn(AuthService.instance, 'is2FANeeded').mockResolvedValue(false);
+    const doLoginSpy = vi.spyOn(AuthService.instance, 'doLogin').mockResolvedValue(UserCredentialsFixture);
+    const saveUserSpy = vi.spyOn(ConfigService.instance, 'saveUser').mockResolvedValue();
+    const initStub = vi.spyOn(DriveDatabaseManager, 'init').mockResolvedValue();
+    const cleanStub = vi.spyOn(DriveDatabaseManager, 'clean').mockResolvedValue();
+
+    const message = `Succesfully logged in to: ${UserCredentialsFixture.user.email}`;
+    const expected = { success: true, message, login: UserCredentialsFixture };
+
+    const result = await Login.run([
+      `--email="${UserLoginFixture.email}"`,
+      `--password="${UserLoginFixture.password}"`,
+    ]);
+
+    expect(result).to.be.deep.equal(expected);
+    expect(getValueFromFlagsSpy).toHaveBeenCalledTimes(2);
+    expect(is2FaNeededSpy).toHaveBeenCalledOnce();
+    expect(doLoginSpy).toHaveBeenCalledOnce();
+    expect(saveUserSpy).toHaveBeenCalledOnce();
+    expect(initStub).toHaveBeenCalledOnce();
+    expect(cleanStub).toHaveBeenCalledOnce();
   });
 
-  describe('When user logs in interactively but password is empty, then an error is thrown', () => {
-    test
-      .stdout()
-      .stub(ValidationService.instance, 'validateEmail', (stub) => stub.returns(true))
-      .stub(ux, 'prompt', (stub) => stub.returns(''))
-      .stub(ConfigService.instance, 'saveUser', (stub) => stub.resolves())
-      .stub(DriveDatabaseManager, 'clean', (stub) => stub.resolves())
-      .command(['login'])
-      .exit(1)
-      .it('runs login interactively and expects error (app exit with code 1)');
-  });
+  it('When two factor is needed, then it saves and returns the credentials', async () => {
+    const getValueFromFlagsSpy = vi
+      .spyOn(CLIUtils, 'getValueFromFlag')
+      .mockResolvedValueOnce(UserLoginFixture.email) // email
+      .mockResolvedValueOnce(UserLoginFixture.password) // password
+      .mockResolvedValueOnce(UserLoginFixture.twoFactor) // two factor code
+      .mockRejectedValue(new Error()); // default
+    const is2FaNeededSpy = vi.spyOn(AuthService.instance, 'is2FANeeded').mockResolvedValue(true);
+    const doLoginSpy = vi.spyOn(AuthService.instance, 'doLogin').mockResolvedValue(UserCredentialsFixture);
+    const saveUserSpy = vi.spyOn(ConfigService.instance, 'saveUser').mockResolvedValue();
+    const initStub = vi.spyOn(DriveDatabaseManager, 'init').mockResolvedValue();
+    const cleanStub = vi.spyOn(DriveDatabaseManager, 'clean').mockResolvedValue();
 
-  describe('When user logs in interactively but 2fa code is not valid, then an error is thrown', () => {
-    test
-      .stdout()
-      .stub(ValidationService.instance, 'validateEmail', (stub) => stub.returns(true))
-      .stub(ValidationService.instance, 'validate2FA', (stub) => stub.returns(false))
-      .stub(ux, 'prompt', (stub) => stub.returns('any input'))
-      .stub(ConfigService.instance, 'saveUser', (stub) => stub.resolves())
-      .stub(DriveDatabaseManager, 'clean', (stub) => stub.resolves())
-      .command(['login'])
-      .exit(1)
-      .it('runs login interactively and expects error (app exit with code 1)');
+    const message = `Succesfully logged in to: ${UserCredentialsFixture.user.email}`;
+    const expected = { success: true, message, login: UserCredentialsFixture };
+
+    const result = await Login.run([
+      `--email="${UserLoginFixture.email}"`,
+      `--password="${UserLoginFixture.password}"`,
+      `--twofactor="${UserLoginFixture.twoFactor}"`,
+    ]);
+
+    expect(result).to.be.deep.equal(expected);
+    expect(getValueFromFlagsSpy).toHaveBeenCalledTimes(3);
+    expect(is2FaNeededSpy).toHaveBeenCalledOnce();
+    expect(doLoginSpy).toHaveBeenCalledOnce();
+    expect(saveUserSpy).toHaveBeenCalledOnce();
+    expect(initStub).toHaveBeenCalledOnce();
+    expect(cleanStub).toHaveBeenCalledOnce();
   });
 });

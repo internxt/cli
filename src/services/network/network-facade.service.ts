@@ -1,22 +1,20 @@
 import { Network } from '@internxt/sdk';
 import * as NetworkUpload from '@internxt/sdk/dist/network/upload';
 import * as NetworkDownload from '@internxt/sdk/dist/network/download';
-
-import { Environment } from '@internxt/inxt-js';
-import crypto from 'crypto';
-import { DownloadOptions, UploadOptions, UploadProgressCallback } from '../../types/network.types';
 import {
   DecryptFileFunction,
   DownloadFileFunction,
   EncryptFileFunction,
   UploadFileFunction,
 } from '@internxt/sdk/dist/network';
+import { Environment } from '@internxt/inxt-js';
+import { randomBytes } from 'node:crypto';
+import { Readable, Transform } from 'node:stream';
+import { DownloadOptions, UploadOptions, UploadProgressCallback } from '../../types/network.types';
 import { CryptoService } from '../crypto.service';
 import { UploadService } from './upload.service';
 import { DownloadService } from './download.service';
 import { ValidationService } from '../validation.service';
-import { Readable } from 'node:stream';
-import { Transform } from 'stream';
 import { HashStream } from '../../utils/hash.utils';
 import { ProgressTransform } from '../../utils/stream.utils';
 
@@ -37,7 +35,7 @@ export class NetworkFacade {
       generateFileKey: (mnemonic, bucketId, index) => {
         return Environment.utils.generateFileKey(mnemonic, bucketId, index as Buffer);
       },
-      randomBytes: crypto.randomBytes,
+      randomBytes: randomBytes,
     };
   }
 
@@ -131,7 +129,6 @@ export class NetworkFacade {
   ): Promise<[Promise<{ fileId: string; hash: Buffer }>, AbortController]> {
     const hashStream = new HashStream();
     const abortable = options?.abortController ?? new AbortController();
-    let fileHash: Buffer;
     let encryptionTransform: Transform;
     const progressTransform = new ProgressTransform({ totalBytes: size }, (progress) => {
       if (options?.progressCallback) {
@@ -175,6 +172,7 @@ export class NetworkFacade {
         encryptFile,
         uploadFile,
       );
+      const fileHash: Buffer = Buffer.from('');
 
       onProgress(1);
       return {

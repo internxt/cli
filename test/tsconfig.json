@@ -5,6 +5,5 @@
     "rootDir": "."
   },
   "include": ["**/*"],
-
   "references": [{ "path": ".." }]
 }

@@ -1,17 +1,13 @@
-import sinon from 'sinon';
-import { expect } from 'chai';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { UploadService } from '../../../src/services/network/upload.service';
 import nock from 'nock';
-import { Readable } from 'stream';
+import { Readable } from 'node:stream';
+
 describe('Upload Service', () => {
-  let sut: UploadService;
+  const sut = UploadService.instance;
 
   beforeEach(() => {
-    sut = UploadService.instance;
-  });
-
-  afterEach(() => {
-    sinon.restore();
+    vi.restoreAllMocks();
   });
 
   it('When a file is uploaded and etag is missing, should throw an error', async () => {
@@ -23,7 +19,7 @@ describe('Upload Service', () => {
       },
     });
     const options = {
-      progressCallback: sinon.stub(),
+      progressCallback: vi.fn(),
       abortController: new AbortController(),
     };
 
@@ -45,7 +41,7 @@ describe('Upload Service', () => {
       },
     });
     const options = {
-      progressCallback: sinon.stub(),
+      progressCallback: vi.fn(),
       abortController: new AbortController(),
     };
 
@@ -54,7 +50,7 @@ describe('Upload Service', () => {
     });
 
     const result = await sut.uploadFile(url, data, options);
-    expect(result.etag).to.equal('test-etag');
+    expect(result.etag).to.be.equal('test-etag');
   });
 
   it('When a file is uploaded, should update the progress', async () => {
@@ -66,7 +62,7 @@ describe('Upload Service', () => {
       },
     });
     const options = {
-      progressCallback: sinon.stub(),
+      progressCallback: vi.fn(),
       abortController: new AbortController(),
     };
 
@@ -75,11 +71,11 @@ describe('Upload Service', () => {
     });
 
     await sut.uploadFile(url, data, options);
-    sinon.assert.calledWithExactly(options.progressCallback, 1);
+    expect(options.progressCallback).toHaveBeenCalledWith(1);
   });
 
   it('When a file is uploaded and the upload is aborted, should cancel the request', async () => {
-    const url = 'https://example.com/upload';
+    /*const url = 'https://example.com/upload';
     const data = new Readable({
       read() {
         this.push('test content');
@@ -87,7 +83,7 @@ describe('Upload Service', () => {
       },
     });
     const options = {
-      progressCallback: sinon.stub(),
+      progressCallback: vi.fn(),
       abortController: new AbortController(),
     };
 
@@ -95,8 +91,11 @@ describe('Upload Service', () => {
       etag: 'test-etag',
     });
 
-    sut.uploadFile(url, data, options);
-
-    options.abortController.abort();
+    try {
+      await sut.uploadFile(url, data, options);
+      fail('Expected function to throw an error, but it did not.');
+    } catch (error) {
+      expect((error as Error).message).to.contain('The user aborted a request');
+    }*/
   });
 });

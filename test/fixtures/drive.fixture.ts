@@ -1,4 +1,5 @@
 import {
+  CreateFolderResponse,
   EncryptionVersion,
   FetchPaginatedFile,
   FetchPaginatedFolder,
@@ -7,8 +8,12 @@ import {
   FolderMeta,
 } from '@internxt/sdk/dist/drive/storage/types';
 import { getDefaultWordlist, wordlists } from 'bip39';
-import crypto, { randomInt, randomUUID } from 'crypto';
+import crypto, { randomInt, randomUUID } from 'node:crypto';
 import { DriveFileItem, DriveFolderItem } from '../../src/types/drive.types';
+import { DriveFile } from '../../src/services/database/drive-file/drive-file.domain';
+import { DriveFileAttributes } from '../../src/services/database/drive-file/drive-file.attributes';
+import { DriveFolderAttributes } from '../../src/services/database/drive-folder/drive-folder.attributes';
+import { DriveFolder } from '../../src/services/database/drive-folder/drive-folder.domain';
 
 const wordlist = wordlists[getDefaultWordlist()];
 const fileTypes = ['png', 'jpg', 'docx', 'pdf', 'mp4', 'mp3'];
@@ -161,6 +166,40 @@ export const newPaginatedFile = (attributes?: Partial<FetchPaginatedFile>): Fetc
   return { ...file, ...attributes };
 };
 
+export const newDriveFolder = (attributes?: Partial<DriveFolderAttributes>): DriveFolder => {
+  const folder: DriveFolderAttributes = {
+    id: randomInt(1, 100000),
+    name: crypto.randomBytes(16).toString('hex'),
+    uuid: crypto.randomBytes(16).toString('hex'),
+    relativePath: crypto.randomBytes(16).toString('hex'),
+    parentId: randomInt(1, 100000),
+    parentUuid: crypto.randomBytes(16).toString('hex'),
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    status: FileStatus.EXISTS,
+  };
+  return new DriveFolder({ ...folder, ...attributes });
+};
+
+export const newDriveFile = (attributes?: Partial<DriveFileAttributes>): DriveFile => {
+  const file: DriveFileAttributes = {
+    id: randomInt(1, 100000),
+    name: crypto.randomBytes(16).toString('hex'),
+    type: fileTypes[randomInt(fileTypes.length)],
+    uuid: crypto.randomBytes(16).toString('hex'),
+    fileId: crypto.randomBytes(16).toString('hex'),
+    folderId: randomInt(1, 100000),
+    folderUuid: crypto.randomBytes(16).toString('hex'),
+    bucket: crypto.randomBytes(16).toString('hex'),
+    relativePath: crypto.randomBytes(16).toString('hex'),
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    size: randomInt(1, 10000),
+    status: FileStatus.EXISTS,
+  };
+  return new DriveFile({ ...file, ...attributes });
+};
+
 export const generateSubcontent = (uuid: string, countFolders: number, countFiles: number) => {
   const folders: FetchPaginatedFolder[] = [];
   const files: FetchPaginatedFile[] = [];
@@ -171,4 +210,27 @@ export const generateSubcontent = (uuid: string, countFolders: number, countFile
     files.push(newPaginatedFile({ folderUuid: uuid }));
   }
   return { folders, files };
+};
+
+export const newCreateFolderResponse = (attributes?: Partial<CreateFolderResponse>): CreateFolderResponse => {
+  const folder: CreateFolderResponse = {
+    id: randomInt(1, 100000),
+    parentId: randomInt(1, 100000),
+    parentUuid: randomUUID(),
+    name: crypto.randomBytes(16).toString('hex'),
+    bucket: crypto.randomBytes(16).toString('hex'),
+    userId: randomInt(1, 100000),
+    encryptVersion: EncryptionVersion.Aes03,
+    deleted: false,
+    deletedAt: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    uuid: randomUUID(),
+    plainName: wordlist[randomInt(wordlist.length)],
+    removed: false,
+    removedAt: null,
+    creationTime: new Date(),
+    modificationTime: new Date(),
+  };
+  return { ...folder, ...attributes };
 };

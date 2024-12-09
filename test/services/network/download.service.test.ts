@@ -1,16 +1,15 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { DownloadService } from '../../../src/services/network/download.service';
-import sinon from 'sinon';
-import { Readable } from 'stream';
-import { expect } from 'chai';
+import { Readable } from 'node:stream';
 import axios from 'axios';
 
 describe('Download Service', () => {
   const sut = DownloadService.instance;
-  const sandbox = sinon.createSandbox();
 
-  afterEach(() => {
-    sandbox.restore();
+  beforeEach(() => {
+    vi.restoreAllMocks();
   });
+
   it('When a file is downloaded, should return a ReadableStream', async () => {
     const fileContent = Buffer.from('file-content');
     const readableContent = new Readable({
@@ -20,7 +19,7 @@ describe('Download Service', () => {
       },
     });
 
-    sandbox.stub(axios, 'get').resolves({ data: readableContent });
+    vi.spyOn(axios, 'get').mockResolvedValue({ data: readableContent });
     const readable = await sut.downloadFile('https://example.com/file', {});
 
     const reader = readable.getReader();
@@ -33,7 +32,7 @@ describe('Download Service', () => {
   it('When a file is downloaded, progress should be reported', async () => {
     const fileContent = Buffer.from('file-content');
     const options = {
-      progressCallback: sandbox.stub(),
+      progressCallback: vi.fn(),
     };
     const readableContent = new Readable({
       read() {
@@ -42,13 +41,13 @@ describe('Download Service', () => {
       },
     });
 
-    sandbox.stub(axios, 'get').callsFake((_, config) => {
+    vi.spyOn(axios, 'get').mockImplementation((_, config) => {
       config?.onDownloadProgress?.({ loaded: 100, total: 100, bytes: 100, lengthComputable: true });
       return Promise.resolve({ data: readableContent });
     });
 
     await sut.downloadFile('https://example.com/file', options);
 
-    expect(options.progressCallback.calledWith(1)).to.be.true;
+    expect(options.progressCallback).toHaveBeenCalledWith(1);
   });
 });

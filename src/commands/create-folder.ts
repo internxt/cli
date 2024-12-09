@@ -1,52 +1,51 @@
 import { Command, Flags } from '@oclif/core';
-import { AuthService } from '../services/auth.service';
 import { ErrorUtils } from '../utils/errors.utils';
 import { CLIUtils } from '../utils/cli.utils';
 import { DriveFolderService } from '../services/drive/drive-folder.service';
 import { ConfigService } from '../services/config.service';
-import { DriveFolderItem } from '../types/drive.types';
+import { ValidationService } from '../services/validation.service';
+import { EmptyFolderNameError, MissingCredentialsError, NotValidFolderUuidError } from '../types/command.types';
 
 export default class CreateFolder extends Command {
-  static description = 'Create a folder in your Internxt Drive';
-
-  static examples = ['<%= config.bin %> <%= command.id %>'];
-
-  static flags = {
-    name: Flags.string({ description: 'The new folder name', required: true }),
-    id: Flags.string({
-      description: 'The folder id to create the folder in, defaults to your root folder',
+  static readonly args = {};
+  static readonly description = 'Create a folder in your Internxt Drive';
+  static readonly aliases = [];
+  static readonly examples = ['<%= config.bin %> <%= command.id %>'];
+  static readonly flags = {
+    ...CLIUtils.CommonFlags,
+    name: Flags.string({
+      char: 'n',
+      description: 'The new name for the folder',
       required: false,
     }),
+    id: Flags.string({
+      char: 'f',
+      description:
+        'The ID of the folder where the new folder will be created. Defaults to your root folder if not specified.',
+      required: false,
+      parse: CLIUtils.parseEmpty,
+    }),
   };
+  static readonly enableJsonFlag = true;
 
-  async catch(error: Error) {
-    ErrorUtils.report(error, { command: this.id });
-    CLIUtils.error(error.message);
-    this.exit(1);
-  }
-
-  getParentFolder(uuid: string) {
-    return DriveFolderService.instance.getFolderMetaByUuid(uuid);
-  }
-
-  public async run(): Promise<void> {
+  public run = async () => {
     const { flags } = await this.parse(CreateFolder);
+    const nonInteractive = flags['non-interactive'];
 
-    const folderName = flags.name;
+    const userCredentials = await ConfigService.instance.readUser();
+    if (!userCredentials) throw new MissingCredentialsError();
 
-    const user = await AuthService.instance.getUser();
-    let parentFolder: DriveFolderItem | undefined;
-    if (flags.id) {
-      parentFolder = await this.getParentFolder(flags.id);
-      if (!parentFolder) {
-        throw new Error(`Folder with id ${flags.id} not found`);
-      }
+    const folderName = await this.getFolderName(flags['name'], nonInteractive);
+    let folderUuid = await this.getFolderUuid(flags['id'], nonInteractive);
+    if (folderUuid.trim().length === 0) {
+      // folderId is empty from flags&prompt, which means we should use RootFolderUuid
+      folderUuid = userCredentials.user.rootFolderId;
     }
 
     CLIUtils.doing('Creating folder...');
     const [createNewFolder, requestCanceler] = DriveFolderService.instance.createFolder({
-      folderName,
-      parentFolderId: parentFolder ? parentFolder.id : user.root_folder_id,
+      plainName: folderName,
+      parentFolderUuid: folderUuid,
     });
 
     process.on('SIGINT', () => {
@@ -56,8 +55,62 @@ export default class CreateFolder extends Command {
 
     const newFolder = await createNewFolder;
     CLIUtils.done();
-    CLIUtils.success(
-      `Folder ${newFolder.plainName} created successfully, view it at view it at ${ConfigService.instance.get('DRIVE_URL')}/folder/${newFolder.uuid}`,
+    // eslint-disable-next-line max-len
+    const message = `Folder ${newFolder.plainName} created successfully, view it at ${ConfigService.instance.get('DRIVE_URL')}/folder/${newFolder.uuid}`;
+    CLIUtils.success(this.log.bind(this), message);
+    return { success: true, message, folder: newFolder };
+  };
+
+  public catch = async (error: Error) => {
+    ErrorUtils.report(this.error.bind(this), error, { command: this.id });
+    CLIUtils.error(this.log.bind(this), error.message);
+    this.exit(1);
+  };
+
+  private getFolderName = async (folderNameFlag: string | undefined, nonInteractive: boolean): Promise<string> => {
+    const folderName = await CLIUtils.getValueFromFlag(
+      {
+        value: folderNameFlag,
+        name: CreateFolder.flags['name'].name,
+      },
+      {
+        nonInteractive,
+        prompt: {
+          message: 'What would you like to name the new folder?',
+          options: { type: 'input' },
+        },
+      },
+      {
+        validate: ValidationService.instance.validateStringIsNotEmpty,
+        error: new EmptyFolderNameError(),
+      },
+      this.log.bind(this),
     );
-  }
+    return folderName;
+  };
+
+  private getFolderUuid = async (folderUuidFlag: string | undefined, nonInteractive: boolean): Promise<string> => {
+    const folderUuid = await CLIUtils.getValueFromFlag(
+      {
+        value: folderUuidFlag,
+        name: CreateFolder.flags['id'].name,
+      },
+      {
+        nonInteractive,
+        prompt: {
+          message:
+            // eslint-disable-next-line max-len
+            'What is the ID of the folder where you would like to create the new folder? (leave empty for the root folder)',
+          options: { type: 'input' },
+        },
+      },
+      {
+        validate: ValidationService.instance.validateUUIDv4,
+        error: new NotValidFolderUuidError(),
+        canBeEmpty: true,
+      },
+      this.log.bind(this),
+    );
+    return folderUuid;
+  };
 }

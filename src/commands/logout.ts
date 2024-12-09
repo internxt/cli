@@ -7,25 +7,29 @@ import { DriveDatabaseManager } from '../services/database/drive-database-manage
 export default class Logout extends Command {
   static readonly args = {};
   static readonly description = 'Logs out the current internxt user that is logged into the Internxt CLI.';
-
+  static readonly aliases = [];
   static readonly examples = ['<%= config.bin %> <%= command.id %>'];
-
   static readonly flags = {};
+  static readonly enableJsonFlag = true;
 
-  public async run(): Promise<void> {
+  public run = async () => {
     const user = await ConfigService.instance.readUser();
     if (user) {
       await ConfigService.instance.clearUser();
       await DriveDatabaseManager.clean();
-      CLIUtils.success('User logged out correctly');
+      const message = 'User logged out successfully.';
+      CLIUtils.success(this.log.bind(this), message);
+      return { success: true, message };
     } else {
-      CLIUtils.error('You are not logged in');
+      const message = 'No user is currently logged in.';
+      CLIUtils.error(this.log.bind(this), message);
+      return { success: false, message };
     }
-  }
+  };
 
-  async catch(error: Error) {
-    ErrorUtils.report(error, { command: this.id });
-    CLIUtils.error(error.message);
+  public catch = async (error: Error) => {
+    ErrorUtils.report(this.error.bind(this), error, { command: this.id });
+    CLIUtils.error(this.log.bind(this), error.message);
     this.exit(1);
-  }
+  };
 }

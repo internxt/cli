@@ -15,7 +15,12 @@ export class XMLUtils {
 
   static toWebDavXML(object: object, options: XmlBuilderOptions) {
     const xmlContent = this.toXML(object, options);
-    return `<?xml version="1.0" encoding="utf-8" ?><${XMLUtils.addDefaultNamespace('multistatus')} xmlns:${XMLUtils.DEFAULT_NAMESPACE_LETTER}="DAV:">${xmlContent}</${XMLUtils.addDefaultNamespace('multistatus')}>`;
+    return (
+      '<?xml version="1.0" encoding="utf-8" ?>' +
+      `<${XMLUtils.addDefaultNamespace('multistatus')} xmlns:${XMLUtils.DEFAULT_NAMESPACE_LETTER}="DAV:">` +
+      `${xmlContent}` +
+      `</${XMLUtils.addDefaultNamespace('multistatus')}>`
+    );
   }
 
   static addDefaultNamespace(key: string) {

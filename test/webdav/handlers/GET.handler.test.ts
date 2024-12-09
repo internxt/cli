@@ -1,4 +1,5 @@
-import sinon from 'sinon';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { fail } from 'node:assert';
 import {
   createWebDavRequestFixture,
   createWebDavResponseFixture,
@@ -11,19 +12,16 @@ import { CryptoService } from '../../../src/services/crypto.service';
 import { DownloadService } from '../../../src/services/network/download.service';
 import { UploadService } from '../../../src/services/network/upload.service';
 import { AuthService } from '../../../src/services/auth.service';
-import { expect } from 'chai';
 import { NotFoundError, NotImplementedError } from '../../../src/utils/errors.utils';
 import { SdkManager } from '../../../src/services/sdk-manager.service';
 import { NetworkFacade } from '../../../src/services/network/network-facade.service';
-import { UserFixture } from '../../fixtures/auth.fixture';
-import { fail } from 'node:assert';
 import { WebDavUtils } from '../../../src/utils/webdav.utils';
 import { WebDavRequestedResource } from '../../../src/types/webdav.types';
 import { newFileItem } from '../../fixtures/drive.fixture';
+import { LoginCredentials } from '../../../src/types/command.types';
+import { UserCredentialsFixture } from '../../fixtures/login.fixture';
 
 describe('GET request handler', () => {
-  const sandbox = sinon.createSandbox();
-
   const getNetworkMock = () => {
     return SdkManager.instance.getNetwork({
       user: 'user',
@@ -31,11 +29,11 @@ describe('GET request handler', () => {
     });
   };
 
-  afterEach(() => {
-    sandbox.restore();
+  beforeEach(() => {
+    vi.restoreAllMocks();
   });
 
-  it('When a WebDav client sends a GET request, and it contains a content-range header, then it should throw a NotImplementedError', async () => {
+  it('When the request contains a content-range header, then it should throw a NotImplementedError', async () => {
     const networkFacade = new NetworkFacade(
       getNetworkMock(),
       UploadService.instance,
@@ -60,7 +58,7 @@ describe('GET request handler', () => {
       },
     });
     const response = createWebDavResponseFixture({
-      status: sandbox.stub().returns({ send: sandbox.stub() }),
+      status: vi.fn().mockReturnValue({ send: vi.fn() }),
     });
 
     try {
@@ -71,7 +69,7 @@ describe('GET request handler', () => {
     }
   });
 
-  it('When a WebDav client sends a GET request, and the Drive file is not found, should throw a NotFoundError', async () => {
+  it('When the Drive file is not found, then it should throw a NotFoundError', async () => {
     const driveDatabaseManager = getDriveDatabaseManager();
     const downloadService = DownloadService.instance;
     const uploadService = UploadService.instance;
@@ -95,15 +93,17 @@ describe('GET request handler', () => {
       headers: {},
     });
     const response = createWebDavResponseFixture({
-      status: sandbox.stub().returns({ send: sandbox.stub() }),
+      status: vi.fn().mockReturnValue({ send: vi.fn() }),
     });
 
     const expectedError = new NotFoundError(`Resource not found on Internxt Drive at ${requestedFileResource.url}`);
 
-    const getRequestedResourceStub = sandbox.stub(WebDavUtils, 'getRequestedResource').resolves(requestedFileResource);
-    const getAndSearchItemFromResourceStub = sandbox
-      .stub(WebDavUtils, 'getAndSearchItemFromResource')
-      .throws(expectedError);
+    const getRequestedResourceStub = vi
+      .spyOn(WebDavUtils, 'getRequestedResource')
+      .mockResolvedValue(requestedFileResource);
+    const getAndSearchItemFromResourceStub = vi
+      .spyOn(WebDavUtils, 'getAndSearchItemFromResource')
+      .mockRejectedValue(expectedError);
 
     try {
       await requestHandler.handle(request, response);
@@ -111,11 +111,11 @@ describe('GET request handler', () => {
     } catch (error) {
       expect(error).to.be.instanceOf(NotFoundError);
     }
-    expect(getRequestedResourceStub.calledOnce).to.be.true;
-    expect(getAndSearchItemFromResourceStub.calledOnce).to.be.true;
+    expect(getRequestedResourceStub).toHaveBeenCalledOnce();
+    expect(getAndSearchItemFromResourceStub).toHaveBeenCalledOnce();
   });
 
-  it('When a WebDav client sends a GET request, and the Drive file is found, should write a response with the content', async () => {
+  it('When the Drive file is found, then it should write a response with the content', async () => {
     const driveDatabaseManager = getDriveDatabaseManager();
     const downloadService = DownloadService.instance;
     const uploadService = UploadService.instance;
@@ -140,26 +140,34 @@ describe('GET request handler', () => {
       headers: {},
     });
     const response = createWebDavResponseFixture({
-      status: sandbox.stub().returns({ send: sandbox.stub() }),
+      status: vi.fn().mockReturnValue({ send: vi.fn() }),
     });
 
     const mockFile = newFileItem();
-    const mockAuthDetails = { mnemonic: 'MNEMONIC', token: 'TOKEN', newToken: 'NEW_TOKEN', user: UserFixture };
+    const mockAuthDetails: LoginCredentials = UserCredentialsFixture;
 
-    const getRequestedResourceStub = sandbox.stub(WebDavUtils, 'getRequestedResource').resolves(requestedFileResource);
-    const getAndSearchItemFromResourceStub = sandbox
-      .stub(WebDavUtils, 'getAndSearchItemFromResource')
-      .resolves(mockFile);
-    const authDetailsStub = sandbox.stub(authService, 'getAuthDetails').resolves(mockAuthDetails);
-    const downloadStreamStub = sandbox
-      .stub(networkFacade, 'downloadToStream')
-      .resolves([Promise.resolve(), new AbortController()]);
+    const getRequestedResourceStub = vi
+      .spyOn(WebDavUtils, 'getRequestedResource')
+      .mockResolvedValue(requestedFileResource);
+    const getAndSearchItemFromResourceStub = vi
+      .spyOn(WebDavUtils, 'getAndSearchItemFromResource')
+      .mockResolvedValue(mockFile);
+    const authDetailsStub = vi.spyOn(authService, 'getAuthDetails').mockResolvedValue(mockAuthDetails);
+    const downloadStreamStub = vi
+      .spyOn(networkFacade, 'downloadToStream')
+      .mockResolvedValue([Promise.resolve(), new AbortController()]);
 
     await requestHandler.handle(request, response);
-    expect(response.status.calledWith(200)).to.be.true;
-    expect(getRequestedResourceStub.calledOnce).to.be.true;
-    expect(getAndSearchItemFromResourceStub.calledOnce).to.be.true;
-    expect(authDetailsStub.calledOnce).to.be.true;
-    expect(downloadStreamStub.calledWith(mockFile.bucket, mockAuthDetails.mnemonic, mockFile.fileId)).to.be.true;
+    expect(response.status).toHaveBeenCalledWith(200);
+    expect(getRequestedResourceStub).toHaveBeenCalledOnce();
+    expect(getAndSearchItemFromResourceStub).toHaveBeenCalledOnce();
+    expect(authDetailsStub).toHaveBeenCalledOnce();
+    expect(downloadStreamStub).toHaveBeenCalledWith(
+      mockFile.bucket,
+      mockAuthDetails.user.mnemonic,
+      mockFile.fileId,
+      expect.any(Object),
+      expect.any(Object),
+    );
   });
 });

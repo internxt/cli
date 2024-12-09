@@ -1,24 +1,14 @@
-import chai, { expect } from 'chai';
-import sinon, { SinonSandbox } from 'sinon';
-import sinonChai from 'sinon-chai';
-import crypto from 'crypto';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import crypto from 'node:crypto';
 import { ConfigService } from '../../src/services/config.service';
 import { CryptoService } from '../../src/services/crypto.service';
 import { ConfigKeys } from '../../src/types/config.types';
 import { Keys } from '@internxt/sdk';
 import { KeysService } from '../../src/services/keys.service';
 
-chai.use(sinonChai);
-
 describe('Crypto service', () => {
-  let cryptoServiceSandbox: SinonSandbox;
-
   beforeEach(() => {
-    cryptoServiceSandbox = sinon.createSandbox();
-  });
-
-  afterEach(() => {
-    cryptoServiceSandbox.restore();
+    vi.restoreAllMocks();
   });
 
   it('When text is encrypted using crypto secret env, then it can be decrypted back', () => {
@@ -28,15 +18,12 @@ describe('Crypto service', () => {
     };
     const textToEncrypt = crypto.randomBytes(16).toString('hex');
 
-    const spyConfigService = cryptoServiceSandbox
-      .stub(ConfigService.instance, 'get')
-      .withArgs(envEndpoint.key)
-      .returns(envEndpoint.value);
+    const spyConfigService = vi.spyOn(ConfigService.instance, 'get').mockReturnValue(envEndpoint.value);
 
     const textEncrypted = CryptoService.instance.encryptText(textToEncrypt);
     const textDecrypted = CryptoService.instance.decryptText(textEncrypted);
     expect(textDecrypted).to.be.equal(textToEncrypt);
-    expect(spyConfigService).to.be.calledWith(envEndpoint.key);
+    expect(spyConfigService).toHaveBeenCalledWith(envEndpoint.key);
   });
 
   it('When text is encrypted using crypto secret env, then it can be decrypted back', () => {
@@ -46,26 +33,20 @@ describe('Crypto service', () => {
     };
     const textToEncrypt = crypto.randomBytes(16).toString('hex');
 
-    const spyConfigService = cryptoServiceSandbox
-      .stub(ConfigService.instance, 'get')
-      .withArgs(envEndpoint.key)
-      .returns(envEndpoint.value);
+    const spyConfigService = vi.spyOn(ConfigService.instance, 'get').mockReturnValue(envEndpoint.value);
 
     const textEncrypted = CryptoService.instance.encryptText(textToEncrypt);
     const textDecrypted = CryptoService.instance.decryptText(textEncrypted);
     expect(textDecrypted).to.be.equal(textToEncrypt);
-    expect(spyConfigService).to.be.calledWith(envEndpoint.key);
+    expect(spyConfigService).toHaveBeenCalledWith(envEndpoint.key);
   });
 
-  it('When a password is hashed using CryptoProvider, then it is hashed correctly', async () => {
+  it('When a password is hashed using CryptoProvider, then it is hashed successfully', async () => {
     const envEndpoint: { key: keyof ConfigKeys; value: string } = {
       key: 'APP_CRYPTO_SECRET',
       value: crypto.randomBytes(16).toString('hex'),
     };
-    const spyConfigService = cryptoServiceSandbox
-      .stub(ConfigService.instance, 'get')
-      .withArgs(envEndpoint.key)
-      .returns(envEndpoint.value);
+    const spyConfigService = vi.spyOn(ConfigService.instance, 'get').mockReturnValue(envEndpoint.value);
 
     const password = {
       value: crypto.randomBytes(16).toString('hex'),
@@ -73,15 +54,18 @@ describe('Crypto service', () => {
     };
 
     const encryptedSalt = CryptoService.instance.encryptText(password.salt);
-    const hashedAndEncryptedPassword = CryptoService.cryptoProvider.encryptPasswordHash(password.value, encryptedSalt);
-    const hashedPassword = CryptoService.instance.decryptText(await hashedAndEncryptedPassword);
+    const hashedAndEncryptedPassword = await CryptoService.cryptoProvider.encryptPasswordHash(
+      password.value,
+      encryptedSalt,
+    );
+    const hashedPassword = CryptoService.instance.decryptText(hashedAndEncryptedPassword);
 
     const expectedHashedPassword = crypto
       .pbkdf2Sync(password.value, Buffer.from(password.salt, 'hex'), 10000, 256 / 8, 'sha1')
       .toString('hex');
 
     expect(hashedPassword).to.be.equal(expectedHashedPassword);
-    expect(spyConfigService).to.be.calledWith(envEndpoint.key);
+    expect(spyConfigService).toHaveBeenCalledWith(envEndpoint.key);
   });
 
   it('When a password is hashed using passToHash without salt, then it is hashed with a new generated salt', () => {
@@ -102,28 +86,28 @@ describe('Crypto service', () => {
       revocationCertificate: crypto.randomBytes(16).toString('hex'),
     };
 
-    const keysServiceStub = cryptoServiceSandbox
-      .stub(KeysService.instance, 'generateNewKeysWithEncrypted')
-      .resolves(keysReturned);
+    const keysServiceStub = vi
+      .spyOn(KeysService.instance, 'generateNewKeysWithEncrypted')
+      .mockResolvedValue(keysReturned);
 
     const expectedKeys: Keys = {
       privateKeyEncrypted: keysReturned.privateKeyArmoredEncrypted,
       publicKey: keysReturned.publicKeyArmored,
       revocationCertificate: keysReturned.revocationCertificate,
+      ecc: {
+        privateKeyEncrypted: keysReturned.privateKeyArmoredEncrypted,
+        publicKey: keysReturned.publicKeyArmored,
+      },
       kyber: {
         privateKeyEncrypted: null,
         publicKey: null,
       },
-      ecc: {
-        privateKeyEncrypted: keysReturned.privateKeyArmoredEncrypted,
-        publicKey: keysReturned.publicKeyArmored,
-      }
     };
 
     const resultedKeys = await CryptoService.cryptoProvider.generateKeys(password);
 
-    expect(expectedKeys).to.be.eql(resultedKeys);
-    expect(keysServiceStub).to.be.calledWith(password);
+    expect(expectedKeys).to.be.deep.equal(resultedKeys);
+    expect(keysServiceStub).toHaveBeenCalledWith(password);
   });
 
   /**
@@ -142,8 +126,8 @@ describe('Crypto service', () => {
     // test PBKDF2 - node:crypto equivalent password to hash
     const actualPass = CryptoJS.PBKDF2(password.value, CryptoJS.enc.Hex.parse(password.salt), { keySize: 256 / 32, iterations: 10000 }).toString();
     const expectedPass = crypto.pbkdf2Sync(password.value, Buffer.from(password.salt, 'hex'), 10000, 256 / 8, 'sha1').toString('hex');
-    expect(actualPass).to.equal(expectedPass);
-    expect(CryptoJS.lib.WordArray.random(128 / 8).toString().length).to.equal(
+    expect(actualPass).to.be.equal(expectedPass);
+    expect(CryptoJS.lib.WordArray.random(128 / 8).toString().length).to.be.equal(
       crypto.randomBytes(128 / 8).toString('hex').length,
     );
 
@@ -152,18 +136,18 @@ describe('Crypto service', () => {
       CryptoJS.AES.encrypt(password.value, APP_CRYPTO_SECRET).toString(),
     ).toString(CryptoJS.enc.Hex);
     const textdecrypted = CryptoService.instance.decryptTextWithKey(cryptoJSEncrypted, APP_CRYPTO_SECRET);
-    expect(password.value).to.equal(textdecrypted);
+    expect(password.value).to.be.equal(textdecrypted);
 
     const textencrypted = CryptoService.instance.encryptTextWithKey(password.value, APP_CRYPTO_SECRET);
     const cryptoJSdecrypted = CryptoJS.AES.decrypt(
       CryptoJS.enc.Hex.parse(textencrypted).toString(CryptoJS.enc.Base64),
       APP_CRYPTO_SECRET,
     ).toString(CryptoJS.enc.Utf8);
-    expect(password.value).to.equal(cryptoJSdecrypted);
+    expect(password.value).to.be.equal(cryptoJSdecrypted);
 
     const expectedText1 = CryptoService.instance.encryptTextWithKey(password.value, APP_CRYPTO_SECRET);
     const expectedText2 = CryptoService.instance.decryptTextWithKey(expectedText1, APP_CRYPTO_SECRET);
-    expect(password.value).to.equal(expectedText2);
+    expect(password.value).to.be.equal(expectedText2);
     */
   });
 });

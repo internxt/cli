@@ -1,39 +1,34 @@
-import { expect } from 'chai';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ErrorUtils } from '../../src/utils/errors.utils';
-import sinon from 'sinon';
+
 describe('Errors Utils', () => {
-  let errorSpy = sinon.spy(console, 'error');
+  const reporter = vi.fn();
 
   beforeEach(() => {
-    errorSpy = sinon.spy(console, 'error');
+    vi.restoreAllMocks();
   });
 
-  afterEach(() => {
-    errorSpy.restore();
-  });
-
-  it('When reporting an error, should call console.error with the expected message and properties', () => {
+  it('When reporting an error, should call reporter with the expected message and properties', () => {
     const error = new Error('Test Error');
     const props = { key: 'value' };
 
-    ErrorUtils.report(error, props);
+    ErrorUtils.report(reporter, error, props);
 
-    expect(errorSpy.calledOnce).to.be.true;
-    expect(errorSpy.firstCall.args[0]).to.contain('[REPORTED_ERROR]');
-    expect(errorSpy.firstCall.args[0]).to.contain(error.message);
-    expect(errorSpy.firstCall.args[0]).to.contain(JSON.stringify(props, null, 2));
-    expect(errorSpy.firstCall.args[0]).to.contain(error.stack);
+    expect(reporter).toHaveBeenCalledOnce();
+    expect(reporter).toHaveBeenCalledWith(
+      `[REPORTED_ERROR]: ${error.message}\nProperties => ${JSON.stringify(props, null, 2)}\nStack => ${error.stack}`,
+    );
   });
 
-  it('When reporting an object, should call console.error with the expected message and properties', () => {
+  it('When reporting an object, should call reporter with the expected message and properties', () => {
     const error = { data: 'error data' };
     const props = { key: 'value' };
 
-    ErrorUtils.report(error, props);
+    ErrorUtils.report(reporter, error, props);
 
-    expect(errorSpy.calledOnce).to.be.true;
-    expect(errorSpy.firstCall.args[0]).to.contain('[REPORTED_ERROR]');
-
-    expect(errorSpy.firstCall.args[0]).to.contain(JSON.stringify(props, null, 2));
+    expect(reporter).toHaveBeenCalledOnce();
+    expect(reporter).toHaveBeenCalledWith(
+      `[REPORTED_ERROR]: ${JSON.stringify(error)}\nProperties => ${JSON.stringify(props, null, 2)}\n`,
+    );
   });
 });
