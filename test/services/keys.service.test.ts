@@ -110,7 +110,7 @@ describe('Keys service', () => {
     await KeysService.instance.assertPrivateKeyIsValid(encryptedPrivateKey, password);
   });
 
-  it('When private key is encrypted with bad iterations, then it throws a WrongIterationsToEncryptPrivateKey error', async () => {
+  it('When private key is encrypted with bad iterations, then it should throw an error', async () => {
     const plainPrivateKey = crypto.randomBytes(16).toString('hex');
     const password = crypto.randomBytes(8).toString('hex');
 

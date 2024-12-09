@@ -6,6 +6,7 @@
     "build": "yarn clean && tsc",
     "clean": "rimraf dist tsconfig.tsbuildinfo oclif.manifest.json",
     "lint": "eslint .",
+    "pretty": "prettier --write **/*.{js,jsx,tsx,ts}",
     "postpack": "shx rm -f oclif.manifest.json",
     "posttest": "yarn lint",
     "prepack": "yarn build && oclif manifest && oclif readme",

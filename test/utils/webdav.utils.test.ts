@@ -24,7 +24,7 @@ describe('Webdav utils', () => {
       expect(href).to.be.equal('/path/to/file');
     });
 
-    it('When a list of path components are given, should generate a correct href and remove incorrect characters', () => {
+    it('When a list of path components are given, then it should remove incorrect characters', () => {
       const href = WebDavUtils.joinURL('/path', 'to', 'folder/');
       expect(href).to.be.equal('/path/to/folder/');
     });

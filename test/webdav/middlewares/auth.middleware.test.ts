@@ -9,7 +9,7 @@ describe('Auth middleware', () => {
     vi.restoreAllMocks();
   });
 
-  it('When a request is made to the WebDav server, and the user is not authenticated, should return 401', async () => {
+  it('When the user is not authenticated, then it should return 401', async () => {
     const req = createWebDavRequestFixture({
       user: null,
     });
@@ -28,7 +28,7 @@ describe('Auth middleware', () => {
     expect(res.send).toHaveBeenCalledWith({ error: 'Unauthorized' });
   });
 
-  it('When a request is made to the WebDav server, and the user is authenticated, should add the user to the request', async () => {
+  it('When the user is authenticated, then it should add the user to the request', async () => {
     const req = createWebDavRequestFixture({
       user: null,
     });

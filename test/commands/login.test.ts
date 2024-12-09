@@ -100,7 +100,7 @@ describe('Login Command', () => {
     expect(cleanStub).not.toHaveBeenCalled();
   });
 
-  it('When user logs in with credentials and two factor is not needed, then it saves and returns the credentials', async () => {
+  it('When two factor is not needed, then it saves and returns the credentials', async () => {
     const getValueFromFlagsSpy = vi
       .spyOn(CLIUtils, 'getValueFromFlag')
       .mockResolvedValueOnce(UserLoginFixture.email) // email
@@ -130,7 +130,7 @@ describe('Login Command', () => {
     expect(cleanStub).toHaveBeenCalledOnce();
   });
 
-  it('When user logs in with credentials and two factor is needed, then it saves and returns the credentials', async () => {
+  it('When two factor is needed, then it saves and returns the credentials', async () => {
     const getValueFromFlagsSpy = vi
       .spyOn(CLIUtils, 'getValueFromFlag')
       .mockResolvedValueOnce(UserLoginFixture.email) // email

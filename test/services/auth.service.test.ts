@@ -74,7 +74,7 @@ describe('Auth service', () => {
     expect(loginStub).toHaveBeenCalledOnce();
   });
 
-  it('When two factor authentication property is enabled, then it is returned from is2FANeeded functionality', async () => {
+  it('When two factor authentication is enabled, then it is returned from is2FANeeded functionality', async () => {
     const email = crypto.randomBytes(16).toString('hex');
     const securityDetails: SecurityDetails = {
       encryptedSalt: crypto.randomBytes(16).toString('hex'),
@@ -89,7 +89,7 @@ describe('Auth service', () => {
     expect(responseLogin).to.be.equal(securityDetails.tfaEnabled);
   });
 
-  it('When email is not correct when checking two factor authentication property, then an error is thrown', async () => {
+  it('When email is not correct when checking two factor authentication, then an error is thrown', async () => {
     const email = crypto.randomBytes(16).toString('hex');
 
     const securityStub = vi.spyOn(Auth.prototype, 'securityDetails').mockRejectedValue(new Error());

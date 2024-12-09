@@ -41,7 +41,7 @@ describe('Network utils', () => {
     expect(result.password).to.be.equal('5751a44782594819e4cb8aa27c2c9d87a420af82bc6a5a05bc7f19c3bb00452b');
   });
 
-  it('When webdav ssl certs do not exist, then they are generated, self signed on the fly, and saved to files', async () => {
+  it('When webdav ssl certs do not exist, then they should be self signed and saved to files', async () => {
     const sslSelfSigned: GenerateResult = {
       private: randomBytes(8).toString('hex'),
       public: randomBytes(8).toString('hex'),
