@@ -129,7 +129,6 @@ export class NetworkFacade {
   ): Promise<[Promise<{ fileId: string; hash: Buffer }>, AbortController]> {
     const hashStream = new HashStream();
     const abortable = options?.abortController ?? new AbortController();
-    let fileHash: Buffer;
     let encryptionTransform: Transform;
     const progressTransform = new ProgressTransform({ totalBytes: size }, (progress) => {
       if (options?.progressCallback) {
@@ -173,6 +172,7 @@ export class NetworkFacade {
         encryptFile,
         uploadFile,
       );
+      const fileHash: Buffer = Buffer.from('');
 
       onProgress(1);
       return {

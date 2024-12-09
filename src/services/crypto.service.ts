@@ -22,15 +22,13 @@ export class CryptoService {
         privateKeyEncrypted: privateKeyArmoredEncrypted,
         publicKey: publicKeyArmored,
         revocationCertificate: revocationCertificate,
-        keys: {
-          ecc: {
-            privateKeyEncrypted: privateKeyArmoredEncrypted,
-            publicKey: publicKeyArmored,
-          },
-          kyber: {
-            privateKeyEncrypted: '',
-            publicKey: '',
-          },
+        ecc: {
+          privateKeyEncrypted: privateKeyArmoredEncrypted,
+          publicKey: publicKeyArmored,
+        },
+        kyber: {
+          privateKeyEncrypted: null,
+          publicKey: null,
         },
       };
       return keys;

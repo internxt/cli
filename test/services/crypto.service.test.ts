@@ -94,15 +94,13 @@ describe('Crypto service', () => {
       privateKeyEncrypted: keysReturned.privateKeyArmoredEncrypted,
       publicKey: keysReturned.publicKeyArmored,
       revocationCertificate: keysReturned.revocationCertificate,
-      keys: {
-        ecc: {
-          privateKeyEncrypted: keysReturned.privateKeyArmoredEncrypted,
-          publicKey: keysReturned.publicKeyArmored,
-        },
-        kyber: {
-          privateKeyEncrypted: '',
-          publicKey: '',
-        },
+      ecc: {
+        privateKeyEncrypted: keysReturned.privateKeyArmoredEncrypted,
+        publicKey: keysReturned.publicKeyArmored,
+      },
+      kyber: {
+        privateKeyEncrypted: null,
+        publicKey: null,
       },
     };
 
