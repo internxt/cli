@@ -84,7 +84,7 @@ export default class RenameFile extends Command {
         },
       },
       {
-        validate: ValidationService.instance.validateEmptyString,
+        validate: ValidationService.instance.validateStringIsNotEmpty,
         error: new EmptyFileNameError(),
       },
       this.log.bind(this),

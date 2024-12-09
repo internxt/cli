@@ -29,7 +29,7 @@ export class ValidationService {
     return /^\d+$/.test(port) && Number(port) >= 1 && Number(port) <= 65535;
   };
 
-  public validateEmptyString = (str: string): boolean => {
+  public validateStringIsNotEmpty = (str: string): boolean => {
     return str.trim().length > 0;
   };
 

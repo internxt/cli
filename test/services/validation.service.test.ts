@@ -60,4 +60,17 @@ describe('Validation Service', () => {
     expect(ValidationService.instance.validateTCPIntegerPort('1')).to.be.equal(true);
     expect(ValidationService.instance.validateTCPIntegerPort(String(randomInt(1, 65535)))).to.be.equal(true);
   });
+
+  it('When empty string is validated, then validation service validates it as expected', () => {
+    expect(ValidationService.instance.validateStringIsNotEmpty('1234567')).to.be.equal(true);
+    expect(ValidationService.instance.validateStringIsNotEmpty('loremipsum')).to.be.equal(true);
+    expect(ValidationService.instance.validateStringIsNotEmpty(' a')).to.be.equal(true);
+    expect(ValidationService.instance.validateStringIsNotEmpty('b ')).to.be.equal(true);
+    expect(ValidationService.instance.validateStringIsNotEmpty('')).to.be.equal(false);
+    expect(ValidationService.instance.validateStringIsNotEmpty('        ')).to.be.equal(false);
+    expect(ValidationService.instance.validateStringIsNotEmpty('  ')).to.be.equal(false);
+    expect(ValidationService.instance.validateStringIsNotEmpty('\n')).to.be.equal(false);
+    expect(ValidationService.instance.validateStringIsNotEmpty('\t')).to.be.equal(false);
+    expect(ValidationService.instance.validateStringIsNotEmpty('\t\n')).to.be.equal(false);
+  });
 });

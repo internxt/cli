@@ -115,7 +115,7 @@ export default class Login extends Command {
         },
       },
       {
-        validate: ValidationService.instance.validateEmptyString,
+        validate: ValidationService.instance.validateStringIsNotEmpty,
         error: new EmptyPasswordError(),
       },
       this.log.bind(this),

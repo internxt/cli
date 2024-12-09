@@ -81,7 +81,7 @@ export default class CreateFolder extends Command {
         },
       },
       {
-        validate: ValidationService.instance.validateEmptyString,
+        validate: ValidationService.instance.validateStringIsNotEmpty,
         error: new EmptyFolderNameError(),
       },
       this.log.bind(this),
