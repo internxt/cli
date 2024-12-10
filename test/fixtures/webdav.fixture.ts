@@ -1,23 +1,23 @@
-import { mockReq, mockRes } from 'sinon-express-mock';
+import { getMockReq, getMockRes } from 'vitest-mock-express';
 import { Request, Response } from 'express';
 import { UserSettingsFixture } from './auth.fixture';
 import { WebDavRequestedResource } from '../../src/types/webdav.types';
-import path from 'path';
+import path from 'node:path';
 
-export function createWebDavRequestFixture<T extends object>(request: T): mockReq.MockReq & T & Request {
+export const createWebDavRequestFixture = <T extends object>(request: T): T & Request => {
   const userSettings = UserSettingsFixture;
-  return mockReq({
+  return getMockReq({
     // @ts-expect-error - User is not defined in the Request type from the sinon-express-mock package
     user: request.user ?? {
       rootFolderId: userSettings.root_folder_id,
     },
     ...request,
   });
-}
+};
 
-export function createWebDavResponseFixture<T extends object>(response: T): mockRes.MockRes & T & Response {
-  return mockRes(response);
-}
+export const createWebDavResponseFixture = <T extends object>(response: T): Response => {
+  return getMockRes(response).res;
+};
 
 export const getRequestedFileResource = ({
   parentFolder = '/',

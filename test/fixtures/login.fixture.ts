@@ -1,17 +1,23 @@
-import crypto from 'crypto';
+import { randomBytes, randomInt } from 'node:crypto';
 import { UserFixture } from './auth.fixture';
-import { CLICredentials } from '../../src/types/command.types';
+import { LoginCredentials } from '../../src/types/command.types';
+import { SdkManagerApiSecurity } from '../../src/services/sdk-manager.service';
 
 export const UserLoginFixture = {
-  email: 'test@inxt.com',
-  password: crypto.randomBytes(16).toString('hex'),
-  twoFactor: crypto.randomInt(0, 6).toString().padStart(6, '0'),
+  email: `${randomBytes(8).toString('hex')}@${randomBytes(8).toString('hex')}.com`,
+  password: randomBytes(16).toString('hex'),
+  twoFactor: randomInt(0, 999999).toString().padStart(6, '0'),
 };
 
-export const UserCredentialsFixture: CLICredentials = {
+export const ApiSecurityFixture: SdkManagerApiSecurity = {
+  newToken: randomBytes(16).toString('hex'),
+  token: randomBytes(16).toString('hex'),
+};
+
+export const UserCredentialsFixture: LoginCredentials = {
   user: { ...UserFixture, email: UserLoginFixture.email },
-  token: crypto.randomBytes(16).toString('hex'),
-  newToken: crypto.randomBytes(16).toString('hex'),
-  mnemonic: crypto.randomBytes(16).toString('hex'),
-  root_folder_uuid: crypto.randomBytes(16).toString('hex'),
+  token: ApiSecurityFixture.token,
+  newToken: ApiSecurityFixture.newToken,
+  lastLoggedInAt: randomBytes(16).toString('hex'),
+  lastTokenRefreshAt: randomBytes(16).toString('hex'),
 };

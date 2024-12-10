@@ -3,13 +3,14 @@ import { DriveFileService } from '../../services/drive/drive-file.service';
 import { NetworkFacade } from '../../services/network/network-facade.service';
 import { AuthService } from '../../services/auth.service';
 import { WebDavMethodHandler } from '../../types/webdav.types';
-import { ConflictError, UnsupportedMediaTypeError } from '../../utils/errors.utils';
+import { UnsupportedMediaTypeError } from '../../utils/errors.utils';
 import { WebDavUtils } from '../../utils/webdav.utils';
 import { webdavLogger } from '../../utils/logger.utils';
 import { DriveDatabaseManager } from '../../services/database/drive-database-manager.service';
 import { DriveFileItem, DriveFolderItem } from '../../types/drive.types';
 import { DriveFolderService } from '../../services/drive/drive-folder.service';
 import { TrashService } from '../../services/drive/trash.service';
+import { EncryptionVersion } from '@internxt/sdk/dist/drive/storage/types';
 
 export class PUTRequestHandler implements WebDavMethodHandler {
   constructor(
@@ -41,10 +42,6 @@ export class PUTRequestHandler implements WebDavMethodHandler {
       driveFolderService,
     })) as DriveFolderItem;
 
-    if (!parentFolderItem) {
-      throw new ConflictError(`Parent resource not found for parent path ${resource.parentPath}`);
-    }
-
     try {
       // If the file already exists, the WebDAV specification states that 'PUT /…/file' should replace it.
       // http://www.webdav.org/specs/rfc4918.html#put-resources
@@ -64,11 +61,17 @@ export class PUTRequestHandler implements WebDavMethodHandler {
       //noop
     }
 
-    const { user, mnemonic } = await authService.getAuthDetails();
+    const { user } = await authService.getAuthDetails();
 
-    const [uploadPromise] = await networkFacade.uploadFromStream(user.bucket, mnemonic, contentLength, req, {
+    let lastLoggedProgress = 0;
+    const [uploadPromise] = await networkFacade.uploadFromStream(user.bucket, user.mnemonic, contentLength, req, {
       progressCallback: (progress) => {
-        webdavLogger.info(`Upload progress for file ${resource.name}: ${(100 * progress).toFixed(2)}%`);
+        const percentage = Math.floor(100 * progress);
+
+        if (percentage >= lastLoggedProgress + 1) {
+          lastLoggedProgress = percentage;
+          webdavLogger.info(`Upload progress for file ${resource.name}: ${percentage}%`);
+        }
       },
     });
 
@@ -77,12 +80,14 @@ export class PUTRequestHandler implements WebDavMethodHandler {
     webdavLogger.info('✅ File uploaded to network');
 
     const file = await DriveFileService.instance.createFile({
-      name: resource.path.name,
+      plain_name: resource.path.name,
       type: resource.path.ext.replace('.', ''),
       size: contentLength,
-      folderId: parentFolderItem.id,
-      fileId: uploadResult.fileId,
+      folder_id: parentFolderItem.uuid,
+      id: uploadResult.fileId,
       bucket: user.bucket,
+      encrypt_version: EncryptionVersion.Aes03,
+      name: '',
     });
 
     webdavLogger.info('✅ File uploaded to internxt drive');

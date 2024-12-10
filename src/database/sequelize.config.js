@@ -1,3 +1,4 @@
+/* eslint-disable */
 require('ts-node/register');
 const { ConfigService } = require('../services/config.service');
 

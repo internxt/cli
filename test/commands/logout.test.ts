@@ -1,27 +1,43 @@
-import { expect } from 'chai';
-import { test } from '@oclif/test';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ConfigService } from '../../src/services/config.service';
 import { UserCredentialsFixture } from '../fixtures/login.fixture';
+import { DriveDatabaseManager } from '../../src/services/database/drive-database-manager.service';
+import Logout from '../../src/commands/logout';
 
-describe.skip('Logout Command', () => {
-  describe('When user is logged in and logout is called, then the current user logged out', () => {
-    test
-      .stdout()
-      .stub(ConfigService.instance, 'readUser', (stub) => stub.resolves(UserCredentialsFixture))
-      .stub(ConfigService.instance, 'clearUser', (stub) => stub.resolves())
-      .command(['logout'])
-      .it('runs logout', (ctx) => {
-        expect(ctx.stdout).to.be.equal('✓ User logged out correctly\n');
-      });
+describe('Logout Command', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
   });
 
-  describe('When user cannot be logged out, then an error is thrown', () => {
-    test
-      .stdout()
-      .stub(ConfigService.instance, 'readUser', (stub) => stub.resolves(UserCredentialsFixture))
-      .stub(ConfigService.instance, 'clearUser', (stub) => stub.rejects())
-      .command(['logout'])
-      .exit(1)
-      .it('runs logout and expects error (app exit with code 1)');
+  it('When user is logged out, then it returns false', async () => {
+    const readUserSpy = vi.spyOn(ConfigService.instance, 'readUser').mockResolvedValue(undefined);
+    const clearUserSpy = vi.spyOn(ConfigService.instance, 'clearUser').mockRejectedValue(new Error());
+    const cleanSpy = vi.spyOn(DriveDatabaseManager, 'clean').mockRejectedValue(new Error());
+
+    const message = 'No user is currently logged in.';
+    const expected = { success: false, message };
+
+    const result = await Logout.run();
+
+    expect(result).to.be.deep.equal(expected);
+    expect(readUserSpy).toHaveBeenCalledOnce();
+    expect(clearUserSpy).not.toHaveBeenCalled();
+    expect(cleanSpy).not.toHaveBeenCalled();
+  });
+
+  it('When user is logged in, then the current user logged out', async () => {
+    const readUserSpy = vi.spyOn(ConfigService.instance, 'readUser').mockResolvedValue(UserCredentialsFixture);
+    const clearUserSpy = vi.spyOn(ConfigService.instance, 'clearUser').mockResolvedValue();
+    const cleanSpy = vi.spyOn(DriveDatabaseManager, 'clean').mockResolvedValue();
+
+    const message = 'User logged out successfully.';
+    const expected = { success: true, message };
+
+    const result = await Logout.run();
+
+    expect(result).to.be.deep.equal(expected);
+    expect(readUserSpy).toHaveBeenCalledOnce();
+    expect(clearUserSpy).toHaveBeenCalledOnce();
+    expect(cleanSpy).toHaveBeenCalledOnce();
   });
 });

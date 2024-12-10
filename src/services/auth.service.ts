@@ -3,9 +3,13 @@ import { SdkManager } from './sdk-manager.service';
 import { KeysService } from './keys.service';
 import { CryptoService } from './crypto.service';
 import { ConfigService } from './config.service';
-import { LoginCredentials } from '../types/command.types';
+import {
+  ExpiredCredentialsError,
+  InvalidCredentialsError,
+  LoginCredentials,
+  MissingCredentialsError,
+} from '../types/command.types';
 import { ValidationService } from './validation.service';
-import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
 
 export class AuthService {
   public static readonly instance: AuthService = new AuthService();
@@ -52,7 +56,8 @@ export class AuthService {
       user: clearUser,
       token: token,
       newToken: newToken,
-      mnemonic: clearMnemonic,
+      lastLoggedInAt: new Date().toISOString(),
+      lastTokenRefreshAt: new Date().toISOString(),
     };
   };
 
@@ -72,57 +77,56 @@ export class AuthService {
   };
 
   /**
-   * Obtains the current logged in user
+   * Obtains the user auth details
    *
-   * @returns The current user
+   * @returns The user details and the auth tokens
    */
-  public getUser = async () => {
-    const usersClient = SdkManager.instance.getUsers();
+  public getAuthDetails = async (): Promise<LoginCredentials> => {
+    let loginCreds = await ConfigService.instance.readUser();
+    if (!(loginCreds?.newToken && loginCreds?.token && loginCreds?.user?.mnemonic)) {
+      throw new MissingCredentialsError();
+    }
 
-    const { user } = await usersClient.refreshUser();
+    const oldTokenDetails = ValidationService.instance.validateTokenAndCheckExpiration(loginCreds.token);
+    const newTokenDetails = ValidationService.instance.validateTokenAndCheckExpiration(loginCreds.newToken);
+    const isValidMnemonic = ValidationService.instance.validateMnemonic(loginCreds.user.mnemonic);
+    if (!(oldTokenDetails.isValid && newTokenDetails.isValid && isValidMnemonic)) {
+      throw new InvalidCredentialsError();
+    }
 
-    return user;
+    if (oldTokenDetails.expiration.expired || newTokenDetails.expiration.expired) {
+      throw new ExpiredCredentialsError();
+    }
+
+    const refreshOldToken = !oldTokenDetails.expiration.expired && oldTokenDetails.expiration.refreshRequired;
+    const refreshNewToken = !newTokenDetails.expiration.expired && newTokenDetails.expiration.refreshRequired;
+
+    if (refreshOldToken || refreshNewToken) {
+      loginCreds = await this.refreshUserTokens(loginCreds);
+    }
+    return loginCreds;
   };
 
   /**
-   * Obtains the user auth details
+   * Refreshes the user auth details
    *
-   * @returns The user plain mnemonic and the auth tokens
+   * @returns The user details and its auth tokens
    */
-  public getAuthDetails = async (): Promise<{
-    token: string;
-    newToken: string;
-    mnemonic: string;
-    user: UserSettings;
-  }> => {
-    const loginCredentials = await ConfigService.instance.readUser();
-    if (!loginCredentials) {
-      throw new Error('Credentials not found, please login first');
-    }
+  public refreshUserTokens = async (oldCreds: LoginCredentials): Promise<LoginCredentials> => {
+    const usersClient = SdkManager.instance.getUsers(true);
+    const newCreds = await usersClient.getUserData({ userUuid: oldCreds.user.uuid });
 
-    const { token, newToken, mnemonic } = loginCredentials;
-
-    if (!token) {
-      throw new Error('Auth token not found, please login again');
-    }
-
-    if (!newToken) {
-      throw new Error('New Auth token not found, please login again');
-    }
-
-    if (!mnemonic) {
-      throw new Error('Mnemonic not found, please login again');
-    }
-
-    if (!ValidationService.instance.validateMnemonic(mnemonic)) {
-      throw new Error('Mnemonic is not valid, please login again');
-    }
-
-    return {
-      token,
-      newToken,
-      mnemonic,
-      user: loginCredentials.user,
+    const loginCreds = {
+      user: {
+        ...newCreds.user,
+        mnemonic: oldCreds.user.mnemonic,
+        privateKey: oldCreds.user.privateKey,
+      },
+      token: newCreds.oldToken,
+      newToken: newCreds.newToken,
+      lastLoggedInAt: oldCreds.lastLoggedInAt,
+      lastTokenRefreshAt: new Date().toISOString(),
     };
+    return loginCreds;
   };
 }

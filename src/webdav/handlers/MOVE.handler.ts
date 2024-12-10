@@ -3,7 +3,7 @@ import { DriveDatabaseManager } from '../../services/database/drive-database-man
 import { DriveFileService } from '../../services/drive/drive-file.service';
 import { DriveFolderService } from '../../services/drive/drive-folder.service';
 import { WebDavMethodHandler } from '../../types/webdav.types';
-import { ConflictError, NotFoundError } from '../../utils/errors.utils';
+import { NotFoundError } from '../../utils/errors.utils';
 import { webdavLogger } from '../../utils/logger.utils';
 import { WebDavUtils } from '../../utils/webdav.utils';
 import { DriveFileItem, DriveFolderItem } from '../../types/drive.types';
@@ -72,9 +72,6 @@ export class MOVERequestHandler implements WebDavMethodHandler {
         driveDatabaseManager,
         driveFolderService,
       })) as DriveFolderItem;
-      if (!destinationFolderItem) {
-        throw new ConflictError(`Destination folder resource not found for path ${destinationResource.parentPath}`);
-      }
 
       if (resource.type === 'folder') {
         const folder = originalDriveItem as DriveFolderItem;

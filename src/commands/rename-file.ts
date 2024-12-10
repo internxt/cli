@@ -1,52 +1,45 @@
 import { Command, Flags } from '@oclif/core';
 import { ConfigService } from '../services/config.service';
 import { CLIUtils } from '../utils/cli.utils';
-import { MissingCredentialsError, NotValidFileUuidError, NotValidFolderUuidError } from '../types/command.types';
+import { EmptyFileNameError, MissingCredentialsError, NotValidFileUuidError } from '../types/command.types';
 import { ValidationService } from '../services/validation.service';
 import { DriveFileService } from '../services/drive/drive-file.service';
 import { ErrorUtils } from '../utils/errors.utils';
 
-export default class TrashRestoreFile extends Command {
+export default class RenameFile extends Command {
   static readonly args = {};
-  static readonly description = 'Restore a trashed file into a destination folder.';
-  static readonly aliases = ['trash:restore:file'];
+  static readonly description = 'Rename a file.';
+  static readonly aliases = ['rename:file'];
   static readonly examples = ['<%= config.bin %> <%= command.id %>'];
   static readonly flags = {
     ...CLIUtils.CommonFlags,
     id: Flags.string({
       char: 'i',
-      description: 'The file id to be restored from the trash.',
+      description: 'The ID of the file to be renamed.',
       required: false,
     }),
-    destination: Flags.string({
-      char: 'd',
-      description: 'The folder id where the file is going to be restored. Leave empty for the root folder.',
+    name: Flags.string({
+      char: 'n',
+      description: 'The new name for the file.',
       required: false,
-      parse: CLIUtils.parseEmpty,
     }),
   };
   static readonly enableJsonFlag = true;
 
   public run = async () => {
-    const { flags } = await this.parse(TrashRestoreFile);
-
+    const { flags } = await this.parse(RenameFile);
     const nonInteractive = flags['non-interactive'];
 
     const userCredentials = await ConfigService.instance.readUser();
     if (!userCredentials) throw new MissingCredentialsError();
 
     const fileUuid = await this.getFileUuid(flags['id'], nonInteractive);
-    let destinationFolderUuid = await this.getDestinationFolderUuid(flags['destination'], nonInteractive);
+    const newName = await this.getFileName(flags['name'], nonInteractive);
 
-    if (destinationFolderUuid.trim().length === 0) {
-      // destinationFolderUuid is empty from flags&prompt, which means we should use RootFolderUuid
-      destinationFolderUuid = userCredentials.user.rootFolderId;
-    }
-
-    const file = await DriveFileService.instance.moveFile({ fileUuid, destinationFolderUuid });
-    const message = `File restored successfully to: ${destinationFolderUuid}`;
+    await DriveFileService.instance.renameFile(fileUuid, { plainName: newName });
+    const message = `File renamed successfully with: ${newName}`;
     CLIUtils.success(this.log.bind(this), message);
-    return { success: true, message, file };
+    return { success: true, message, file: { uuid: fileUuid, plainName: newName } };
   };
 
   public catch = async (error: Error) => {
@@ -59,12 +52,12 @@ export default class TrashRestoreFile extends Command {
     const fileUuid = await CLIUtils.getValueFromFlag(
       {
         value: fileUuidFlag,
-        name: TrashRestoreFile.flags['id'].name,
+        name: RenameFile.flags['id'].name,
       },
       {
         nonInteractive,
         prompt: {
-          message: 'What is the file id you want to restore?',
+          message: 'What is the file id you want to rename?',
           options: { type: 'input' },
         },
       },
@@ -77,29 +70,25 @@ export default class TrashRestoreFile extends Command {
     return fileUuid;
   };
 
-  private getDestinationFolderUuid = async (
-    destinationFolderUuidFlag: string | undefined,
-    nonInteractive: boolean,
-  ): Promise<string> => {
-    const destinationFolderUuid = await CLIUtils.getValueFromFlag(
+  private getFileName = async (fileNameFlag: string | undefined, nonInteractive: boolean): Promise<string> => {
+    const fileName = await CLIUtils.getValueFromFlag(
       {
-        value: destinationFolderUuidFlag,
-        name: TrashRestoreFile.flags['destination'].name,
+        value: fileNameFlag,
+        name: RenameFile.flags['name'].name,
       },
       {
         nonInteractive,
         prompt: {
-          message: 'What is the destination folder id? (leave empty for the root folder)',
+          message: 'What is the new name of the file?',
           options: { type: 'input' },
         },
       },
       {
-        validate: ValidationService.instance.validateUUIDv4,
-        error: new NotValidFolderUuidError(),
-        canBeEmpty: true,
+        validate: ValidationService.instance.validateStringIsNotEmpty,
+        error: new EmptyFileNameError(),
       },
       this.log.bind(this),
     );
-    return destinationFolderUuid;
+    return fileName;
   };
 }

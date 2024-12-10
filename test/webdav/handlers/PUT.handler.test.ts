@@ -1,4 +1,4 @@
-import sinon from 'sinon';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   createWebDavRequestFixture,
   createWebDavResponseFixture,
@@ -10,22 +10,20 @@ import { CryptoService } from '../../../src/services/crypto.service';
 import { DownloadService } from '../../../src/services/network/download.service';
 import { UploadService } from '../../../src/services/network/upload.service';
 import { AuthService } from '../../../src/services/auth.service';
-import { expect } from 'chai';
-import { ConflictError, UnsupportedMediaTypeError } from '../../../src/utils/errors.utils';
+import { UnsupportedMediaTypeError } from '../../../src/utils/errors.utils';
 import { SdkManager } from '../../../src/services/sdk-manager.service';
 import { NetworkFacade } from '../../../src/services/network/network-facade.service';
-import { UserFixture } from '../../fixtures/auth.fixture';
 import { PUTRequestHandler } from '../../../src/webdav/handlers/PUT.handler';
 import { getDriveDatabaseManager } from '../../fixtures/drive-database.fixture';
-import { fail } from 'assert';
+import { fail } from 'node:assert';
 import { DriveFolderService } from '../../../src/services/drive/drive-folder.service';
 import { TrashService } from '../../../src/services/drive/trash.service';
 import { WebDavRequestedResource } from '../../../src/types/webdav.types';
 import { WebDavUtils } from '../../../src/utils/webdav.utils';
-import { newFileItem, newFolderItem } from '../../fixtures/drive.fixture';
+import { newDriveFile, newFolderItem } from '../../fixtures/drive.fixture';
+import { UserCredentialsFixture } from '../../fixtures/login.fixture';
 
 describe('PUT request handler', () => {
-  const sandbox = sinon.createSandbox();
   const getNetworkMock = () => {
     return SdkManager.instance.getNetwork({
       user: 'user',
@@ -33,11 +31,11 @@ describe('PUT request handler', () => {
     });
   };
 
-  afterEach(() => {
-    sandbox.restore();
+  beforeEach(() => {
+    vi.restoreAllMocks();
   });
 
-  it('When a WebDav client sends a PUT request and it contains a content-length of 0, then it should throw an UnsupportedMediaTypeError', async () => {
+  it('When the content-length request is 0, then it should throw an UnsupportedMediaTypeError', async () => {
     const networkFacade = new NetworkFacade(
       getNetworkMock(),
       UploadService.instance,
@@ -62,7 +60,7 @@ describe('PUT request handler', () => {
     });
 
     const response = createWebDavResponseFixture({
-      status: sandbox.stub().returns({ send: sandbox.stub() }),
+      status: vi.fn().mockReturnValue({ send: vi.fn() }),
     });
 
     try {
@@ -73,59 +71,7 @@ describe('PUT request handler', () => {
     }
   });
 
-  it('When a WebDav client sends a PUT request, and the Drive destination folder is not found, then it should throw a ConflictError', async () => {
-    const driveDatabaseManager = getDriveDatabaseManager();
-    const downloadService = DownloadService.instance;
-    const uploadService = UploadService.instance;
-    const cryptoService = CryptoService.instance;
-    const networkFacade = new NetworkFacade(getNetworkMock(), uploadService, downloadService, cryptoService);
-    const sut = new PUTRequestHandler({
-      driveFileService: DriveFileService.instance,
-      driveFolderService: DriveFolderService.instance,
-      authService: AuthService.instance,
-      trashService: TrashService.instance,
-      networkFacade,
-      driveDatabaseManager,
-    });
-    const requestedFileResource: WebDavRequestedResource = getRequestedFileResource();
-    const requestedParentFolderResource: WebDavRequestedResource = getRequestedFolderResource({
-      parentFolder: '/',
-      folderName: '',
-    });
-
-    const request = createWebDavRequestFixture({
-      method: 'PUT',
-      url: requestedFileResource.url,
-      headers: {
-        'content-length': '100',
-      },
-    });
-
-    const response = createWebDavResponseFixture({
-      status: sandbox.stub().returns({ send: sandbox.stub() }),
-    });
-
-    const getRequestedResourceStub = sandbox
-      .stub(WebDavUtils, 'getRequestedResource')
-      .onFirstCall()
-      .resolves(requestedFileResource)
-      .onSecondCall()
-      .resolves(requestedParentFolderResource);
-    const getAndSearchItemFromResourceStub = sandbox
-      .stub(WebDavUtils, 'getAndSearchItemFromResource')
-      .resolves(undefined);
-
-    try {
-      await sut.handle(request, response);
-      fail('Expected function to throw an error, but it did not.');
-    } catch (error) {
-      expect(error).to.be.instanceOf(ConflictError);
-    }
-    expect(getRequestedResourceStub.calledTwice).to.be.true;
-    expect(getAndSearchItemFromResourceStub.calledOnce).to.be.true;
-  });
-
-  it('When a WebDav client sends a PUT request, and the Drive destination folder is found, then it should upload the file to the folder', async () => {
+  it('When the Drive destination folder is found, then it should upload the file to the folder', async () => {
     const driveDatabaseManager = getDriveDatabaseManager();
     const downloadService = DownloadService.instance;
     const uploadService = UploadService.instance;
@@ -147,6 +93,7 @@ describe('PUT request handler', () => {
       folderName: '',
     });
     const folderFixture = newFolderItem({ name: requestedParentFolderResource.name });
+    const fileFixture = newDriveFile({ folderId: folderFixture.id, folderUuid: folderFixture.uuid });
 
     const request = createWebDavRequestFixture({
       method: 'PUT',
@@ -156,43 +103,41 @@ describe('PUT request handler', () => {
       },
     });
 
-    const sendStub = sandbox.stub();
     const response = createWebDavResponseFixture({
-      status: sandbox.stub().returns({ send: sendStub }),
+      status: vi.fn().mockReturnValue({ send: vi.fn() }),
     });
 
-    const getRequestedResourceStub = sandbox
-      .stub(WebDavUtils, 'getRequestedResource')
-      .onFirstCall()
-      .resolves(requestedFileResource)
-      .onSecondCall()
-      .resolves(requestedParentFolderResource);
-    const getAndSearchItemFromResourceStub = sandbox
-      .stub(WebDavUtils, 'getAndSearchItemFromResource')
-      .onFirstCall()
-      .resolves(folderFixture)
-      .onSecondCall()
-      .rejects();
-    const getAuthDetailsStub = sandbox
-      .stub(authService, 'getAuthDetails')
-      .resolves({ mnemonic: 'MNEMONIC', token: 'TOKEN', newToken: 'NEW_TOKEN', user: UserFixture });
-    const uploadFromStreamStub = sandbox
-      .stub(networkFacade, 'uploadFromStream')
-      .resolves([Promise.resolve({ fileId: '09218313209', hash: Buffer.from('test') }), new AbortController()]);
-    const createDriveFileStub = sandbox.stub(DriveFileService.instance, 'createFile').resolves();
-    const createDBFileStub = sandbox.stub(driveDatabaseManager, 'createFile').resolves();
+    const getRequestedResourceStub = vi
+      .spyOn(WebDavUtils, 'getRequestedResource')
+      .mockResolvedValueOnce(requestedFileResource)
+      .mockResolvedValueOnce(requestedParentFolderResource);
+    const getAndSearchItemFromResourceStub = vi
+      .spyOn(WebDavUtils, 'getAndSearchItemFromResource')
+      .mockResolvedValueOnce(folderFixture)
+      .mockRejectedValue(new Error());
+    const getAuthDetailsStub = vi.spyOn(authService, 'getAuthDetails').mockResolvedValue(UserCredentialsFixture);
+    const uploadFromStreamStub = vi
+      .spyOn(networkFacade, 'uploadFromStream')
+      .mockResolvedValue([
+        Promise.resolve({ fileId: '09218313209', hash: Buffer.from('test') }),
+        new AbortController(),
+      ]);
+    const createDriveFileStub = vi
+      .spyOn(DriveFileService.instance, 'createFile')
+      .mockResolvedValue(fileFixture.toItem());
+    const createDBFileStub = vi.spyOn(driveDatabaseManager, 'createFile').mockResolvedValue(fileFixture);
 
     await sut.handle(request, response);
-    expect(response.status.calledWith(200)).to.be.true;
-    expect(getRequestedResourceStub.calledTwice).to.be.true;
-    expect(getAndSearchItemFromResourceStub.calledTwice).to.be.true;
-    expect(getAuthDetailsStub.calledOnce).to.be.true;
-    expect(uploadFromStreamStub.calledOnce).to.be.true;
-    expect(createDriveFileStub.calledOnce).to.be.true;
-    expect(createDBFileStub.calledOnce).to.be.true;
+    expect(response.status).toHaveBeenCalledWith(200);
+    expect(getRequestedResourceStub).toHaveBeenCalledTimes(2);
+    expect(getAndSearchItemFromResourceStub).toHaveBeenCalledTimes(2);
+    expect(getAuthDetailsStub).toHaveBeenCalledOnce();
+    expect(uploadFromStreamStub).toHaveBeenCalledOnce();
+    expect(createDriveFileStub).toHaveBeenCalledOnce();
+    expect(createDBFileStub).toHaveBeenCalledOnce();
   });
 
-  it('When a WebDav client sends a PUT request, and the file already exists, then it should upload and replace the file to the folder', async () => {
+  it('When the file already exists, then it should upload and replace the file to the folder', async () => {
     const driveDatabaseManager = getDriveDatabaseManager();
     const downloadService = DownloadService.instance;
     const uploadService = UploadService.instance;
@@ -215,7 +160,7 @@ describe('PUT request handler', () => {
       folderName: '',
     });
     const folderFixture = newFolderItem({ name: requestedParentFolderResource.name });
-    const fileFixture = newFileItem({ folderId: folderFixture.id, folderUuid: folderFixture.uuid });
+    const fileFixture = newDriveFile({ folderId: folderFixture.id, folderUuid: folderFixture.uuid });
 
     const request = createWebDavRequestFixture({
       method: 'PUT',
@@ -225,43 +170,41 @@ describe('PUT request handler', () => {
       },
     });
 
-    const sendStub = sandbox.stub();
     const response = createWebDavResponseFixture({
-      status: sandbox.stub().returns({ send: sendStub }),
+      status: vi.fn().mockReturnValue({ send: vi.fn() }),
     });
 
-    const getRequestedResourceStub = sandbox
-      .stub(WebDavUtils, 'getRequestedResource')
-      .onFirstCall()
-      .resolves(requestedFileResource)
-      .onSecondCall()
-      .resolves(requestedParentFolderResource);
-    const getAndSearchItemFromResourceStub = sandbox
-      .stub(WebDavUtils, 'getAndSearchItemFromResource')
-      .onFirstCall()
-      .resolves(folderFixture)
-      .onSecondCall()
-      .resolves(fileFixture);
-    const deleteDBFileStub = sandbox.stub(driveDatabaseManager, 'deleteFileById').resolves();
-    const deleteDriveFileStub = sandbox.stub(trashService, 'trashItems').resolves();
-    const getAuthDetailsStub = sandbox
-      .stub(authService, 'getAuthDetails')
-      .resolves({ mnemonic: 'MNEMONIC', token: 'TOKEN', newToken: 'NEW_TOKEN', user: UserFixture });
-    const uploadFromStreamStub = sandbox
-      .stub(networkFacade, 'uploadFromStream')
-      .resolves([Promise.resolve({ fileId: '09218313209', hash: Buffer.from('test') }), new AbortController()]);
-    const createDriveFileStub = sandbox.stub(DriveFileService.instance, 'createFile').resolves();
-    const createDBFileStub = sandbox.stub(driveDatabaseManager, 'createFile').resolves();
+    const getRequestedResourceStub = vi
+      .spyOn(WebDavUtils, 'getRequestedResource')
+      .mockResolvedValueOnce(requestedFileResource)
+      .mockResolvedValueOnce(requestedParentFolderResource);
+    const getAndSearchItemFromResourceStub = vi
+      .spyOn(WebDavUtils, 'getAndSearchItemFromResource')
+      .mockResolvedValueOnce(folderFixture)
+      .mockResolvedValueOnce(fileFixture.toItem());
+    const deleteDBFileStub = vi.spyOn(driveDatabaseManager, 'deleteFileById').mockResolvedValue();
+    const deleteDriveFileStub = vi.spyOn(trashService, 'trashItems').mockResolvedValue();
+    const getAuthDetailsStub = vi.spyOn(authService, 'getAuthDetails').mockResolvedValue(UserCredentialsFixture);
+    const uploadFromStreamStub = vi
+      .spyOn(networkFacade, 'uploadFromStream')
+      .mockResolvedValue([
+        Promise.resolve({ fileId: '09218313209', hash: Buffer.from('test') }),
+        new AbortController(),
+      ]);
+    const createDriveFileStub = vi
+      .spyOn(DriveFileService.instance, 'createFile')
+      .mockResolvedValue(fileFixture.toItem());
+    const createDBFileStub = vi.spyOn(driveDatabaseManager, 'createFile').mockResolvedValue(fileFixture);
 
     await sut.handle(request, response);
-    expect(response.status.calledWith(200)).to.be.true;
-    expect(getRequestedResourceStub.calledTwice).to.be.true;
-    expect(getAndSearchItemFromResourceStub.calledTwice).to.be.true;
-    expect(getAuthDetailsStub.calledOnce).to.be.true;
-    expect(uploadFromStreamStub.calledOnce).to.be.true;
-    expect(createDriveFileStub.calledOnce).to.be.true;
-    expect(createDBFileStub.calledOnce).to.be.true;
-    expect(deleteDBFileStub.calledOnce).to.be.true;
-    expect(deleteDriveFileStub.calledOnce).to.be.true;
+    expect(response.status).toHaveBeenCalledWith(200);
+    expect(getRequestedResourceStub).toHaveBeenCalledTimes(2);
+    expect(getAndSearchItemFromResourceStub).toHaveBeenCalledTimes(2);
+    expect(getAuthDetailsStub).toHaveBeenCalledOnce();
+    expect(uploadFromStreamStub).toHaveBeenCalledOnce();
+    expect(createDriveFileStub).toHaveBeenCalledOnce();
+    expect(createDBFileStub).toHaveBeenCalledOnce();
+    expect(deleteDBFileStub).toHaveBeenCalledOnce();
+    expect(deleteDriveFileStub).toHaveBeenCalledOnce();
   });
 });

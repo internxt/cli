@@ -5,18 +5,15 @@ import { ConfigService } from '../services/config.service';
 import { ValidationService } from '../services/validation.service';
 import { CLIUtils } from '../utils/cli.utils';
 import { ErrorUtils } from '../utils/errors.utils';
-import { DriveFolderService } from '../services/drive/drive-folder.service';
 import { SdkManager } from '../services/sdk-manager.service';
 import { DriveDatabaseManager } from '../services/database/drive-database-manager.service';
-import { AnalyticsService } from '../services/analytics.service';
 
 export default class Login extends Command {
   static readonly args = {};
   static readonly description =
     'Logs into an Internxt account. If the account is two-factor protected, then an extra code will be required.';
-
+  static readonly aliases = [];
   static readonly examples = ['<%= config.bin %> <%= command.id %>'];
-
   static readonly flags = {
     ...CLIUtils.CommonFlags,
     email: Flags.string({
@@ -42,8 +39,9 @@ export default class Login extends Command {
       helpValue: '123456',
     }),
   };
+  static readonly enableJsonFlag = true;
 
-  public async run(): Promise<void> {
+  public run = async () => {
     const { flags } = await this.parse(Login);
 
     const nonInteractive = flags['non-interactive'];
@@ -63,105 +61,87 @@ export default class Login extends Command {
       newToken: loginCredentials.newToken,
     });
 
-    const rootMeta = await DriveFolderService.instance.getFolderMetaById(loginCredentials.user.root_folder_id);
-
-    await ConfigService.instance.saveUser(Object.assign(loginCredentials, { root_folder_uuid: rootMeta.uuid }));
+    await ConfigService.instance.saveUser(loginCredentials);
     await DriveDatabaseManager.init();
     await DriveDatabaseManager.clean();
-    AnalyticsService.instance.track('CLILogin', { app: 'internxt-cli', userId: loginCredentials.user.uuid });
-    CLIUtils.success(`Succesfully logged in to: ${loginCredentials.user.email} `);
-  }
+    const message = `Succesfully logged in to: ${loginCredentials.user.email}`;
+    CLIUtils.success(this.log.bind(this), message);
+    return {
+      success: true,
+      message,
+      login: loginCredentials,
+    };
+  };
 
-  async catch(error: Error) {
-    ErrorUtils.report(error, { command: this.id });
-    CLIUtils.error(error.message);
+  public catch = async (error: Error) => {
+    ErrorUtils.report(this.error.bind(this), error, { command: this.id });
+    CLIUtils.error(this.log.bind(this), error.message);
     this.exit(1);
-  }
+  };
 
-  public getEmail = async (emailFlag: string | undefined, nonInteractive: boolean): Promise<string> => {
-    let email = CLIUtils.getValueFromFlag(
+  private getEmail = async (emailFlag: string | undefined, nonInteractive: boolean): Promise<string> => {
+    const email = await CLIUtils.getValueFromFlag(
       {
         value: emailFlag,
         name: Login.flags['email'].name,
+      },
+      {
+        nonInteractive,
+        prompt: {
+          message: 'What is your email?',
+          options: { type: 'input' },
+        },
+      },
+      {
+        validate: ValidationService.instance.validateEmail,
         error: new NotValidEmailError(),
       },
-      nonInteractive,
-      ValidationService.instance.validateEmail,
+      this.log.bind(this),
     );
-    if (!email) {
-      email = await this.getEmailInteractively();
-    }
     return email;
   };
 
-  public getPassword = async (passwordFlag: string | undefined, nonInteractive: boolean): Promise<string> => {
-    let password = CLIUtils.getValueFromFlag(
+  private getPassword = async (passwordFlag: string | undefined, nonInteractive: boolean): Promise<string> => {
+    const password = await CLIUtils.getValueFromFlag(
       {
         value: passwordFlag,
         name: Login.flags['password'].name,
+      },
+      {
+        nonInteractive,
+        prompt: {
+          message: 'What is your password?',
+          options: { type: 'password' },
+        },
+      },
+      {
+        validate: ValidationService.instance.validateStringIsNotEmpty,
         error: new EmptyPasswordError(),
       },
-      nonInteractive,
-      (password: string) => password.trim().length > 0,
+      this.log.bind(this),
     );
-    if (!password) {
-      password = await this.getPasswordInteractively();
-    }
     return password;
   };
 
-  public getTwoFactorCode = async (twoFactorFlag: string | undefined, nonInteractive: boolean): Promise<string> => {
-    let twoFactor = CLIUtils.getValueFromFlag(
+  private getTwoFactorCode = async (twoFactorFlag: string | undefined, nonInteractive: boolean): Promise<string> => {
+    const twoFactor = await CLIUtils.getValueFromFlag(
       {
         value: twoFactorFlag,
         name: Login.flags['twofactor'].name,
+      },
+      {
+        nonInteractive,
+        prompt: {
+          message: 'What is your two-factor token?',
+          options: { type: 'mask' },
+        },
+      },
+      {
+        validate: ValidationService.instance.validate2FA,
         error: new NotValidTwoFactorCodeError(),
       },
-      nonInteractive,
-      ValidationService.instance.validate2FA,
+      this.log.bind(this),
     );
-    if (!twoFactor) {
-      twoFactor = await this.getTwoFactorCodeInteractively();
-    }
     return twoFactor;
-  };
-
-  // max of attempts to let the user rewrite their credentials in case of mistake
-  private static readonly MAX_ATTEMPTS = 3;
-
-  public getEmailInteractively = (): Promise<string> => {
-    return CLIUtils.promptWithAttempts(
-      {
-        message: 'What is your email?',
-        options: { required: true },
-        error: new NotValidEmailError(),
-      },
-      Login.MAX_ATTEMPTS,
-      ValidationService.instance.validateEmail,
-    );
-  };
-
-  public getPasswordInteractively = (): Promise<string> => {
-    return CLIUtils.promptWithAttempts(
-      {
-        message: 'What is your password?',
-        options: { type: 'hide', required: true },
-        error: new EmptyPasswordError(),
-      },
-      Login.MAX_ATTEMPTS,
-      (password: string) => password.trim().length > 0,
-    );
-  };
-
-  public getTwoFactorCodeInteractively = (): Promise<string> => {
-    return CLIUtils.promptWithAttempts(
-      {
-        message: 'What is your two-factor token?',
-        options: { type: 'mask', required: true },
-        error: new NotValidTwoFactorCodeError(),
-      },
-      Login.MAX_ATTEMPTS,
-      ValidationService.instance.validate2FA,
-    );
   };
 }

@@ -1,6 +1,6 @@
 import { NetworkCredentials, SelfsignedCert } from '../types/network.types';
 import { createHash, X509Certificate } from 'node:crypto';
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { readFile, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import selfsigned from 'selfsigned';
 import { ConfigService } from '../services/config.service';
@@ -27,13 +27,15 @@ export class NetworkUtils {
     };
   }
 
-  static getWebdavSSLCerts() {
-    if (!existsSync(this.WEBDAV_SSL_CERTS_PATH.cert) || !existsSync(this.WEBDAV_SSL_CERTS_PATH.privateKey)) {
+  static async getWebdavSSLCerts() {
+    const existCert = !!(await stat(this.WEBDAV_SSL_CERTS_PATH.cert).catch(() => false));
+    const existKey = !!(await stat(this.WEBDAV_SSL_CERTS_PATH.privateKey).catch(() => false));
+    if (!existCert || !existKey) {
       return this.generateNewSelfsignedCerts();
     } else {
       let selfsignedCert: SelfsignedCert = {
-        cert: readFileSync(this.WEBDAV_SSL_CERTS_PATH.cert),
-        key: readFileSync(this.WEBDAV_SSL_CERTS_PATH.privateKey),
+        cert: await readFile(this.WEBDAV_SSL_CERTS_PATH.cert),
+        key: await readFile(this.WEBDAV_SSL_CERTS_PATH.privateKey),
       };
 
       const { validTo } = new X509Certificate(selfsignedCert.cert);
@@ -51,9 +53,9 @@ export class NetworkUtils {
     }
   }
 
-  static saveWebdavSSLCerts(pems: selfsigned.GenerateResult): void {
-    writeFileSync(this.WEBDAV_SSL_CERTS_PATH.cert, pems.cert, 'utf8');
-    writeFileSync(this.WEBDAV_SSL_CERTS_PATH.privateKey, pems.private, 'utf8');
+  static async saveWebdavSSLCerts(pems: selfsigned.GenerateResult) {
+    await writeFile(this.WEBDAV_SSL_CERTS_PATH.cert, pems.cert, 'utf8');
+    await writeFile(this.WEBDAV_SSL_CERTS_PATH.privateKey, pems.private, 'utf8');
   }
 
   static generateSelfSignedSSLCerts(): selfsigned.GenerateResult {

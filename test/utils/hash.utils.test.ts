@@ -1,38 +1,38 @@
-import { expect } from 'chai';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { HashStream } from '../../src/utils/hash.utils';
-import sinon from 'sinon';
 
 describe('Hash Utils', () => {
   let hashStream: HashStream;
-  const sandbox = sinon.createSandbox();
+
   beforeEach(() => {
     hashStream = new HashStream();
+    vi.restoreAllMocks();
   });
 
-  afterEach(() => {
-    sandbox.restore();
-  });
-  it('should update the hasher with data chunk on _transform call', (done) => {
-    const spy = sandbox.spy(hashStream.hasher, 'update');
+  it('should update the hasher with data chunk on _transform call', async () => {
+    const spy = vi.spyOn(hashStream.hasher, 'update');
     const chunk = Buffer.from('Test data');
 
-    hashStream._transform(chunk, 'utf8', () => {
-      expect(spy.calledOnce).to.be.true;
-      done();
+    await new Promise<void>((resolve) => {
+      hashStream._transform(chunk, 'utf8', () => {
+        expect(spy).toHaveBeenCalledOnce();
+        resolve();
+      });
     });
   });
 
-  it('should correctly calculate hash on readHash call', (done) => {
+  it('should successfully calculate hash on readHash call', async () => {
     const testData = 'Some test data';
-    hashStream.on('data', () => {});
-    hashStream.on('end', () => {
-      const readHash = hashStream.readHash();
-      expect(readHash).to.be.instanceof(Buffer);
-      expect(readHash.length).to.be.greaterThan(0);
-      done();
+    await new Promise<void>((resolve) => {
+      hashStream.on('data', () => {});
+      hashStream.on('end', () => {
+        const readHash = hashStream.readHash();
+        expect(readHash).toBeInstanceOf(Buffer);
+        expect(readHash.length).toBeGreaterThan(0);
+        resolve();
+      });
+      hashStream.write(testData);
+      hashStream.end();
     });
-
-    hashStream.write(testData);
-    hashStream.end();
   });
 });

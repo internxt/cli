@@ -1,4 +1,4 @@
-import { Args, Command, Flags } from '@oclif/core';
+import { Command, Flags } from '@oclif/core';
 import { ConfigService } from '../services/config.service';
 import { CLIUtils } from '../utils/cli.utils';
 import { ErrorUtils } from '../utils/errors.utils';
@@ -6,101 +6,63 @@ import { NotValidPortError } from '../types/command.types';
 import { ValidationService } from '../services/validation.service';
 
 export default class WebDAVConfig extends Command {
+  static readonly args = {};
   static readonly description = 'Edit the configuration of the Internxt CLI WebDav server as the port or the protocol.';
-  static readonly args = {
-    action: Args.string({
-      required: true,
-      options: ['set-http', 'set-https', 'change-port'],
-    }),
-  };
-  static readonly examples = [
-    '<%= config.bin %> <%= command.id %> set-http',
-    '<%= config.bin %> <%= command.id %> set-https',
-    '<%= config.bin %> <%= command.id %> change-port',
-  ];
+  static readonly aliases = [];
+  static readonly examples = ['<%= config.bin %> <%= command.id %>'];
   static readonly flags = {
-    ...CLIUtils.CommonFlags,
     port: Flags.string({
       char: 'p',
-      description: 'The new port that the WebDAV server is going to be have.',
+      description: 'The new port for the WebDAV server.',
       required: false,
     }),
+    https: Flags.boolean({
+      char: 's',
+      description: 'Configures the WebDAV server to use HTTPS with self-signed certificates.',
+      required: false,
+      exclusive: ['http'],
+    }),
+    http: Flags.boolean({
+      char: 'h',
+      description: 'Configures the WebDAV server to use insecure plain HTTP.',
+      required: false,
+      exclusive: ['https'],
+    }),
   };
+  static readonly enableJsonFlag = true;
 
-  public async run(): Promise<void> {
-    const { args, flags } = await this.parse(WebDAVConfig);
-    const nonInteractive = flags['non-interactive'];
+  public run = async () => {
+    const { flags } = await this.parse(WebDAVConfig);
     const webdavConfig = await ConfigService.instance.readWebdavConfig();
 
-    if (args.action !== 'change-port' && flags['port']) {
-      CLIUtils.warning('The port flag will be ignored; it can only be used with the "change-port" action.');
-    }
-
-    switch (args.action) {
-      case 'set-http': {
-        await ConfigService.instance.saveWebdavConfig({
-          ...webdavConfig,
-          protocol: 'http',
-        });
-        CLIUtils.success('On the next start, the WebDAV server will use HTTP.');
-        break;
-      }
-
-      case 'set-https': {
-        await ConfigService.instance.saveWebdavConfig({
-          ...webdavConfig,
-          protocol: 'https',
-        });
-        CLIUtils.success('On the next start, the WebDAV server will use HTTPS.');
-        break;
-      }
-
-      case 'change-port': {
-        const newPort = await this.getWebDAVPort(flags['port'], nonInteractive);
-        await ConfigService.instance.saveWebdavConfig({
-          ...webdavConfig,
-          port: newPort,
-        });
-        CLIUtils.success('For the next start, the Webdav server will be served at the new port: ' + newPort);
-        break;
+    const port = flags['port'];
+    if (port) {
+      if (ValidationService.instance.validateTCPIntegerPort(port)) {
+        webdavConfig['port'] = port;
+      } else {
+        throw new NotValidPortError();
       }
     }
-  }
 
-  async catch(error: Error) {
-    ErrorUtils.report(error, { command: this.id });
-    CLIUtils.error(error.message);
-    this.exit(1);
-  }
-
-  private static readonly MAX_ATTEMPTS = 3;
-
-  public getWebDAVPort = async (webdavPortFlag: string | undefined, nonInteractive: boolean): Promise<string> => {
-    let port = CLIUtils.getValueFromFlag(
-      {
-        value: webdavPortFlag,
-        name: WebDAVConfig.flags['port'].name,
-        error: new NotValidPortError(),
-        canBeEmpty: true,
-      },
-      nonInteractive,
-      (port: string) => ValidationService.instance.validateTCPIntegerPort(port),
-    );
-    if (!port) {
-      port = (await this.getNewWebDAVPortInteractively()).trim();
+    const http = flags['http'];
+    if (http) {
+      webdavConfig['protocol'] = 'http';
     }
-    return port;
+
+    const https = flags['https'];
+    if (https) {
+      webdavConfig['protocol'] = 'https';
+    }
+
+    await ConfigService.instance.saveWebdavConfig(webdavConfig);
+    const message = `On the next start, the WebDAV server will use the next config: ${JSON.stringify(webdavConfig)}`;
+    CLIUtils.success(this.log.bind(this), message);
+    return { success: true, message, config: webdavConfig };
   };
 
-  public getNewWebDAVPortInteractively = (): Promise<string> => {
-    return CLIUtils.promptWithAttempts(
-      {
-        message: 'What is the new WebDAV server port?',
-        options: { required: false },
-        error: new NotValidPortError(),
-      },
-      WebDAVConfig.MAX_ATTEMPTS,
-      (port: string) => ValidationService.instance.validateTCPIntegerPort(port),
-    );
+  public catch = async (error: Error) => {
+    ErrorUtils.report(this.error.bind(this), error, { command: this.id });
+    CLIUtils.error(this.log.bind(this), error.message);
+    this.exit(1);
   };
 }

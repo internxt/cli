@@ -29,7 +29,6 @@ import { PROPPATCHRequestHandler } from './handlers/PROPPATCH.handler';
 import { MOVERequestHandler } from './handlers/MOVE.handler';
 import { COPYRequestHandler } from './handlers/COPY.handler';
 import { TrashService } from '../services/drive/trash.service';
-import { AnalyticsService } from '../services/analytics.service';
 
 export class WebDavServer {
   constructor(
@@ -62,12 +61,9 @@ export class WebDavServer {
     this.app.use(ErrorHandlingMiddleware);
     this.app.use(AuthMiddleware(ConfigService.instance));
     this.app.use(
-      RequestLoggerMiddleware(
-        {
-          enable: true,
-        },
-        AnalyticsService.instance,
-      ),
+      RequestLoggerMiddleware({
+        enable: true,
+      }),
     );
   };
 
@@ -159,7 +155,7 @@ export class WebDavServer {
     if (plainHttp) {
       server = http.createServer(this.app);
     } else {
-      const httpsCerts = NetworkUtils.getWebdavSSLCerts();
+      const httpsCerts = await NetworkUtils.getWebdavSSLCerts();
       server = https.createServer(httpsCerts, this.app);
     }
 

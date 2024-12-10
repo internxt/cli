@@ -1,55 +1,48 @@
-import { Command, ux } from '@oclif/core';
+import { Command } from '@oclif/core';
 import { ConfigService } from '../services/config.service';
 import { CLIUtils } from '../utils/cli.utils';
 import { ErrorUtils } from '../utils/errors.utils';
 import { UsageService } from '../services/usage.service';
 import { FormatUtils } from '../utils/format.utils';
+import { Header } from 'tty-table';
 
 export default class Config extends Command {
   static readonly args = {};
   static readonly description = 'Display useful information from the user logged into the Internxt CLI.';
-
+  static readonly aliases = [];
   static readonly examples = ['<%= config.bin %> <%= command.id %>'];
+  static readonly flags = {};
+  static readonly enableJsonFlag = true;
 
-  static readonly flags = {
-    ...ux.table.flags(),
-  };
-
-  async catch(error: Error) {
-    ErrorUtils.report(error, { command: this.id });
-    CLIUtils.error(error.message);
-    this.exit(1);
-  }
-
-  public async run(): Promise<void> {
-    const { flags } = await this.parse(Config);
+  public run = async () => {
     const userCredentials = await ConfigService.instance.readUser();
     if (userCredentials?.user) {
+      const usedSpace = FormatUtils.humanFileSize((await UsageService.instance.fetchUsage()).total);
+      const availableSpace = FormatUtils.formatLimit(await UsageService.instance.fetchSpaceLimit());
+
       const configList = [
         { key: 'Email', value: userCredentials.user.email },
-        { key: 'Root folder ID', value: userCredentials.root_folder_uuid },
-        { key: 'Used space', value: FormatUtils.humanFileSize((await UsageService.instance.fetchUsage()).total) },
-        { key: 'Available space', value: FormatUtils.formatLimit(await UsageService.instance.fetchSpaceLimit()) },
+        { key: 'Root folder ID', value: userCredentials.user.rootFolderId },
+        { key: 'Used space', value: usedSpace },
+        { key: 'Available space', value: availableSpace },
       ];
-      ux.table(
-        configList,
-        {
-          key: {
-            header: 'Key',
-            get: (row) => row.key,
-          },
-          value: {
-            header: 'Value',
-            get: (row) => row.value,
-          },
-        },
-        {
-          printLine: this.log.bind(this),
-          ...flags,
-        },
-      );
+      const header: Header[] = [
+        { value: 'key', alias: 'Key' },
+        { value: 'value', alias: 'Value' },
+      ];
+      CLIUtils.table(this.log.bind(this), header, configList);
+
+      return { success: true, config: Object.fromEntries(configList.map(({ key, value }) => [key, value])) };
     } else {
-      CLIUtils.error('You are not logged in');
+      const message = 'You are not logged in.';
+      CLIUtils.error(this.log.bind(this), message);
+      return { success: false, message };
     }
-  }
+  };
+
+  public catch = async (error: Error) => {
+    ErrorUtils.report(this.error.bind(this), error, { command: this.id });
+    CLIUtils.error(this.log.bind(this), error.message);
+    this.exit(1);
+  };
 }
