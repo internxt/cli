@@ -31,7 +31,7 @@ $ npm install -g @internxt/cli
 $ internxt COMMAND
 running command...
 $ internxt (--version)
-@internxt/cli/1.3.1 darwin-x64 node-v20.12.2
+@internxt/cli/1.4.0 win32-x64 node-v20.9.0
 $ internxt --help [COMMAND]
 USAGE
   $ internxt COMMAND
@@ -45,6 +45,10 @@ USAGE
 * [`internxt add-cert`](#internxt-add-cert)
 * [`internxt config`](#internxt-config)
 * [`internxt create-folder`](#internxt-create-folder)
+* [`internxt delete-permanently-file`](#internxt-delete-permanently-file)
+* [`internxt delete-permanently-folder`](#internxt-delete-permanently-folder)
+* [`internxt delete permanently file`](#internxt-delete-permanently-file)
+* [`internxt delete permanently folder`](#internxt-delete-permanently-folder)
 * [`internxt download-file`](#internxt-download-file)
 * [`internxt download file`](#internxt-download-file)
 * [`internxt list`](#internxt-list)
@@ -95,7 +99,7 @@ EXAMPLES
   $ internxt add-cert
 ```
 
-_See code: [src/commands/add-cert.ts](https://github.com/internxt/cli/blob/v1.3.1/src/commands/add-cert.ts)_
+_See code: [src/commands/add-cert.ts](https://github.com/internxt/cli/blob/v1.4.0/src/commands/add-cert.ts)_
 
 ## `internxt config`
 
@@ -115,7 +119,7 @@ EXAMPLES
   $ internxt config
 ```
 
-_See code: [src/commands/config.ts](https://github.com/internxt/cli/blob/v1.3.1/src/commands/config.ts)_
+_See code: [src/commands/config.ts](https://github.com/internxt/cli/blob/v1.4.0/src/commands/config.ts)_
 
 ## `internxt create-folder`
 
@@ -144,7 +148,123 @@ EXAMPLES
   $ internxt create-folder
 ```
 
-_See code: [src/commands/create-folder.ts](https://github.com/internxt/cli/blob/v1.3.1/src/commands/create-folder.ts)_
+_See code: [src/commands/create-folder.ts](https://github.com/internxt/cli/blob/v1.4.0/src/commands/create-folder.ts)_
+
+## `internxt delete-permanently-file`
+
+Deletes permanently a file. This action cannot be undone.
+
+```
+USAGE
+  $ internxt delete-permanently-file [--json] [-n] [-i <value>]
+
+FLAGS
+  -i, --id=<value>  The file id to be permanently deleted.
+
+HELPER FLAGS
+  -n, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
+                         the console and will throw errors directly.
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Deletes permanently a file. This action cannot be undone.
+
+ALIASES
+  $ internxt delete permanently file
+
+EXAMPLES
+  $ internxt delete-permanently-file
+```
+
+_See code: [src/commands/delete-permanently-file.ts](https://github.com/internxt/cli/blob/v1.4.0/src/commands/delete-permanently-file.ts)_
+
+## `internxt delete-permanently-folder`
+
+Deletes permanently a folder. This action cannot be undone.
+
+```
+USAGE
+  $ internxt delete-permanently-folder [--json] [-n] [-i <value>]
+
+FLAGS
+  -i, --id=<value>  The folder id to be permanently deleted.
+
+HELPER FLAGS
+  -n, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
+                         the console and will throw errors directly.
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Deletes permanently a folder. This action cannot be undone.
+
+ALIASES
+  $ internxt delete permanently folder
+
+EXAMPLES
+  $ internxt delete-permanently-folder
+```
+
+_See code: [src/commands/delete-permanently-folder.ts](https://github.com/internxt/cli/blob/v1.4.0/src/commands/delete-permanently-folder.ts)_
+
+## `internxt delete permanently file`
+
+Deletes permanently a file. This action cannot be undone.
+
+```
+USAGE
+  $ internxt delete permanently file [--json] [-n] [-i <value>]
+
+FLAGS
+  -i, --id=<value>  The file id to be permanently deleted.
+
+HELPER FLAGS
+  -n, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
+                         the console and will throw errors directly.
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Deletes permanently a file. This action cannot be undone.
+
+ALIASES
+  $ internxt delete permanently file
+
+EXAMPLES
+  $ internxt delete permanently file
+```
+
+## `internxt delete permanently folder`
+
+Deletes permanently a folder. This action cannot be undone.
+
+```
+USAGE
+  $ internxt delete permanently folder [--json] [-n] [-i <value>]
+
+FLAGS
+  -i, --id=<value>  The folder id to be permanently deleted.
+
+HELPER FLAGS
+  -n, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
+                         the console and will throw errors directly.
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Deletes permanently a folder. This action cannot be undone.
+
+ALIASES
+  $ internxt delete permanently folder
+
+EXAMPLES
+  $ internxt delete permanently folder
+```
 
 ## `internxt download-file`
 
@@ -177,7 +297,7 @@ EXAMPLES
   $ internxt download-file
 ```
 
-_See code: [src/commands/download-file.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/download-file.ts)_
+_See code: [src/commands/download-file.ts](https://github.com/internxt/cli/blob/v1.4.0/src/commands/download-file.ts)_
 
 ## `internxt download file`
 
@@ -236,7 +356,7 @@ EXAMPLES
   $ internxt list
 ```
 
-_See code: [src/commands/list.ts](https://github.com/internxt/cli/blob/v1.3.1/src/commands/list.ts)_
+_See code: [src/commands/list.ts](https://github.com/internxt/cli/blob/v1.4.0/src/commands/list.ts)_
 
 ## `internxt login`
 
@@ -265,7 +385,7 @@ EXAMPLES
   $ internxt login
 ```
 
-_See code: [src/commands/login.ts](https://github.com/internxt/cli/blob/v1.3.1/src/commands/login.ts)_
+_See code: [src/commands/login.ts](https://github.com/internxt/cli/blob/v1.4.0/src/commands/login.ts)_
 
 ## `internxt logout`
 
@@ -285,7 +405,7 @@ EXAMPLES
   $ internxt logout
 ```
 
-_See code: [src/commands/logout.ts](https://github.com/internxt/cli/blob/v1.3.1/src/commands/logout.ts)_
+_See code: [src/commands/logout.ts](https://github.com/internxt/cli/blob/v1.4.0/src/commands/logout.ts)_
 
 ## `internxt logs`
 
@@ -305,7 +425,7 @@ EXAMPLES
   $ internxt logs
 ```
 
-_See code: [src/commands/logs.ts](https://github.com/internxt/cli/blob/v1.3.1/src/commands/logs.ts)_
+_See code: [src/commands/logs.ts](https://github.com/internxt/cli/blob/v1.4.0/src/commands/logs.ts)_
 
 ## `internxt move-file`
 
@@ -337,7 +457,7 @@ EXAMPLES
   $ internxt move-file
 ```
 
-_See code: [src/commands/move-file.ts](https://github.com/internxt/cli/blob/v1.3.1/src/commands/move-file.ts)_
+_See code: [src/commands/move-file.ts](https://github.com/internxt/cli/blob/v1.4.0/src/commands/move-file.ts)_
 
 ## `internxt move-folder`
 
@@ -369,7 +489,7 @@ EXAMPLES
   $ internxt move-folder
 ```
 
-_See code: [src/commands/move-folder.ts](https://github.com/internxt/cli/blob/v1.3.1/src/commands/move-folder.ts)_
+_See code: [src/commands/move-folder.ts](https://github.com/internxt/cli/blob/v1.4.0/src/commands/move-folder.ts)_
 
 ## `internxt move file`
 
@@ -460,7 +580,7 @@ EXAMPLES
   $ internxt rename-file
 ```
 
-_See code: [src/commands/rename-file.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/rename-file.ts)_
+_See code: [src/commands/rename-file.ts](https://github.com/internxt/cli/blob/v1.4.0/src/commands/rename-file.ts)_
 
 ## `internxt rename-folder`
 
@@ -491,7 +611,7 @@ EXAMPLES
   $ internxt rename-folder
 ```
 
-_See code: [src/commands/rename-folder.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/rename-folder.ts)_
+_See code: [src/commands/rename-folder.ts](https://github.com/internxt/cli/blob/v1.4.0/src/commands/rename-folder.ts)_
 
 ## `internxt rename file`
 
@@ -579,7 +699,7 @@ EXAMPLES
   $ internxt trash-clear
 ```
 
-_See code: [src/commands/trash-clear.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/trash-clear.ts)_
+_See code: [src/commands/trash-clear.ts](https://github.com/internxt/cli/blob/v1.4.0/src/commands/trash-clear.ts)_
 
 ## `internxt trash-file`
 
@@ -609,7 +729,7 @@ EXAMPLES
   $ internxt trash-file
 ```
 
-_See code: [src/commands/trash-file.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/trash-file.ts)_
+_See code: [src/commands/trash-file.ts](https://github.com/internxt/cli/blob/v1.4.0/src/commands/trash-file.ts)_
 
 ## `internxt trash-folder`
 
@@ -639,7 +759,7 @@ EXAMPLES
   $ internxt trash-folder
 ```
 
-_See code: [src/commands/trash-folder.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/trash-folder.ts)_
+_See code: [src/commands/trash-folder.ts](https://github.com/internxt/cli/blob/v1.4.0/src/commands/trash-folder.ts)_
 
 ## `internxt trash-list`
 
@@ -665,7 +785,7 @@ EXAMPLES
   $ internxt trash-list
 ```
 
-_See code: [src/commands/trash-list.ts](https://github.com/internxt/cli/blob/v1.3.1/src/commands/trash-list.ts)_
+_See code: [src/commands/trash-list.ts](https://github.com/internxt/cli/blob/v1.4.0/src/commands/trash-list.ts)_
 
 ## `internxt trash-restore-file`
 
@@ -696,7 +816,7 @@ EXAMPLES
   $ internxt trash-restore-file
 ```
 
-_See code: [src/commands/trash-restore-file.ts](https://github.com/internxt/cli/blob/v1.3.1/src/commands/trash-restore-file.ts)_
+_See code: [src/commands/trash-restore-file.ts](https://github.com/internxt/cli/blob/v1.4.0/src/commands/trash-restore-file.ts)_
 
 ## `internxt trash-restore-folder`
 
@@ -727,7 +847,7 @@ EXAMPLES
   $ internxt trash-restore-folder
 ```
 
-_See code: [src/commands/trash-restore-folder.ts](https://github.com/internxt/cli/blob/v1.3.1/src/commands/trash-restore-folder.ts)_
+_See code: [src/commands/trash-restore-folder.ts](https://github.com/internxt/cli/blob/v1.4.0/src/commands/trash-restore-folder.ts)_
 
 ## `internxt trash clear`
 
@@ -924,7 +1044,7 @@ EXAMPLES
   $ internxt upload-file
 ```
 
-_See code: [src/commands/upload-file.ts](https://github.com/internxt/cli/blob/v1.3.0/src/commands/upload-file.ts)_
+_See code: [src/commands/upload-file.ts](https://github.com/internxt/cli/blob/v1.4.0/src/commands/upload-file.ts)_
 
 ## `internxt upload file`
 
@@ -979,7 +1099,7 @@ EXAMPLES
   $ internxt webdav status
 ```
 
-_See code: [src/commands/webdav.ts](https://github.com/internxt/cli/blob/v1.3.1/src/commands/webdav.ts)_
+_See code: [src/commands/webdav.ts](https://github.com/internxt/cli/blob/v1.4.0/src/commands/webdav.ts)_
 
 ## `internxt webdav-config`
 
@@ -1004,7 +1124,7 @@ EXAMPLES
   $ internxt webdav-config
 ```
 
-_See code: [src/commands/webdav-config.ts](https://github.com/internxt/cli/blob/v1.3.1/src/commands/webdav-config.ts)_
+_See code: [src/commands/webdav-config.ts](https://github.com/internxt/cli/blob/v1.4.0/src/commands/webdav-config.ts)_
 
 ## `internxt whoami`
 
@@ -1024,7 +1144,7 @@ EXAMPLES
   $ internxt whoami
 ```
 
-_See code: [src/commands/whoami.ts](https://github.com/internxt/cli/blob/v1.3.1/src/commands/whoami.ts)_
+_See code: [src/commands/whoami.ts](https://github.com/internxt/cli/blob/v1.4.0/src/commands/whoami.ts)_
 <!-- commandsstop -->
 
 # Current Limitations

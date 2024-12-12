@@ -10,6 +10,16 @@ export class TrashService {
     return storageClient.addItemsToTrash(payload);
   };
 
+  public deleteFile = (payload: StorageTypes.DeleteFilePayload) => {
+    const storageClient = SdkManager.instance.getStorage(false);
+    return storageClient.deleteFile(payload);
+  };
+
+  public deleteFolder = (folderId: number) => {
+    const storageClient = SdkManager.instance.getStorage(false);
+    return storageClient.deleteFolder(folderId);
+  };
+
   public clearTrash = () => {
     const storageClient = SdkManager.instance.getTrash();
     return storageClient.clearTrash();
