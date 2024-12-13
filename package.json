@@ -7,7 +7,7 @@
     "clean": "rimraf dist tsconfig.tsbuildinfo oclif.manifest.json",
     "lint": "eslint .",
     "pretty": "prettier --write **/*.{js,jsx,tsx,ts}",
-    "postpack": "shx rm -f oclif.manifest.json",
+    "postpack": "rimraf oclif.manifest.json",
     "posttest": "yarn lint",
     "prepack": "yarn build && oclif manifest && oclif readme",
     "prepare": "husky || true",
@@ -20,7 +20,7 @@
     "migrate:undo": "sequelize db:migrate:undo",
     "publish:npm": "npm run build && npm publish --scope=@internxt --registry=https://registry.npmjs.org/ --access public",
     "publish:github": "npm run build && npm publish --scope=@internxt --registry=https://npm.pkg.github.com",
-    "postinstall": "node ./scripts/skip-in-ci.js || internxt webdav restart"
+    "postinstall": "node ./scripts/skip-in-ci.js || node ./bin/run.js webdav restart"
   },
   "homepage": "https://github.com/internxt/cli",
   "license": "MIT",
@@ -86,7 +86,6 @@
     "prettier": "^3.4.2",
     "rimraf": "^6.0.1",
     "sequelize-cli": "^6.6.2",
-    "shx": "^0.3.4",
     "ts-node": "^10.9.2",
     "typescript": "^5.7.2",
     "vitest": "^2.1.8",

@@ -26,6 +26,40 @@ export class PM2Utils {
     });
   }
 
+  static disconnect() {
+    pm2.disconnect();
+  }
+
+  // TODO: Use this once the issue with PM2 is resolved: https://github.com/Unitech/pm2/issues/4825
+  static async clean() {
+    const list = await this.list();
+    if (list.length === 0) {
+      // There are NOT other active processes. PM2 daemon can be killed.
+      return new Promise<void>((resolve, reject) => {
+        pm2.killDaemon((err) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve();
+          }
+        });
+      });
+    }
+  }
+
+  static list(): Promise<pm2.ProcessDescription[]> {
+    return new Promise((resolve, reject) => {
+      pm2.list((err, processes) => {
+        if (err) {
+          reject(err);
+        } else {
+          // There are active processes. PM2 daemon will not be killed.
+          resolve(processes);
+        }
+      });
+    });
+  }
+
   static killWebDavServer() {
     return new Promise<void>((resolve) => {
       pm2.delete(this.WEBDAV_APP_NAME, () => {

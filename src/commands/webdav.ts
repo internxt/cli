@@ -28,6 +28,7 @@ export default class Webdav extends Command {
 
     let message = '';
     let success = true;
+    await PM2Utils.connect();
     switch (args.action) {
       case 'enable': {
         message = await this.enableWebDav();
@@ -55,6 +56,7 @@ export default class Webdav extends Command {
         break;
       }
     }
+    PM2Utils.disconnect();
     return { success, message, action: args.action };
   };
 
@@ -71,7 +73,6 @@ export default class Webdav extends Command {
   private enableWebDav = async (): Promise<string> => {
     CLIUtils.doing('Starting Internxt WebDav server...');
     await DriveDatabaseManager.clean();
-    await PM2Utils.connect();
     await PM2Utils.killWebDavServer();
     await PM2Utils.startWebDavServer();
     CLIUtils.done();
@@ -98,7 +99,6 @@ export default class Webdav extends Command {
 
   private disableWebDav = async (): Promise<string> => {
     CLIUtils.doing('Stopping Internxt WebDav server...');
-    await PM2Utils.connect();
     await PM2Utils.killWebDavServer();
     CLIUtils.done();
     const message = 'Internxt WebDav server stopped successfully';
@@ -109,7 +109,6 @@ export default class Webdav extends Command {
   private restartWebDav = async (): Promise<string> => {
     CLIUtils.doing('Restarting Internxt WebDav server...');
     await DriveDatabaseManager.clean();
-    await PM2Utils.connect();
     const { status } = await PM2Utils.webdavServerStatus();
     if (status === 'online') {
       await PM2Utils.killWebDavServer();
@@ -120,14 +119,13 @@ export default class Webdav extends Command {
       return message;
     } else {
       CLIUtils.done();
-      const message = 'Internxt WebDav server is not running, cannot restart';
-      CLIUtils.error(this.log.bind(this), message);
+      const message = 'Internxt WebDav server is not running, it wont be restarted';
+      CLIUtils.warning(this.log.bind(this), message);
       return message;
     }
   };
 
   private webDAVStatus = async (): Promise<string> => {
-    await PM2Utils.connect();
     const { status } = await PM2Utils.webdavServerStatus();
     const message = `Internxt WebDAV server status: ${status}`;
     CLIUtils.log(this.log.bind(this), message);
