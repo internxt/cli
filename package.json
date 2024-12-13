@@ -86,7 +86,6 @@
     "prettier": "^3.4.2",
     "rimraf": "^6.0.1",
     "sequelize-cli": "^6.6.2",
-    "shx": "^0.3.4",
     "ts-node": "^10.9.2",
     "typescript": "^5.7.2",
     "vitest": "^2.1.8",
