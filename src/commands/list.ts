@@ -16,7 +16,7 @@ export default class List extends Command {
   static readonly flags = {
     ...CLIUtils.CommonFlags,
     id: Flags.string({
-      char: 'f',
+      char: 'i',
       description: 'The folder id to list. Leave empty for the root folder.',
       required: false,
       parse: CLIUtils.parseEmpty,

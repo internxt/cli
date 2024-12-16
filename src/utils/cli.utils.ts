@@ -55,7 +55,7 @@ export class CLIUtils {
 
   static readonly CommonFlags = {
     'non-interactive': Flags.boolean({
-      char: 'n',
+      char: 'x',
       env: 'INXT_NONINTERACTIVE',
       helpGroup: 'helper',
       description:

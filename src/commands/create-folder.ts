@@ -19,7 +19,7 @@ export default class CreateFolder extends Command {
       required: false,
     }),
     id: Flags.string({
-      char: 'f',
+      char: 'i',
       description:
         'The ID of the folder where the new folder will be created. Defaults to your root folder if not specified.',
       required: false,

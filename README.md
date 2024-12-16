@@ -127,15 +127,15 @@ Create a folder in your Internxt Drive
 
 ```
 USAGE
-  $ internxt create-folder [--json] [-n] [-n <value>] [-f <value>]
+  $ internxt create-folder [--json] [-x] [-n <value>] [-i <value>]
 
 FLAGS
-  -f, --id=<value>    The ID of the folder where the new folder will be created. Defaults to your root folder if not
+  -i, --id=<value>    The ID of the folder where the new folder will be created. Defaults to your root folder if not
                       specified.
   -n, --name=<value>  The new name for the folder
 
 HELPER FLAGS
-  -n, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
+  -x, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
                          the console and will throw errors directly.
 
 GLOBAL FLAGS
@@ -156,13 +156,13 @@ Deletes permanently a file. This action cannot be undone.
 
 ```
 USAGE
-  $ internxt delete-permanently-file [--json] [-n] [-i <value>]
+  $ internxt delete-permanently-file [--json] [-x] [-i <value>]
 
 FLAGS
   -i, --id=<value>  The file id to be permanently deleted.
 
 HELPER FLAGS
-  -n, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
+  -x, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
                          the console and will throw errors directly.
 
 GLOBAL FLAGS
@@ -186,13 +186,13 @@ Deletes permanently a folder. This action cannot be undone.
 
 ```
 USAGE
-  $ internxt delete-permanently-folder [--json] [-n] [-i <value>]
+  $ internxt delete-permanently-folder [--json] [-x] [-i <value>]
 
 FLAGS
   -i, --id=<value>  The folder id to be permanently deleted.
 
 HELPER FLAGS
-  -n, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
+  -x, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
                          the console and will throw errors directly.
 
 GLOBAL FLAGS
@@ -216,13 +216,13 @@ Deletes permanently a file. This action cannot be undone.
 
 ```
 USAGE
-  $ internxt delete permanently file [--json] [-n] [-i <value>]
+  $ internxt delete permanently file [--json] [-x] [-i <value>]
 
 FLAGS
   -i, --id=<value>  The file id to be permanently deleted.
 
 HELPER FLAGS
-  -n, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
+  -x, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
                          the console and will throw errors directly.
 
 GLOBAL FLAGS
@@ -244,13 +244,13 @@ Deletes permanently a folder. This action cannot be undone.
 
 ```
 USAGE
-  $ internxt delete permanently folder [--json] [-n] [-i <value>]
+  $ internxt delete permanently folder [--json] [-x] [-i <value>]
 
 FLAGS
   -i, --id=<value>  The folder id to be permanently deleted.
 
 HELPER FLAGS
-  -n, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
+  -x, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
                          the console and will throw errors directly.
 
 GLOBAL FLAGS
@@ -272,7 +272,7 @@ Download and decrypts a file from Internxt Drive to a directory. The file name w
 
 ```
 USAGE
-  $ internxt download-file [--json] [-n] [-i <value>] [-d <value>] [-o]
+  $ internxt download-file [--json] [-x] [-i <value>] [-d <value>] [-o]
 
 FLAGS
   -d, --directory=<value>  The directory to download the file to. Leave empty for the current folder.
@@ -280,7 +280,7 @@ FLAGS
   -o, --overwrite          Overwrite the file if it already exists
 
 HELPER FLAGS
-  -n, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
+  -x, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
                          the console and will throw errors directly.
 
 GLOBAL FLAGS
@@ -305,7 +305,7 @@ Download and decrypts a file from Internxt Drive to a directory. The file name w
 
 ```
 USAGE
-  $ internxt download file [--json] [-n] [-i <value>] [-d <value>] [-o]
+  $ internxt download file [--json] [-x] [-i <value>] [-d <value>] [-o]
 
 FLAGS
   -d, --directory=<value>  The directory to download the file to. Leave empty for the current folder.
@@ -313,7 +313,7 @@ FLAGS
   -o, --overwrite          Overwrite the file if it already exists
 
 HELPER FLAGS
-  -n, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
+  -x, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
                          the console and will throw errors directly.
 
 GLOBAL FLAGS
@@ -336,14 +336,14 @@ Lists the content of a folder id.
 
 ```
 USAGE
-  $ internxt list [--json] [-n] [-f <value>] [-e]
+  $ internxt list [--json] [-x] [-i <value>] [-e]
 
 FLAGS
   -e, --extended    Displays additional information in the list.
-  -f, --id=<value>  The folder id to list. Leave empty for the root folder.
+  -i, --id=<value>  The folder id to list. Leave empty for the root folder.
 
 HELPER FLAGS
-  -n, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
+  -x, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
                          the console and will throw errors directly.
 
 GLOBAL FLAGS
@@ -364,7 +364,7 @@ Logs into an Internxt account. If the account is two-factor protected, then an e
 
 ```
 USAGE
-  $ internxt login [--json] [-n] [-e <value>] [-p <value>] [-w 123456]
+  $ internxt login [--json] [-x] [-e <value>] [-p <value>] [-w 123456]
 
 FLAGS
   -e, --email=<value>     The email to log in
@@ -372,7 +372,7 @@ FLAGS
   -w, --twofactor=123456  The two factor auth code (only needed if the account is two-factor protected)
 
 HELPER FLAGS
-  -n, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
+  -x, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
                          the console and will throw errors directly.
 
 GLOBAL FLAGS
@@ -433,7 +433,7 @@ Move a file into a destination folder.
 
 ```
 USAGE
-  $ internxt move-file [--json] [-n] [-i <value>] [-d <value>]
+  $ internxt move-file [--json] [-x] [-i <value>] [-d <value>]
 
 FLAGS
   -d, --destination=<value>  The destination folder id where the file is going to be moved. Leave empty for the root
@@ -441,7 +441,7 @@ FLAGS
   -i, --id=<value>           The ID of the file to be moved.
 
 HELPER FLAGS
-  -n, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
+  -x, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
                          the console and will throw errors directly.
 
 GLOBAL FLAGS
@@ -465,7 +465,7 @@ Move a folder into a destination folder.
 
 ```
 USAGE
-  $ internxt move-folder [--json] [-n] [-i <value>] [-d <value>]
+  $ internxt move-folder [--json] [-x] [-i <value>] [-d <value>]
 
 FLAGS
   -d, --destination=<value>  The destination folder id where the folder is going to be moved. Leave empty for the root
@@ -473,7 +473,7 @@ FLAGS
   -i, --id=<value>           The ID of the folder to be moved.
 
 HELPER FLAGS
-  -n, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
+  -x, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
                          the console and will throw errors directly.
 
 GLOBAL FLAGS
@@ -497,7 +497,7 @@ Move a file into a destination folder.
 
 ```
 USAGE
-  $ internxt move file [--json] [-n] [-i <value>] [-d <value>]
+  $ internxt move file [--json] [-x] [-i <value>] [-d <value>]
 
 FLAGS
   -d, --destination=<value>  The destination folder id where the file is going to be moved. Leave empty for the root
@@ -505,7 +505,7 @@ FLAGS
   -i, --id=<value>           The ID of the file to be moved.
 
 HELPER FLAGS
-  -n, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
+  -x, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
                          the console and will throw errors directly.
 
 GLOBAL FLAGS
@@ -527,7 +527,7 @@ Move a folder into a destination folder.
 
 ```
 USAGE
-  $ internxt move folder [--json] [-n] [-i <value>] [-d <value>]
+  $ internxt move folder [--json] [-x] [-i <value>] [-d <value>]
 
 FLAGS
   -d, --destination=<value>  The destination folder id where the folder is going to be moved. Leave empty for the root
@@ -535,7 +535,7 @@ FLAGS
   -i, --id=<value>           The ID of the folder to be moved.
 
 HELPER FLAGS
-  -n, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
+  -x, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
                          the console and will throw errors directly.
 
 GLOBAL FLAGS
@@ -557,14 +557,14 @@ Rename a file.
 
 ```
 USAGE
-  $ internxt rename-file [--json] [-n] [-i <value>] [-n <value>]
+  $ internxt rename-file [--json] [-x] [-i <value>] [-n <value>]
 
 FLAGS
   -i, --id=<value>    The ID of the file to be renamed.
   -n, --name=<value>  The new name for the file.
 
 HELPER FLAGS
-  -n, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
+  -x, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
                          the console and will throw errors directly.
 
 GLOBAL FLAGS
@@ -588,14 +588,14 @@ Rename a folder.
 
 ```
 USAGE
-  $ internxt rename-folder [--json] [-n] [-i <value>] [-n <value>]
+  $ internxt rename-folder [--json] [-x] [-i <value>] [-n <value>]
 
 FLAGS
   -i, --id=<value>    The ID of the folder to be renamed.
   -n, --name=<value>  The new name for the folder.
 
 HELPER FLAGS
-  -n, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
+  -x, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
                          the console and will throw errors directly.
 
 GLOBAL FLAGS
@@ -619,14 +619,14 @@ Rename a file.
 
 ```
 USAGE
-  $ internxt rename file [--json] [-n] [-i <value>] [-n <value>]
+  $ internxt rename file [--json] [-x] [-i <value>] [-n <value>]
 
 FLAGS
   -i, --id=<value>    The ID of the file to be renamed.
   -n, --name=<value>  The new name for the file.
 
 HELPER FLAGS
-  -n, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
+  -x, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
                          the console and will throw errors directly.
 
 GLOBAL FLAGS
@@ -648,14 +648,14 @@ Rename a folder.
 
 ```
 USAGE
-  $ internxt rename folder [--json] [-n] [-i <value>] [-n <value>]
+  $ internxt rename folder [--json] [-x] [-i <value>] [-n <value>]
 
 FLAGS
   -i, --id=<value>    The ID of the folder to be renamed.
   -n, --name=<value>  The new name for the folder.
 
 HELPER FLAGS
-  -n, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
+  -x, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
                          the console and will throw errors directly.
 
 GLOBAL FLAGS
@@ -677,13 +677,13 @@ Deletes permanently all the content of the trash. This action cannot be undone.
 
 ```
 USAGE
-  $ internxt trash-clear [--json] [-n] [-f]
+  $ internxt trash-clear [--json] [-x] [-f]
 
 FLAGS
   -f, --force  It forces the trash to be emptied without confirmation.
 
 HELPER FLAGS
-  -n, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
+  -x, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
                          the console and will throw errors directly.
 
 GLOBAL FLAGS
@@ -707,13 +707,13 @@ Moves a given file to the trash.
 
 ```
 USAGE
-  $ internxt trash-file [--json] [-n] [-i <value>]
+  $ internxt trash-file [--json] [-x] [-i <value>]
 
 FLAGS
   -i, --id=<value>  The file id to be trashed.
 
 HELPER FLAGS
-  -n, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
+  -x, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
                          the console and will throw errors directly.
 
 GLOBAL FLAGS
@@ -737,13 +737,13 @@ Moves a given folder to the trash.
 
 ```
 USAGE
-  $ internxt trash-folder [--json] [-n] [-i <value>]
+  $ internxt trash-folder [--json] [-x] [-i <value>]
 
 FLAGS
   -i, --id=<value>  The folder id to be trashed.
 
 HELPER FLAGS
-  -n, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
+  -x, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
                          the console and will throw errors directly.
 
 GLOBAL FLAGS
@@ -793,14 +793,14 @@ Restore a trashed file into a destination folder.
 
 ```
 USAGE
-  $ internxt trash-restore-file [--json] [-n] [-i <value>] [-d <value>]
+  $ internxt trash-restore-file [--json] [-x] [-i <value>] [-d <value>]
 
 FLAGS
   -d, --destination=<value>  The folder id where the file is going to be restored. Leave empty for the root folder.
   -i, --id=<value>           The file id to be restored from the trash.
 
 HELPER FLAGS
-  -n, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
+  -x, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
                          the console and will throw errors directly.
 
 GLOBAL FLAGS
@@ -824,14 +824,14 @@ Restore a trashed folder into a destination folder.
 
 ```
 USAGE
-  $ internxt trash-restore-folder [--json] [-n] [-i <value>] [-d <value>]
+  $ internxt trash-restore-folder [--json] [-x] [-i <value>] [-d <value>]
 
 FLAGS
   -d, --destination=<value>  The folder id where the folder is going to be restored. Leave empty for the root folder.
   -i, --id=<value>           The folder id to be restored from the trash.
 
 HELPER FLAGS
-  -n, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
+  -x, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
                          the console and will throw errors directly.
 
 GLOBAL FLAGS
@@ -855,13 +855,13 @@ Deletes permanently all the content of the trash. This action cannot be undone.
 
 ```
 USAGE
-  $ internxt trash clear [--json] [-n] [-f]
+  $ internxt trash clear [--json] [-x] [-f]
 
 FLAGS
   -f, --force  It forces the trash to be emptied without confirmation.
 
 HELPER FLAGS
-  -n, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
+  -x, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
                          the console and will throw errors directly.
 
 GLOBAL FLAGS
@@ -883,13 +883,13 @@ Moves a given file to the trash.
 
 ```
 USAGE
-  $ internxt trash file [--json] [-n] [-i <value>]
+  $ internxt trash file [--json] [-x] [-i <value>]
 
 FLAGS
   -i, --id=<value>  The file id to be trashed.
 
 HELPER FLAGS
-  -n, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
+  -x, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
                          the console and will throw errors directly.
 
 GLOBAL FLAGS
@@ -911,13 +911,13 @@ Moves a given folder to the trash.
 
 ```
 USAGE
-  $ internxt trash folder [--json] [-n] [-i <value>]
+  $ internxt trash folder [--json] [-x] [-i <value>]
 
 FLAGS
   -i, --id=<value>  The folder id to be trashed.
 
 HELPER FLAGS
-  -n, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
+  -x, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
                          the console and will throw errors directly.
 
 GLOBAL FLAGS
@@ -963,14 +963,14 @@ Restore a trashed file into a destination folder.
 
 ```
 USAGE
-  $ internxt trash restore file [--json] [-n] [-i <value>] [-d <value>]
+  $ internxt trash restore file [--json] [-x] [-i <value>] [-d <value>]
 
 FLAGS
   -d, --destination=<value>  The folder id where the file is going to be restored. Leave empty for the root folder.
   -i, --id=<value>           The file id to be restored from the trash.
 
 HELPER FLAGS
-  -n, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
+  -x, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
                          the console and will throw errors directly.
 
 GLOBAL FLAGS
@@ -992,14 +992,14 @@ Restore a trashed folder into a destination folder.
 
 ```
 USAGE
-  $ internxt trash restore folder [--json] [-n] [-i <value>] [-d <value>]
+  $ internxt trash restore folder [--json] [-x] [-i <value>] [-d <value>]
 
 FLAGS
   -d, --destination=<value>  The folder id where the folder is going to be restored. Leave empty for the root folder.
   -i, --id=<value>           The folder id to be restored from the trash.
 
 HELPER FLAGS
-  -n, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
+  -x, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
                          the console and will throw errors directly.
 
 GLOBAL FLAGS
@@ -1021,14 +1021,14 @@ Upload a file to Internxt Drive
 
 ```
 USAGE
-  $ internxt upload-file [--json] [-n] [-f <value>] [-i <value>]
+  $ internxt upload-file [--json] [-x] [-f <value>] [-i <value>]
 
 FLAGS
   -f, --file=<value>         The path to the file on your system.
   -i, --destination=<value>  The folder id where the file is going to be uploaded to. Leave empty for the root folder.
 
 HELPER FLAGS
-  -n, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
+  -x, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
                          the console and will throw errors directly.
 
 GLOBAL FLAGS
@@ -1052,14 +1052,14 @@ Upload a file to Internxt Drive
 
 ```
 USAGE
-  $ internxt upload file [--json] [-n] [-f <value>] [-i <value>]
+  $ internxt upload file [--json] [-x] [-f <value>] [-i <value>]
 
 FLAGS
   -f, --file=<value>         The path to the file on your system.
   -i, --destination=<value>  The folder id where the file is going to be uploaded to. Leave empty for the root folder.
 
 HELPER FLAGS
-  -n, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
+  -x, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
                          the console and will throw errors directly.
 
 GLOBAL FLAGS
