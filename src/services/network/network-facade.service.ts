@@ -72,15 +72,15 @@ export class NetworkFacade {
     };
 
     const decryptFile: DecryptFileFunction = async (_, key, iv) => {
-      let skipOptions;
+      let startOffsetByte;
       if (rangeOptions) {
-        skipOptions = { total: rangeOptions.parsed.start };
+        startOffsetByte = rangeOptions.parsed.start;
       }
       fileStream = await this.cryptoService.decryptStream(
         encryptedContentStreams,
         Buffer.from(key as ArrayBuffer),
         Buffer.from(iv as ArrayBuffer),
-        skipOptions,
+        startOffsetByte,
       );
 
       await fileStream.pipeTo(to);
