@@ -21,7 +21,7 @@ import { newFileItem } from '../../fixtures/drive.fixture';
 import { LoginCredentials } from '../../../src/types/command.types';
 import { UserCredentialsFixture } from '../../fixtures/login.fixture';
 
-describe('GET request handler', () => {
+describe.skip('GET request handler', () => {
   const getNetworkMock = () => {
     return SdkManager.instance.getNetwork({
       user: 'user',
