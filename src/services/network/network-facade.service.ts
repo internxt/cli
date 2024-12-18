@@ -17,6 +17,7 @@ import { DownloadService } from './download.service';
 import { ValidationService } from '../validation.service';
 import { HashStream } from '../../utils/hash.utils';
 import { ProgressTransform } from '../../utils/stream.utils';
+import { RangeOptions } from '../../utils/network.utils';
 
 export class NetworkFacade {
   private readonly cryptoLib: Network.Crypto;
@@ -54,6 +55,7 @@ export class NetworkFacade {
     mnemonic: string,
     fileId: string,
     to: WritableStream,
+    rangeOptions?: RangeOptions,
     options?: DownloadOptions,
   ): Promise<[Promise<void>, AbortController]> {
     const encryptedContentStreams: ReadableStream<Uint8Array>[] = [];
@@ -80,6 +82,10 @@ export class NetworkFacade {
     };
 
     const downloadFile: DownloadFileFunction = async (downloadables) => {
+      if (rangeOptions && downloadables.length > 1) {
+        throw new Error('Multi-Part Download with Range-Requests is not implemented');
+      }
+
       for (const downloadable of downloadables) {
         if (abortable.signal.aborted) {
           throw new Error('Download aborted');
@@ -88,6 +94,7 @@ export class NetworkFacade {
         const encryptedContentStream = await this.downloadService.downloadFile(downloadable.url, {
           progressCallback: onDownloadProgress,
           abortController: options?.abortController,
+          rangeHeader: rangeOptions?.range,
         });
 
         encryptedContentStreams.push(encryptedContentStream);

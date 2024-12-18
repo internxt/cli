@@ -80,6 +80,7 @@ export default class DownloadFile extends Command {
       user.mnemonic,
       driveFile.fileId,
       StreamUtils.writeStreamToWritableStream(fileWriteStream),
+      undefined,
       {
         abortController: new AbortController(),
         progressCallback: (progress) => {
