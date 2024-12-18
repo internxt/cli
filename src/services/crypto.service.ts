@@ -116,8 +116,17 @@ export class CryptoService {
     return Buffer.concat([decipher.update(contentsToDecrypt), decipher.final()]).toString('utf8');
   };
 
-  public async decryptStream(inputSlices: ReadableStream<Uint8Array>[], key: Buffer, iv: Buffer) {
+  public async decryptStream(
+    inputSlices: ReadableStream<Uint8Array>[],
+    key: Buffer,
+    iv: Buffer,
+    skipOptions?: { total: number },
+  ) {
     const decipher = createDecipheriv('aes-256-ctr', key, iv);
+    if (skipOptions) {
+      const skipBuffer = Buffer.alloc(skipOptions.total, 0);
+      decipher.update(skipBuffer);
+    }
     const encryptedStream = StreamUtils.joinReadableBinaryStreams(inputSlices);
 
     let keepReading = true;
