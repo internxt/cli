@@ -224,6 +224,7 @@ describe('Network Facade Service', () => {
       'index course habit soon assist dragon tragic helmet salute stuff later twice consider grit pulse cement obvious trick sponsor stereo hello win royal more',
       'f1858bc9675f9e4f7ab29429',
       writable,
+      undefined,
       options,
     );
 

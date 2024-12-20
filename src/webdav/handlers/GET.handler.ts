@@ -8,9 +8,10 @@ import { UploadService } from '../../services/network/upload.service';
 import { DownloadService } from '../../services/network/download.service';
 import { CryptoService } from '../../services/crypto.service';
 import { AuthService } from '../../services/auth.service';
-import { NotFoundError, NotImplementedError } from '../../utils/errors.utils';
+import { NotFoundError } from '../../utils/errors.utils';
 import { webdavLogger } from '../../utils/logger.utils';
 import { DriveFileItem } from '../../types/drive.types';
+import { NetworkUtils } from '../../utils/network.utils';
 
 export class GETRequestHandler implements WebDavMethodHandler {
   constructor(
@@ -29,8 +30,6 @@ export class GETRequestHandler implements WebDavMethodHandler {
     const { driveDatabaseManager, driveFileService, authService, networkFacade } = this.dependencies;
     const resource = await WebDavUtils.getRequestedResource(req);
 
-    if (req.headers['content-range'] || req.headers['range'])
-      throw new NotImplementedError('Range requests not supported');
     if (resource.name.startsWith('._')) throw new NotFoundError('File not found');
 
     webdavLogger.info(`GET request received for file at ${resource.url}`);
@@ -41,9 +40,6 @@ export class GETRequestHandler implements WebDavMethodHandler {
     })) as DriveFileItem;
 
     webdavLogger.info(`✅ Found Drive File with uuid ${driveFile.uuid}`);
-
-    res.set('Content-Type', 'application/octet-stream');
-    res.set('Content-length', driveFile.size.toString());
 
     const { user } = await authService.getAuthDetails();
     webdavLogger.info('✅ Network ready for download');
@@ -57,12 +53,27 @@ export class GETRequestHandler implements WebDavMethodHandler {
       },
     });
 
+    const range = req.headers['range'];
+    const rangeOptions = NetworkUtils.parseRangeHeader({
+      range,
+      totalFileSize: driveFile.size,
+    });
+    let contentLength = driveFile.size;
+    if (rangeOptions) {
+      webdavLogger.info('✅ Range request received:', { rangeOptions });
+      contentLength = rangeOptions.rangeSize;
+    }
+
+    res.set('Content-Type', 'application/octet-stream');
+    res.set('Content-length', contentLength.toString());
+
     let lastLoggedProgress = 0;
     const [executeDownload] = await networkFacade.downloadToStream(
       driveFile.bucket,
       user.mnemonic,
       driveFile.fileId,
       writable,
+      rangeOptions,
       {
         progressCallback: (progress) => {
           const percentage = Math.floor(100 * progress);
