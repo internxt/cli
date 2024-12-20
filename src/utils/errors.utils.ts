@@ -50,6 +50,16 @@ export class UnsupportedMediaTypeError extends Error {
   }
 }
 
+export class MethodNotAllowed extends Error {
+  public statusCode = 405;
+
+  constructor(message: string) {
+    super(message);
+    this.name = 'MethodNotAllowed';
+    Object.setPrototypeOf(this, MethodNotAllowed.prototype);
+  }
+}
+
 export class NotImplementedError extends Error {
   public statusCode = 501;
 

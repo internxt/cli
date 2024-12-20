@@ -3,7 +3,7 @@ import { DriveFileService } from '../../services/drive/drive-file.service';
 import { NetworkFacade } from '../../services/network/network-facade.service';
 import { AuthService } from '../../services/auth.service';
 import { WebDavMethodHandler } from '../../types/webdav.types';
-import { UnsupportedMediaTypeError } from '../../utils/errors.utils';
+import { NotFoundError, UnsupportedMediaTypeError } from '../../utils/errors.utils';
 import { WebDavUtils } from '../../utils/webdav.utils';
 import { webdavLogger } from '../../utils/logger.utils';
 import { DriveDatabaseManager } from '../../services/database/drive-database-manager.service';
@@ -33,7 +33,12 @@ export class PUTRequestHandler implements WebDavMethodHandler {
     }
 
     const resource = await WebDavUtils.getRequestedResource(req);
-    webdavLogger.info(`PUT request received for uploading file '${resource.name}' to '${resource.parentPath}'`);
+
+    if (resource.type === 'folder') throw new NotFoundError('Folders cannot be created with PUT. Use MKCOL instead.');
+
+    webdavLogger.info(`[PUT] Request received for ${resource.type} at ${resource.url}`);
+    webdavLogger.info(`[PUT] Uploading '${resource.name}' to '${resource.parentPath}'`);
+
     const parentResource = await WebDavUtils.getRequestedResource(resource.parentPath);
 
     const parentFolderItem = (await WebDavUtils.getAndSearchItemFromResource({
@@ -51,7 +56,7 @@ export class PUTRequestHandler implements WebDavMethodHandler {
         driveFileService,
       })) as DriveFileItem;
       if (driveFileItem && driveFileItem.status === 'EXISTS') {
-        webdavLogger.info(`File '${resource.name}' already exists in '${resource.path.dir}', trashing it before PUT`);
+        webdavLogger.info(`[PUT] File '${resource.name}' already exists in '${resource.path.dir}', trashing it...`);
         await driveDatabaseManager.deleteFileById(driveFileItem.id);
         await trashService.trashItems({
           items: [{ type: resource.type, uuid: driveFileItem.uuid }],
@@ -70,14 +75,14 @@ export class PUTRequestHandler implements WebDavMethodHandler {
 
         if (percentage >= lastLoggedProgress + 1) {
           lastLoggedProgress = percentage;
-          webdavLogger.info(`Upload progress for file ${resource.name}: ${percentage}%`);
+          webdavLogger.info(`[PUT] Upload progress for file ${resource.name}: ${percentage}%`);
         }
       },
     });
 
     const uploadResult = await uploadPromise;
 
-    webdavLogger.info('✅ File uploaded to network');
+    webdavLogger.info('[PUT] ✅ File uploaded to network');
 
     const file = await DriveFileService.instance.createFile({
       plain_name: resource.path.name,
@@ -90,7 +95,7 @@ export class PUTRequestHandler implements WebDavMethodHandler {
       name: '',
     });
 
-    webdavLogger.info('✅ File uploaded to internxt drive');
+    webdavLogger.info('[PUT] ✅ File uploaded to internxt drive');
 
     await driveDatabaseManager.createFile(file, resource.path.dir + '/');
 

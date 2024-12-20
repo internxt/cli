@@ -21,11 +21,11 @@ export class MOVERequestHandler implements WebDavMethodHandler {
     const { driveDatabaseManager, driveFolderService, driveFileService } = this.dependencies;
     const resource = await WebDavUtils.getRequestedResource(req);
 
-    webdavLogger.info('[MOVE] Resource found', { resource });
+    webdavLogger.info(`[MOVE] Request received for ${resource.type} at ${resource.url}`);
 
     const destinationUrl = req.header('destination');
     if (!destinationUrl) {
-      throw new NotFoundError('Destination folder not received');
+      throw new NotFoundError('[MOVE] Destination folder not received');
     }
     const destinationPath = WebDavUtils.removeHostFromURL(destinationUrl);
     const destinationResource = await WebDavUtils.getRequestedResource(destinationPath);

@@ -42,7 +42,6 @@ describe.skip('GET request handler', () => {
     );
     const sut = new GETRequestHandler({
       driveFileService: DriveFileService.instance,
-      uploadService: UploadService.instance,
       downloadService: DownloadService.instance,
       driveDatabaseManager: getDriveDatabaseManager(),
       authService: AuthService.instance,
@@ -77,7 +76,6 @@ describe.skip('GET request handler', () => {
     const networkFacade = new NetworkFacade(getNetworkMock(), uploadService, downloadService, cryptoService);
     const requestHandler = new GETRequestHandler({
       driveFileService: DriveFileService.instance,
-      uploadService,
       downloadService,
       driveDatabaseManager,
       authService: AuthService.instance,
@@ -124,7 +122,6 @@ describe.skip('GET request handler', () => {
     const networkFacade = new NetworkFacade(getNetworkMock(), uploadService, downloadService, cryptoService);
     const requestHandler = new GETRequestHandler({
       driveFileService: DriveFileService.instance,
-      uploadService,
       downloadService,
       driveDatabaseManager,
       authService,
