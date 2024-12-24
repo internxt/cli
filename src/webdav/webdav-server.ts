@@ -19,6 +19,7 @@ import { AuthService } from '../services/auth.service';
 import { CryptoService } from '../services/crypto.service';
 import { ErrorHandlingMiddleware } from './middewares/errors.middleware';
 import asyncHandler from 'express-async-handler';
+import { concurrent } from '@hammerbot/express-concurrent';
 import { SdkManager } from '../services/sdk-manager.service';
 import { NetworkFacade } from '../services/network/network-facade.service';
 import { NetworkUtils } from '../utils/network.utils';
@@ -65,6 +66,7 @@ export class WebDavServer {
         enable: true,
       }),
     );
+    this.app.use(concurrent({ max: 5 }));
   };
 
   private readonly registerHandlers = async () => {
