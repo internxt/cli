@@ -5,7 +5,11 @@ export class DownloadService {
 
   async downloadFile(
     url: string,
-    options: { progressCallback?: (progress: number) => void; abortController?: AbortController },
+    options: {
+      progressCallback?: (progress: number) => void;
+      abortController?: AbortController;
+      rangeHeader?: string;
+    },
   ): Promise<ReadableStream<Uint8Array>> {
     const response = await axios.get(url, {
       responseType: 'stream',
@@ -15,6 +19,9 @@ export class DownloadService {
 
           options.progressCallback(reportedProgress);
         }
+      },
+      headers: {
+        range: options.rangeHeader,
       },
     });
 

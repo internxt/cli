@@ -19,9 +19,8 @@ export class DELETERequestHandler implements WebDavMethodHandler {
 
   handle = async (req: Request, res: Response) => {
     const { driveDatabaseManager, driveFileService, driveFolderService, trashService } = this.dependencies;
-    webdavLogger.info('DELETE request received');
     const resource = await WebDavUtils.getRequestedResource(req);
-    webdavLogger.info('Resource received for DELETE request', { resource });
+    webdavLogger.info(`[DELETE] Request received for ${resource.type} at ${resource.url}`);
 
     const driveItem = await WebDavUtils.getAndSearchItemFromResource({
       resource,
@@ -30,7 +29,7 @@ export class DELETERequestHandler implements WebDavMethodHandler {
       driveFileService: driveFileService,
     });
 
-    webdavLogger.info(`Trashing ${resource.type} with UUID ${driveItem.uuid}...`);
+    webdavLogger.info(`[DELETE] [${driveItem.uuid}] Trashing ${resource.type}`);
     await trashService.trashItems({
       items: [{ type: resource.type, uuid: driveItem.uuid }],
     });
@@ -42,5 +41,7 @@ export class DELETERequestHandler implements WebDavMethodHandler {
     }
 
     res.status(204).send();
+    const type = resource.type.charAt(0).toUpperCase() + resource.type.substring(1);
+    webdavLogger.info(`[DELETE] [${driveItem.uuid}] ${type} trashed successfully`);
   };
 }

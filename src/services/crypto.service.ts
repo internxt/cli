@@ -1,6 +1,6 @@
 import { CryptoProvider } from '@internxt/sdk';
 import { Keys, Password } from '@internxt/sdk/dist/auth';
-import { createCipheriv, createDecipheriv, createHash, pbkdf2Sync, randomBytes } from 'node:crypto';
+import { createCipheriv, createDecipheriv, createHash, Decipher, pbkdf2Sync, randomBytes } from 'node:crypto';
 import { Transform } from 'node:stream';
 import { KeysService } from './keys.service';
 import { ConfigService } from '../services/config.service';
@@ -116,8 +116,29 @@ export class CryptoService {
     return Buffer.concat([decipher.update(contentsToDecrypt), decipher.final()]).toString('utf8');
   };
 
-  public async decryptStream(inputSlices: ReadableStream<Uint8Array>[], key: Buffer, iv: Buffer) {
-    const decipher = createDecipheriv('aes-256-ctr', key, iv);
+  public async decryptStream(
+    inputSlices: ReadableStream<Uint8Array>[],
+    key: Buffer,
+    iv: Buffer,
+    startOffsetByte?: number,
+  ) {
+    let decipher: Decipher;
+    if (startOffsetByte) {
+      const aesBlockSize = 16;
+      const startOffset = startOffsetByte % aesBlockSize;
+      const startBlockFirstByte = startOffsetByte - startOffset;
+      const startBlockNumber = startBlockFirstByte / aesBlockSize;
+
+      const ivForRange = (BigInt('0x' + iv.toString('hex')) + BigInt(startBlockNumber)).toString(16).padStart(32, '0');
+      const newIv = Buffer.from(ivForRange, 'hex');
+
+      const skipBuffer = Buffer.alloc(startOffset, 0);
+
+      decipher = createDecipheriv('aes-256-ctr', key, newIv);
+      decipher.update(skipBuffer);
+    } else {
+      decipher = createDecipheriv('aes-256-ctr', key, iv);
+    }
     const encryptedStream = StreamUtils.joinReadableBinaryStreams(inputSlices);
 
     let keepReading = true;

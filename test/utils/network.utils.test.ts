@@ -1,9 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { randomBytes, X509Certificate } from 'node:crypto';
+import { randomBytes, randomInt, X509Certificate } from 'node:crypto';
 import selfsigned, { GenerateResult } from 'selfsigned';
 import { readFile, stat, writeFile } from 'node:fs/promises';
 import { NetworkUtils } from '../../src/utils/network.utils';
 import { Stats } from 'node:fs';
+import { fail } from 'node:assert';
 
 vi.mock('node:fs/promises', async () => {
   const actual = await vi.importActual<typeof import('node:fs/promises')>('node:fs/promises');
@@ -141,5 +142,61 @@ describe('Network utils', () => {
     expect(mock509Certificate).toHaveBeenCalledOnce();
     expect(mockWriteFile).toHaveBeenCalledTimes(2);
     expect(mockReadFile).toHaveBeenCalledTimes(2);
+  });
+
+  it('When parsing range, it should parse it if its all good', () => {
+    const mockSize = randomInt(500, 10000);
+    const rangeStart = randomInt(0, 450);
+    const range = `bytes=${rangeStart}-${mockSize}`;
+
+    const result = NetworkUtils.parseRangeHeader({ range, totalFileSize: mockSize });
+
+    expect(result).to.deep.equal({
+      range,
+      rangeSize: mockSize - rangeStart,
+      totalFileSize: mockSize,
+      parsed: { start: rangeStart, end: mockSize - 1 },
+    });
+  });
+
+  it('When parsing range, it should return errors if found', () => {
+    const totalFileSize = randomInt(500, 10000);
+
+    expect(NetworkUtils.parseRangeHeader({ range: undefined, totalFileSize })).to.be.equal(undefined);
+
+    try {
+      NetworkUtils.parseRangeHeader({ range: 'range', totalFileSize });
+      fail('Expected function to throw an error, but it did not.');
+    } catch (error) {
+      expect((error as Error).message).to.contain('Unsatisfiable Range-Request.');
+    }
+
+    try {
+      NetworkUtils.parseRangeHeader({ range: 'whatever-range', totalFileSize });
+      fail('Expected function to throw an error, but it did not.');
+    } catch (error) {
+      expect((error as Error).message).to.contain('Unsatisfiable Range-Request.');
+    }
+
+    try {
+      NetworkUtils.parseRangeHeader({ range: 'bytes=', totalFileSize });
+      fail('Expected function to throw an error, but it did not.');
+    } catch (error) {
+      expect((error as Error).message).to.contain('Malformed Range-Request.');
+    }
+
+    try {
+      NetworkUtils.parseRangeHeader({ range: 'megabytes=50-55', totalFileSize });
+      fail('Expected function to throw an error, but it did not.');
+    } catch (error) {
+      expect((error as Error).message).to.contain('Unkwnown Range-Request type ');
+    }
+
+    try {
+      NetworkUtils.parseRangeHeader({ range: 'bytes=50-55,0-10,5-10,56-60', totalFileSize });
+      fail('Expected function to throw an error, but it did not.');
+    } catch (error) {
+      expect((error as Error).message).to.contain('Multi Range-Requests functionality is not implemented.');
+    }
   });
 });

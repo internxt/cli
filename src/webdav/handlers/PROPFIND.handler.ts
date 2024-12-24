@@ -25,7 +25,7 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
     const { driveDatabaseManager, driveFolderService, driveFileService } = this.dependencies;
 
     const resource = await WebDavUtils.getRequestedResource(req);
-    webdavLogger.info('[PROPFIND] Request received', { resource });
+    webdavLogger.info(`[PROPFIND] Request received for ${resource.type} at ${resource.url}`);
 
     const driveItem = await WebDavUtils.getAndSearchItemFromResource({
       resource,
