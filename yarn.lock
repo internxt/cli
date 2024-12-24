@@ -1812,10 +1812,10 @@
   resolved "https://registry.yarnpkg.com/@one-ini/wasm/-/wasm-0.1.1.tgz#6013659736c9dbfccc96e8a9c2b3de317df39323"
   integrity sha512-XuySG1E38YScSJoMlqovLru4KTUNSjgVTIjyh7qMX6aNN5HY5Ct5LhRJdxO79JtTzKfzV/bnWpz+zquYrISsvw==
 
-"@openpgp/web-stream-tools@0.0.11-patch-0":
-  version "0.0.11-patch-0"
-  resolved "https://registry.yarnpkg.com/@openpgp/web-stream-tools/-/web-stream-tools-0.0.11-patch-0.tgz#c8b2ecfa62403bb10de2b33c8548bd25b14f1828"
-  integrity sha512-NrIF4DkCqC3WDcMDAgz17z+0Iik1fVrKuvdbjZXCnMZgYAWHpIG8CWnbp8yQRahAdF26jqCopA/qXrp8CYI2yw==
+"@openpgp/web-stream-tools@0.0.11-patch-1":
+  version "0.0.11-patch-1"
+  resolved "https://registry.yarnpkg.com/@openpgp/web-stream-tools/-/web-stream-tools-0.0.11-patch-1.tgz#913fd8c8bad781e18116d83d2784484921da3400"
+  integrity sha512-sZkx4FsHGFPcGrEBmBLvg0PcFBgR7KWe+NXo3SI/e+gpVoK3rPzPgv4TpI3UFKiXrohaJyY/klf24tNbJCutBA==
   dependencies:
     "@mattiasbuelens/web-streams-adapter" "~0.1.0"
     web-streams-polyfill "~3.0.3"
