@@ -7,6 +7,7 @@ import { webdavLogger } from '../../utils/logger.utils';
 import { XMLUtils } from '../../utils/xml.utils';
 import { AsyncUtils } from '../../utils/async.utils';
 import { DriveFolderItem } from '../../types/drive.types';
+import { MethodNotAllowed } from '../../utils/errors.utils';
 
 export class MKCOLRequestHandler implements WebDavMethodHandler {
   constructor(
@@ -19,7 +20,10 @@ export class MKCOLRequestHandler implements WebDavMethodHandler {
   handle = async (req: Request, res: Response) => {
     const { driveDatabaseManager, driveFolderService } = this.dependencies;
     const resource = await WebDavUtils.getRequestedResource(req);
-    webdavLogger.info('Resource received for MKCOL request', { resource });
+
+    if (resource.type === 'file') throw new MethodNotAllowed('Files cannot be created with MKCOL. Use PUT instead.');
+
+    webdavLogger.info(`[MKCOL] Request received for ${resource.type} at ${resource.url}`);
 
     const parentResource = await WebDavUtils.getRequestedResource(resource.parentPath);
 
@@ -36,7 +40,7 @@ export class MKCOLRequestHandler implements WebDavMethodHandler {
 
     const newFolder = await createFolder;
 
-    webdavLogger.info(`✅ Folder created with UUID ${newFolder.uuid}`);
+    webdavLogger.info(`[MKCOL] ✅ Folder created with UUID ${newFolder.uuid}`);
 
     await driveDatabaseManager.createFolder(
       {

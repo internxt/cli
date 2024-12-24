@@ -69,14 +69,21 @@ export class WebDavServer {
 
   private readonly registerHandlers = async () => {
     const networkFacade = await this.getNetworkFacade();
-    this.app.head('*', asyncHandler(new HEADRequestHandler().handle));
+    this.app.head(
+      '*',
+      asyncHandler(
+        new HEADRequestHandler({
+          driveFileService: this.driveFileService,
+          driveDatabaseManager: this.driveDatabaseManager,
+        }).handle,
+      ),
+    );
     this.app.get(
       '*',
       asyncHandler(
         new GETRequestHandler({
           driveFileService: this.driveFileService,
           driveDatabaseManager: this.driveDatabaseManager,
-          uploadService: this.uploadService,
           downloadService: this.downloadService,
           cryptoService: this.cryptoService,
           authService: this.authService,
