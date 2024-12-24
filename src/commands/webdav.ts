@@ -4,6 +4,7 @@ import { CLIUtils } from '../utils/cli.utils';
 import { ConfigService } from '../services/config.service';
 import { DriveDatabaseManager } from '../services/database/drive-database-manager.service';
 import { ErrorUtils } from '../utils/errors.utils';
+import { AuthService } from '../services/auth.service';
 
 export default class Webdav extends Command {
   static readonly args = {
@@ -31,6 +32,7 @@ export default class Webdav extends Command {
     await PM2Utils.connect();
     switch (args.action) {
       case 'enable': {
+        await AuthService.instance.getAuthDetails();
         message = await this.enableWebDav();
         break;
       }
@@ -41,6 +43,7 @@ export default class Webdav extends Command {
       }
 
       case 'restart': {
+        await AuthService.instance.getAuthDetails();
         message = await this.restartWebDav();
         break;
       }
