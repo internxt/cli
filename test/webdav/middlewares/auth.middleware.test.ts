@@ -1,8 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AuthMiddleware } from '../../../src/webdav/middewares/auth.middleware';
 import { createWebDavRequestFixture, createWebDavResponseFixture } from '../../fixtures/webdav.fixture';
-import { ConfigService } from '../../../src/services/config.service';
 import { UserCredentialsFixture } from '../../fixtures/login.fixture';
+import { AuthService } from '../../../src/services/auth.service';
+import { MissingCredentialsError } from '../../../src/types/command.types';
 
 describe('Auth middleware', () => {
   beforeEach(() => {
@@ -18,14 +19,16 @@ describe('Auth middleware', () => {
     });
     const next = vi.fn();
 
-    const configServiceStub = vi.spyOn(ConfigService.instance, 'readUser').mockResolvedValue(undefined);
+    const authServiceStub = vi
+      .spyOn(AuthService.instance, 'getAuthDetails')
+      .mockRejectedValue(new MissingCredentialsError());
 
-    await AuthMiddleware(ConfigService.instance)(req, res, next);
+    await AuthMiddleware(AuthService.instance)(req, res, next);
 
-    expect(configServiceStub).toHaveBeenCalledOnce();
+    expect(authServiceStub).toHaveBeenCalledOnce();
     expect(next).not.toHaveBeenCalled();
     expect(res.status).toHaveBeenCalledWith(401);
-    expect(res.send).toHaveBeenCalledWith({ error: 'Unauthorized' });
+    expect(res.send).toHaveBeenCalledWith({ error: new MissingCredentialsError().message });
   });
 
   it('When the user is authenticated, then it should add the user to the request', async () => {
@@ -34,13 +37,13 @@ describe('Auth middleware', () => {
     });
     const res = createWebDavResponseFixture({});
     const next = vi.fn();
-    const configServiceStub = vi.spyOn(ConfigService.instance, 'readUser').mockResolvedValue(UserCredentialsFixture);
+    const authServiceStub = vi.spyOn(AuthService.instance, 'getAuthDetails').mockResolvedValue(UserCredentialsFixture);
 
-    await AuthMiddleware(ConfigService.instance)(req, res, next);
+    await AuthMiddleware(AuthService.instance)(req, res, next);
 
     // @ts-expect-error - User is added to the request, but TS is not picking it as we specified null before
     expect(req.user.rootFolderId).to.be.equal(UserCredentialsFixture.user.root_folder_id);
-    expect(configServiceStub).toHaveBeenCalledOnce();
+    expect(authServiceStub).toHaveBeenCalledOnce();
     expect(next).toHaveBeenCalledOnce();
     expect(res.status).not.toHaveBeenCalled();
     expect(res.send).not.toHaveBeenCalled();

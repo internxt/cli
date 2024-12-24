@@ -13,6 +13,7 @@ import { AuthService } from '../services/auth.service';
 import { CryptoService } from '../services/crypto.service';
 import { TrashService } from '../services/drive/trash.service';
 import { webdavLogger } from '../utils/logger.utils';
+import { SdkManager } from '../services/sdk-manager.service';
 
 dotenv.config();
 
@@ -22,6 +23,12 @@ const init = async () => {
   await ConfigService.instance.ensureInternxtLogsDirExists();
 
   await DriveDatabaseManager.init();
+
+  const { token, newToken } = await AuthService.instance.getAuthDetails();
+  SdkManager.init({
+    token,
+    newToken,
+  });
 
   new WebDavServer(
     express(),
