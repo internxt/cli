@@ -37,6 +37,7 @@
     "/oclif.manifest.json"
   ],
   "dependencies": {
+    "@hammerbot/express-concurrent": "0.0.3",
     "@inquirer/prompts": "7.2.1",
     "@internxt/inxt-js": "2.0.11",
     "@internxt/lib": "1.2.1",
@@ -57,7 +58,7 @@
     "node-fetch": "2.7.0",
     "openpgp": "5.11.2",
     "pm2": "5.4.3",
-    "range-parser": "^1.2.1",
+    "range-parser": "1.2.1",
     "reflect-metadata": "0.2.2",
     "selfsigned": "2.4.1",
     "sequelize": "6.37.5",
@@ -76,7 +77,7 @@
     "@types/mime-types": "2.1.4",
     "@types/node": "22.10.2",
     "@types/node-fetch": "2.6.12",
-    "@types/range-parser": "^1.2.7",
+    "@types/range-parser": "1.2.7",
     "@vitest/coverage-istanbul": "2.1.8",
     "@vitest/spy": "2.1.8",
     "eslint": "9.17.0",
