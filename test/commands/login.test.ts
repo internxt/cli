@@ -135,7 +135,7 @@ describe('Login Command', () => {
       .spyOn(CLIUtils, 'getValueFromFlag')
       .mockResolvedValueOnce(UserLoginFixture.email) // email
       .mockResolvedValueOnce(UserLoginFixture.password) // password
-      .mockResolvedValueOnce(UserLoginFixture.twoFactor) // two factor code
+      .mockResolvedValueOnce(UserLoginFixture.tfaCode!) // two factor code
       .mockRejectedValue(new Error()); // default
     const is2FaNeededSpy = vi.spyOn(AuthService.instance, 'is2FANeeded').mockResolvedValue(true);
     const doLoginSpy = vi.spyOn(AuthService.instance, 'doLogin').mockResolvedValue(UserCredentialsFixture);
@@ -149,7 +149,7 @@ describe('Login Command', () => {
     const result = await Login.run([
       `--email="${UserLoginFixture.email}"`,
       `--password="${UserLoginFixture.password}"`,
-      `--twofactor="${UserLoginFixture.twoFactor}"`,
+      `--twofactor="${UserLoginFixture.tfaCode}"`,
     ]);
 
     expect(result).to.be.deep.equal(expected);

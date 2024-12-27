@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import crypto from 'node:crypto';
-import { Auth, LoginDetails, SecurityDetails } from '@internxt/sdk';
+import { Auth, SecurityDetails } from '@internxt/sdk';
 import { AuthService } from '../../src/services/auth.service';
 import { KeysService } from '../../src/services/keys.service';
 import { CryptoService } from '../../src/services/crypto.service';
@@ -14,7 +14,7 @@ import {
   LoginCredentials,
   MissingCredentialsError,
 } from '../../src/types/command.types';
-import { UserCredentialsFixture } from '../fixtures/login.fixture';
+import { UserCredentialsFixture, UserLoginFixture } from '../fixtures/login.fixture';
 import { fail } from 'node:assert';
 
 describe('Auth service', () => {
@@ -24,9 +24,7 @@ describe('Auth service', () => {
 
   it('When user logs in, then login user credentials are generated', async () => {
     const loginResponse = {
-      token: crypto.randomBytes(16).toString('hex'),
-      newToken: crypto.randomBytes(16).toString('hex'),
-      user: UserFixture,
+      ...UserCredentialsFixture,
       userTeam: null,
     };
     const mockDate = new Date().toISOString();
@@ -39,11 +37,7 @@ describe('Auth service', () => {
     vi.spyOn(CryptoService.instance, 'decryptTextWithKey').mockReturnValue(loginResponse.user.mnemonic);
     vi.spyOn(Date.prototype, 'toISOString').mockReturnValue(mockDate);
 
-    const responseLogin = await AuthService.instance.doLogin(
-      loginResponse.user.email,
-      crypto.randomBytes(16).toString('hex'),
-      '',
-    );
+    const responseLogin = await AuthService.instance.doLogin(UserLoginFixture.email, UserLoginFixture.password, '');
 
     const expectedResponseLogin: LoginCredentials = {
       user: { ...loginResponse.user, privateKey: Buffer.from(loginResponse.user.privateKey).toString('base64') },
@@ -56,17 +50,11 @@ describe('Auth service', () => {
   });
 
   it('When user logs in and credentials are not correct, then an error is thrown', async () => {
-    const loginDetails: LoginDetails = {
-      email: crypto.randomBytes(16).toString('hex'),
-      password: crypto.randomBytes(8).toString('hex'),
-      tfaCode: crypto.randomInt(1, 999999).toString().padStart(6, '0'),
-    };
-
     const loginStub = vi.spyOn(Auth.prototype, 'login').mockRejectedValue(new Error('Login failed'));
     vi.spyOn(SdkManager.instance, 'getAuth').mockReturnValue(Auth.prototype);
 
     try {
-      await AuthService.instance.doLogin(loginDetails.email, loginDetails.password, loginDetails.tfaCode || '');
+      await AuthService.instance.doLogin(UserLoginFixture.email, UserLoginFixture.password, UserLoginFixture.tfaCode);
       fail('Expected function to throw an error, but it did not.');
     } catch {
       /* no op */
@@ -75,7 +63,7 @@ describe('Auth service', () => {
   });
 
   it('When two factor authentication is enabled, then it is returned from is2FANeeded functionality', async () => {
-    const email = crypto.randomBytes(16).toString('hex');
+    const email = UserLoginFixture.email;
     const securityDetails: SecurityDetails = {
       encryptedSalt: crypto.randomBytes(16).toString('hex'),
       tfaEnabled: true,
@@ -90,7 +78,7 @@ describe('Auth service', () => {
   });
 
   it('When email is not correct when checking two factor authentication, then an error is thrown', async () => {
-    const email = crypto.randomBytes(16).toString('hex');
+    const email = UserLoginFixture.email;
 
     const securityStub = vi.spyOn(Auth.prototype, 'securityDetails').mockRejectedValue(new Error());
     vi.spyOn(SdkManager.instance, 'getAuth').mockReturnValue(Auth.prototype);

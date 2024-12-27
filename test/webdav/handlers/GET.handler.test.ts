@@ -134,6 +134,7 @@ describe('GET request handler', () => {
       mockFile.bucket,
       mockAuthDetails.user.mnemonic,
       mockFile.fileId,
+      mockFile.size,
       expect.any(Object),
       undefined,
     );
@@ -205,6 +206,7 @@ describe('GET request handler', () => {
       mockFile.bucket,
       mockAuthDetails.user.mnemonic,
       mockFile.fileId,
+      mockSize - rangeStart,
       expect.any(Object),
       expectedRangeOptions,
     );

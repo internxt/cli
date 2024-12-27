@@ -1,41 +1,68 @@
 import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
-import crypto from 'node:crypto';
+import Chance from 'chance';
+import { generateMnemonic } from 'bip39';
+
+const randomDataGenerator = new Chance();
 
 export const UserFixture: UserSettings = {
-  userId: crypto.randomBytes(16).toString('hex'),
-  uuid: crypto.randomBytes(16).toString('hex'),
-  email: crypto.randomBytes(16).toString('hex'),
-  name: crypto.randomBytes(16).toString('hex'),
-  lastname: crypto.randomBytes(16).toString('hex'),
-  username: crypto.randomBytes(16).toString('hex'),
-  bridgeUser: crypto.randomBytes(16).toString('hex'),
-  bucket: crypto.randomBytes(16).toString('hex'),
-  backupsBucket: crypto.randomBytes(16).toString('hex'),
-  root_folder_id: crypto.randomInt(1, 9999),
-  rootFolderId: crypto.randomBytes(16).toString('hex'),
-  rootFolderUuid: crypto.randomBytes(16).toString('hex'),
+  userId: randomDataGenerator.natural({ min: 1 }).toString(),
+  uuid: randomDataGenerator.guid({ version: 4 }),
+  email: randomDataGenerator.email(),
+  name: randomDataGenerator.name(),
+  lastname: randomDataGenerator.name(),
+  username: randomDataGenerator.word(),
+  bridgeUser: randomDataGenerator.email(),
+  bucket: randomDataGenerator.string({ length: 24, pool: 'abcdef0123456789' }),
+  backupsBucket: randomDataGenerator.string({ length: 24, pool: 'abcdef0123456789' }),
+  root_folder_id: randomDataGenerator.natural({ min: 1 }),
+  rootFolderId: randomDataGenerator.guid({ version: 4 }),
+  rootFolderUuid: randomDataGenerator.guid({ version: 4 }),
   sharedWorkspace: false,
-  credit: crypto.randomInt(1, 9999),
-  mnemonic: crypto.randomBytes(16).toString('hex'),
-  privateKey: crypto.randomBytes(16).toString('hex'),
-  publicKey: crypto.randomBytes(16).toString('hex'),
-  revocationKey: crypto.randomBytes(16).toString('hex'),
+  credit: randomDataGenerator.natural({ min: 1, max: 9999 }),
+  mnemonic: generateMnemonic(),
+  privateKey: randomDataGenerator.string({
+    length: randomDataGenerator.integer({ min: 500, max: 1000 }),
+    pool: 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
+  }),
+  publicKey: randomDataGenerator.string({
+    length: randomDataGenerator.integer({ min: 500, max: 1000 }),
+    pool: 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
+  }),
+  revocationKey: randomDataGenerator.string({
+    length: randomDataGenerator.integer({ min: 500, max: 1000 }),
+    pool: 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
+  }),
   teams: false,
   appSumoDetails: null,
   registerCompleted: true,
   hasReferralsProgram: false,
-  createdAt: new Date(),
-  avatar: crypto.randomBytes(16).toString('hex'),
+  createdAt: randomDataGenerator.date(),
+  avatar: randomDataGenerator.url(),
   emailVerified: true,
   keys: {
     ecc: {
-      privateKey: crypto.randomBytes(16).toString('hex'),
-      publicKey: crypto.randomBytes(16).toString('hex'),
-      revocationKey: crypto.randomBytes(16).toString('hex'),
+      privateKey: randomDataGenerator.string({
+        length: randomDataGenerator.integer({ min: 500, max: 1000 }),
+        pool: 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
+      }),
+      publicKey: randomDataGenerator.string({
+        length: randomDataGenerator.integer({ min: 500, max: 1000 }),
+        pool: 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
+      }),
+      revocationKey: randomDataGenerator.string({
+        length: randomDataGenerator.integer({ min: 500, max: 1000 }),
+        pool: 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
+      }),
     },
     kyber: {
-      privateKyberKey: crypto.randomBytes(16).toString('hex'),
-      publicKyberKey: crypto.randomBytes(16).toString('hex'),
+      privateKyberKey: randomDataGenerator.string({
+        length: randomDataGenerator.integer({ min: 500, max: 1000 }),
+        pool: 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
+      }),
+      publicKyberKey: randomDataGenerator.string({
+        length: randomDataGenerator.integer({ min: 500, max: 1000 }),
+        pool: 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
+      }),
     },
   },
 };

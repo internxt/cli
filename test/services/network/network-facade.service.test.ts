@@ -4,12 +4,14 @@ import { NetworkFacade } from '../../../src/services/network/network-facade.serv
 import { SdkManager } from '../../../src/services/sdk-manager.service';
 import path from 'node:path';
 import { createReadStream } from 'node:fs';
+import fs from 'node:fs/promises';
 import { UploadService } from '../../../src/services/network/upload.service';
 import { CryptoService } from '../../../src/services/crypto.service';
 import { DownloadService } from '../../../src/services/network/download.service';
 import { Readable } from 'node:stream';
 import axios from 'axios';
 import { fail } from 'node:assert';
+import { UserFixture } from '../../fixtures/auth.fixture';
 
 describe('Network Facade Service', () => {
   beforeEach(() => {
@@ -31,6 +33,7 @@ describe('Network Facade Service', () => {
       CryptoService.instance,
     );
     const file = path.join(process.cwd(), 'test/fixtures/test-content.fixture.txt');
+    const fileStat = await fs.stat(file);
     const readStream = createReadStream(file);
     const options = {
       progressCallback: vi.fn(),
@@ -38,9 +41,9 @@ describe('Network Facade Service', () => {
     };
 
     const result = await sut.uploadFromStream(
-      'f1858bc9675f9e4f7ab29429',
-      'animal fog wink trade december thumb sight cousin crunch plunge captain enforce letter creek text',
-      100,
+      UserFixture.bucket,
+      UserFixture.mnemonic,
+      fileStat.size,
       readStream,
       options,
     );
@@ -57,6 +60,7 @@ describe('Network Facade Service', () => {
       CryptoService.instance,
     );
     const file = path.join(process.cwd(), 'test/fixtures/test-content.fixture.txt');
+    const fileStat = await fs.stat(file);
     const readStream = createReadStream(file);
     const options = {
       progressCallback: vi.fn(),
@@ -65,9 +69,9 @@ describe('Network Facade Service', () => {
 
     vi.spyOn(NetworkUpload, 'uploadFile').mockResolvedValue('uploaded_file_id');
     const [executeUpload] = await sut.uploadFromStream(
-      'f1858bc9675f9e4f7ab29429',
-      'animal fog wink trade december thumb sight cousin crunch plunge captain enforce letter creek text',
-      100,
+      UserFixture.bucket,
+      UserFixture.mnemonic,
+      fileStat.size,
       readStream,
       options,
     );
@@ -92,7 +96,7 @@ describe('Network Facade Service', () => {
       index: '29f07b8914d8353b663ab783f4bbe9950fdde680a69524405790cecca9c549f9',
       bucket: bucket,
       created: new Date(),
-      size: 100,
+      size: encryptedContent.length,
       shards: [
         {
           url: 'https://doesnotexists.com/file',
@@ -120,6 +124,7 @@ describe('Network Facade Service', () => {
       // eslint-disable-next-line max-len
       'index course habit soon assist dragon tragic helmet salute stuff later twice consider grit pulse cement obvious trick sponsor stereo hello win royal more',
       'f1858bc9675f9e4f7ab29429',
+      encryptedContent.length,
       writable,
     );
 
@@ -131,7 +136,7 @@ describe('Network Facade Service', () => {
 
   it('When a file download is aborted, should abort the download', async () => {
     const encryptedContent = Buffer.from('b6ccfa381c150f3a4b65245bffa4d84087', 'hex');
-    const bucket = 'cd8abd7e8b13081660b58dbe';
+
     const readableContent = new ReadableStream<Uint8Array>({
       pull(controller) {
         controller.enqueue(encryptedContent);
@@ -142,9 +147,9 @@ describe('Network Facade Service', () => {
     const networkMock = getNetworkMock();
     vi.spyOn(networkMock, 'getDownloadLinks').mockResolvedValue({
       index: '29f07b8914d8353b663ab783f4bbe9950fdde680a69524405790cecca9c549f9',
-      bucket: bucket,
+      bucket: UserFixture.bucket,
       created: new Date(),
-      size: 100,
+      size: encryptedContent.length,
       shards: [
         {
           url: 'https://doesnotexists.com/file',
@@ -162,10 +167,11 @@ describe('Network Facade Service', () => {
     const writable = new WritableStream<Uint8Array>();
 
     const [executeDownload, abort] = await sut.downloadToStream(
-      bucket,
+      UserFixture.bucket,
       // eslint-disable-next-line max-len
       'index course habit soon assist dragon tragic helmet salute stuff later twice consider grit pulse cement obvious trick sponsor stereo hello win royal more',
       'f1858bc9675f9e4f7ab29429',
+      encryptedContent.length,
       writable,
     );
 
@@ -194,7 +200,7 @@ describe('Network Facade Service', () => {
       index: '29f07b8914d8353b663ab783f4bbe9950fdde680a69524405790cecca9c549f9',
       bucket: bucket,
       created: new Date(),
-      size: 100,
+      size: encryptedContent.length,
       shards: [
         {
           url: 'https://doesnotexists.com/file',
@@ -214,7 +220,12 @@ describe('Network Facade Service', () => {
     const options = { progressCallback: vi.fn() };
 
     vi.spyOn(axios, 'get').mockImplementation((_, config) => {
-      config?.onDownloadProgress?.({ loaded: 100, total: 100, bytes: 100, lengthComputable: true });
+      config?.onDownloadProgress?.({
+        loaded: encryptedContent.length,
+        total: encryptedContent.length,
+        bytes: encryptedContent.length,
+        lengthComputable: true,
+      });
       return Promise.resolve({ data: readableContent });
     });
 
@@ -223,6 +234,7 @@ describe('Network Facade Service', () => {
       // eslint-disable-next-line max-len
       'index course habit soon assist dragon tragic helmet salute stuff later twice consider grit pulse cement obvious trick sponsor stereo hello win royal more',
       'f1858bc9675f9e4f7ab29429',
+      encryptedContent.length,
       writable,
       undefined,
       options,
@@ -230,6 +242,6 @@ describe('Network Facade Service', () => {
 
     await executeDownload;
 
-    expect(options.progressCallback).toHaveBeenCalledWith(1);
+    expect(options.progressCallback).toHaveBeenCalledWith(100);
   });
 });

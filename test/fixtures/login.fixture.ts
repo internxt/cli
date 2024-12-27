@@ -1,23 +1,26 @@
-import { randomBytes, randomInt } from 'node:crypto';
 import { UserFixture } from './auth.fixture';
 import { LoginCredentials } from '../../src/types/command.types';
 import { SdkManagerApiSecurity } from '../../src/services/sdk-manager.service';
+import Chance from 'chance';
+import { LoginDetails } from '@internxt/sdk';
 
-export const UserLoginFixture = {
-  email: `${randomBytes(8).toString('hex')}@${randomBytes(8).toString('hex')}.com`,
-  password: randomBytes(16).toString('hex'),
-  twoFactor: randomInt(0, 999999).toString().padStart(6, '0'),
+const randomDataGenerator = new Chance();
+
+export const UserLoginFixture: LoginDetails = {
+  email: UserFixture.email,
+  password: randomDataGenerator.string({ length: 32 }),
+  tfaCode: randomDataGenerator.natural({ min: 0, max: 999999 }).toString().padStart(6, '0'),
 };
 
 export const ApiSecurityFixture: SdkManagerApiSecurity = {
-  newToken: randomBytes(16).toString('hex'),
-  token: randomBytes(16).toString('hex'),
+  newToken: randomDataGenerator.string({ length: 24, pool: 'abcdef0123456789' }),
+  token: randomDataGenerator.string({ length: 24, pool: 'abcdef0123456789' }),
 };
 
 export const UserCredentialsFixture: LoginCredentials = {
-  user: { ...UserFixture, email: UserLoginFixture.email },
+  user: UserFixture,
   token: ApiSecurityFixture.token,
   newToken: ApiSecurityFixture.newToken,
-  lastLoggedInAt: randomBytes(16).toString('hex'),
-  lastTokenRefreshAt: randomBytes(16).toString('hex'),
+  lastLoggedInAt: randomDataGenerator.date().toISOString(),
+  lastTokenRefreshAt: randomDataGenerator.date().toISOString(),
 };
