@@ -79,12 +79,13 @@ export default class DownloadFile extends Command {
       user.bucket,
       user.mnemonic,
       driveFile.fileId,
+      driveFile.size,
       StreamUtils.writeStreamToWritableStream(fileWriteStream),
       undefined,
       {
         abortController: new AbortController(),
         progressCallback: (progress) => {
-          progressBar.update(progress);
+          progressBar.update(progress * 0.99);
         },
       },
     );

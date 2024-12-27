@@ -5,6 +5,7 @@ export class DownloadService {
 
   async downloadFile(
     url: string,
+    size: number,
     options: {
       progressCallback?: (progress: number) => void;
       abortController?: AbortController;
@@ -14,9 +15,8 @@ export class DownloadService {
     const response = await axios.get(url, {
       responseType: 'stream',
       onDownloadProgress(progressEvent) {
-        if (options.progressCallback && progressEvent.total) {
-          const reportedProgress = progressEvent.loaded / progressEvent.total;
-
+        if (options.progressCallback && progressEvent.loaded) {
+          const reportedProgress = Math.round((progressEvent.loaded / size) * 100);
           options.progressCallback(reportedProgress);
         }
       },

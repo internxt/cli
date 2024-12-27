@@ -43,15 +43,6 @@ export class GETRequestHandler implements WebDavMethodHandler {
     const { user } = await authService.getAuthDetails();
     webdavLogger.info(`[GET] [${driveFile.uuid}] Network ready for download`);
 
-    const writable = new WritableStream({
-      write(chunk) {
-        res.write(chunk);
-      },
-      close() {
-        res.end();
-      },
-    });
-
     const range = req.headers['range'];
     const rangeOptions = NetworkUtils.parseRangeHeader({
       range,
@@ -66,10 +57,20 @@ export class GETRequestHandler implements WebDavMethodHandler {
     res.header('Content-Type', 'application/octet-stream');
     res.header('Content-length', contentLength.toString());
 
+    const writable = new WritableStream({
+      write(chunk) {
+        res.write(chunk);
+      },
+      close() {
+        res.end();
+      },
+    });
+
     const [executeDownload] = await networkFacade.downloadToStream(
       driveFile.bucket,
       user.mnemonic,
       driveFile.fileId,
+      contentLength,
       writable,
       rangeOptions,
     );
