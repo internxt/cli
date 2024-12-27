@@ -74,14 +74,14 @@ export default class UploadFile extends Command {
 
     CLIUtils.done();
 
-    const timer = CLIUtils.timer();
     // 2. Upload file to the Network
     const fileStream = createReadStream(filePath);
+    const timer = CLIUtils.timer();
     const progressBar = CLIUtils.progress({
       format: 'Uploading file [{bar}] {percentage}%',
       linewrap: true,
     });
-    progressBar.start(1, 0);
+    progressBar.start(100, 0);
     const [uploadPromise, abortable] = await networkFacade.uploadFromStream(
       user.bucket,
       user.mnemonic,
@@ -89,7 +89,7 @@ export default class UploadFile extends Command {
       fileStream,
       {
         progressCallback: (progress) => {
-          progressBar.update(progress);
+          progressBar.update(progress * 0.99);
         },
       },
     );
@@ -100,7 +100,6 @@ export default class UploadFile extends Command {
     });
 
     const uploadResult = await uploadPromise;
-    progressBar.stop();
 
     // 3. Create the file in Drive
     const fileInfo = path.parse(filePath);
@@ -114,6 +113,9 @@ export default class UploadFile extends Command {
       encrypt_version: EncryptionVersion.Aes03,
       name: '',
     });
+
+    progressBar.update(100);
+    progressBar.stop();
 
     const uploadTime = timer.stop();
     this.log('\n');
