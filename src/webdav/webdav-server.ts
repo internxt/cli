@@ -170,8 +170,8 @@ export class WebDavServer {
     server.requestTimeout = 15 * 60 * 1000;
 
     server.listen(configs.port, () => {
-      webdavLogger.info(
-        `Internxt WebDav server listening at ${configs.protocol}://${ConfigService.WEBDAV_LOCAL_URL}:${configs.port}`,
+      webdavLogger.info(`Internxt ${SdkManager.getAppDetails().clientVersion} WebDav server ` +
+        `listening at ${configs.protocol}://${ConfigService.WEBDAV_LOCAL_URL}:${configs.port}`,
       );
     });
   };
