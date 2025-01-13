@@ -17,3 +17,13 @@ export interface SelfsignedCert {
   cert: string | Buffer;
   key: string | Buffer;
 }
+
+export interface UploadTask {
+  contentToUpload: Buffer;
+  urlToUpload: string;
+  index: number;
+}
+
+export interface UploadMultipartOptions extends UploadOptions {
+  parts: number;
+}

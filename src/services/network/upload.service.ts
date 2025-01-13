@@ -5,7 +5,7 @@ import { UploadOptions } from '../../types/network.types';
 export class UploadService {
   public static readonly instance: UploadService = new UploadService();
 
-  async uploadFile(url: string, from: Readable, options: UploadOptions): Promise<{ etag: string }> {
+  async uploadFile(url: string, from: Readable | Buffer, options: UploadOptions): Promise<{ etag: string }> {
     const response = await axios.put(url, from, {
       signal: options.abortController?.signal,
       onUploadProgress: (progressEvent) => {
