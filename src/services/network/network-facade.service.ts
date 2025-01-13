@@ -148,14 +148,11 @@ export class NetworkFacade {
     };
 
     const encryptFile: EncryptFileFunction = async (_, key, iv) => {
-      encryptionTransform = from
-        .pipe(
-          await this.cryptoService.getEncryptionTransform(
-            Buffer.from(key as ArrayBuffer),
-            Buffer.from(iv as ArrayBuffer),
-          ),
-        )
-        .pipe(hashStream);
+      const encryptionCipher = this.cryptoService.getEncryptionTransform(
+        Buffer.from(key as ArrayBuffer),
+        Buffer.from(iv as ArrayBuffer),
+      );
+      encryptionTransform = from.pipe(encryptionCipher).pipe(hashStream);
     };
 
     const uploadFile: UploadFileFunction = async (url) => {
