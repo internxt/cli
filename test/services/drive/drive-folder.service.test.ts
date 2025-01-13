@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { randomUUID } from 'node:crypto';
 import { Storage } from '@internxt/sdk/dist/drive';
 import { DriveFolderService } from '../../../src/services/drive/drive-folder.service';
 import { SdkManager } from '../../../src/services/sdk-manager.service';
@@ -40,8 +41,8 @@ describe('Drive folder Service', () => {
   });
 
   it('When folder content is requested, then all its subfolders and subfiles are returned', async () => {
-    const parentFolder = newFolderMeta();
-    const subContentFixture = generateSubcontent(parentFolder.uuid, 112, 117); //112 subfolders and 117 subfiles
+    const parentUuid = randomUUID();
+    const subContentFixture = generateSubcontent(parentUuid, 112, 117); //112 subfolders and 117 subfiles
     const requestCancelerMock = { cancel: () => {} };
 
     vi.spyOn(Storage.prototype, 'getFolderFoldersByUuid').mockImplementation((_: string, offset) => {
@@ -72,7 +73,7 @@ describe('Drive folder Service', () => {
     });
     vi.spyOn(SdkManager.instance, 'getStorage').mockReturnValue(Storage.prototype);
 
-    const resultContent = await sut.getFolderContent(parentFolder.uuid);
+    const resultContent = await sut.getFolderContent(parentUuid);
 
     expect(subContentFixture).to.deep.equal(resultContent);
   });

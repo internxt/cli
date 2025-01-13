@@ -1,12 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { UploadService } from '../../../src/services/network/upload.service';
 import nock from 'nock';
-import Chance from 'chance';
 import { Readable } from 'node:stream';
 
 describe('Upload Service', () => {
   const sut = UploadService.instance;
-  const randomDataGenerator = new Chance();
 
   beforeEach(() => {
     vi.restoreAllMocks();
@@ -14,10 +12,9 @@ describe('Upload Service', () => {
 
   it('When a file is uploaded and etag is missing, should throw an error', async () => {
     const url = 'https://example.com/upload';
-    const fileContent = Buffer.from(randomDataGenerator.string({ length: 64 }));
     const data = new Readable({
       read() {
-        this.push(fileContent);
+        this.push('test content');
         this.push(null);
       },
     });
@@ -29,7 +26,7 @@ describe('Upload Service', () => {
     nock('https://example.com').put('/upload').reply(200, '', {});
 
     try {
-      await sut.uploadFile(url, fileContent.length, data, options);
+      await sut.uploadFile(url, data, options);
     } catch (error) {
       expect((error as Error).message).to.contain('Missing Etag');
     }
@@ -37,10 +34,9 @@ describe('Upload Service', () => {
 
   it('When a file is uploaded and etag is returned, the etag should be returned', async () => {
     const url = 'https://example.com/upload';
-    const fileContent = Buffer.from(randomDataGenerator.string({ length: 64 }));
     const data = new Readable({
       read() {
-        this.push(fileContent);
+        this.push('test content');
         this.push(null);
       },
     });
@@ -53,16 +49,15 @@ describe('Upload Service', () => {
       etag: 'test-etag',
     });
 
-    const result = await sut.uploadFile(url, fileContent.length, data, options);
+    const result = await sut.uploadFile(url, data, options);
     expect(result.etag).to.be.equal('test-etag');
   });
 
   it('When a file is uploaded, should update the progress', async () => {
     const url = 'https://example.com/upload';
-    const fileContent = Buffer.from(randomDataGenerator.string({ length: 64 }));
     const data = new Readable({
       read() {
-        this.push(fileContent);
+        this.push('test content');
         this.push(null);
       },
     });
@@ -75,8 +70,8 @@ describe('Upload Service', () => {
       etag: 'test-etag',
     });
 
-    await sut.uploadFile(url, fileContent.length, data, options);
-    expect(options.progressCallback).toHaveBeenCalledWith(100);
+    await sut.uploadFile(url, data, options);
+    expect(options.progressCallback).toHaveBeenCalledWith(1);
   });
 
   it('When a file is uploaded and the upload is aborted, should cancel the request', async () => {

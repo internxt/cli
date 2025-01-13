@@ -2,18 +2,16 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { DownloadService } from '../../../src/services/network/download.service';
 import { Readable } from 'node:stream';
 import axios from 'axios';
-import Chance from 'chance';
 
 describe('Download Service', () => {
   const sut = DownloadService.instance;
-  const randomDataGenerator = new Chance();
 
   beforeEach(() => {
     vi.restoreAllMocks();
   });
 
   it('When a file is downloaded, should return a ReadableStream', async () => {
-    const fileContent = Buffer.from(randomDataGenerator.string({ length: 64 }));
+    const fileContent = Buffer.from('file-content');
     const readableContent = new Readable({
       read() {
         this.push(fileContent);
@@ -22,7 +20,7 @@ describe('Download Service', () => {
     });
 
     vi.spyOn(axios, 'get').mockResolvedValue({ data: readableContent });
-    const readable = await sut.downloadFile('https://example.com/file', fileContent.length, {});
+    const readable = await sut.downloadFile('https://example.com/file', {});
 
     const reader = readable.getReader();
 
@@ -32,7 +30,7 @@ describe('Download Service', () => {
   });
 
   it('When a file is downloaded, progress should be reported', async () => {
-    const fileContent = Buffer.from(randomDataGenerator.string({ length: 64 }));
+    const fileContent = Buffer.from('file-content');
     const options = {
       progressCallback: vi.fn(),
     };
@@ -44,17 +42,12 @@ describe('Download Service', () => {
     });
 
     vi.spyOn(axios, 'get').mockImplementation((_, config) => {
-      config?.onDownloadProgress?.({
-        loaded: fileContent.length,
-        total: fileContent.length,
-        bytes: fileContent.length,
-        lengthComputable: true,
-      });
+      config?.onDownloadProgress?.({ loaded: 100, total: 100, bytes: 100, lengthComputable: true });
       return Promise.resolve({ data: readableContent });
     });
 
-    await sut.downloadFile('https://example.com/file', fileContent.length, options);
+    await sut.downloadFile('https://example.com/file', options);
 
-    expect(options.progressCallback).toHaveBeenCalledWith(100);
+    expect(options.progressCallback).toHaveBeenCalledWith(1);
   });
 });
