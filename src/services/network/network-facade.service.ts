@@ -73,7 +73,7 @@ export class NetworkFacade {
       if (rangeOptions) {
         startOffsetByte = rangeOptions.parsed.start;
       }
-      fileStream = await this.cryptoService.decryptStream(
+      fileStream = this.cryptoService.decryptStream(
         encryptedContentStreams,
         Buffer.from(key as ArrayBuffer),
         Buffer.from(iv as ArrayBuffer),
