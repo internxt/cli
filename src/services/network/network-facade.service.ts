@@ -10,7 +10,7 @@ import {
 import { Environment } from '@internxt/inxt-js';
 import { randomBytes } from 'node:crypto';
 import { Readable, Transform } from 'node:stream';
-import { DownloadOptions, UploadOptions, UploadProgressCallback } from '../../types/network.types';
+import { DownloadOptions, UploadOptions, UploadProgressCallback, DownloadProgressCallback } from '../../types/network.types';
 import { CryptoService } from '../crypto.service';
 import { UploadService } from './upload.service';
 import { DownloadService } from './download.service';
@@ -62,9 +62,10 @@ export class NetworkFacade {
     let fileStream: ReadableStream<Uint8Array>;
     const abortable = options?.abortController ?? new AbortController();
 
-    const onProgress: UploadProgressCallback = (progress: number) => {
+    const onProgress: DownloadProgressCallback = (loadedBytes: number) => {
       if (!options?.progressCallback) return;
-      options.progressCallback(progress);
+      const reportedProgress = Math.round((loadedBytes / size) * 100);
+      options.progressCallback(reportedProgress);
     };
 
     const decryptFile: DecryptFileFunction = async (_, key, iv) => {
@@ -92,7 +93,7 @@ export class NetworkFacade {
           throw new Error('Download aborted');
         }
 
-        const encryptedContentStream = await this.downloadService.downloadFile(downloadable.url, size, {
+        const encryptedContentStream = await this.downloadService.downloadFile(downloadable.url, {
           progressCallback: onProgress,
           abortController: options?.abortController,
           rangeHeader: rangeOptions?.range,
@@ -140,9 +141,10 @@ export class NetworkFacade {
     let encryptionTransform: Transform;
     let hash: Buffer;
 
-    const onProgress: UploadProgressCallback = (progress: number) => {
+    const onProgress: UploadProgressCallback = (loadedBytes: number) => {
       if (!options?.progressCallback) return;
-      options.progressCallback(progress);
+      const reportedProgress = Math.round((loadedBytes / size) * 100);
+      options.progressCallback(reportedProgress);
     };
 
     const encryptFile: EncryptFileFunction = async (_, key, iv) => {
@@ -157,7 +159,7 @@ export class NetworkFacade {
     };
 
     const uploadFile: UploadFileFunction = async (url) => {
-      await this.uploadService.uploadFile(url, size, encryptionTransform, {
+      await this.uploadService.uploadFile(url, encryptionTransform, {
         abortController: abortable,
         progressCallback: onProgress,
       });

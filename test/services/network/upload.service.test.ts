@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { UploadService } from '../../../src/services/network/upload.service';
 import nock from 'nock';
 import { Readable } from 'node:stream';
+import crypto from 'node:crypto';
 
 describe('Upload Service', () => {
   const sut = UploadService.instance;
@@ -12,9 +13,10 @@ describe('Upload Service', () => {
 
   it('When a file is uploaded and etag is missing, should throw an error', async () => {
     const url = 'https://example.com/upload';
+    const file = crypto.randomBytes(16).toString('hex');
     const data = new Readable({
       read() {
-        this.push('test content');
+        this.push(file);
         this.push(null);
       },
     });
@@ -34,9 +36,10 @@ describe('Upload Service', () => {
 
   it('When a file is uploaded and etag is returned, the etag should be returned', async () => {
     const url = 'https://example.com/upload';
+    const file = crypto.randomBytes(16).toString('hex');
     const data = new Readable({
       read() {
-        this.push('test content');
+        this.push(file);
         this.push(null);
       },
     });
@@ -55,9 +58,10 @@ describe('Upload Service', () => {
 
   it('When a file is uploaded, should update the progress', async () => {
     const url = 'https://example.com/upload';
+    const file = crypto.randomBytes(16).toString('hex');
     const data = new Readable({
       read() {
-        this.push('test content');
+        this.push(file);
         this.push(null);
       },
     });
@@ -71,7 +75,7 @@ describe('Upload Service', () => {
     });
 
     await sut.uploadFile(url, data, options);
-    expect(options.progressCallback).toHaveBeenCalledWith(1);
+    expect(options.progressCallback).toHaveBeenCalledWith(file.length);
   });
 
   it('When a file is uploaded and the upload is aborted, should cancel the request', async () => {

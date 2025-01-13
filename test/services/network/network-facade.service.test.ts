@@ -120,6 +120,7 @@ describe('Network Facade Service', () => {
       // eslint-disable-next-line max-len
       'index course habit soon assist dragon tragic helmet salute stuff later twice consider grit pulse cement obvious trick sponsor stereo hello win royal more',
       'f1858bc9675f9e4f7ab29429',
+      encryptedContent.length,
       writable,
     );
 
@@ -166,6 +167,7 @@ describe('Network Facade Service', () => {
       // eslint-disable-next-line max-len
       'index course habit soon assist dragon tragic helmet salute stuff later twice consider grit pulse cement obvious trick sponsor stereo hello win royal more',
       'f1858bc9675f9e4f7ab29429',
+      encryptedContent.length,
       writable,
     );
 
@@ -214,7 +216,12 @@ describe('Network Facade Service', () => {
     const options = { progressCallback: vi.fn() };
 
     vi.spyOn(axios, 'get').mockImplementation((_, config) => {
-      config?.onDownloadProgress?.({ loaded: 100, total: 100, bytes: 100, lengthComputable: true });
+      config?.onDownloadProgress?.({
+        loaded: encryptedContent.length,
+        total: encryptedContent.length,
+        bytes: encryptedContent.length,
+        lengthComputable: true
+      });
       return Promise.resolve({ data: readableContent });
     });
 
@@ -223,6 +230,7 @@ describe('Network Facade Service', () => {
       // eslint-disable-next-line max-len
       'index course habit soon assist dragon tragic helmet salute stuff later twice consider grit pulse cement obvious trick sponsor stereo hello win royal more',
       'f1858bc9675f9e4f7ab29429',
+      encryptedContent.length,
       writable,
       undefined,
       options,
@@ -230,6 +238,6 @@ describe('Network Facade Service', () => {
 
     await executeDownload;
 
-    expect(options.progressCallback).toHaveBeenCalledWith(1);
+    expect(options.progressCallback).toHaveBeenCalledWith(100);
   });
 });
