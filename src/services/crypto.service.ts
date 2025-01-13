@@ -166,11 +166,11 @@ export class CryptoService {
     return decryptedStream;
   }
 
-  public async getEncryptionTransform(key: Buffer, iv: Buffer): Promise<Transform> {
+  public getEncryptionTransform = (key: Buffer, iv: Buffer): Transform => {
     const cipher = createCipheriv('aes-256-ctr', key, iv);
-
     return cipher;
-  }
+  };
+
   /**
    * Generates the key and the iv by transforming a secret and a salt.
    * It will generate the same key and iv if the same secret and salt is used.
