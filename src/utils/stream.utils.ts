@@ -1,5 +1,5 @@
 import { ReadStream, WriteStream } from 'node:fs';
-import { Transform, TransformCallback } from 'node:stream';
+import { Readable, Transform, TransformCallback } from 'node:stream';
 
 export class StreamUtils {
   static readStreamToReadableStream(readStream: ReadStream): ReadableStream<Uint8Array> {
@@ -63,6 +63,48 @@ export class StreamUtils {
     });
 
     return stream;
+  }
+
+  /**
+   * Given a readable stream, it enqueues its parts into chunks as it is being read
+   * @param readable Readable stream
+   * @param chunkSize The chunkSize in bytes that we want each chunk to be
+   * @returns A readable stream whose output is chunks of size chunkSize
+   */
+  static streamReadableIntoChunks(readable: Readable, chunkSize: number): Readable {
+    let buffer = Buffer.alloc(0);
+
+    const mergeBuffers = (buffer1: Buffer, buffer2: Buffer): Buffer => {
+      return Buffer.concat([buffer1, buffer2]);
+    };
+
+    const outputStream = new Readable({
+      read() {
+        // noop
+      },
+    });
+
+    readable.on('data', (chunk: Buffer) => {
+      buffer = mergeBuffers(buffer, chunk);
+
+      while (buffer.length >= chunkSize) {
+        outputStream.push(buffer.subarray(0, chunkSize));
+        buffer = buffer.subarray(chunkSize);
+      }
+    });
+
+    readable.on('end', () => {
+      if (buffer.length > 0) {
+        outputStream.push(buffer);
+      }
+      outputStream.push(null); // Signal the end of the stream
+    });
+
+    readable.on('error', (err) => {
+      outputStream.destroy(err);
+    });
+
+    return outputStream;
   }
 }
 
