@@ -12,6 +12,7 @@ import axios from 'axios';
 import { fail } from 'node:assert';
 import crypto from 'node:crypto';
 import { HashStream } from '../../../src/utils/hash.utils';
+import { UploadMultipartOptions } from '../../../src/types/network.types';
 
 describe('Network Facade Service', () => {
   beforeEach(() => {
@@ -302,6 +303,78 @@ describe('Network Facade Service', () => {
 
     await executeDownload;
 
+    expect(options.progressCallback).toHaveBeenCalledWith(100);
+  });
+
+  it('When a file is uploaded via multipart, then it should report progress', async () => {
+    const bucket = 'f1858bc9675f9e4f7ab29429';
+    const networkMock = getNetworkMock();
+
+    const sut = new NetworkFacade(
+      networkMock,
+      UploadService.instance,
+      DownloadService.instance,
+      CryptoService.instance,
+    );
+    const file = crypto.randomBytes(16).toString('hex');
+    const readStream = new Readable({
+      read() {
+        this.push(file);
+        this.push(null);
+      },
+    });
+    const options: UploadMultipartOptions = {
+      progressCallback: vi.fn(),
+      abortController: new AbortController(),
+      parts: 2,
+    };
+
+    vi.spyOn(HashStream.prototype, 'getHash').mockImplementation(() => Buffer.from(''));
+
+    vi.spyOn(axios, 'put').mockImplementation((_, __, config) => {
+      config?.onUploadProgress?.({
+        loaded: file.length,
+        total: file.length,
+        bytes: file.length,
+        lengthComputable: true,
+      });
+      return Promise.resolve({
+        data: readStream,
+        headers: {
+          etag: 'any-etag',
+        },
+      });
+    });
+
+    vi.spyOn(networkMock, 'startUpload').mockResolvedValue({
+      uploads: [
+        {
+          index: 0,
+          url: 'any-url',
+          uuid: 'any-uuid',
+          UploadId: 'any-UploadId',
+          urls: ['url_1', 'url_2'],
+        },
+      ],
+    });
+
+    vi.spyOn(networkMock, 'finishUpload')
+      // @ts-expect-error - We only mock the properties we need
+      .mockResolvedValue({
+        id: 'uploaded_file_id',
+      });
+
+    const [executeUpload] = await sut.uploadMultipartFromStream(
+      bucket,
+      'animal fog wink trade december thumb sight cousin crunch plunge captain enforce letter creek text',
+      file.length,
+      readStream,
+      options,
+    );
+
+    const uploadResult = await executeUpload;
+
+    expect(uploadResult.fileId).to.be.equal('uploaded_file_id');
     expect(options.progressCallback).toHaveBeenCalledWith(100);
   });
 });
