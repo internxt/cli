@@ -59,7 +59,7 @@ export class WebDavServer {
   private readonly registerMiddlewares = async () => {
     this.app.use(bodyParser.text({ type: ['application/xml', 'text/xml'] }));
     this.app.use(ErrorHandlingMiddleware);
-    this.app.use(AuthMiddleware(ConfigService.instance));
+    this.app.use(AuthMiddleware(AuthService.instance));
     this.app.use(
       RequestLoggerMiddleware({
         enable: true,

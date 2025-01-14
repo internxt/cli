@@ -77,7 +77,7 @@ export class AuthService {
   };
 
   /**
-   * Obtains the user auth details
+   * Checks and returns the user auth details (it refreshes the tokens if needed)
    *
    * @returns The user details and the auth tokens
    */
