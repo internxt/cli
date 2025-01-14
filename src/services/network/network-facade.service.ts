@@ -216,7 +216,11 @@ export class NetworkFacade {
     let hash: Buffer;
 
     const partsUploadedBytes: Record<number, number> = {};
-    const fileParts: { PartNumber: number; ETag: string }[] = [];
+    type Part = {
+      PartNumber: number;
+      ETag: string;
+    };
+    const fileParts: Part[] = [];
 
     const onProgress = (partId: number, loadedBytes: number) => {
       if (!options?.progressCallback) return;
@@ -300,7 +304,8 @@ export class NetworkFacade {
       }
 
       hash = hashStream.getHash();
-      const sortedParts = fileParts.sort((pA, pB) => pA.PartNumber - pB.PartNumber);
+      const compareParts = (pA: Part, pB: Part) => pA.PartNumber - pB.PartNumber;
+      const sortedParts = fileParts.sort(compareParts);
       return {
         hash: hash.toString('hex'),
         parts: sortedParts,
