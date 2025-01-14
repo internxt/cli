@@ -300,9 +300,10 @@ export class NetworkFacade {
       }
 
       hash = hashStream.getHash();
+      const sortedParts = fileParts.sort((pA, pB) => pA.PartNumber - pB.PartNumber);
       return {
         hash: hash.toString('hex'),
-        parts: fileParts.sort((pA, pB) => pA.PartNumber - pB.PartNumber),
+        parts: sortedParts,
       };
     };
 
