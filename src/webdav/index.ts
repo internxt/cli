@@ -40,4 +40,8 @@ const init = async () => {
     .catch((err) => webdavLogger.error('Failed to start WebDAV server', err));
 };
 
+process.on('uncaughtException', (err) => {
+  webdavLogger.error('Unhandled exception:', err);
+});
+
 init();
