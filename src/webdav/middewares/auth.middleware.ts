@@ -1,23 +1,24 @@
 import { RequestHandler } from 'express';
-import { ConfigService } from '../../services/config.service';
 import { SdkManager } from '../../services/sdk-manager.service';
+import { AuthService } from '../../services/auth.service';
+import { webdavLogger } from '../../utils/logger.utils';
 
-export const AuthMiddleware = (configService: ConfigService): RequestHandler => {
+export const AuthMiddleware = (authService: AuthService): RequestHandler => {
   return (req, res, next) => {
     (async () => {
       try {
-        const credentials = await configService.readUser();
-        if (!credentials) throw new Error('Unauthorized');
+        const { token, newToken, user } = await authService.getAuthDetails();
         SdkManager.init({
-          token: credentials.token,
-          newToken: credentials.newToken,
+          token,
+          newToken,
         });
         req.user = {
-          uuid: credentials.user.uuid,
-          rootFolderId: credentials.user.root_folder_id,
+          uuid: user.uuid,
+          rootFolderId: user.root_folder_id,
         };
         next();
       } catch (error) {
+        webdavLogger.error('Error from AuthMiddleware: ' + (error as Error).message);
         res.status(401).send({ error: (error as Error).message });
       }
     })();
