@@ -243,7 +243,7 @@ export class NetworkFacade {
       let partIndex = 0;
       const limitConcurrency = 6;
 
-      const worker = async (upload: UploadTask) => {
+      const uploadPart = async (upload: UploadTask) => {
         const { etag } = await this.uploadService.uploadFile(upload.urlToUpload, upload.contentToUpload, {
           abortController: abortable,
           progressCallback: (loadedBytes: number) => {
@@ -258,7 +258,7 @@ export class NetworkFacade {
       };
 
       const uploadQueue: QueueObject<UploadTask> = queue<UploadTask>(function (task, callback) {
-        worker(task)
+        uploadPart(task)
           .then(() => {
             callback();
           })
