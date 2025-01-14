@@ -59,7 +59,7 @@ export class WebDavServer {
   private readonly registerMiddlewares = async () => {
     this.app.use(bodyParser.text({ type: ['application/xml', 'text/xml'] }));
     this.app.use(ErrorHandlingMiddleware);
-    this.app.use(AuthMiddleware(ConfigService.instance));
+    this.app.use(AuthMiddleware(AuthService.instance));
     this.app.use(
       RequestLoggerMiddleware({
         enable: true,
@@ -170,8 +170,9 @@ export class WebDavServer {
     server.requestTimeout = 15 * 60 * 1000;
 
     server.listen(configs.port, () => {
-      webdavLogger.info(`Internxt ${SdkManager.getAppDetails().clientVersion} WebDav server ` +
-        `listening at ${configs.protocol}://${ConfigService.WEBDAV_LOCAL_URL}:${configs.port}`,
+      webdavLogger.info(
+        `Internxt ${SdkManager.getAppDetails().clientVersion} WebDav server ` +
+          `listening at ${configs.protocol}://${ConfigService.WEBDAV_LOCAL_URL}:${configs.port}`,
       );
     });
   };
