@@ -171,7 +171,8 @@ export class WebDavServer {
 
     server.listen(configs.port, () => {
       webdavLogger.info(
-        `Internxt WebDav server listening at ${configs.protocol}://${ConfigService.WEBDAV_LOCAL_URL}:${configs.port}`,
+        `Internxt ${SdkManager.getAppDetails().clientVersion} WebDav server ` +
+          `listening at ${configs.protocol}://${ConfigService.WEBDAV_LOCAL_URL}:${configs.port}`,
       );
     });
   };

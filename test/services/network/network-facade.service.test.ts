@@ -10,6 +10,8 @@ import { DownloadService } from '../../../src/services/network/download.service'
 import { Readable } from 'node:stream';
 import axios from 'axios';
 import { fail } from 'node:assert';
+import crypto from 'node:crypto';
+import { HashStream } from '../../../src/utils/hash.utils';
 
 describe('Network Facade Service', () => {
   beforeEach(() => {
@@ -77,6 +79,68 @@ describe('Network Facade Service', () => {
     expect(uploadResult.fileId).to.be.equal('uploaded_file_id');
   });
 
+  it('When a file is uploaded, then it should report progress', async () => {
+    const bucket = 'f1858bc9675f9e4f7ab29429';
+    const networkMock = getNetworkMock();
+
+    const sut = new NetworkFacade(
+      networkMock,
+      UploadService.instance,
+      DownloadService.instance,
+      CryptoService.instance,
+    );
+    const file = crypto.randomBytes(16).toString('hex');
+    const readStream = new Readable({
+      read() {
+        this.push(file);
+        this.push(null);
+      },
+    });
+    const options = {
+      progressCallback: vi.fn(),
+      abortController: new AbortController(),
+    };
+
+    vi.spyOn(HashStream.prototype, 'getHash').mockImplementation(() => Buffer.from(''));
+
+    vi.spyOn(axios, 'put').mockImplementation((_, __, config) => {
+      config?.onUploadProgress?.({
+        loaded: file.length,
+        total: file.length,
+        bytes: file.length,
+        lengthComputable: true,
+      });
+      return Promise.resolve({
+        data: readStream,
+        headers: {
+          etag: 'any-etag',
+        },
+      });
+    });
+
+    vi.spyOn(networkMock, 'startUpload').mockResolvedValue({
+      uploads: [{ index: 0, url: 'any-url', uuid: 'any-uuid', urls: [] }],
+    });
+
+    vi.spyOn(networkMock, 'finishUpload')
+      // @ts-expect-error - We only mock the properties we need
+      .mockResolvedValue({
+        id: 'any-id',
+      });
+
+    const [executeUpload] = await sut.uploadFromStream(
+      bucket,
+      'animal fog wink trade december thumb sight cousin crunch plunge captain enforce letter creek text',
+      file.length,
+      readStream,
+      options,
+    );
+
+    await executeUpload;
+
+    expect(options.progressCallback).toHaveBeenCalledWith(100);
+  });
+
   it('When a file is downloaded, should write it to a stream', async () => {
     const encryptedContent = Buffer.from('b6ccfa381c150f3a4b65245bffa4d84087', 'hex');
     const bucket = 'cd8abd7e8b13081660b58dbe';
@@ -120,6 +184,7 @@ describe('Network Facade Service', () => {
       // eslint-disable-next-line max-len
       'index course habit soon assist dragon tragic helmet salute stuff later twice consider grit pulse cement obvious trick sponsor stereo hello win royal more',
       'f1858bc9675f9e4f7ab29429',
+      encryptedContent.length,
       writable,
     );
 
@@ -166,6 +231,7 @@ describe('Network Facade Service', () => {
       // eslint-disable-next-line max-len
       'index course habit soon assist dragon tragic helmet salute stuff later twice consider grit pulse cement obvious trick sponsor stereo hello win royal more',
       'f1858bc9675f9e4f7ab29429',
+      encryptedContent.length,
       writable,
     );
 
@@ -214,7 +280,12 @@ describe('Network Facade Service', () => {
     const options = { progressCallback: vi.fn() };
 
     vi.spyOn(axios, 'get').mockImplementation((_, config) => {
-      config?.onDownloadProgress?.({ loaded: 100, total: 100, bytes: 100, lengthComputable: true });
+      config?.onDownloadProgress?.({
+        loaded: encryptedContent.length,
+        total: encryptedContent.length,
+        bytes: encryptedContent.length,
+        lengthComputable: true,
+      });
       return Promise.resolve({ data: readableContent });
     });
 
@@ -223,6 +294,7 @@ describe('Network Facade Service', () => {
       // eslint-disable-next-line max-len
       'index course habit soon assist dragon tragic helmet salute stuff later twice consider grit pulse cement obvious trick sponsor stereo hello win royal more',
       'f1858bc9675f9e4f7ab29429',
+      encryptedContent.length,
       writable,
       undefined,
       options,
@@ -230,6 +302,6 @@ describe('Network Facade Service', () => {
 
     await executeDownload;
 
-    expect(options.progressCallback).toHaveBeenCalledWith(1);
+    expect(options.progressCallback).toHaveBeenCalledWith(100);
   });
 });

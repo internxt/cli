@@ -10,13 +10,12 @@ import {
 import { Environment } from '@internxt/inxt-js';
 import { randomBytes } from 'node:crypto';
 import { Readable, Transform } from 'node:stream';
-import { DownloadOptions, UploadOptions, UploadProgressCallback } from '../../types/network.types';
+import { DownloadOptions, UploadOptions, UploadProgressCallback, DownloadProgressCallback } from '../../types/network.types';
 import { CryptoService } from '../crypto.service';
 import { UploadService } from './upload.service';
 import { DownloadService } from './download.service';
 import { ValidationService } from '../validation.service';
 import { HashStream } from '../../utils/hash.utils';
-import { ProgressTransform } from '../../utils/stream.utils';
 import { RangeOptions } from '../../utils/network.utils';
 
 export class NetworkFacade {
@@ -54,6 +53,7 @@ export class NetworkFacade {
     bucketId: string,
     mnemonic: string,
     fileId: string,
+    size: number,
     to: WritableStream,
     rangeOptions?: RangeOptions,
     options?: DownloadOptions,
@@ -62,13 +62,10 @@ export class NetworkFacade {
     let fileStream: ReadableStream<Uint8Array>;
     const abortable = options?.abortController ?? new AbortController();
 
-    const onProgress: UploadProgressCallback = (progress: number) => {
+    const onProgress: DownloadProgressCallback = (loadedBytes: number) => {
       if (!options?.progressCallback) return;
-      options.progressCallback(progress);
-    };
-
-    const onDownloadProgress = (progress: number) => {
-      onProgress(progress);
+      const reportedProgress = Math.round((loadedBytes / size) * 100);
+      options.progressCallback(reportedProgress);
     };
 
     const decryptFile: DecryptFileFunction = async (_, key, iv) => {
@@ -97,7 +94,7 @@ export class NetworkFacade {
         }
 
         const encryptedContentStream = await this.downloadService.downloadFile(downloadable.url, {
-          progressCallback: onDownloadProgress,
+          progressCallback: onProgress,
           abortController: options?.abortController,
           rangeHeader: rangeOptions?.range,
         });
@@ -142,38 +139,31 @@ export class NetworkFacade {
     const hashStream = new HashStream();
     const abortable = options?.abortController ?? new AbortController();
     let encryptionTransform: Transform;
-    const progressTransform = new ProgressTransform({ totalBytes: size }, (progress) => {
-      if (options?.progressCallback) {
-        options.progressCallback(progress * 0.95);
-      }
-    });
+    let hash: Buffer;
 
-    const onProgress: UploadProgressCallback = (progress: number) => {
+    const onProgress: UploadProgressCallback = (loadedBytes: number) => {
       if (!options?.progressCallback) return;
-      options.progressCallback(progress);
+      const reportedProgress = Math.round((loadedBytes / size) * 100);
+      options.progressCallback(reportedProgress);
     };
 
     const encryptFile: EncryptFileFunction = async (_, key, iv) => {
-      encryptionTransform = from
-        .pipe(
-          await this.cryptoService.getEncryptionTransform(
-            Buffer.from(key as ArrayBuffer),
-            Buffer.from(iv as ArrayBuffer),
-          ),
-        )
-        .pipe(hashStream);
+      const encryptionCipher = this.cryptoService.getEncryptionTransform(
+        Buffer.from(key as ArrayBuffer),
+        Buffer.from(iv as ArrayBuffer),
+      );
+      encryptionTransform = from.pipe(encryptionCipher).pipe(hashStream);
     };
 
     const uploadFile: UploadFileFunction = async (url) => {
-      await this.uploadService.uploadFile(url, encryptionTransform.pipe(progressTransform), {
+      await this.uploadService.uploadFile(url, encryptionTransform, {
         abortController: abortable,
-        progressCallback: () => {
-          // No progress here, we are using the progressTransform
-        },
+        progressCallback: onProgress,
       });
-
-      return hashStream.getHash().toString('hex');
+      hash = hashStream.getHash();
+      return hash.toString('hex');
     };
+
     const uploadOperation = async () => {
       const uploadResult = await NetworkUpload.uploadFile(
         this.network,
@@ -184,12 +174,10 @@ export class NetworkFacade {
         encryptFile,
         uploadFile,
       );
-      const fileHash: Buffer = Buffer.from('');
 
-      onProgress(1);
       return {
         fileId: uploadResult,
-        hash: fileHash,
+        hash: hash,
       };
     };
 

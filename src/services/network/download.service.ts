@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { DownloadProgressCallback } from '../../types/network.types';
 
 export class DownloadService {
   static readonly instance = new DownloadService();
@@ -6,7 +7,7 @@ export class DownloadService {
   async downloadFile(
     url: string,
     options: {
-      progressCallback?: (progress: number) => void;
+      progressCallback?: DownloadProgressCallback;
       abortController?: AbortController;
       rangeHeader?: string;
     },
@@ -14,10 +15,8 @@ export class DownloadService {
     const response = await axios.get(url, {
       responseType: 'stream',
       onDownloadProgress(progressEvent) {
-        if (options.progressCallback && progressEvent.total) {
-          const reportedProgress = progressEvent.loaded / progressEvent.total;
-
-          options.progressCallback(reportedProgress);
+        if (options.progressCallback && progressEvent.loaded) {
+          options.progressCallback(progressEvent.loaded);
         }
       },
       headers: {
