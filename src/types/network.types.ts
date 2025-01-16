@@ -6,7 +6,7 @@ export interface NetworkCredentials {
 export type DownloadProgressCallback = (downloadedBytes: number) => void;
 export type UploadProgressCallback = (uploadedBytes: number) => void;
 export interface NetworkOperationBaseOptions {
-  progressCallback: UploadProgressCallback;
+  progressCallback?: UploadProgressCallback;
   abortController?: AbortController;
 }
 

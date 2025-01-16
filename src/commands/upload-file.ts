@@ -83,37 +83,18 @@ export default class UploadFile extends Command {
     });
     progressBar.start(100, 0);
 
-    const minimumMultipartThreshold = 100 * 1024 * 1024;
-    const useMultipart = stats.size > minimumMultipartThreshold;
-    const partSize = 30 * 1024 * 1024;
-    const parts = Math.ceil(stats.size / partSize);
+    const progressCallback = (progress: number) => {
+      progressBar.update(progress * 0.99);
+    };
 
-    let uploadOperation: Promise<
-      [
-        Promise<{
-          fileId: string;
-          hash: Buffer;
-        }>,
-        AbortController,
-      ]
-    >;
-
-    if (useMultipart) {
-      uploadOperation = networkFacade.uploadMultipartFromStream(user.bucket, user.mnemonic, stats.size, fileStream, {
-        parts,
-        progressCallback: (progress) => {
-          progressBar.update(progress * 0.99);
-        },
-      });
-    } else {
-      uploadOperation = networkFacade.uploadFromStream(user.bucket, user.mnemonic, stats.size, fileStream, {
-        progressCallback: (progress) => {
-          progressBar.update(progress * 0.99);
-        },
-      });
-    }
-
-    const [uploadPromise, abortable] = await uploadOperation;
+    const [uploadPromise, abortable] = await UploadService.instance.uploadFileStream(
+      fileStream,
+      user.bucket,
+      user.mnemonic,
+      stats.size,
+      networkFacade,
+      progressCallback,
+    );
 
     process.on('SIGINT', () => {
       abortable.abort('SIGINT received');

@@ -28,7 +28,7 @@ describe('Upload Service', () => {
     nock('https://example.com').put('/upload').reply(200, '', {});
 
     try {
-      await sut.uploadFile(url, data, options);
+      await sut.uploadFileToNetwork(url, data, options);
     } catch (error) {
       expect((error as Error).message).to.contain('Missing Etag');
     }
@@ -52,7 +52,7 @@ describe('Upload Service', () => {
       etag: 'test-etag',
     });
 
-    const result = await sut.uploadFile(url, data, options);
+    const result = await sut.uploadFileToNetwork(url, data, options);
     expect(result.etag).to.be.equal('test-etag');
   });
 
@@ -74,7 +74,7 @@ describe('Upload Service', () => {
       etag: 'test-etag',
     });
 
-    await sut.uploadFile(url, data, options);
+    await sut.uploadFileToNetwork(url, data, options);
     expect(options.progressCallback).toHaveBeenCalledWith(file.length);
   });
 
