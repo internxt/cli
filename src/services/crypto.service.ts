@@ -1,7 +1,7 @@
 import { CryptoProvider } from '@internxt/sdk';
 import { Keys, Password } from '@internxt/sdk/dist/auth';
 import { createCipheriv, createDecipheriv, createHash, Decipher, pbkdf2Sync, randomBytes } from 'node:crypto';
-import { Transform } from 'node:stream';
+import { Readable, Transform } from 'node:stream';
 import { KeysService } from './keys.service';
 import { ConfigService } from '../services/config.service';
 import { StreamUtils } from '../utils/stream.utils';
@@ -116,12 +116,26 @@ export class CryptoService {
     return Buffer.concat([decipher.update(contentsToDecrypt), decipher.final()]).toString('utf8');
   };
 
-  public async decryptStream(
+  public encryptStreamInParts = (
+    readable: Readable,
+    cipher: Transform,
+    size: number,
+    parts: number,
+  ): Transform => {
+    // We include a marginChunkSize because if we split the chunk directly, there will always be one more chunk left, this will cause a mismatch with the urls provided
+    const marginChunkSize = 1024;
+    const chunkSize = size / parts + marginChunkSize;
+    const readableChunks = StreamUtils.streamReadableIntoChunks(readable, chunkSize);
+
+    return readableChunks.pipe(cipher);
+  };
+
+  public decryptStream = (
     inputSlices: ReadableStream<Uint8Array>[],
     key: Buffer,
     iv: Buffer,
     startOffsetByte?: number,
-  ) {
+  ) => {
     let decipher: Decipher;
     if (startOffsetByte) {
       const aesBlockSize = 16;
@@ -164,7 +178,7 @@ export class CryptoService {
     });
 
     return decryptedStream;
-  }
+  };
 
   public getEncryptionTransform = (key: Buffer, iv: Buffer): Transform => {
     const cipher = createCipheriv('aes-256-ctr', key, iv);

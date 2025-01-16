@@ -11,6 +11,7 @@ import { DriveFileItem, DriveFolderItem } from '../../types/drive.types';
 import { DriveFolderService } from '../../services/drive/drive-folder.service';
 import { TrashService } from '../../services/drive/trash.service';
 import { EncryptionVersion } from '@internxt/sdk/dist/drive/storage/types';
+import { CLIUtils } from '../../utils/cli.utils';
 
 export class PUTRequestHandler implements WebDavMethodHandler {
   constructor(
@@ -68,19 +69,50 @@ export class PUTRequestHandler implements WebDavMethodHandler {
 
     const { user } = await authService.getAuthDetails();
 
-    let lastLoggedProgress = 0;
-    const [uploadPromise] = await networkFacade.uploadFromStream(user.bucket, user.mnemonic, contentLength, req, {
-      progressCallback: (progress) => {
-        const percentage = Math.floor(100 * progress);
+    const timer = CLIUtils.timer();
 
-        if (percentage >= lastLoggedProgress + 1) {
-          lastLoggedProgress = percentage;
-          webdavLogger.info(`[PUT] Upload progress for file ${resource.name}: ${percentage}%`);
-        }
-      },
+    const minimumMultipartThreshold = 100 * 1024 * 1024;
+    const useMultipart = contentLength > minimumMultipartThreshold;
+    const partSize = 30 * 1024 * 1024;
+    const parts = Math.ceil(contentLength / partSize);
+
+    let uploadOperation: Promise<
+      [
+        Promise<{
+          fileId: string;
+          hash: Buffer;
+        }>,
+        AbortController,
+      ]
+    >;
+
+    const progressCallback = (progress: number) => {
+      webdavLogger.info(`[PUT] Upload progress for file ${resource.name}: ${progress}%`);
+    };
+
+    if (useMultipart) {
+      uploadOperation = networkFacade.uploadMultipartFromStream(user.bucket, user.mnemonic, contentLength, req, {
+        parts,
+        progressCallback,
+      });
+    } else {
+      uploadOperation = networkFacade.uploadFromStream(user.bucket, user.mnemonic, contentLength, req, {
+        progressCallback,
+      });
+    }
+
+    const [uploadPromise, abortable] = await uploadOperation;
+
+    let uploaded = false;
+    res.on('close', () => {
+      if (!uploaded) {
+        webdavLogger.info('[PUT] ❌ HTTP Client has been disconnected, res has been closed.');
+        abortable.abort('HTTP Client has been disconnected.');
+      }
     });
 
     const uploadResult = await uploadPromise;
+    uploaded = true;
 
     webdavLogger.info('[PUT] ✅ File uploaded to network');
 
@@ -95,7 +127,8 @@ export class PUTRequestHandler implements WebDavMethodHandler {
       name: '',
     });
 
-    webdavLogger.info('[PUT] ✅ File uploaded to internxt drive');
+    const uploadTime = timer.stop();
+    webdavLogger.info(`[PUT] ✅ File uploaded in ${uploadTime}ms to Internxt Drive`);
 
     await driveDatabaseManager.createFile(file, resource.path.dir + '/');
 

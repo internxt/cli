@@ -207,4 +207,76 @@ describe('PUT request handler', () => {
     expect(deleteDBFileStub).toHaveBeenCalledOnce();
     expect(deleteDriveFileStub).toHaveBeenCalledOnce();
   });
+
+  it('When the Drive destination folder is found, then it should upload the multipart file', async () => {
+    const driveDatabaseManager = getDriveDatabaseManager();
+    const downloadService = DownloadService.instance;
+    const uploadService = UploadService.instance;
+    const cryptoService = CryptoService.instance;
+    const authService = AuthService.instance;
+    const networkFacade = new NetworkFacade(getNetworkMock(), uploadService, downloadService, cryptoService);
+    const sut = new PUTRequestHandler({
+      driveFileService: DriveFileService.instance,
+      driveFolderService: DriveFolderService.instance,
+      authService: AuthService.instance,
+      trashService: TrashService.instance,
+      networkFacade,
+      driveDatabaseManager,
+    });
+
+    const multipartFileSize = 105 * 1024 * 1024;
+
+    const requestedFileResource: WebDavRequestedResource = getRequestedFileResource();
+    const requestedParentFolderResource: WebDavRequestedResource = getRequestedFolderResource({
+      parentFolder: '/',
+      folderName: '',
+    });
+    const folderFixture = newFolderItem({ name: requestedParentFolderResource.name });
+    const fileFixture = newDriveFile({
+      folderId: folderFixture.id,
+      folderUuid: folderFixture.uuid,
+      size: multipartFileSize,
+    });
+
+    const request = createWebDavRequestFixture({
+      method: 'PUT',
+      url: requestedFileResource.url,
+      headers: {
+        'content-length': multipartFileSize.toString(),
+      },
+    });
+
+    const response = createWebDavResponseFixture({
+      status: vi.fn().mockReturnValue({ send: vi.fn() }),
+    });
+
+    const getRequestedResourceStub = vi
+      .spyOn(WebDavUtils, 'getRequestedResource')
+      .mockResolvedValueOnce(requestedFileResource)
+      .mockResolvedValueOnce(requestedParentFolderResource);
+    const getAndSearchItemFromResourceStub = vi
+      .spyOn(WebDavUtils, 'getAndSearchItemFromResource')
+      .mockResolvedValueOnce(folderFixture)
+      .mockRejectedValue(new Error());
+    const getAuthDetailsStub = vi.spyOn(authService, 'getAuthDetails').mockResolvedValue(UserCredentialsFixture);
+    const uploadMultipartFromStreamStub = vi
+      .spyOn(networkFacade, 'uploadMultipartFromStream')
+      .mockResolvedValue([
+        Promise.resolve({ fileId: '09218313209', hash: Buffer.from('test') }),
+        new AbortController(),
+      ]);
+    const createDriveFileStub = vi
+      .spyOn(DriveFileService.instance, 'createFile')
+      .mockResolvedValue(fileFixture.toItem());
+    const createDBFileStub = vi.spyOn(driveDatabaseManager, 'createFile').mockResolvedValue(fileFixture);
+
+    await sut.handle(request, response);
+    expect(response.status).toHaveBeenCalledWith(200);
+    expect(getRequestedResourceStub).toHaveBeenCalledTimes(2);
+    expect(getAndSearchItemFromResourceStub).toHaveBeenCalledTimes(2);
+    expect(getAuthDetailsStub).toHaveBeenCalledOnce();
+    expect(uploadMultipartFromStreamStub).toHaveBeenCalledOnce();
+    expect(createDriveFileStub).toHaveBeenCalledOnce();
+    expect(createDBFileStub).toHaveBeenCalledOnce();
+  });
 });
