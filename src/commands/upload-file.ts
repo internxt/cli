@@ -15,6 +15,10 @@ import { ErrorUtils } from '../utils/errors.utils';
 import { MissingCredentialsError, NotValidDirectoryError, NotValidFolderUuidError } from '../types/command.types';
 import { ValidationService } from '../services/validation.service';
 import { EncryptionVersion } from '@internxt/sdk/dist/drive/storage/types';
+import { ThumbnailService } from '../services/thumbnail.service';
+import { BufferStream } from '../utils/stream.utils';
+import { isFileThumbnailable } from '../utils/thumbnail.utils';
+import { Readable } from 'node:stream';
 
 export default class UploadFile extends Command {
   static readonly args = {};
@@ -52,6 +56,9 @@ export default class UploadFile extends Command {
       throw new Error('The file is empty. Uploading empty files is not allowed.');
     }
 
+    const fileInfo = path.parse(filePath);
+    const fileType = fileInfo.ext.replaceAll('.', '');
+
     let destinationFolderUuid = await this.getDestinationFolderUuid(flags['destination'], nonInteractive);
     if (destinationFolderUuid.trim().length === 0) {
       // destinationFolderUuid is empty from flags&prompt, which means we should use RootFolderUuid
@@ -75,13 +82,21 @@ export default class UploadFile extends Command {
     CLIUtils.done();
 
     // 2. Upload file to the Network
-    const fileStream = createReadStream(filePath);
+    const readStream = createReadStream(filePath);
     const timer = CLIUtils.timer();
     const progressBar = CLIUtils.progress({
       format: 'Uploading file [{bar}] {percentage}%',
       linewrap: true,
     });
     progressBar.start(100, 0);
+
+    let bufferStream: BufferStream | undefined;
+    let fileStream: Readable = readStream;
+    const isThumbnailable = isFileThumbnailable(fileType);
+    if (isThumbnailable) {
+      bufferStream = new BufferStream();
+      fileStream = readStream.pipe(bufferStream);
+    }
 
     const progressCallback = (progress: number) => {
       progressBar.update(progress * 0.99);
@@ -104,10 +119,9 @@ export default class UploadFile extends Command {
     const uploadResult = await uploadPromise;
 
     // 3. Create the file in Drive
-    const fileInfo = path.parse(filePath);
     const createdDriveFile = await DriveFileService.instance.createFile({
       plain_name: fileInfo.name,
-      type: fileInfo.ext.replaceAll('.', ''),
+      type: fileType,
       size: stats.size,
       folder_id: destinationFolderUuid,
       id: uploadResult.fileId,
@@ -115,6 +129,24 @@ export default class UploadFile extends Command {
       encrypt_version: EncryptionVersion.Aes03,
       name: '',
     });
+
+    try {
+      if (isThumbnailable && bufferStream) {
+        const thumbnailBuffer = bufferStream.getBuffer();
+
+        if (thumbnailBuffer) {
+          await ThumbnailService.instance.uploadThumbnail(
+            thumbnailBuffer,
+            user.bucket,
+            user.mnemonic,
+            createdDriveFile.id,
+            networkFacade,
+          );
+        }
+      }
+    } catch (error) {
+      ErrorUtils.report(this.error.bind(this), error, { command: this.id });
+    }
 
     progressBar.update(100);
     progressBar.stop();

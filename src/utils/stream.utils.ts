@@ -1,5 +1,5 @@
 import { ReadStream, WriteStream } from 'node:fs';
-import { Readable, Transform, TransformCallback } from 'node:stream';
+import { Readable, Transform, TransformCallback, TransformOptions } from 'node:stream';
 
 export class StreamUtils {
   static readStreamToReadableStream(readStream: ReadStream): ReadableStream<Uint8Array> {
@@ -128,5 +128,32 @@ export class ProgressTransform extends Transform {
 
   _flush(callback: (err: Error | null) => void) {
     callback(null);
+  }
+}
+
+export class BufferStream extends Transform {
+  public buffer: Buffer | null;
+
+  constructor(opts?: TransformOptions) {
+    super(opts);
+    this.buffer = null;
+  }
+
+  _transform(chunk: Buffer, _: BufferEncoding, callback: TransformCallback) {
+    const currentBuffer = this.buffer ?? Buffer.alloc(0);
+    this.buffer = Buffer.concat([currentBuffer, chunk]);
+    callback(null, chunk);
+  }
+
+  _flush(callback: TransformCallback) {
+    callback();
+  }
+
+  reset() {
+    this.buffer = null;
+  }
+
+  getBuffer(): Buffer | null {
+    return this.buffer;
   }
 }

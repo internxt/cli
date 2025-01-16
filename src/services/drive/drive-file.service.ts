@@ -51,4 +51,9 @@ export class DriveFileService {
     const fileMetadata = await storageClient.getFileByPath(encodeURIComponent(path));
     return DriveUtils.driveFileMetaToItem(fileMetadata);
   };
+
+  public createThumbnail = (payload: StorageTypes.ThumbnailEntry): Promise<StorageTypes.Thumbnail> => {
+    const storageClient = SdkManager.instance.getStorage(false);
+    return storageClient.createThumbnailEntry(payload);
+  };
 }
