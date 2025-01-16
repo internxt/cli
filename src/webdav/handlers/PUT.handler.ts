@@ -130,6 +130,7 @@ export class PUTRequestHandler implements WebDavMethodHandler {
         if (thumbnailBuffer) {
           await ThumbnailService.instance.uploadThumbnail(
             thumbnailBuffer,
+            fileType,
             user.bucket,
             user.mnemonic,
             file.id,

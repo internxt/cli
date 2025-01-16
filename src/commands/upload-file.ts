@@ -137,6 +137,7 @@ export default class UploadFile extends Command {
         if (thumbnailBuffer) {
           await ThumbnailService.instance.uploadThumbnail(
             thumbnailBuffer,
+            fileType,
             user.bucket,
             user.mnemonic,
             createdDriveFile.id,
