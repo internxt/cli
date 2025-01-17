@@ -166,9 +166,10 @@ export default class DownloadFile extends Command {
   };
 
   private getDownloadPath = async (downloadDirectory: string, driveFile: DriveFileItem, overwrite: boolean) => {
+    const ext = driveFile.type?.length && driveFile.type.length > 0 ? `.${driveFile.type}` : undefined;
     const filename = path.format({
       name: driveFile.name,
-      ext: `.${driveFile.type}`,
+      ext: ext,
     });
 
     const downloadPath = path.join(downloadDirectory, filename);
