@@ -12,6 +12,11 @@ import { DriveFolderService } from '../../services/drive/drive-folder.service';
 import { TrashService } from '../../services/drive/trash.service';
 import { EncryptionVersion } from '@internxt/sdk/dist/drive/storage/types';
 import { CLIUtils } from '../../utils/cli.utils';
+import { UploadService } from '../../services/network/upload.service';
+import { BufferStream } from '../../utils/stream.utils';
+import { Readable } from 'node:stream';
+import { isFileThumbnailable } from '../../utils/thumbnail.utils';
+import { ThumbnailService } from '../../services/thumbnail.service';
 
 export class PUTRequestHandler implements WebDavMethodHandler {
   constructor(
@@ -69,39 +74,30 @@ export class PUTRequestHandler implements WebDavMethodHandler {
 
     const { user } = await authService.getAuthDetails();
 
+    const fileType = resource.path.ext.replace('.', '');
+
     const timer = CLIUtils.timer();
 
-    const minimumMultipartThreshold = 100 * 1024 * 1024;
-    const useMultipart = contentLength > minimumMultipartThreshold;
-    const partSize = 30 * 1024 * 1024;
-    const parts = Math.ceil(contentLength / partSize);
-
-    let uploadOperation: Promise<
-      [
-        Promise<{
-          fileId: string;
-          hash: Buffer;
-        }>,
-        AbortController,
-      ]
-    >;
+    let bufferStream: BufferStream | undefined;
+    let fileStream: Readable = req;
+    const isThumbnailable = isFileThumbnailable(fileType);
+    if (isThumbnailable) {
+      bufferStream = new BufferStream();
+      fileStream = req.pipe(bufferStream);
+    }
 
     const progressCallback = (progress: number) => {
       webdavLogger.info(`[PUT] Upload progress for file ${resource.name}: ${progress}%`);
     };
 
-    if (useMultipart) {
-      uploadOperation = networkFacade.uploadMultipartFromStream(user.bucket, user.mnemonic, contentLength, req, {
-        parts,
-        progressCallback,
-      });
-    } else {
-      uploadOperation = networkFacade.uploadFromStream(user.bucket, user.mnemonic, contentLength, req, {
-        progressCallback,
-      });
-    }
-
-    const [uploadPromise, abortable] = await uploadOperation;
+    const [uploadPromise, abortable] = await UploadService.instance.uploadFileStream(
+      fileStream,
+      user.bucket,
+      user.mnemonic,
+      contentLength,
+      networkFacade,
+      progressCallback,
+    );
 
     let uploaded = false;
     res.on('close', () => {
@@ -118,7 +114,7 @@ export class PUTRequestHandler implements WebDavMethodHandler {
 
     const file = await DriveFileService.instance.createFile({
       plain_name: resource.path.name,
-      type: resource.path.ext.replace('.', ''),
+      type: fileType,
       size: contentLength,
       folder_id: parentFolderItem.uuid,
       id: uploadResult.fileId,
@@ -126,6 +122,25 @@ export class PUTRequestHandler implements WebDavMethodHandler {
       encrypt_version: EncryptionVersion.Aes03,
       name: '',
     });
+
+    try {
+      if (isThumbnailable && bufferStream) {
+        const thumbnailBuffer = bufferStream.getBuffer();
+
+        if (thumbnailBuffer) {
+          await ThumbnailService.instance.uploadThumbnail(
+            thumbnailBuffer,
+            fileType,
+            user.bucket,
+            user.mnemonic,
+            file.id,
+            networkFacade,
+          );
+        }
+      }
+    } catch (error) {
+      webdavLogger.info(`[PUT] ❌ File thumbnail upload failed ${(error as Error).message}`);
+    }
 
     const uploadTime = timer.stop();
     webdavLogger.info(`[PUT] ✅ File uploaded in ${uploadTime}ms to Internxt Drive`);

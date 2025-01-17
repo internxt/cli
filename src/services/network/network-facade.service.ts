@@ -165,7 +165,7 @@ export class NetworkFacade {
     };
 
     const uploadFile: UploadFileFunction = async (url) => {
-      await this.uploadService.uploadFile(url, encryptionTransform, {
+      await this.uploadService.uploadFileToNetwork(url, encryptionTransform, {
         abortController: abortable,
         progressCallback: onProgress,
       });
@@ -244,7 +244,7 @@ export class NetworkFacade {
       const limitConcurrency = 6;
 
       const uploadPart = async (upload: UploadTask) => {
-        const { etag } = await this.uploadService.uploadFile(upload.urlToUpload, upload.contentToUpload, {
+        const { etag } = await this.uploadService.uploadFileToNetwork(upload.urlToUpload, upload.contentToUpload, {
           abortController: abortable,
           progressCallback: (loadedBytes: number) => {
             onProgress(upload.index, loadedBytes);
