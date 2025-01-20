@@ -20,7 +20,7 @@
     "migrate:undo": "sequelize db:migrate:undo",
     "publish:npm": "npm run build && npm publish --scope=@internxt --registry=https://registry.npmjs.org/ --access public",
     "publish:github": "npm run build && npm publish --scope=@internxt --registry=https://npm.pkg.github.com",
-    "postinstall": "node ./scripts/skip-in-ci.js || node ./bin/run.js webdav restart"
+    "postinstall": "node ./scripts/restart-webdav.js"
   },
   "homepage": "https://github.com/internxt/cli",
   "license": "MIT",
