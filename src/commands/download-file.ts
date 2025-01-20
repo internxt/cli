@@ -5,7 +5,6 @@ import { NetworkFacade } from '../services/network/network-facade.service';
 import { AuthService } from '../services/auth.service';
 import { CryptoService } from '../services/crypto.service';
 import { DownloadService } from '../services/network/download.service';
-import { UploadService } from '../services/network/upload.service';
 import { SdkManager } from '../services/sdk-manager.service';
 import { createWriteStream } from 'node:fs';
 import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
@@ -16,6 +15,8 @@ import { StreamUtils } from '../utils/stream.utils';
 import { ErrorUtils } from '../utils/errors.utils';
 import { NotValidDirectoryError, NotValidFileUuidError } from '../types/command.types';
 import { ValidationService } from '../services/validation.service';
+import { Environment } from '@internxt/inxt-js';
+import { ConfigService } from '../services/config.service';
 
 export default class DownloadFile extends Command {
   static readonly args = {};
@@ -198,9 +199,15 @@ export default class DownloadFile extends Command {
       user: user.bridgeUser,
       pass: user.userId,
     });
+    const environment = new Environment({
+      bridgeUser: user.bridgeUser,
+      bridgePass: user.userId,
+      bridgeUrl: ConfigService.instance.get('NETWORK_URL'),
+      encryptionKey: user.mnemonic,
+    });
     const networkFacade = new NetworkFacade(
       networkModule,
-      UploadService.instance,
+      environment,
       DownloadService.instance,
       CryptoService.instance,
     );

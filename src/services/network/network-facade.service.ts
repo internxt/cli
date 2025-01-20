@@ -1,38 +1,22 @@
 import { Network } from '@internxt/sdk';
-import * as NetworkUpload from '@internxt/sdk/dist/network/upload';
 import * as NetworkDownload from '@internxt/sdk/dist/network/download';
-import {
-  DecryptFileFunction,
-  DownloadFileFunction,
-  EncryptFileFunction,
-  UploadFileFunction,
-  UploadFileMultipartFunction,
-} from '@internxt/sdk/dist/network';
+import { DecryptFileFunction, DownloadFileFunction } from '@internxt/sdk/dist/network';
 import { Environment } from '@internxt/inxt-js';
 import { randomBytes } from 'node:crypto';
-import { Readable, Transform } from 'node:stream';
-import {
-  DownloadOptions,
-  UploadOptions,
-  UploadProgressCallback,
-  DownloadProgressCallback,
-  UploadMultipartOptions,
-  UploadTask,
-} from '../../types/network.types';
+import { Readable } from 'node:stream';
+import { DownloadOptions, DownloadProgressCallback } from '../../types/network.types';
 import { CryptoService } from '../crypto.service';
-import { UploadService } from './upload.service';
 import { DownloadService } from './download.service';
 import { ValidationService } from '../validation.service';
-import { HashStream } from '../../utils/hash.utils';
 import { RangeOptions } from '../../utils/network.utils';
-import { queue, QueueObject } from 'async';
+import { ActionState } from '@internxt/inxt-js/build/api';
 
 export class NetworkFacade {
   private readonly cryptoLib: Network.Crypto;
 
   constructor(
     private readonly network: Network.Network,
-    private readonly uploadService: UploadService,
+    private readonly environment: Environment,
     private readonly downloadService: DownloadService,
     private readonly cryptoService: CryptoService,
   ) {
@@ -132,204 +116,34 @@ export class NetworkFacade {
    * Performs an upload encrypting the stream content
    *
    * @param bucketId The bucket where the file will be uploaded
-   * @param mnemonic The plain mnemonic of the user
    * @param size The total size of the stream content
    * @param from The source ReadStream to upload from
-   * @param options The upload options
    * @returns A promise to execute the upload and an abort controller to cancel the upload
    */
-  async uploadFromStream(
-    bucketId: string,
-    mnemonic: string,
-    size: number,
+  async uploadFile(
     from: Readable,
-    options?: UploadOptions,
-  ): Promise<[Promise<{ fileId: string; hash: Buffer }>, AbortController]> {
-    const hashStream = new HashStream();
-    const abortable = options?.abortController ?? new AbortController();
-    let encryptionTransform: Transform;
-    let hash: Buffer;
+    size: number,
+    bucketId: string,
+    finishedCallback: (err: Error | null, res: string | null) => void,
+    progressCallback: (progress: number) => void,
+  ): Promise<ActionState> {
+    const minimumMultipartThreshold = 100 * 1024 * 1024;
+    const useMultipart = size > minimumMultipartThreshold;
 
-    const onProgress: UploadProgressCallback = (loadedBytes: number) => {
-      if (!options?.progressCallback) return;
-      const reportedProgress = Math.round((loadedBytes / size) * 100);
-      options.progressCallback(reportedProgress);
-    };
-
-    const encryptFile: EncryptFileFunction = async (_, key, iv) => {
-      const encryptionCipher = this.cryptoService.getEncryptionTransform(
-        Buffer.from(key as ArrayBuffer),
-        Buffer.from(iv as ArrayBuffer),
-      );
-      encryptionTransform = from.pipe(encryptionCipher).pipe(hashStream);
-    };
-
-    const uploadFile: UploadFileFunction = async (url) => {
-      await this.uploadService.uploadFileToNetwork(url, encryptionTransform, {
-        abortController: abortable,
-        progressCallback: onProgress,
+    if (useMultipart) {
+      return this.environment.uploadMultipartFile(bucketId, {
+        source: from,
+        fileSize: size,
+        finishedCallback,
+        progressCallback,
       });
-      hash = hashStream.getHash();
-      return hash.toString('hex');
-    };
-
-    const uploadOperation = async () => {
-      const uploadResult = await NetworkUpload.uploadFile(
-        this.network,
-        this.cryptoLib,
-        bucketId,
-        mnemonic,
-        size,
-        encryptFile,
-        uploadFile,
-      );
-
-      return {
-        fileId: uploadResult,
-        hash: hash,
-      };
-    };
-
-    return [uploadOperation(), abortable];
-  }
-
-  /**
-   * Performs a multi-part upload encrypting the stream content
-   *
-   * @param bucketId The bucket where the file will be uploaded
-   * @param mnemonic The plain mnemonic of the user
-   * @param size The total size of the stream content
-   * @param from The source ReadStream to upload from
-   * @param options The upload options
-   * @returns A promise to execute the upload and an abort controller to cancel the upload
-   */
-  async uploadMultipartFromStream(
-    bucketId: string,
-    mnemonic: string,
-    size: number,
-    from: Readable,
-    options: UploadMultipartOptions,
-  ): Promise<[Promise<{ fileId: string; hash: Buffer }>, AbortController]> {
-    const hashStream = new HashStream();
-    const abortable = options?.abortController ?? new AbortController();
-    let encryptionTransform: Transform;
-    let hash: Buffer;
-
-    const partsUploadedBytes: Record<number, number> = {};
-    type Part = {
-      PartNumber: number;
-      ETag: string;
-    };
-    const fileParts: Part[] = [];
-
-    const onProgress = (partId: number, loadedBytes: number) => {
-      if (!options?.progressCallback) return;
-      partsUploadedBytes[partId] = loadedBytes;
-      const currentTotalLoadedBytes = Object.values(partsUploadedBytes).reduce((a, p) => a + p, 0);
-      const reportedProgress = Math.round((currentTotalLoadedBytes / size) * 100);
-      options.progressCallback(reportedProgress);
-    };
-
-    const encryptFile: EncryptFileFunction = async (_, key, iv) => {
-      const encryptionCipher = this.cryptoService.getEncryptionTransform(
-        Buffer.from(key as ArrayBuffer),
-        Buffer.from(iv as ArrayBuffer),
-      );
-      const streamInParts = this.cryptoService.encryptStreamInParts(from, encryptionCipher, size, options.parts);
-      encryptionTransform = streamInParts.pipe(hashStream);
-    };
-
-    const uploadFileMultipart: UploadFileMultipartFunction = async (urls: string[]) => {
-      let partIndex = 0;
-      const limitConcurrency = 6;
-
-      const uploadPart = async (upload: UploadTask) => {
-        const { etag } = await this.uploadService.uploadFileToNetwork(upload.urlToUpload, upload.contentToUpload, {
-          abortController: abortable,
-          progressCallback: (loadedBytes: number) => {
-            onProgress(upload.index, loadedBytes);
-          },
-        });
-
-        fileParts.push({
-          ETag: etag,
-          PartNumber: upload.index + 1,
-        });
-      };
-
-      const uploadQueue: QueueObject<UploadTask> = queue<UploadTask>(function (task, callback) {
-        uploadPart(task)
-          .then(() => {
-            callback();
-          })
-          .catch((e) => {
-            callback(e);
-          });
-      }, limitConcurrency);
-
-      for await (const chunk of encryptionTransform) {
-        const part: Buffer = chunk;
-
-        if (uploadQueue.running() === limitConcurrency) {
-          await uploadQueue.unsaturated();
-        }
-
-        if (abortable.signal.aborted) {
-          throw new Error('Upload cancelled by user');
-        }
-
-        let errorAlreadyThrown = false;
-
-        uploadQueue
-          .pushAsync({
-            contentToUpload: part,
-            urlToUpload: urls[partIndex],
-            index: partIndex++,
-          })
-          .catch((err: Error) => {
-            if (errorAlreadyThrown) return;
-
-            errorAlreadyThrown = true;
-            if (err) {
-              uploadQueue.kill();
-              if (!abortable?.signal.aborted) {
-                abortable.abort();
-              }
-            }
-          });
-      }
-
-      while (uploadQueue.running() > 0 || uploadQueue.length() > 0) {
-        await uploadQueue.drain();
-      }
-
-      hash = hashStream.getHash();
-      const compareParts = (pA: Part, pB: Part) => pA.PartNumber - pB.PartNumber;
-      const sortedParts = fileParts.sort(compareParts);
-      return {
-        hash: hash.toString('hex'),
-        parts: sortedParts,
-      };
-    };
-
-    const uploadOperation = async () => {
-      const uploadResult = await NetworkUpload.uploadMultipartFile(
-        this.network,
-        this.cryptoLib,
-        bucketId,
-        mnemonic,
-        size,
-        encryptFile,
-        uploadFileMultipart,
-        options.parts,
-      );
-
-      return {
-        fileId: uploadResult,
-        hash: hash,
-      };
-    };
-
-    return [uploadOperation(), abortable];
+    } else {
+      return this.environment.upload(bucketId, {
+        source: from,
+        fileSize: size,
+        finishedCallback,
+        progressCallback,
+      });
+    }
   }
 }

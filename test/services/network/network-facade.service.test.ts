@@ -1,18 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import * as NetworkUpload from '@internxt/sdk/dist/network/upload';
 import { NetworkFacade } from '../../../src/services/network/network-facade.service';
 import { SdkManager } from '../../../src/services/sdk-manager.service';
 import path from 'node:path';
 import { createReadStream } from 'node:fs';
-import { UploadService } from '../../../src/services/network/upload.service';
 import { CryptoService } from '../../../src/services/crypto.service';
 import { DownloadService } from '../../../src/services/network/download.service';
 import { Readable } from 'node:stream';
 import axios from 'axios';
 import { fail } from 'node:assert';
-import crypto from 'node:crypto';
-import { HashStream } from '../../../src/utils/hash.utils';
-import { UploadMultipartOptions } from '../../../src/types/network.types';
+import { Environment } from '@internxt/inxt-js';
+import { ConfigService } from '../../../src/services/config.service';
+import { UserFixture } from '../../fixtures/auth.fixture';
 
 describe('Network Facade Service', () => {
   beforeEach(() => {
@@ -26,120 +24,62 @@ describe('Network Facade Service', () => {
     });
   };
 
-  it('When a file is prepared to upload, then it should return the abort controller and upload promise', async () => {
+  const getEnvironmentMock = () => {
+    return new Environment({
+      bridgeUser: 'user',
+      bridgePass: 'pass',
+      bridgeUrl: ConfigService.instance.get('NETWORK_URL'),
+      encryptionKey: UserFixture.mnemonic,
+    });
+  };
+
+  it('When a file is uploaded, then it should call the inxt-js upload functionality', async () => {
+    const mockEnvironment = {
+      upload: vi.fn(),
+      uploadMultipartFile: vi.fn(),
+    };
     const sut = new NetworkFacade(
       getNetworkMock(),
-      UploadService.instance,
-      DownloadService.instance,
-      CryptoService.instance,
-    );
-    const file = path.join(process.cwd(), 'test/fixtures/test-content.fixture.txt');
-    const readStream = createReadStream(file);
-    const options = {
-      progressCallback: vi.fn(),
-      abortController: new AbortController(),
-    };
-
-    const result = await sut.uploadFromStream(
-      'f1858bc9675f9e4f7ab29429',
-      'animal fog wink trade december thumb sight cousin crunch plunge captain enforce letter creek text',
-      100,
-      readStream,
-      options,
-    );
-
-    expect(result[0]).to.be.instanceOf(Promise);
-    expect(result[1]).to.be.instanceOf(AbortController);
-  });
-
-  it('When a file is uploaded, should return the fileId', async () => {
-    const sut = new NetworkFacade(
-      getNetworkMock(),
-      UploadService.instance,
-      DownloadService.instance,
-      CryptoService.instance,
-    );
-    const file = path.join(process.cwd(), 'test/fixtures/test-content.fixture.txt');
-    const readStream = createReadStream(file);
-    const options = {
-      progressCallback: vi.fn(),
-      abortController: new AbortController(),
-    };
-
-    vi.spyOn(NetworkUpload, 'uploadFile').mockResolvedValue('uploaded_file_id');
-    const [executeUpload] = await sut.uploadFromStream(
-      'f1858bc9675f9e4f7ab29429',
-      'animal fog wink trade december thumb sight cousin crunch plunge captain enforce letter creek text',
-      100,
-      readStream,
-      options,
-    );
-
-    const uploadResult = await executeUpload;
-
-    expect(uploadResult.fileId).to.be.equal('uploaded_file_id');
-  });
-
-  it('When a file is uploaded, then it should report progress', async () => {
-    const bucket = 'f1858bc9675f9e4f7ab29429';
-    const networkMock = getNetworkMock();
-
-    const sut = new NetworkFacade(
-      networkMock,
-      UploadService.instance,
-      DownloadService.instance,
-      CryptoService.instance,
-    );
-    const file = crypto.randomBytes(16).toString('hex');
-    const readStream = new Readable({
-      read() {
-        this.push(file);
-        this.push(null);
-      },
-    });
-    const options = {
-      progressCallback: vi.fn(),
-      abortController: new AbortController(),
-    };
-
-    vi.spyOn(HashStream.prototype, 'getHash').mockImplementation(() => Buffer.from(''));
-
-    vi.spyOn(axios, 'put').mockImplementation((_, __, config) => {
-      config?.onUploadProgress?.({
-        loaded: file.length,
-        total: file.length,
-        bytes: file.length,
-        lengthComputable: true,
-      });
-      return Promise.resolve({
-        data: readStream,
-        headers: {
-          etag: 'any-etag',
-        },
-      });
-    });
-
-    vi.spyOn(networkMock, 'startUpload').mockResolvedValue({
-      uploads: [{ index: 0, url: 'any-url', uuid: 'any-uuid', urls: [] }],
-    });
-
-    vi.spyOn(networkMock, 'finishUpload')
       // @ts-expect-error - We only mock the properties we need
-      .mockResolvedValue({
-        id: 'any-id',
-      });
-
-    const [executeUpload] = await sut.uploadFromStream(
-      bucket,
-      'animal fog wink trade december thumb sight cousin crunch plunge captain enforce letter creek text',
-      file.length,
-      readStream,
-      options,
+      mockEnvironment,
+      DownloadService.instance,
+      CryptoService.instance,
     );
+    const file = path.join(process.cwd(), 'test/fixtures/test-content.fixture.txt');
+    const readStream = createReadStream(file);
 
-    await executeUpload;
+    const finishedCallback = vi.fn();
+    const progressCallback = vi.fn();
 
-    expect(options.progressCallback).toHaveBeenCalledWith(100);
+    await sut.uploadFile(readStream, 100, 'f1858bc9675f9e4f7ab29429', finishedCallback, progressCallback);
+
+    expect(mockEnvironment.upload).toHaveBeenCalledOnce();
+    expect(mockEnvironment.uploadMultipartFile).not.toHaveBeenCalled();
+  });
+
+  it('When a file is uploaded via multipart, then it should call the inxt-js upload multipart', async () => {
+    const mockEnvironment = {
+      upload: vi.fn(),
+      uploadMultipartFile: vi.fn(),
+    };
+
+    const sut = new NetworkFacade(
+      getNetworkMock(),
+      // @ts-expect-error - We only mock the properties we need
+      mockEnvironment,
+      DownloadService.instance,
+      CryptoService.instance,
+    );
+    const file = path.join(process.cwd(), 'test/fixtures/test-content.fixture.txt');
+    const readStream = createReadStream(file);
+
+    const finishedCallback = vi.fn();
+    const progressCallback = vi.fn();
+
+    await sut.uploadFile(readStream, 101 * 1024 * 1024, 'f1858bc9675f9e4f7ab29429', finishedCallback, progressCallback);
+
+    expect(mockEnvironment.uploadMultipartFile).toHaveBeenCalledOnce();
+    expect(mockEnvironment.upload).not.toHaveBeenCalled();
   });
 
   it('When a file is downloaded, should write it to a stream', async () => {
@@ -170,7 +110,7 @@ describe('Network Facade Service', () => {
     });
     const downloadServiceStub = DownloadService.instance;
     vi.spyOn(downloadServiceStub, 'downloadFile').mockResolvedValue(readableContent);
-    const sut = new NetworkFacade(networkMock, UploadService.instance, downloadServiceStub, CryptoService.instance);
+    const sut = new NetworkFacade(networkMock, getEnvironmentMock(), downloadServiceStub, CryptoService.instance);
 
     const chunks: Uint8Array[] = [];
 
@@ -223,7 +163,7 @@ describe('Network Facade Service', () => {
     });
     const downloadServiceStub = DownloadService.instance;
     vi.spyOn(downloadServiceStub, 'downloadFile').mockResolvedValue(readableContent);
-    const sut = new NetworkFacade(networkMock, UploadService.instance, downloadServiceStub, CryptoService.instance);
+    const sut = new NetworkFacade(networkMock, getEnvironmentMock(), downloadServiceStub, CryptoService.instance);
 
     const writable = new WritableStream<Uint8Array>();
 
@@ -274,7 +214,7 @@ describe('Network Facade Service', () => {
     });
     const downloadServiceStub = DownloadService.instance;
 
-    const sut = new NetworkFacade(networkMock, UploadService.instance, downloadServiceStub, CryptoService.instance);
+    const sut = new NetworkFacade(networkMock, getEnvironmentMock(), downloadServiceStub, CryptoService.instance);
 
     const writable = new WritableStream<Uint8Array>();
 
@@ -303,78 +243,6 @@ describe('Network Facade Service', () => {
 
     await executeDownload;
 
-    expect(options.progressCallback).toHaveBeenCalledWith(100);
-  });
-
-  it('When a file is uploaded via multipart, then it should report progress', async () => {
-    const bucket = 'f1858bc9675f9e4f7ab29429';
-    const networkMock = getNetworkMock();
-
-    const sut = new NetworkFacade(
-      networkMock,
-      UploadService.instance,
-      DownloadService.instance,
-      CryptoService.instance,
-    );
-    const file = crypto.randomBytes(16).toString('hex');
-    const readStream = new Readable({
-      read() {
-        this.push(file);
-        this.push(null);
-      },
-    });
-    const options: UploadMultipartOptions = {
-      progressCallback: vi.fn(),
-      abortController: new AbortController(),
-      parts: 2,
-    };
-
-    vi.spyOn(HashStream.prototype, 'getHash').mockImplementation(() => Buffer.from(''));
-
-    vi.spyOn(axios, 'put').mockImplementation((_, __, config) => {
-      config?.onUploadProgress?.({
-        loaded: file.length,
-        total: file.length,
-        bytes: file.length,
-        lengthComputable: true,
-      });
-      return Promise.resolve({
-        data: readStream,
-        headers: {
-          etag: 'any-etag',
-        },
-      });
-    });
-
-    vi.spyOn(networkMock, 'startUpload').mockResolvedValue({
-      uploads: [
-        {
-          index: 0,
-          url: 'any-url',
-          uuid: 'any-uuid',
-          UploadId: 'any-UploadId',
-          urls: ['url_1', 'url_2'],
-        },
-      ],
-    });
-
-    vi.spyOn(networkMock, 'finishUpload')
-      // @ts-expect-error - We only mock the properties we need
-      .mockResolvedValue({
-        id: 'uploaded_file_id',
-      });
-
-    const [executeUpload] = await sut.uploadMultipartFromStream(
-      bucket,
-      'animal fog wink trade december thumb sight cousin crunch plunge captain enforce letter creek text',
-      file.length,
-      readStream,
-      options,
-    );
-
-    const uploadResult = await executeUpload;
-
-    expect(uploadResult.fileId).to.be.equal('uploaded_file_id');
     expect(options.progressCallback).toHaveBeenCalledWith(100);
   });
 });

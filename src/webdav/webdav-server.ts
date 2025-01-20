@@ -13,7 +13,6 @@ import { DriveDatabaseManager } from '../services/database/drive-database-manage
 import { GETRequestHandler } from './handlers/GET.handler';
 import { HEADRequestHandler } from './handlers/HEAD.handler';
 import { DriveFileService } from '../services/drive/drive-file.service';
-import { UploadService } from '../services/network/upload.service';
 import { DownloadService } from '../services/network/download.service';
 import { AuthService } from '../services/auth.service';
 import { CryptoService } from '../services/crypto.service';
@@ -29,6 +28,7 @@ import { PROPPATCHRequestHandler } from './handlers/PROPPATCH.handler';
 import { MOVERequestHandler } from './handlers/MOVE.handler';
 import { COPYRequestHandler } from './handlers/COPY.handler';
 import { TrashService } from '../services/drive/trash.service';
+import { Environment } from '@internxt/inxt-js';
 
 export class WebDavServer {
   constructor(
@@ -37,7 +37,6 @@ export class WebDavServer {
     private readonly driveFileService: DriveFileService,
     private readonly driveFolderService: DriveFolderService,
     private readonly driveDatabaseManager: DriveDatabaseManager,
-    private readonly uploadService: UploadService,
     private readonly downloadService: DownloadService,
     private readonly authService: AuthService,
     private readonly cryptoService: CryptoService,
@@ -52,8 +51,20 @@ export class WebDavServer {
       user: credentials.user.bridgeUser,
       pass: credentials.user.userId,
     });
+    const environment = new Environment({
+      bridgeUser: credentials.user.bridgeUser,
+      bridgePass: credentials.user.userId,
+      bridgeUrl: ConfigService.instance.get('NETWORK_URL'),
+      encryptionKey: credentials.user.mnemonic,
+    });
+    const networkFacade = new NetworkFacade(
+      networkModule,
+      environment,
+      DownloadService.instance,
+      CryptoService.instance,
+    );
 
-    return new NetworkFacade(networkModule, this.uploadService, this.downloadService, this.cryptoService);
+    return networkFacade;
   };
 
   private readonly registerMiddlewares = async () => {

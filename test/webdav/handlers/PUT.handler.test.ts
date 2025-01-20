@@ -8,7 +8,6 @@ import {
 import { DriveFileService } from '../../../src/services/drive/drive-file.service';
 import { CryptoService } from '../../../src/services/crypto.service';
 import { DownloadService } from '../../../src/services/network/download.service';
-import { UploadService } from '../../../src/services/network/upload.service';
 import { AuthService } from '../../../src/services/auth.service';
 import { UnsupportedMediaTypeError } from '../../../src/utils/errors.utils';
 import { SdkManager } from '../../../src/services/sdk-manager.service';
@@ -22,12 +21,24 @@ import { WebDavRequestedResource } from '../../../src/types/webdav.types';
 import { WebDavUtils } from '../../../src/utils/webdav.utils';
 import { newDriveFile, newFolderItem } from '../../fixtures/drive.fixture';
 import { UserCredentialsFixture } from '../../fixtures/login.fixture';
+import { Environment } from '@internxt/inxt-js';
+import { ConfigService } from '../../../src/services/config.service';
+import { UserFixture } from '../../fixtures/auth.fixture';
 
 describe('PUT request handler', () => {
   const getNetworkMock = () => {
     return SdkManager.instance.getNetwork({
       user: 'user',
       pass: 'pass',
+    });
+  };
+
+  const getEnvironmentMock = () => {
+    return new Environment({
+      bridgeUser: 'user',
+      bridgePass: 'pass',
+      bridgeUrl: ConfigService.instance.get('NETWORK_URL'),
+      encryptionKey: UserFixture.mnemonic,
     });
   };
 
@@ -38,7 +49,7 @@ describe('PUT request handler', () => {
   it('When the content-length request is 0, then it should throw an UnsupportedMediaTypeError', async () => {
     const networkFacade = new NetworkFacade(
       getNetworkMock(),
-      UploadService.instance,
+      getEnvironmentMock(),
       DownloadService.instance,
       CryptoService.instance,
     );
@@ -74,10 +85,9 @@ describe('PUT request handler', () => {
   it('When the Drive destination folder is found, then it should upload the file to the folder', async () => {
     const driveDatabaseManager = getDriveDatabaseManager();
     const downloadService = DownloadService.instance;
-    const uploadService = UploadService.instance;
     const cryptoService = CryptoService.instance;
     const authService = AuthService.instance;
-    const networkFacade = new NetworkFacade(getNetworkMock(), uploadService, downloadService, cryptoService);
+    const networkFacade = new NetworkFacade(getNetworkMock(), getEnvironmentMock(), downloadService, cryptoService);
     const sut = new PUTRequestHandler({
       driveFileService: DriveFileService.instance,
       driveFolderService: DriveFolderService.instance,
@@ -116,12 +126,12 @@ describe('PUT request handler', () => {
       .mockResolvedValueOnce(folderFixture)
       .mockRejectedValue(new Error());
     const getAuthDetailsStub = vi.spyOn(authService, 'getAuthDetails').mockResolvedValue(UserCredentialsFixture);
-    const uploadFromStreamStub = vi
-      .spyOn(networkFacade, 'uploadFromStream')
-      .mockResolvedValue([
-        Promise.resolve({ fileId: '09218313209', hash: Buffer.from('test') }),
-        new AbortController(),
-      ]);
+    const uploadStub = vi.spyOn(networkFacade, 'uploadFile').mockImplementation(
+      // @ts-expect-error - We only mock the properties we need
+      (_, __, ___, callback: (err: Error | null, res: string | null) => void) => {
+        return Promise.resolve(callback(null, 'uploaded-file-id'));
+      },
+    );
     const createDriveFileStub = vi
       .spyOn(DriveFileService.instance, 'createFile')
       .mockResolvedValue(fileFixture.toItem());
@@ -132,7 +142,7 @@ describe('PUT request handler', () => {
     expect(getRequestedResourceStub).toHaveBeenCalledTimes(2);
     expect(getAndSearchItemFromResourceStub).toHaveBeenCalledTimes(2);
     expect(getAuthDetailsStub).toHaveBeenCalledOnce();
-    expect(uploadFromStreamStub).toHaveBeenCalledOnce();
+    expect(uploadStub).toHaveBeenCalledOnce();
     expect(createDriveFileStub).toHaveBeenCalledOnce();
     expect(createDBFileStub).toHaveBeenCalledOnce();
   });
@@ -140,11 +150,10 @@ describe('PUT request handler', () => {
   it('When the file already exists, then it should upload and replace the file to the folder', async () => {
     const driveDatabaseManager = getDriveDatabaseManager();
     const downloadService = DownloadService.instance;
-    const uploadService = UploadService.instance;
     const cryptoService = CryptoService.instance;
     const authService = AuthService.instance;
     const trashService = TrashService.instance;
-    const networkFacade = new NetworkFacade(getNetworkMock(), uploadService, downloadService, cryptoService);
+    const networkFacade = new NetworkFacade(getNetworkMock(), getEnvironmentMock(), downloadService, cryptoService);
     const sut = new PUTRequestHandler({
       driveFileService: DriveFileService.instance,
       driveFolderService: DriveFolderService.instance,
@@ -185,12 +194,12 @@ describe('PUT request handler', () => {
     const deleteDBFileStub = vi.spyOn(driveDatabaseManager, 'deleteFileById').mockResolvedValue();
     const deleteDriveFileStub = vi.spyOn(trashService, 'trashItems').mockResolvedValue();
     const getAuthDetailsStub = vi.spyOn(authService, 'getAuthDetails').mockResolvedValue(UserCredentialsFixture);
-    const uploadFromStreamStub = vi
-      .spyOn(networkFacade, 'uploadFromStream')
-      .mockResolvedValue([
-        Promise.resolve({ fileId: '09218313209', hash: Buffer.from('test') }),
-        new AbortController(),
-      ]);
+    const uploadStub = vi.spyOn(networkFacade, 'uploadFile').mockImplementation(
+      // @ts-expect-error - We only mock the properties we need
+      (_, __, ___, callback: (err: Error | null, res: string | null) => void) => {
+        return Promise.resolve(callback(null, 'uploaded-file-id'));
+      },
+    );
     const createDriveFileStub = vi
       .spyOn(DriveFileService.instance, 'createFile')
       .mockResolvedValue(fileFixture.toItem());
@@ -201,82 +210,10 @@ describe('PUT request handler', () => {
     expect(getRequestedResourceStub).toHaveBeenCalledTimes(2);
     expect(getAndSearchItemFromResourceStub).toHaveBeenCalledTimes(2);
     expect(getAuthDetailsStub).toHaveBeenCalledOnce();
-    expect(uploadFromStreamStub).toHaveBeenCalledOnce();
+    expect(uploadStub).toHaveBeenCalledOnce();
     expect(createDriveFileStub).toHaveBeenCalledOnce();
     expect(createDBFileStub).toHaveBeenCalledOnce();
     expect(deleteDBFileStub).toHaveBeenCalledOnce();
     expect(deleteDriveFileStub).toHaveBeenCalledOnce();
-  });
-
-  it('When the Drive destination folder is found, then it should upload the multipart file', async () => {
-    const driveDatabaseManager = getDriveDatabaseManager();
-    const downloadService = DownloadService.instance;
-    const uploadService = UploadService.instance;
-    const cryptoService = CryptoService.instance;
-    const authService = AuthService.instance;
-    const networkFacade = new NetworkFacade(getNetworkMock(), uploadService, downloadService, cryptoService);
-    const sut = new PUTRequestHandler({
-      driveFileService: DriveFileService.instance,
-      driveFolderService: DriveFolderService.instance,
-      authService: AuthService.instance,
-      trashService: TrashService.instance,
-      networkFacade,
-      driveDatabaseManager,
-    });
-
-    const multipartFileSize = 105 * 1024 * 1024;
-
-    const requestedFileResource: WebDavRequestedResource = getRequestedFileResource();
-    const requestedParentFolderResource: WebDavRequestedResource = getRequestedFolderResource({
-      parentFolder: '/',
-      folderName: '',
-    });
-    const folderFixture = newFolderItem({ name: requestedParentFolderResource.name });
-    const fileFixture = newDriveFile({
-      folderId: folderFixture.id,
-      folderUuid: folderFixture.uuid,
-      size: multipartFileSize,
-    });
-
-    const request = createWebDavRequestFixture({
-      method: 'PUT',
-      url: requestedFileResource.url,
-      headers: {
-        'content-length': multipartFileSize.toString(),
-      },
-    });
-
-    const response = createWebDavResponseFixture({
-      status: vi.fn().mockReturnValue({ send: vi.fn() }),
-    });
-
-    const getRequestedResourceStub = vi
-      .spyOn(WebDavUtils, 'getRequestedResource')
-      .mockResolvedValueOnce(requestedFileResource)
-      .mockResolvedValueOnce(requestedParentFolderResource);
-    const getAndSearchItemFromResourceStub = vi
-      .spyOn(WebDavUtils, 'getAndSearchItemFromResource')
-      .mockResolvedValueOnce(folderFixture)
-      .mockRejectedValue(new Error());
-    const getAuthDetailsStub = vi.spyOn(authService, 'getAuthDetails').mockResolvedValue(UserCredentialsFixture);
-    const uploadMultipartFromStreamStub = vi
-      .spyOn(networkFacade, 'uploadMultipartFromStream')
-      .mockResolvedValue([
-        Promise.resolve({ fileId: '09218313209', hash: Buffer.from('test') }),
-        new AbortController(),
-      ]);
-    const createDriveFileStub = vi
-      .spyOn(DriveFileService.instance, 'createFile')
-      .mockResolvedValue(fileFixture.toItem());
-    const createDBFileStub = vi.spyOn(driveDatabaseManager, 'createFile').mockResolvedValue(fileFixture);
-
-    await sut.handle(request, response);
-    expect(response.status).toHaveBeenCalledWith(200);
-    expect(getRequestedResourceStub).toHaveBeenCalledTimes(2);
-    expect(getAndSearchItemFromResourceStub).toHaveBeenCalledTimes(2);
-    expect(getAuthDetailsStub).toHaveBeenCalledOnce();
-    expect(uploadMultipartFromStreamStub).toHaveBeenCalledOnce();
-    expect(createDriveFileStub).toHaveBeenCalledOnce();
-    expect(createDBFileStub).toHaveBeenCalledOnce();
   });
 });

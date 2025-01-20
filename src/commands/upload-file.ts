@@ -8,7 +8,6 @@ import { CLIUtils } from '../utils/cli.utils';
 import { ConfigService } from '../services/config.service';
 import path from 'node:path';
 import { DriveFileService } from '../services/drive/drive-file.service';
-import { UploadService } from '../services/network/upload.service';
 import { CryptoService } from '../services/crypto.service';
 import { DownloadService } from '../services/network/download.service';
 import { ErrorUtils } from '../utils/errors.utils';
@@ -19,6 +18,7 @@ import { ThumbnailService } from '../services/thumbnail.service';
 import { BufferStream } from '../utils/stream.utils';
 import { isFileThumbnailable } from '../utils/thumbnail.utils';
 import { Readable } from 'node:stream';
+import { Environment } from '@internxt/inxt-js';
 
 export default class UploadFile extends Command {
   static readonly args = {};
@@ -72,9 +72,15 @@ export default class UploadFile extends Command {
       user: user.bridgeUser,
       pass: user.userId,
     });
+    const environment = new Environment({
+      bridgeUser: user.bridgeUser,
+      bridgePass: user.userId,
+      bridgeUrl: ConfigService.instance.get('NETWORK_URL'),
+      encryptionKey: user.mnemonic,
+    });
     const networkFacade = new NetworkFacade(
       networkModule,
-      UploadService.instance,
+      environment,
       DownloadService.instance,
       CryptoService.instance,
     );
@@ -99,24 +105,30 @@ export default class UploadFile extends Command {
     }
 
     const progressCallback = (progress: number) => {
-      progressBar.update(progress * 0.99);
+      progressBar.update(progress * 100 * 0.99);
     };
 
-    const [uploadPromise, abortable] = await UploadService.instance.uploadFileStream(
-      fileStream,
-      user.bucket,
-      user.mnemonic,
-      stats.size,
-      networkFacade,
-      progressCallback,
-    );
-
-    process.on('SIGINT', () => {
-      abortable.abort('SIGINT received');
-      process.exit(1);
+    const fileId = await new Promise((resolve: (fileId: string) => void, reject) => {
+      networkFacade
+        .uploadFile(
+          fileStream,
+          stats.size,
+          user.bucket,
+          (err: Error | null, res: string | null) => {
+            if (err) {
+              return reject(err);
+            }
+            resolve(res as string);
+          },
+          progressCallback,
+        )
+        .then((state) => {
+          process.on('SIGINT', () => {
+            state.stop();
+            process.exit(1);
+          });
+        });
     });
-
-    const uploadResult = await uploadPromise;
 
     // 3. Create the file in Drive
     const createdDriveFile = await DriveFileService.instance.createFile({
@@ -124,7 +136,7 @@ export default class UploadFile extends Command {
       type: fileType,
       size: stats.size,
       folder_id: destinationFolderUuid,
-      id: uploadResult.fileId,
+      id: fileId,
       bucket: user.bucket,
       encrypt_version: EncryptionVersion.Aes03,
       name: '',
@@ -139,7 +151,6 @@ export default class UploadFile extends Command {
             thumbnailBuffer,
             fileType,
             user.bucket,
-            user.mnemonic,
             createdDriveFile.id,
             networkFacade,
           );
