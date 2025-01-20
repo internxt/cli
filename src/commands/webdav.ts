@@ -49,6 +49,7 @@ export default class Webdav extends Command {
       }
 
       case 'status': {
+        await AuthService.instance.getAuthDetails();
         message = await this.webDAVStatus();
         break;
       }
