@@ -11,6 +11,8 @@ import { ValidationService } from '../validation.service';
 import { RangeOptions } from '../../utils/network.utils';
 import { ActionState } from '@internxt/inxt-js/build/api';
 
+const TWENTY_GIGABYTES = 20 * 1024 * 1024 * 1024;
+
 export class NetworkFacade {
   private readonly cryptoLib: Network.Crypto;
 
@@ -127,6 +129,9 @@ export class NetworkFacade {
     finishedCallback: (err: Error | null, res: string | null) => void,
     progressCallback: (progress: number) => void,
   ): ActionState {
+    if (size > TWENTY_GIGABYTES) {
+      throw new Error('File is too big (more than 20 GB)');
+    }
     const minimumMultipartThreshold = 100 * 1024 * 1024;
     const useMultipart = size > minimumMultipartThreshold;
 
