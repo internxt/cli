@@ -109,25 +109,22 @@ export default class UploadFile extends Command {
     };
 
     const fileId = await new Promise((resolve: (fileId: string) => void, reject) => {
-      networkFacade
-        .uploadFile(
-          fileStream,
-          stats.size,
-          user.bucket,
-          (err: Error | null, res: string | null) => {
-            if (err) {
-              return reject(err);
-            }
-            resolve(res as string);
-          },
-          progressCallback,
-        )
-        .then((state) => {
-          process.on('SIGINT', () => {
-            state.stop();
-            process.exit(1);
-          });
-        });
+      const state = networkFacade.uploadFile(
+        fileStream,
+        stats.size,
+        user.bucket,
+        (err: Error | null, res: string | null) => {
+          if (err) {
+            return reject(err);
+          }
+          resolve(res as string);
+        },
+        progressCallback,
+      );
+      process.on('SIGINT', () => {
+        state.stop();
+        process.exit(1);
+      });
     });
 
     // 3. Create the file in Drive

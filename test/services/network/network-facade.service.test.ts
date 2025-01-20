@@ -51,7 +51,7 @@ describe('Network Facade Service', () => {
     const finishedCallback = vi.fn();
     const progressCallback = vi.fn();
 
-    await sut.uploadFile(readStream, 100, 'f1858bc9675f9e4f7ab29429', finishedCallback, progressCallback);
+    sut.uploadFile(readStream, 100, 'f1858bc9675f9e4f7ab29429', finishedCallback, progressCallback);
 
     expect(mockEnvironment.upload).toHaveBeenCalledOnce();
     expect(mockEnvironment.uploadMultipartFile).not.toHaveBeenCalled();
@@ -76,7 +76,7 @@ describe('Network Facade Service', () => {
     const finishedCallback = vi.fn();
     const progressCallback = vi.fn();
 
-    await sut.uploadFile(readStream, 101 * 1024 * 1024, 'f1858bc9675f9e4f7ab29429', finishedCallback, progressCallback);
+    sut.uploadFile(readStream, 101 * 1024 * 1024, 'f1858bc9675f9e4f7ab29429', finishedCallback, progressCallback);
 
     expect(mockEnvironment.uploadMultipartFile).toHaveBeenCalledOnce();
     expect(mockEnvironment.upload).not.toHaveBeenCalled();

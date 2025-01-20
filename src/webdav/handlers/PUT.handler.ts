@@ -85,34 +85,36 @@ export class PUTRequestHandler implements WebDavMethodHandler {
       fileStream = req.pipe(bufferStream);
     }
 
+    let uploaded = false,
+      aborted = false;
+
     const progressCallback = (progress: number) => {
-      webdavLogger.info(`[PUT] Upload progress for file ${resource.name}: ${progress * 100}%`);
+      if (!uploaded && !aborted) {
+        webdavLogger.info(`[PUT] Upload progress for file ${resource.name}: ${(progress * 100).toFixed(2)}%`);
+      }
     };
 
-    let uploaded = false;
-
     const fileId = await new Promise((resolve: (fileId: string) => void, reject) => {
-      networkFacade
-        .uploadFile(
-          fileStream,
-          contentLength,
-          user.bucket,
-          (err: Error | null, res: string | null) => {
-            if (err) {
-              return reject(err);
-            }
-            resolve(res as string);
-          },
-          progressCallback,
-        )
-        .then((state) => {
-          res.on('close', async () => {
-            if (!uploaded) {
-              webdavLogger.info('[PUT] ❌ HTTP Client has been disconnected, res has been closed.');
-              state.stop();
-            }
-          });
-        });
+      const state = networkFacade.uploadFile(
+        fileStream,
+        contentLength,
+        user.bucket,
+        (err: Error | null, res: string | null) => {
+          if (err) {
+            aborted = true;
+            return reject(err);
+          }
+          resolve(res as string);
+        },
+        progressCallback,
+      );
+      res.on('close', async () => {
+        aborted = true;
+        if (!uploaded) {
+          webdavLogger.info('[PUT] ❌ HTTP Client has been disconnected, res has been closed.');
+          state.stop();
+        }
+      });
     });
     uploaded = true;
 

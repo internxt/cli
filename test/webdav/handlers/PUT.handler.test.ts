@@ -129,7 +129,7 @@ describe('PUT request handler', () => {
     const uploadStub = vi.spyOn(networkFacade, 'uploadFile').mockImplementation(
       // @ts-expect-error - We only mock the properties we need
       (_, __, ___, callback: (err: Error | null, res: string | null) => void) => {
-        return Promise.resolve(callback(null, 'uploaded-file-id'));
+        return callback(null, 'uploaded-file-id');
       },
     );
     const createDriveFileStub = vi
@@ -197,7 +197,7 @@ describe('PUT request handler', () => {
     const uploadStub = vi.spyOn(networkFacade, 'uploadFile').mockImplementation(
       // @ts-expect-error - We only mock the properties we need
       (_, __, ___, callback: (err: Error | null, res: string | null) => void) => {
-        return Promise.resolve(callback(null, 'uploaded-file-id'));
+        return callback(null, 'uploaded-file-id');
       },
     );
     const createDriveFileStub = vi

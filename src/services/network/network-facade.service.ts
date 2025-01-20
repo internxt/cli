@@ -120,13 +120,13 @@ export class NetworkFacade {
    * @param from The source ReadStream to upload from
    * @returns A promise to execute the upload and an abort controller to cancel the upload
    */
-  async uploadFile(
+  uploadFile(
     from: Readable,
     size: number,
     bucketId: string,
     finishedCallback: (err: Error | null, res: string | null) => void,
     progressCallback: (progress: number) => void,
-  ): Promise<ActionState> {
+  ): ActionState {
     const minimumMultipartThreshold = 100 * 1024 * 1024;
     const useMultipart = size > minimumMultipartThreshold;
 
