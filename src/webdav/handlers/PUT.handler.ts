@@ -12,7 +12,6 @@ import { DriveFolderService } from '../../services/drive/drive-folder.service';
 import { TrashService } from '../../services/drive/trash.service';
 import { EncryptionVersion } from '@internxt/sdk/dist/drive/storage/types';
 import { CLIUtils } from '../../utils/cli.utils';
-import { UploadService } from '../../services/network/upload.service';
 import { BufferStream } from '../../utils/stream.utils';
 import { Readable } from 'node:stream';
 import { isFileThumbnailable } from '../../utils/thumbnail.utils';
@@ -86,28 +85,37 @@ export class PUTRequestHandler implements WebDavMethodHandler {
       fileStream = req.pipe(bufferStream);
     }
 
+    let uploaded = false,
+      aborted = false;
+
     const progressCallback = (progress: number) => {
-      webdavLogger.info(`[PUT] Upload progress for file ${resource.name}: ${progress}%`);
+      if (!uploaded && !aborted) {
+        webdavLogger.info(`[PUT] Upload progress for file ${resource.name}: ${(progress * 100).toFixed(2)}%`);
+      }
     };
 
-    const [uploadPromise, abortable] = await UploadService.instance.uploadFileStream(
-      fileStream,
-      user.bucket,
-      user.mnemonic,
-      contentLength,
-      networkFacade,
-      progressCallback,
-    );
-
-    let uploaded = false;
-    res.on('close', () => {
-      if (!uploaded) {
-        webdavLogger.info('[PUT] ❌ HTTP Client has been disconnected, res has been closed.');
-        abortable.abort('HTTP Client has been disconnected.');
-      }
+    const fileId = await new Promise((resolve: (fileId: string) => void, reject) => {
+      const state = networkFacade.uploadFile(
+        fileStream,
+        contentLength,
+        user.bucket,
+        (err: Error | null, res: string | null) => {
+          if (err) {
+            aborted = true;
+            return reject(err);
+          }
+          resolve(res as string);
+        },
+        progressCallback,
+      );
+      res.on('close', async () => {
+        aborted = true;
+        if (!uploaded) {
+          webdavLogger.info('[PUT] ❌ HTTP Client has been disconnected, res has been closed.');
+          state.stop();
+        }
+      });
     });
-
-    const uploadResult = await uploadPromise;
     uploaded = true;
 
     webdavLogger.info('[PUT] ✅ File uploaded to network');
@@ -117,7 +125,7 @@ export class PUTRequestHandler implements WebDavMethodHandler {
       type: fileType,
       size: contentLength,
       folder_id: parentFolderItem.uuid,
-      id: uploadResult.fileId,
+      id: fileId,
       bucket: user.bucket,
       encrypt_version: EncryptionVersion.Aes03,
       name: '',
@@ -132,7 +140,6 @@ export class PUTRequestHandler implements WebDavMethodHandler {
             thumbnailBuffer,
             fileType,
             user.bucket,
-            user.mnemonic,
             file.id,
             networkFacade,
           );

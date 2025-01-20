@@ -10,7 +10,6 @@ import { DriveFileService } from '../../../src/services/drive/drive-file.service
 import { getDriveDatabaseManager } from '../../fixtures/drive-database.fixture';
 import { CryptoService } from '../../../src/services/crypto.service';
 import { DownloadService } from '../../../src/services/network/download.service';
-import { UploadService } from '../../../src/services/network/upload.service';
 import { AuthService } from '../../../src/services/auth.service';
 import { NotFoundError } from '../../../src/utils/errors.utils';
 import { SdkManager } from '../../../src/services/sdk-manager.service';
@@ -22,12 +21,24 @@ import { LoginCredentials } from '../../../src/types/command.types';
 import { UserCredentialsFixture } from '../../fixtures/login.fixture';
 import { randomInt } from 'node:crypto';
 import { NetworkUtils } from '../../../src/utils/network.utils';
+import { Environment } from '@internxt/inxt-js';
+import { ConfigService } from '../../../src/services/config.service';
+import { UserFixture } from '../../fixtures/auth.fixture';
 
 describe('GET request handler', () => {
   const getNetworkMock = () => {
     return SdkManager.instance.getNetwork({
       user: 'user',
       pass: 'pass',
+    });
+  };
+
+  const getEnvironmentMock = () => {
+    return new Environment({
+      bridgeUser: 'user',
+      bridgePass: 'pass',
+      bridgeUrl: ConfigService.instance.get('NETWORK_URL'),
+      encryptionKey: UserFixture.mnemonic,
     });
   };
 
@@ -38,9 +49,8 @@ describe('GET request handler', () => {
   it('When the Drive file is not found, then it should throw a NotFoundError', async () => {
     const driveDatabaseManager = getDriveDatabaseManager();
     const downloadService = DownloadService.instance;
-    const uploadService = UploadService.instance;
     const cryptoService = CryptoService.instance;
-    const networkFacade = new NetworkFacade(getNetworkMock(), uploadService, downloadService, cryptoService);
+    const networkFacade = new NetworkFacade(getNetworkMock(), getEnvironmentMock(), downloadService, cryptoService);
     const requestHandler = new GETRequestHandler({
       driveFileService: DriveFileService.instance,
       downloadService,
@@ -83,10 +93,9 @@ describe('GET request handler', () => {
   it('When file is requested, then it should write a response with the content', async () => {
     const driveDatabaseManager = getDriveDatabaseManager();
     const downloadService = DownloadService.instance;
-    const uploadService = UploadService.instance;
     const cryptoService = CryptoService.instance;
     const authService = AuthService.instance;
-    const networkFacade = new NetworkFacade(getNetworkMock(), uploadService, downloadService, cryptoService);
+    const networkFacade = new NetworkFacade(getNetworkMock(), getEnvironmentMock(), downloadService, cryptoService);
     const requestHandler = new GETRequestHandler({
       driveFileService: DriveFileService.instance,
       downloadService,
@@ -143,10 +152,9 @@ describe('GET request handler', () => {
   it('When file is requested with Range, then it should write a response with the ranged content', async () => {
     const driveDatabaseManager = getDriveDatabaseManager();
     const downloadService = DownloadService.instance;
-    const uploadService = UploadService.instance;
     const cryptoService = CryptoService.instance;
     const authService = AuthService.instance;
-    const networkFacade = new NetworkFacade(getNetworkMock(), uploadService, downloadService, cryptoService);
+    const networkFacade = new NetworkFacade(getNetworkMock(), getEnvironmentMock(), downloadService, cryptoService);
     const requestHandler = new GETRequestHandler({
       driveFileService: DriveFileService.instance,
       downloadService,

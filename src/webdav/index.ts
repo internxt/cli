@@ -7,7 +7,6 @@ import { DriveDatabaseManager } from '../services/database/drive-database-manage
 import { DriveFileRepository } from '../services/database/drive-file/drive-file.repository';
 import { DriveFolderRepository } from '../services/database/drive-folder/drive-folder.repository';
 import { DriveFileService } from '../services/drive/drive-file.service';
-import { UploadService } from '../services/network/upload.service';
 import { DownloadService } from '../services/network/download.service';
 import { AuthService } from '../services/auth.service';
 import { CryptoService } from '../services/crypto.service';
@@ -36,7 +35,6 @@ const init = async () => {
     DriveFileService.instance,
     DriveFolderService.instance,
     new DriveDatabaseManager(new DriveFileRepository(), new DriveFolderRepository()),
-    UploadService.instance,
     DownloadService.instance,
     AuthService.instance,
     CryptoService.instance,
