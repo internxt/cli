@@ -1149,4 +1149,4 @@ _See code: [src/commands/whoami.ts](https://github.com/internxt/cli/blob/v1.5.0/
 
 # Current Limitations
 
-- We currently have a 5GB size upload limitation per file for both, CLI and WebDAV
+- We currently have a 20GB size upload limitation per file for both, CLI and WebDAV
