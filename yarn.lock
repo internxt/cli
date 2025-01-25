@@ -1532,13 +1532,13 @@
     wordwrap "^1.0.0"
     wrap-ansi "^7.0.0"
 
-"@oclif/core@^4", "@oclif/core@^4.2.0":
-  version "4.2.0"
-  resolved "https://registry.yarnpkg.com/@oclif/core/-/core-4.2.0.tgz#ab78b247dfd66322d9c9376ebaf3764e3c82fefe"
-  integrity sha512-ETM2N/GL7W37Kv1Afv1j1Gh77CynS2ubEPP+p+MnjUXEjghNe7+bKAWhPkHnBuFAVFAqdv0qMpUAjxKLbsmbJw==
+"@oclif/core@^4", "@oclif/core@^4.2.3":
+  version "4.2.4"
+  resolved "https://registry.yarnpkg.com/@oclif/core/-/core-4.2.4.tgz#0737063beb35e3d421135cd07983bc5306fb17bf"
+  integrity sha512-JDqdhX6fBbijY3ouubfmX7yFBXy95YSpiAVk0TAaXXCoSqoo/2WMcV2Ufv2V+8zriafPU/rvKgI+ZE07/7HwfQ==
   dependencies:
     ansi-escapes "^4.3.2"
-    ansis "^3.3.2"
+    ansis "^3.9.0"
     clean-stack "^3.0.1"
     cli-spinners "^2.9.2"
     debug "^4.4.0"
@@ -1573,10 +1573,10 @@
     ansis "^3.8.1"
     fast-levenshtein "^3.0.0"
 
-"@oclif/plugin-warn-if-update-available@^3.1.29":
-  version "3.1.30"
-  resolved "https://registry.yarnpkg.com/@oclif/plugin-warn-if-update-available/-/plugin-warn-if-update-available-3.1.30.tgz#e7b2d7d0dde92df095287e45d415ae24f594b541"
-  integrity sha512-mluHDyIraM8T0Je25npNwV0p8T2cudeTe1N6P6KQ2rgPpgcW59Z+vze0VSJcZ7f+S65M3mk0TXn3qj7gtS3PLA==
+"@oclif/plugin-warn-if-update-available@^3.1.30":
+  version "3.1.31"
+  resolved "https://registry.yarnpkg.com/@oclif/plugin-warn-if-update-available/-/plugin-warn-if-update-available-3.1.31.tgz#203bc7e63f7f7df5bb1e31f42c3c1b52eaa00763"
+  integrity sha512-0ZN7o+Tv00gYrwlKsfMQ8VvJGb9Vhr3UYStFJh1AbEdGTPlURv51aatTW27AIV2atfluCh0MMntVZSzoDcuxSQ==
   dependencies:
     "@oclif/core" "^4"
     ansis "^3.5.2"
@@ -2774,12 +2774,7 @@ ansi-styles@^6.0.0, ansi-styles@^6.1.0, ansi-styles@^6.2.1:
   resolved "https://registry.yarnpkg.com/ansi-styles/-/ansi-styles-6.2.1.tgz#0e62320cf99c21afff3b3012192546aacbfb05c5"
   integrity sha512-bN798gFfQX+viw3R7yrGWRqnrN2oRkEkUjjl4JNn4E8GxxbjtG3FbrEIIY3l8/hrwUwIeCZvi4QuOTP4MErVug==
 
-ansis@^3.3.2:
-  version "3.8.1"
-  resolved "https://registry.yarnpkg.com/ansis/-/ansis-3.8.1.tgz#60656ef3f7d60f4aed4bb69ec1429ef393f7b90e"
-  integrity sha512-gzGUTqsBugYCegbhldz7Ox9NrizAlCSAP5Y6rRD9agN76osoyhKznznmaB4G5BAVvrqwksPOGdnYh1Q000cUqw==
-
-ansis@^3.5.2, ansis@^3.8.1:
+ansis@^3.5.2, ansis@^3.8.1, ansis@^3.9.0:
   version "3.9.0"
   resolved "https://registry.yarnpkg.com/ansis/-/ansis-3.9.0.tgz#d195c93c31a333916142ff8f0be4d7e3872f262e"
   integrity sha512-PcDrVe15ldexeZMsVLBAzBwF2KhZgaU0R+CHxH+x5kqn/pO+UWVBZJ+NEXMPpEOLUFeNsnNdoWYc2gwO+MVkDg==
@@ -6156,20 +6151,20 @@ object.assign@^4.1.5:
     has-symbols "^1.0.3"
     object-keys "^1.1.1"
 
-oclif@4.17.13:
-  version "4.17.13"
-  resolved "https://registry.yarnpkg.com/oclif/-/oclif-4.17.13.tgz#6c18870b413d010a35887878bbb7fabd63e03580"
-  integrity sha512-cwkMIWPMYCLzB16cEGsHiW4xonl4vm++zYoQSSC+AXTKmOleeiVkDS6RXK92vhSUrsKaqhX4plQb0fSWj0V6YA==
+oclif@4.17.17:
+  version "4.17.17"
+  resolved "https://registry.yarnpkg.com/oclif/-/oclif-4.17.17.tgz#6b5b8d1ec1cf27c83ec4b031c3b347c8eca43617"
+  integrity sha512-k1aiaYO6LVzIm6uaMbQ5QceH/OzyhEz5bHIJLfiGJCs17fwnfab/m7jUAZ/4BlJ5OiA69GYmt++jcqHAOWW8Yg==
   dependencies:
     "@aws-sdk/client-cloudfront" "^3.726.1"
     "@aws-sdk/client-s3" "^3.722.0"
     "@inquirer/confirm" "^3.1.22"
     "@inquirer/input" "^2.2.4"
     "@inquirer/select" "^2.5.0"
-    "@oclif/core" "^4.2.0"
+    "@oclif/core" "^4.2.3"
     "@oclif/plugin-help" "^6.2.21"
     "@oclif/plugin-not-found" "^3.2.32"
-    "@oclif/plugin-warn-if-update-available" "^3.1.29"
+    "@oclif/plugin-warn-if-update-available" "^3.1.30"
     async-retry "^1.3.3"
     chalk "^4"
     change-case "^4"
@@ -6182,7 +6177,7 @@ oclif@4.17.13:
     lodash "^4.17.21"
     normalize-package-data "^6"
     semver "^7.6.3"
-    sort-package-json "^2.12.0"
+    sort-package-json "^2.14.0"
     tiny-jsonc "^1.0.1"
     validate-npm-package-name "^5.0.1"
 
@@ -7267,10 +7262,10 @@ sort-object-keys@^1.1.3:
   resolved "https://registry.yarnpkg.com/sort-object-keys/-/sort-object-keys-1.1.3.tgz#bff833fe85cab147b34742e45863453c1e190b45"
   integrity sha512-855pvK+VkU7PaKYPc+Jjnmt4EzejQHyhhF33q31qG8x7maDzkeFhAAThdCYay11CISO+qAMwjOBP+fPZe0IPyg==
 
-sort-package-json@^2.12.0:
-  version "2.13.0"
-  resolved "https://registry.yarnpkg.com/sort-package-json/-/sort-package-json-2.13.0.tgz#f5d7acd507fb7c5eecd1dee26fda827effd2ed53"
-  integrity sha512-y1iCgJ+ZrOSgkzuhtpaxxsCLeUPZbEbIxcMDBde6JwpkZ3e9vVQhZ46iCD97GYImdgBLtXSPxxS9LqZbL6Th2Q==
+sort-package-json@^2.14.0:
+  version "2.14.0"
+  resolved "https://registry.yarnpkg.com/sort-package-json/-/sort-package-json-2.14.0.tgz#ba0c7420dc6edea4b0eb7e9f502fda63f57586d8"
+  integrity sha512-xBRdmMjFB/KW3l51mP31dhlaiFmqkHLfWTfZAno8prb/wbDxwBPWFpxB16GZbiPbYr3wL41H8Kx22QIDWRe8WQ==
   dependencies:
     detect-indent "^7.0.1"
     detect-newline "^4.0.0"
