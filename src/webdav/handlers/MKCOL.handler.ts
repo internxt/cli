@@ -7,7 +7,7 @@ import { webdavLogger } from '../../utils/logger.utils';
 import { XMLUtils } from '../../utils/xml.utils';
 import { AsyncUtils } from '../../utils/async.utils';
 import { DriveFolderItem } from '../../types/drive.types';
-import { MethodNotAllowed } from '../../utils/errors.utils';
+import { MethodNotAllowed, UnsupportedMediaTypeError } from '../../utils/errors.utils';
 
 export class MKCOLRequestHandler implements WebDavMethodHandler {
   constructor(
@@ -15,11 +15,16 @@ export class MKCOLRequestHandler implements WebDavMethodHandler {
       driveDatabaseManager: DriveDatabaseManager;
       driveFolderService: DriveFolderService;
     },
-  ) {}
+  ) { }
 
   handle = async (req: Request, res: Response) => {
     const { driveDatabaseManager, driveFolderService } = this.dependencies;
     const resource = await WebDavUtils.getRequestedResource(req);
+
+    // if body is not empty throw a 500 error
+    if (Object.keys(req.body).length > 0) {
+      throw new UnsupportedMediaTypeError('Body not allowed for MKCOL method');
+    }
 
     webdavLogger.info(`[MKCOL] Request received for ${resource.type} at ${resource.url}`);
 
@@ -44,7 +49,7 @@ export class MKCOLRequestHandler implements WebDavMethodHandler {
     }
 
     if (folderAlreadyExists) {
-      webdavLogger.info(`[MKCOL] ❌ Folder already exists`); 
+      webdavLogger.info(`[MKCOL] ❌ Folder already exists`);
       throw new MethodNotAllowed('Folder already exists');
     }
 
