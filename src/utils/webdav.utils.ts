@@ -101,16 +101,16 @@ export class WebDavUtils {
       // if resource has a parentPath it means it's a subfolder then try to get it; if it throws an error it means it doesn't 
       // exist and we should throw a 409 error in compliance with the WebDAV RFC
       // catch the error during getting parent folder and throw a 409 error in compliance with the WebDAV RFC
-
       try {
         item = await driveFolderService?.getFolderMetadataByPath(resource.url);
       }
-      // TODO: get the exact error type from the SDK, it should be a 404 error
       catch (error: any) {
         // if the error is a 404 error, it means the resource doesn't exist
         // in this case, throw a 409 error in compliance with the WebDAV RFC
-        
-        throw new ConflictError(`Resource not found on Internxt Drive at ${resource.url}`);
+        if (error.status === 404) {
+          throw new ConflictError(`Resource not found on Internxt Drive at ${resource.url}`);
+        }
+        throw error;
       }
     }
     if (resource.type === 'file') {

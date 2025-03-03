@@ -7,7 +7,7 @@ import { webdavLogger } from '../../utils/logger.utils';
 import { XMLUtils } from '../../utils/xml.utils';
 import { AsyncUtils } from '../../utils/async.utils';
 import { DriveFolderItem } from '../../types/drive.types';
-import { MethodNotAllowed, UnsupportedMediaTypeError } from '../../utils/errors.utils';
+import { MethodNotAllowed } from '../../utils/errors.utils';
 
 export class MKCOLRequestHandler implements WebDavMethodHandler {
   constructor(
@@ -37,10 +37,12 @@ export class MKCOLRequestHandler implements WebDavMethodHandler {
     try {
       await driveFolderService.getFolderMetadataByPath(resource.url);
     }
-    // TODO: This is a bad practice, we should catch a specific error (e.g. FolderNotFound) instead of a generic one;
     // In this case a 404 error must spefically catched
-    catch (error) {
-      folderAlreadyExists = false;
+    catch (error: any) {
+      // check if the error is a 404 error
+      if (error.status === 404) {
+        folderAlreadyExists = false;
+      }
     }
 
     if (folderAlreadyExists) {
