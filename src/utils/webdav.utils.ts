@@ -98,7 +98,6 @@ export class WebDavUtils {
     let item: DriveFileItem | DriveFolderItem | undefined = undefined;
 
     if (resource.type === 'folder') {
-      webdavLogger.info('Andrea: resource ->', { resource });
       // if resource has a parentPath it means it's a subfolder then try to get it; if it throws an error it means it doesn't 
       // exist and we should throw a 409 error in compliance with the WebDAV RFC
       // catch the error during getting parent folder and throw a 409 error in compliance with the WebDAV RFC
@@ -110,7 +109,7 @@ export class WebDavUtils {
       catch (error: any) {
         // if the error is a 404 error, it means the resource doesn't exist
         // in this case, throw a 409 error in compliance with the WebDAV RFC
-        // if error is of type AppError, throw it
+        
         throw new ConflictError(`Resource not found on Internxt Drive at ${resource.url}`);
       }
     }

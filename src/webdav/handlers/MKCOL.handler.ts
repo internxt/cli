@@ -21,11 +21,6 @@ export class MKCOLRequestHandler implements WebDavMethodHandler {
     const { driveDatabaseManager, driveFolderService } = this.dependencies;
     const resource = await WebDavUtils.getRequestedResource(req);
 
-    // if body is not empty throw a 500 error
-    if (Object.keys(req.body).length > 0) {
-      throw new UnsupportedMediaTypeError('Body not allowed for MKCOL method');
-    }
-
     webdavLogger.info(`[MKCOL] Request received for ${resource.type} at ${resource.url}`);
 
     const parentResource = await WebDavUtils.getRequestedResource(resource.parentPath);

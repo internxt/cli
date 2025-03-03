@@ -29,6 +29,7 @@ import { MOVERequestHandler } from './handlers/MOVE.handler';
 import { COPYRequestHandler } from './handlers/COPY.handler';
 import { TrashService } from '../services/drive/trash.service';
 import { Environment } from '@internxt/inxt-js';
+import { MkcolMiddleware } from './middewares/mkcol.middleware';
 
 export class WebDavServer {
   constructor(
@@ -69,8 +70,8 @@ export class WebDavServer {
 
   private readonly registerMiddlewares = async () => {
     this.app.use(ErrorHandlingMiddleware);
-    // include body of the request without any parsing
-    this.app.use(bodyParser.raw({ type: '*/*' }));
+    this.app.use(MkcolMiddleware);
+    this.app.use(bodyParser.text({ type: ['application/xml', 'text/xml'] }));
     this.app.use(AuthMiddleware(AuthService.instance));
     this.app.use(
       RequestLoggerMiddleware({
