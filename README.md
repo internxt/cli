@@ -17,7 +17,7 @@ A CLI tool to interact with your Internxt encrypted files
 
 You can install the Internxt CLI by using NPM:
 
-Requires Node >= 20.0.0
+Requires Node >= 20.12.1
 
 `npm i -g @internxt/cli`
 
@@ -31,7 +31,7 @@ $ npm install -g @internxt/cli
 $ internxt COMMAND
 running command...
 $ internxt (--version)
-@internxt/cli/1.5.1 win32-x64 node-v22.11.0
+@internxt/cli/1.5.1 win32-x64 node-v20.12.1
 $ internxt --help [COMMAND]
 USAGE
   $ internxt COMMAND

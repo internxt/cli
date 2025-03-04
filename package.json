@@ -95,7 +95,7 @@
     "vitest-mock-express": "2.2.0"
   },
   "engines": {
-    "node": ">=20.5.0"
+    "node": ">=20.12.1"
   },
   "bin": {
     "internxt": "./bin/run.js"
