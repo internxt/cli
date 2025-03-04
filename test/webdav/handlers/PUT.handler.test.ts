@@ -138,7 +138,7 @@ describe('PUT request handler', () => {
     const createDBFileStub = vi.spyOn(driveDatabaseManager, 'createFile').mockResolvedValue(fileFixture);
 
     await sut.handle(request, response);
-    expect(response.status).toHaveBeenCalledWith(200);
+    expect(response.status).toHaveBeenCalledWith(201);
     expect(getRequestedResourceStub).toHaveBeenCalledTimes(2);
     expect(getAndSearchItemFromResourceStub).toHaveBeenCalledTimes(2);
     expect(getAuthDetailsStub).toHaveBeenCalledOnce();
@@ -206,7 +206,7 @@ describe('PUT request handler', () => {
     const createDBFileStub = vi.spyOn(driveDatabaseManager, 'createFile').mockResolvedValue(fileFixture);
 
     await sut.handle(request, response);
-    expect(response.status).toHaveBeenCalledWith(200);
+    expect(response.status).toHaveBeenCalledWith(201);
     expect(getRequestedResourceStub).toHaveBeenCalledTimes(2);
     expect(getAndSearchItemFromResourceStub).toHaveBeenCalledTimes(2);
     expect(getAuthDetailsStub).toHaveBeenCalledOnce();
