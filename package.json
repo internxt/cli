@@ -76,7 +76,7 @@
     "@types/cli-progress": "3.11.6",
     "@types/express": "5.0.0",
     "@types/mime-types": "2.1.4",
-    "@types/node": "22.10.7",
+    "@types/node": "22.13.11",
     "@types/range-parser": "1.2.7",
     "@vitest/coverage-istanbul": "3.0.7",
     "@vitest/spy": "3.0.7",
