@@ -2634,6 +2634,13 @@
   dependencies:
     tinyspy "^3.0.2"
 
+"@vitest/spy@3.1.1":
+  version "3.1.1"
+  resolved "https://registry.yarnpkg.com/@vitest/spy/-/spy-3.1.1.tgz#deca0b025e151302ab514f38390fd7777e294837"
+  integrity sha512-+EmrUOOXbKzLkTDwlsc/xrwOlPDXyVk3Z6P6K4oiCndxz7YLpp/0R0UsWVOKT0IXWjjBJuSMk6D27qipaupcvQ==
+  dependencies:
+    tinyspy "^3.0.2"
+
 "@vitest/utils@3.0.7":
   version "3.0.7"
   resolved "https://registry.yarnpkg.com/@vitest/utils/-/utils-3.0.7.tgz#56268acac1027ead938150eceb2527c61d2fa204"
