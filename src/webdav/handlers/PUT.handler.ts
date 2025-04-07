@@ -154,6 +154,6 @@ export class PUTRequestHandler implements WebDavMethodHandler {
 
     await driveDatabaseManager.createFile(file, resource.path.dir + '/');
 
-    res.status(200).send();
+    res.status(201).send();
   };
 }
