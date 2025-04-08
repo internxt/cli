@@ -28,6 +28,12 @@ export default class WebDAVConfig extends Command {
       required: false,
       exclusive: ['https'],
     }),
+    timeout: Flags.integer({
+      char: 't',
+      description: 'Configures the WebDAV server to use this timeout in minutes.',
+      required: false,
+      min: 0,
+    }),
   };
   static readonly enableJsonFlag = true;
 
@@ -52,6 +58,11 @@ export default class WebDAVConfig extends Command {
     const https = flags['https'];
     if (https) {
       webdavConfig['protocol'] = 'https';
+    }
+
+    const timeout = flags['timeout'];
+    if (timeout) {
+      webdavConfig['timeoutMinutes'] = timeout;
     }
 
     await ConfigService.instance.saveWebdavConfig(webdavConfig);
