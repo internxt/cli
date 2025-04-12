@@ -82,7 +82,7 @@
     "@vitest/spy": "3.0.7",
     "eslint": "9.21.0",
     "husky": "9.1.7",
-    "lint-staged": "15.4.3",
+    "lint-staged": "15.5.1",
     "nock": "14.0.1",
     "nodemon": "3.1.9",
     "oclif": "4.17.34",
