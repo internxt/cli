@@ -9,6 +9,7 @@ import { DriveFileService } from '../services/drive/drive-file.service';
 import { DriveFileItem, DriveFolderItem } from '../types/drive.types';
 import { ConflictError, NotFoundError } from './errors.utils';
 import { webdavLogger } from './logger.utils';
+import AppError from '@internxt/sdk/dist/shared/types/errors';
 
 export class WebDavUtils {
   static joinURL(...pathComponents: string[]): string {
@@ -98,16 +99,15 @@ export class WebDavUtils {
     let item: DriveFileItem | DriveFolderItem | undefined = undefined;
 
     if (resource.type === 'folder') {
-      // if resource has a parentPath it means it's a subfolder then try to get it; if it throws an error it means it doesn't 
+      // if resource has a parentPath it means it's a subfolder then try to get it; if it throws an error it means it doesn't
       // exist and we should throw a 409 error in compliance with the WebDAV RFC
       // catch the error during getting parent folder and throw a 409 error in compliance with the WebDAV RFC
       try {
         item = await driveFolderService?.getFolderMetadataByPath(resource.url);
-      }
-      catch (error: any) {
+      } catch (error) {
         // if the error is a 404 error, it means the resource doesn't exist
         // in this case, throw a 409 error in compliance with the WebDAV RFC
-        if (error.status === 404) {
+        if ((error as AppError).status === 404) {
           throw new ConflictError(`Resource not found on Internxt Drive at ${resource.url}`);
         }
         throw error;

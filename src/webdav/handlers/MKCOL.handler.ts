@@ -8,6 +8,7 @@ import { XMLUtils } from '../../utils/xml.utils';
 import { AsyncUtils } from '../../utils/async.utils';
 import { DriveFolderItem } from '../../types/drive.types';
 import { MethodNotAllowed } from '../../utils/errors.utils';
+import AppError from '@internxt/sdk/dist/shared/types/errors';
 
 export class MKCOLRequestHandler implements WebDavMethodHandler {
   constructor(
@@ -15,7 +16,7 @@ export class MKCOLRequestHandler implements WebDavMethodHandler {
       driveDatabaseManager: DriveDatabaseManager;
       driveFolderService: DriveFolderService;
     },
-  ) { }
+  ) {}
 
   handle = async (req: Request, res: Response) => {
     const { driveDatabaseManager, driveFolderService } = this.dependencies;
@@ -31,22 +32,19 @@ export class MKCOLRequestHandler implements WebDavMethodHandler {
       driveFolderService,
     })) as DriveFolderItem;
 
-    var folderAlreadyExists = true;
+    let folderAlreadyExists = true;
     // try to get the folder from the drive before creating it
     // The method getFolderMetadataByPath will throw an error if the folder does not exist, so we need to catch it
     try {
       await driveFolderService.getFolderMetadataByPath(resource.url);
-    }
-    // In this case a 404 error must spefically catched
-    catch (error: any) {
-      // check if the error is a 404 error
-      if (error.status === 404) {
+    } catch (error) {
+      if ((error as AppError).status === 404) {
         folderAlreadyExists = false;
       }
     }
 
     if (folderAlreadyExists) {
-      webdavLogger.info(`[MKCOL] ❌ Folder already exists`);
+      webdavLogger.info(`[MKCOL] ❌ Folder '${resource.url}' already exists`);
       throw new MethodNotAllowed('Folder already exists');
     }
 
