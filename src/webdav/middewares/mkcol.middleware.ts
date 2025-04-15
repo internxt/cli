@@ -3,8 +3,14 @@ import { RequestHandler } from 'express';
 export const MkcolMiddleware: RequestHandler = (req, _, next) => {
   // if request content types are not 'application/xml', 'text/xml' or not defined, return 415
   if (req.method === 'MKCOL') {
-    if (req.get('Content-Type')) {
-      if (!req.is('application/xml') && !req.is('text/xml')) {
+    let contentType = req.headers['Content-Type'];
+    if (contentType && contentType.length > 0) {
+      if (Array.isArray(contentType)) {
+        contentType = contentType[0];
+      }
+      contentType = contentType.toLowerCase().trim();
+
+      if (contentType !== 'application/xml' && contentType !== 'text/xml') {
         return next({
           status: 415,
           message: 'Unsupported Media Type',
