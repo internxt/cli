@@ -44,7 +44,7 @@ export class PUTRequestHandler implements WebDavMethodHandler {
     webdavLogger.info(`[PUT] Request received for ${resource.type} at ${resource.url}`);
     webdavLogger.info(`[PUT] Uploading '${resource.name}' to '${resource.parentPath}'`);
 
-    const parentResource = await WebDavUtils.getRequestedResource(resource.parentPath);
+    const parentResource = await WebDavUtils.getRequestedResource(resource.parentPath, false);
 
     const parentFolderItem = (await WebDavUtils.getAndSearchItemFromResource({
       resource: parentResource,

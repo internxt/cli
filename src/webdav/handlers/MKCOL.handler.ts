@@ -22,7 +22,7 @@ export class MKCOLRequestHandler implements WebDavMethodHandler {
 
     webdavLogger.info(`[MKCOL] Request received for ${resource.type} at ${resource.url}`);
 
-    const parentResource = await WebDavUtils.getRequestedResource(resource.parentPath);
+    const parentResource = await WebDavUtils.getRequestedResource(resource.parentPath, false);
 
     const parentFolderItem = (await WebDavUtils.getAndSearchItemFromResource({
       resource: parentResource,

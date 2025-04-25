@@ -27,14 +27,14 @@ export class WebDavUtils {
     return url;
   }
 
-  static async getRequestedResource(urlObject: string | Request): Promise<WebDavRequestedResource> {
+  static async getRequestedResource(urlObject: string | Request, decodeUri = true): Promise<WebDavRequestedResource> {
     let requestUrl: string;
     if (typeof urlObject === 'string') {
       requestUrl = urlObject;
     } else {
       requestUrl = urlObject.url;
     }
-    const decodedUrl = decodeURIComponent(requestUrl).replaceAll('/./', '/');
+    const decodedUrl = (decodeUri ? decodeURIComponent(requestUrl) : requestUrl).replaceAll('/./', '/');
     const parsedPath = path.parse(decodedUrl);
     let parentPath = path.dirname(decodedUrl);
     if (!parentPath.startsWith('/')) parentPath = '/'.concat(parentPath);
