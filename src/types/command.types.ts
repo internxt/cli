@@ -11,6 +11,7 @@ export interface LoginCredentials {
 export interface WebdavConfig {
   port: string;
   protocol: 'http' | 'https';
+  timeoutMinutes: number;
 }
 
 export class NotValidEmailError extends Error {

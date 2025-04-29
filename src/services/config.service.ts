@@ -16,6 +16,7 @@ export class ConfigService {
   static readonly WEBDAV_LOCAL_URL = 'webdav.local.internxt.com';
   static readonly WEBDAV_DEFAULT_PORT = '3005';
   static readonly WEBDAV_DEFAULT_PROTOCOL = 'https';
+  static readonly WEBDAV_DEFAULT_TIMEOUT = 0;
   public static readonly instance: ConfigService = new ConfigService();
 
   /**
@@ -87,11 +88,13 @@ export class ConfigService {
       return {
         port: configs?.port ?? ConfigService.WEBDAV_DEFAULT_PORT,
         protocol: configs?.protocol ?? ConfigService.WEBDAV_DEFAULT_PROTOCOL,
+        timeoutMinutes: configs?.timeoutMinutes ?? ConfigService.WEBDAV_DEFAULT_TIMEOUT,
       };
     } catch {
       return {
         port: ConfigService.WEBDAV_DEFAULT_PORT,
         protocol: ConfigService.WEBDAV_DEFAULT_PROTOCOL,
+        timeoutMinutes: ConfigService.WEBDAV_DEFAULT_TIMEOUT,
       };
     }
   };
