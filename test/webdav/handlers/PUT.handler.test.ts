@@ -13,7 +13,6 @@ import { UnsupportedMediaTypeError } from '../../../src/utils/errors.utils';
 import { SdkManager } from '../../../src/services/sdk-manager.service';
 import { NetworkFacade } from '../../../src/services/network/network-facade.service';
 import { PUTRequestHandler } from '../../../src/webdav/handlers/PUT.handler';
-import { getDriveDatabaseManager } from '../../fixtures/drive-database.fixture';
 import { fail } from 'node:assert';
 import { DriveFolderService } from '../../../src/services/drive/drive-folder.service';
 import { TrashService } from '../../../src/services/drive/trash.service';
@@ -56,7 +55,6 @@ describe('PUT request handler', () => {
     const sut = new PUTRequestHandler({
       driveFileService: DriveFileService.instance,
       driveFolderService: DriveFolderService.instance,
-      driveDatabaseManager: getDriveDatabaseManager(),
       authService: AuthService.instance,
       trashService: TrashService.instance,
       networkFacade,
@@ -83,7 +81,6 @@ describe('PUT request handler', () => {
   });
 
   it('When the Drive destination folder is found, then it should upload the file to the folder', async () => {
-    const driveDatabaseManager = getDriveDatabaseManager();
     const downloadService = DownloadService.instance;
     const cryptoService = CryptoService.instance;
     const authService = AuthService.instance;
@@ -94,7 +91,6 @@ describe('PUT request handler', () => {
       authService: AuthService.instance,
       trashService: TrashService.instance,
       networkFacade,
-      driveDatabaseManager,
     });
 
     const requestedFileResource: WebDavRequestedResource = getRequestedFileResource();
@@ -135,7 +131,6 @@ describe('PUT request handler', () => {
     const createDriveFileStub = vi
       .spyOn(DriveFileService.instance, 'createFile')
       .mockResolvedValue(fileFixture.toItem());
-    const createDBFileStub = vi.spyOn(driveDatabaseManager, 'createFile').mockResolvedValue(fileFixture);
 
     await sut.handle(request, response);
     expect(response.status).toHaveBeenCalledWith(200);
@@ -144,11 +139,9 @@ describe('PUT request handler', () => {
     expect(getAuthDetailsStub).toHaveBeenCalledOnce();
     expect(uploadStub).toHaveBeenCalledOnce();
     expect(createDriveFileStub).toHaveBeenCalledOnce();
-    expect(createDBFileStub).toHaveBeenCalledOnce();
   });
 
   it('When the file already exists, then it should upload and replace the file to the folder', async () => {
-    const driveDatabaseManager = getDriveDatabaseManager();
     const downloadService = DownloadService.instance;
     const cryptoService = CryptoService.instance;
     const authService = AuthService.instance;
@@ -160,7 +153,6 @@ describe('PUT request handler', () => {
       authService: AuthService.instance,
       trashService: TrashService.instance,
       networkFacade,
-      driveDatabaseManager,
     });
 
     const requestedFileResource: WebDavRequestedResource = getRequestedFileResource();
@@ -191,7 +183,6 @@ describe('PUT request handler', () => {
       .spyOn(WebDavUtils, 'getAndSearchItemFromResource')
       .mockResolvedValueOnce(folderFixture)
       .mockResolvedValueOnce(fileFixture.toItem());
-    const deleteDBFileStub = vi.spyOn(driveDatabaseManager, 'deleteFileById').mockResolvedValue();
     const deleteDriveFileStub = vi.spyOn(trashService, 'trashItems').mockResolvedValue();
     const getAuthDetailsStub = vi.spyOn(authService, 'getAuthDetails').mockResolvedValue(UserCredentialsFixture);
     const uploadStub = vi.spyOn(networkFacade, 'uploadFile').mockImplementation(
@@ -203,7 +194,6 @@ describe('PUT request handler', () => {
     const createDriveFileStub = vi
       .spyOn(DriveFileService.instance, 'createFile')
       .mockResolvedValue(fileFixture.toItem());
-    const createDBFileStub = vi.spyOn(driveDatabaseManager, 'createFile').mockResolvedValue(fileFixture);
 
     await sut.handle(request, response);
     expect(response.status).toHaveBeenCalledWith(200);
@@ -212,8 +202,6 @@ describe('PUT request handler', () => {
     expect(getAuthDetailsStub).toHaveBeenCalledOnce();
     expect(uploadStub).toHaveBeenCalledOnce();
     expect(createDriveFileStub).toHaveBeenCalledOnce();
-    expect(createDBFileStub).toHaveBeenCalledOnce();
-    expect(deleteDBFileStub).toHaveBeenCalledOnce();
     expect(deleteDriveFileStub).toHaveBeenCalledOnce();
   });
 });

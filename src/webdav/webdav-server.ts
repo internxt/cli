@@ -9,7 +9,6 @@ import bodyParser from 'body-parser';
 import { DriveFolderService } from '../services/drive/drive-folder.service';
 import { AuthMiddleware } from './middewares/auth.middleware';
 import { RequestLoggerMiddleware } from './middewares/request-logger.middleware';
-import { DriveDatabaseManager } from '../services/database/drive-database-manager.service';
 import { GETRequestHandler } from './handlers/GET.handler';
 import { HEADRequestHandler } from './handlers/HEAD.handler';
 import { DriveFileService } from '../services/drive/drive-file.service';
@@ -36,7 +35,6 @@ export class WebDavServer {
     private readonly configService: ConfigService,
     private readonly driveFileService: DriveFileService,
     private readonly driveFolderService: DriveFolderService,
-    private readonly driveDatabaseManager: DriveDatabaseManager,
     private readonly downloadService: DownloadService,
     private readonly authService: AuthService,
     private readonly cryptoService: CryptoService,
@@ -85,7 +83,6 @@ export class WebDavServer {
       asyncHandler(
         new HEADRequestHandler({
           driveFileService: this.driveFileService,
-          driveDatabaseManager: this.driveDatabaseManager,
         }).handle,
       ),
     );
@@ -94,7 +91,6 @@ export class WebDavServer {
       asyncHandler(
         new GETRequestHandler({
           driveFileService: this.driveFileService,
-          driveDatabaseManager: this.driveDatabaseManager,
           downloadService: this.downloadService,
           cryptoService: this.cryptoService,
           authService: this.authService,
@@ -109,7 +105,6 @@ export class WebDavServer {
         new PROPFINDRequestHandler({
           driveFileService: this.driveFileService,
           driveFolderService: this.driveFolderService,
-          driveDatabaseManager: this.driveDatabaseManager,
         }).handle,
       ),
     );
@@ -120,7 +115,6 @@ export class WebDavServer {
         new PUTRequestHandler({
           driveFileService: this.driveFileService,
           driveFolderService: this.driveFolderService,
-          driveDatabaseManager: this.driveDatabaseManager,
           authService: this.authService,
           trashService: this.trashService,
           networkFacade: networkFacade,
@@ -132,7 +126,6 @@ export class WebDavServer {
       '*',
       asyncHandler(
         new MKCOLRequestHandler({
-          driveDatabaseManager: this.driveDatabaseManager,
           driveFolderService: this.driveFolderService,
         }).handle,
       ),
@@ -141,7 +134,6 @@ export class WebDavServer {
       '*',
       asyncHandler(
         new DELETERequestHandler({
-          driveDatabaseManager: this.driveDatabaseManager,
           trashService: this.trashService,
           driveFileService: this.driveFileService,
           driveFolderService: this.driveFolderService,
@@ -153,7 +145,6 @@ export class WebDavServer {
       '*',
       asyncHandler(
         new MOVERequestHandler({
-          driveDatabaseManager: this.driveDatabaseManager,
           driveFolderService: this.driveFolderService,
           driveFileService: this.driveFileService,
         }).handle,

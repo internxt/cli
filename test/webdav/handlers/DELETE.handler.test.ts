@@ -7,7 +7,6 @@ import {
   getRequestedFileResource,
   getRequestedFolderResource,
 } from '../../fixtures/webdav.fixture';
-import { getDriveDatabaseManager } from '../../fixtures/drive-database.fixture';
 import { TrashService } from '../../../src/services/drive/trash.service';
 import { NotFoundError } from '../../../src/utils/errors.utils';
 import { DriveFileService } from '../../../src/services/drive/drive-file.service';
@@ -22,9 +21,7 @@ describe('DELETE request handler', () => {
   });
 
   it('When the item does not exist, it should reply with a 404 error', async () => {
-    const driveDatabaseManager = getDriveDatabaseManager();
     const requestHandler = new DELETERequestHandler({
-      driveDatabaseManager,
       trashService: TrashService.instance,
       driveFileService: DriveFileService.instance,
       driveFolderService: DriveFolderService.instance,
@@ -60,10 +57,8 @@ describe('DELETE request handler', () => {
   });
 
   it('When the file exists, then it should reply with a 204 response', async () => {
-    const driveDatabaseManager = getDriveDatabaseManager();
     const trashService = TrashService.instance;
     const requestHandler = new DELETERequestHandler({
-      driveDatabaseManager,
       trashService,
       driveFileService: DriveFileService.instance,
       driveFolderService: DriveFolderService.instance,
@@ -86,23 +81,17 @@ describe('DELETE request handler', () => {
       .spyOn(WebDavUtils, 'getAndSearchItemFromResource')
       .mockResolvedValue(mockFile);
     const trashItemsStub = vi.spyOn(trashService, 'trashItems').mockResolvedValue();
-    const deleteFileStub = vi.spyOn(driveDatabaseManager, 'deleteFileById').mockResolvedValue();
-    const deleteFolderStub = vi.spyOn(driveDatabaseManager, 'deleteFolderById').mockRejectedValue(new Error());
 
     await requestHandler.handle(request, response);
     expect(response.status).toHaveBeenCalledWith(204);
     expect(getRequestedResourceStub).toHaveBeenCalledOnce();
     expect(getAndSearchItemFromResourceStub).toHaveBeenCalledOnce();
     expect(trashItemsStub).toHaveBeenCalledWith({ items: [{ type: 'file', uuid: mockFile.uuid }] });
-    expect(deleteFileStub).toHaveBeenCalledOnce();
-    expect(deleteFolderStub).not.toHaveBeenCalled();
   });
 
   it('When folder exists, then it should reply with a 204 response', async () => {
-    const driveDatabaseManager = getDriveDatabaseManager();
     const trashService = TrashService.instance;
     const requestHandler = new DELETERequestHandler({
-      driveDatabaseManager,
       trashService,
       driveFileService: DriveFileService.instance,
       driveFolderService: DriveFolderService.instance,
@@ -126,15 +115,11 @@ describe('DELETE request handler', () => {
       .spyOn(WebDavUtils, 'getAndSearchItemFromResource')
       .mockResolvedValue(mockFolder);
     const trashItemsStub = vi.spyOn(trashService, 'trashItems').mockResolvedValue();
-    const deleteFileStub = vi.spyOn(driveDatabaseManager, 'deleteFileById').mockRejectedValue(new Error());
-    const deleteFolderStub = vi.spyOn(driveDatabaseManager, 'deleteFolderById').mockResolvedValue();
 
     await requestHandler.handle(request, response);
     expect(response.status).toHaveBeenCalledWith(204);
     expect(getRequestedResourceStub).toHaveBeenCalledOnce();
     expect(getAndSearchItemFromResourceStub).toHaveBeenCalledOnce();
     expect(trashItemsStub).toHaveBeenCalledWith({ items: [{ type: 'folder', uuid: mockFolder.uuid }] });
-    expect(deleteFileStub).not.toHaveBeenCalled();
-    expect(deleteFolderStub).toHaveBeenCalledOnce();
   });
 });

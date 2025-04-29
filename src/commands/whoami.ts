@@ -4,7 +4,6 @@ import { ErrorUtils } from '../utils/errors.utils';
 import { ConfigService } from '../services/config.service';
 import { ValidationService } from '../services/validation.service';
 import { LoginCredentials } from '../types/command.types';
-import { DriveDatabaseManager } from '../services/database/drive-database-manager.service';
 
 export default class Whoami extends Command {
   static readonly args = {};
@@ -25,7 +24,6 @@ export default class Whoami extends Command {
       if (!validCreds) {
         const message = 'Your session has expired. You have been logged out. Please log in again.';
         await ConfigService.instance.clearUser();
-        await DriveDatabaseManager.clean();
         CLIUtils.error(this.log.bind(this), message);
         return { success: false, message };
       } else {

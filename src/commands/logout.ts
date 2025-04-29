@@ -2,7 +2,6 @@ import { Command } from '@oclif/core';
 import { ConfigService } from '../services/config.service';
 import { CLIUtils } from '../utils/cli.utils';
 import { ErrorUtils } from '../utils/errors.utils';
-import { DriveDatabaseManager } from '../services/database/drive-database-manager.service';
 
 export default class Logout extends Command {
   static readonly args = {};
@@ -16,7 +15,6 @@ export default class Logout extends Command {
     const user = await ConfigService.instance.readUser();
     if (user) {
       await ConfigService.instance.clearUser();
-      await DriveDatabaseManager.clean();
       const message = 'User logged out successfully.';
       CLIUtils.success(this.log.bind(this), message);
       return { success: true, message };

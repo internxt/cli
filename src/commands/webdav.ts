@@ -2,7 +2,6 @@ import { Args, Command, ux } from '@oclif/core';
 import { PM2Utils } from '../utils/pm2.utils';
 import { CLIUtils } from '../utils/cli.utils';
 import { ConfigService } from '../services/config.service';
-import { DriveDatabaseManager } from '../services/database/drive-database-manager.service';
 import { ErrorUtils } from '../utils/errors.utils';
 import { AuthService } from '../services/auth.service';
 
@@ -76,7 +75,6 @@ export default class Webdav extends Command {
 
   private enableWebDav = async (): Promise<string> => {
     CLIUtils.doing('Starting Internxt WebDav server...');
-    await DriveDatabaseManager.clean();
     await PM2Utils.killWebDavServer();
     await PM2Utils.startWebDavServer();
     CLIUtils.done();
@@ -112,7 +110,6 @@ export default class Webdav extends Command {
 
   private restartWebDav = async (): Promise<string> => {
     CLIUtils.doing('Restarting Internxt WebDav server...');
-    await DriveDatabaseManager.clean();
     const { status } = await PM2Utils.webdavServerStatus();
     if (status === 'online') {
       await PM2Utils.killWebDavServer();

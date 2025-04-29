@@ -1,5 +1,4 @@
 import { Request, Response } from 'express';
-import { DriveDatabaseManager } from '../../services/database/drive-database-manager.service';
 import { DriveFileService } from '../../services/drive/drive-file.service';
 import { DriveFolderService } from '../../services/drive/drive-folder.service';
 import { WebDavMethodHandler } from '../../types/webdav.types';
@@ -11,14 +10,13 @@ import { DriveFileItem, DriveFolderItem } from '../../types/drive.types';
 export class MOVERequestHandler implements WebDavMethodHandler {
   constructor(
     private readonly dependencies: {
-      driveDatabaseManager: DriveDatabaseManager;
       driveFolderService: DriveFolderService;
       driveFileService: DriveFileService;
     },
   ) {}
 
   handle = async (req: Request, res: Response) => {
-    const { driveDatabaseManager, driveFolderService, driveFileService } = this.dependencies;
+    const { driveFolderService, driveFileService } = this.dependencies;
     const resource = await WebDavUtils.getRequestedResource(req);
 
     webdavLogger.info(`[MOVE] Request received for ${resource.type} at ${resource.url}`);
@@ -34,7 +32,6 @@ export class MOVERequestHandler implements WebDavMethodHandler {
 
     const originalDriveItem = await WebDavUtils.getAndSearchItemFromResource({
       resource,
-      driveDatabaseManager,
       driveFolderService,
       driveFileService,
     });
@@ -52,7 +49,6 @@ export class MOVERequestHandler implements WebDavMethodHandler {
           folderUuid: folder.uuid,
           name: newName,
         });
-        await driveDatabaseManager.createFolder(folder, destinationResource.url);
       } else if (resource.type === 'file') {
         const newType = destinationResource.path.ext.replace('.', '');
         const file = originalDriveItem as DriveFileItem;
@@ -60,7 +56,6 @@ export class MOVERequestHandler implements WebDavMethodHandler {
           plainName: newName,
           type: newType,
         });
-        await driveDatabaseManager.createFile(file, destinationResource.url);
       }
     } else {
       // MOVE (the operation is from different dirs)
@@ -69,7 +64,6 @@ export class MOVERequestHandler implements WebDavMethodHandler {
 
       const destinationFolderItem = (await WebDavUtils.getAndSearchItemFromResource({
         resource: destinationFolderResource,
-        driveDatabaseManager,
         driveFolderService,
       })) as DriveFolderItem;
 
@@ -79,14 +73,12 @@ export class MOVERequestHandler implements WebDavMethodHandler {
           folderUuid: folder.uuid,
           destinationFolderUuid: destinationFolderItem.uuid,
         });
-        await driveDatabaseManager.createFolder(folder, destinationPath);
       } else if (resource.type === 'file') {
         const file = originalDriveItem as DriveFileItem;
         await driveFileService.moveFile({
           fileUuid: file.uuid,
           destinationFolderUuid: destinationFolderItem.uuid,
         });
-        await driveDatabaseManager.createFile(file, destinationPath);
       }
     }
 
