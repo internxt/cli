@@ -133,7 +133,7 @@ describe('PUT request handler', () => {
       .mockResolvedValue(fileFixture.toItem());
 
     await sut.handle(request, response);
-    expect(response.status).toHaveBeenCalledWith(200);
+    expect(response.status).toHaveBeenCalledWith(201);
     expect(getRequestedResourceStub).toHaveBeenCalledTimes(2);
     expect(getAndSearchItemFromResourceStub).toHaveBeenCalledTimes(2);
     expect(getAuthDetailsStub).toHaveBeenCalledOnce();
@@ -196,7 +196,7 @@ describe('PUT request handler', () => {
       .mockResolvedValue(fileFixture.toItem());
 
     await sut.handle(request, response);
-    expect(response.status).toHaveBeenCalledWith(200);
+    expect(response.status).toHaveBeenCalledWith(201);
     expect(getRequestedResourceStub).toHaveBeenCalledTimes(2);
     expect(getAndSearchItemFromResourceStub).toHaveBeenCalledTimes(2);
     expect(getAuthDetailsStub).toHaveBeenCalledOnce();

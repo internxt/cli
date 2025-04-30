@@ -11,6 +11,7 @@ import { CreateFolderResponse } from '@internxt/sdk/dist/drive/storage/types';
 import { newCreateFolderResponse, newFolderItem } from '../../fixtures/drive.fixture';
 import { WebDavRequestedResource } from '../../../src/types/webdav.types';
 import { WebDavUtils } from '../../../src/utils/webdav.utils';
+import { NotFoundError } from '../../../src/utils/errors.utils';
 
 describe('MKCOL request handler', () => {
   beforeEach(() => {
@@ -57,6 +58,9 @@ describe('MKCOL request handler', () => {
     const createFolderStub = vi
       .spyOn(driveFolderService, 'createFolder')
       .mockReturnValue([Promise.resolve(newFolderResponse), { cancel: () => {} }]);
+    const getFolderBeforeItsCreation = vi
+      .spyOn(driveFolderService, 'getFolderMetadataByPath')
+      .mockRejectedValue(new NotFoundError('Folder not exists'));
 
     await requestHandler.handle(request, response);
     expect(response.status).toHaveBeenCalledWith(201);
@@ -66,5 +70,6 @@ describe('MKCOL request handler', () => {
       plainName: requestedFolderResource.name,
       parentFolderUuid: parentFolder.uuid,
     });
+    expect(getFolderBeforeItsCreation).toHaveBeenCalledOnce();
   });
 });

@@ -6,7 +6,8 @@ import { newFileItem, newFolderItem } from '../fixtures/drive.fixture';
 import { DriveFolderService } from '../../src/services/drive/drive-folder.service';
 import { DriveFileService } from '../../src/services/drive/drive-file.service';
 import { fail } from 'node:assert';
-import { NotFoundError } from '../../src/utils/errors.utils';
+import { ConflictError, NotFoundError } from '../../src/utils/errors.utils';
+import AppError from '@internxt/sdk/dist/shared/types/errors';
 
 describe('Webdav utils', () => {
   beforeEach(() => {
@@ -156,6 +157,23 @@ describe('Webdav utils', () => {
         undefined,
       );
       expect(driveFolderItem).to.be.deep.equal(expectedFolder);
+      expect(findFolderStub).toHaveBeenCalledOnce();
+      expect(findFileStub).not.toHaveBeenCalled();
+    });
+
+    it('When folder is not found, then it throws ConflictError', async () => {
+      const findFolderStub = vi
+        .spyOn(DriveFolderService.instance, 'getFolderMetadataByPath')
+        .mockRejectedValue(new AppError('Folder not found', 404));
+      const findFileStub = vi.spyOn(DriveFileService.instance, 'getFileMetadataByPath').mockRejectedValue(new Error());
+
+      try {
+        await WebDavUtils.getDriveItemFromResource(requestFolderFixture, DriveFolderService.instance, undefined);
+        fail('Expected function to throw an error, but it did not.');
+      } catch (error) {
+        expect(error).to.be.instanceOf(ConflictError);
+      }
+
       expect(findFolderStub).toHaveBeenCalledOnce();
       expect(findFileStub).not.toHaveBeenCalled();
     });

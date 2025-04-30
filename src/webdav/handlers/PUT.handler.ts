@@ -146,6 +146,6 @@ export class PUTRequestHandler implements WebDavMethodHandler {
     const uploadTime = timer.stop();
     webdavLogger.info(`[PUT] ✅ File uploaded in ${uploadTime}ms to Internxt Drive`);
 
-    res.status(200).send();
+    res.status(201).send();
   };
 }

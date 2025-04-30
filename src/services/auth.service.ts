@@ -83,14 +83,14 @@ export class AuthService {
    */
   public getAuthDetails = async (): Promise<LoginCredentials> => {
     let loginCreds = await ConfigService.instance.readUser();
-    if (!(loginCreds?.newToken && loginCreds?.token && loginCreds?.user?.mnemonic)) {
+    if (!loginCreds?.newToken || !loginCreds?.token || !loginCreds?.user?.mnemonic) {
       throw new MissingCredentialsError();
     }
 
     const oldTokenDetails = ValidationService.instance.validateTokenAndCheckExpiration(loginCreds.token);
     const newTokenDetails = ValidationService.instance.validateTokenAndCheckExpiration(loginCreds.newToken);
     const isValidMnemonic = ValidationService.instance.validateMnemonic(loginCreds.user.mnemonic);
-    if (!(oldTokenDetails.isValid && newTokenDetails.isValid && isValidMnemonic)) {
+    if (!oldTokenDetails.isValid || !newTokenDetails.isValid || !isValidMnemonic) {
       throw new InvalidCredentialsError();
     }
 
@@ -113,6 +113,10 @@ export class AuthService {
    * @returns The user details and its auth tokens
    */
   public refreshUserTokens = async (oldCreds: LoginCredentials): Promise<LoginCredentials> => {
+    SdkManager.init({
+      token: oldCreds.token,
+      newToken: oldCreds.newToken,
+    });
     const usersClient = SdkManager.instance.getUsers(true);
     const newCreds = await usersClient.getUserData({ userUuid: oldCreds.user.uuid });
 
@@ -127,6 +131,10 @@ export class AuthService {
       lastLoggedInAt: oldCreds.lastLoggedInAt,
       lastTokenRefreshAt: new Date().toISOString(),
     };
+    SdkManager.init({
+      token: newCreds.oldToken,
+      newToken: newCreds.newToken,
+    });
     return loginCreds;
   };
 }
