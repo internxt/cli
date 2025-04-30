@@ -13,6 +13,7 @@ import { newCreateFolderResponse, newFolderItem } from '../../fixtures/drive.fix
 import { WebDavRequestedResource } from '../../../src/types/webdav.types';
 import { WebDavUtils } from '../../../src/utils/webdav.utils';
 import { DriveFolder } from '../../../src/services/database/drive-folder/drive-folder.domain';
+import AppError from '@internxt/sdk/dist/shared/types/errors';
 
 describe('MKCOL request handler', () => {
   beforeEach(() => {
@@ -61,6 +62,9 @@ describe('MKCOL request handler', () => {
     const createFolderStub = vi
       .spyOn(driveFolderService, 'createFolder')
       .mockReturnValue([Promise.resolve(newFolderResponse), { cancel: () => {} }]);
+    const getFolderMetadataStub = vi
+      .spyOn(driveFolderService, 'getFolderMetadataByPath')
+      .mockRejectedValue(new AppError('Folder not found', 404));
     const createDatabaseFolderStub = vi
       .spyOn(driveDatabaseManager, 'createFolder')
       .mockResolvedValue({} as DriveFolder);
@@ -74,5 +78,6 @@ describe('MKCOL request handler', () => {
       parentFolderUuid: parentFolder.uuid,
     });
     expect(createDatabaseFolderStub).toHaveBeenCalledOnce();
+    expect(getFolderMetadataStub).toHaveBeenCalledOnce();
   });
 });
