@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createWebDavRequestFixture, createWebDavResponseFixture } from '../../fixtures/webdav.fixture';
 import { MkcolMiddleware } from '../../../src/webdav/middewares/mkcol.middleware';
+import { fail } from 'node:assert';
+import { UnsupportedMediaTypeError } from '../../../src/utils/errors.utils';
 
 describe('MKCOL middleware', () => {
   beforeEach(() => {
@@ -35,7 +37,7 @@ describe('MKCOL middleware', () => {
     expect(next).toHaveBeenCalledExactlyOnceWith();
   });
 
-  it('When MKCOL content is not XML, then it should call next with error', () => {
+  it('When MKCOL content is not XML, then it should call next with error', async () => {
     const req = createWebDavRequestFixture({
       method: 'MKCOL',
       url: '/anypath',
@@ -44,15 +46,15 @@ describe('MKCOL middleware', () => {
     const res = createWebDavResponseFixture({});
     const next = vi.fn();
 
-    MkcolMiddleware(req, res, next);
-
-    expect(next).toHaveBeenCalledExactlyOnceWith({
-      status: 415,
-      message: 'Unsupported Media Type',
-    });
+    try {
+      await MkcolMiddleware(req, res, next);
+      fail('Expected function to throw an error, but it did not.');
+    } catch (error) {
+      expect(error).to.be.instanceOf(UnsupportedMediaTypeError);
+    }
   });
 
-  it('When MKCOL has body content, then it should call next with error', () => {
+  it('When MKCOL has body content, then it should call next with error', async () => {
     const req = createWebDavRequestFixture({
       method: 'MKCOL',
       url: '/anypath',
@@ -62,11 +64,11 @@ describe('MKCOL middleware', () => {
     const res = createWebDavResponseFixture({});
     const next = vi.fn();
 
-    MkcolMiddleware(req, res, next);
-
-    expect(next).toHaveBeenCalledExactlyOnceWith({
-      status: 415,
-      message: 'Unsupported Media Type',
-    });
+    try {
+      await MkcolMiddleware(req, res, next);
+      fail('Expected function to throw an error, but it did not.');
+    } catch (error) {
+      expect(error).to.be.instanceOf(UnsupportedMediaTypeError);
+    }
   });
 });
