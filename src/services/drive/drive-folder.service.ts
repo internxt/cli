@@ -36,7 +36,7 @@ export class DriveFolderService {
     const { folders } = await folderContentPromise;
 
     if (folders.length > 0) {
-      return folders.concat(await this.getAllSubfolders(storageClient, folderUuid, offset + folders.length + 1));
+      return folders.concat(await this.getAllSubfolders(storageClient, folderUuid, offset + folders.length));
     } else {
       return folders;
     }
@@ -51,7 +51,7 @@ export class DriveFolderService {
     const { files } = await folderContentPromise;
 
     if (files.length > 0) {
-      return files.concat(await this.getAllSubfiles(storageClient, folderUuid, offset + files.length + 1));
+      return files.concat(await this.getAllSubfiles(storageClient, folderUuid, offset + files.length));
     } else {
       return files;
     }

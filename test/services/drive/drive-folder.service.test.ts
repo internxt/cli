@@ -49,11 +49,11 @@ describe('Drive folder Service', () => {
       let foldersContent: FetchPaginatedFolder[] = [];
       if (offset === 0) {
         foldersContent = subContentFixture.folders.slice(0, 50);
-      } else if (offset === 51) {
+      } else if (offset === 50) {
         foldersContent = subContentFixture.folders.slice(50, 100);
-      } else if (offset === 102) {
+      } else if (offset === 100) {
         foldersContent = subContentFixture.folders.slice(100, 112);
-      } else if (offset === 115) {
+      } else if (offset === 112) {
         foldersContent = [];
       }
       return [Promise.resolve({ folders: foldersContent }), requestCancelerMock];
@@ -62,11 +62,11 @@ describe('Drive folder Service', () => {
       let filesContent: FetchPaginatedFile[] = [];
       if (offset === 0) {
         filesContent = subContentFixture.files.slice(0, 50);
-      } else if (offset === 51) {
+      } else if (offset === 50) {
         filesContent = subContentFixture.files.slice(50, 100);
-      } else if (offset === 102) {
+      } else if (offset === 100) {
         filesContent = subContentFixture.files.slice(100, 117);
-      } else if (offset === 120) {
+      } else if (offset === 117) {
         filesContent = [];
       }
       return [Promise.resolve({ files: filesContent }), requestCancelerMock];
