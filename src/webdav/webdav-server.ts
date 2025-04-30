@@ -179,8 +179,8 @@ export class WebDavServer {
       server = https.createServer(httpsCerts, this.app);
     }
 
-    // Allow long uploads/downloads from WebDAV clients (up to 15 minutes before closing connection):
-    server.requestTimeout = 15 * 60 * 1000;
+    // Allow long uploads/downloads from WebDAV clients:
+    server.requestTimeout = configs.timeoutMinutes * 60 * 1000;
 
     server.listen(configs.port, () => {
       webdavLogger.info(
