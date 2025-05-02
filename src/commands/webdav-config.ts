@@ -61,7 +61,7 @@ export default class WebDAVConfig extends Command {
     }
 
     const timeout = flags['timeout'];
-    if (timeout) {
+    if (timeout !== undefined) {
       webdavConfig['timeoutMinutes'] = timeout;
     }
 
