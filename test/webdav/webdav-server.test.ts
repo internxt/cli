@@ -24,6 +24,7 @@ describe('WebDav server', () => {
     const webdavConfig: WebdavConfig = {
       port: randomInt(65535).toString(),
       protocol: 'https',
+      timeoutMinutes: randomInt(900),
     };
     const sslSelfSigned = {
       private: randomBytes(8).toString('hex'),
@@ -69,6 +70,7 @@ describe('WebDav server', () => {
     const webdavConfig: WebdavConfig = {
       port: randomInt(65535).toString(),
       protocol: 'http',
+      timeoutMinutes: randomInt(900),
     };
 
     vi.spyOn(ConfigService.instance, 'readWebdavConfig').mockResolvedValue(webdavConfig);

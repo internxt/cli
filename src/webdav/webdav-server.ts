@@ -79,9 +79,10 @@ export class WebDavServer {
   };
 
   private readonly registerHandlers = async () => {
+    const serverListenPath = /(.*)/;
     const networkFacade = await this.getNetworkFacade();
     this.app.head(
-      '*',
+      serverListenPath,
       asyncHandler(
         new HEADRequestHandler({
           driveFileService: this.driveFileService,
@@ -89,7 +90,7 @@ export class WebDavServer {
       ),
     );
     this.app.get(
-      '*',
+      serverListenPath,
       asyncHandler(
         new GETRequestHandler({
           driveFileService: this.driveFileService,
@@ -100,9 +101,9 @@ export class WebDavServer {
         }).handle,
       ),
     );
-    this.app.options('*', asyncHandler(new OPTIONSRequestHandler().handle));
+    this.app.options(serverListenPath, asyncHandler(new OPTIONSRequestHandler().handle));
     this.app.propfind(
-      '*',
+      serverListenPath,
       asyncHandler(
         new PROPFINDRequestHandler({
           driveFileService: this.driveFileService,
@@ -112,7 +113,7 @@ export class WebDavServer {
     );
 
     this.app.put(
-      '*',
+      serverListenPath,
       asyncHandler(
         new PUTRequestHandler({
           driveFileService: this.driveFileService,
@@ -125,7 +126,7 @@ export class WebDavServer {
     );
 
     this.app.mkcol(
-      '*',
+      serverListenPath,
       asyncHandler(
         new MKCOLRequestHandler({
           driveFolderService: this.driveFolderService,
@@ -133,7 +134,7 @@ export class WebDavServer {
       ),
     );
     this.app.delete(
-      '*',
+      serverListenPath,
       asyncHandler(
         new DELETERequestHandler({
           trashService: this.trashService,
@@ -142,9 +143,9 @@ export class WebDavServer {
         }).handle,
       ),
     );
-    this.app.proppatch('*', asyncHandler(new PROPPATCHRequestHandler().handle));
+    this.app.proppatch(serverListenPath, asyncHandler(new PROPPATCHRequestHandler().handle));
     this.app.move(
-      '*',
+      serverListenPath,
       asyncHandler(
         new MOVERequestHandler({
           driveFolderService: this.driveFolderService,
@@ -152,7 +153,7 @@ export class WebDavServer {
         }).handle,
       ),
     );
-    this.app.copy('*', asyncHandler(new COPYRequestHandler().handle));
+    this.app.copy(serverListenPath, asyncHandler(new COPYRequestHandler().handle));
   };
 
   start = async () => {
