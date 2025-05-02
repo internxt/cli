@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ConfigService } from '../../src/services/config.service';
 import { UserCredentialsFixture } from '../fixtures/login.fixture';
-import { DriveDatabaseManager } from '../../src/services/database/drive-database-manager.service';
 import Logout from '../../src/commands/logout';
 
 describe('Logout Command', () => {
@@ -12,7 +11,6 @@ describe('Logout Command', () => {
   it('When user is logged out, then it returns false', async () => {
     const readUserSpy = vi.spyOn(ConfigService.instance, 'readUser').mockResolvedValue(undefined);
     const clearUserSpy = vi.spyOn(ConfigService.instance, 'clearUser').mockRejectedValue(new Error());
-    const cleanSpy = vi.spyOn(DriveDatabaseManager, 'clean').mockRejectedValue(new Error());
 
     const message = 'No user is currently logged in.';
     const expected = { success: false, message };
@@ -22,13 +20,11 @@ describe('Logout Command', () => {
     expect(result).to.be.deep.equal(expected);
     expect(readUserSpy).toHaveBeenCalledOnce();
     expect(clearUserSpy).not.toHaveBeenCalled();
-    expect(cleanSpy).not.toHaveBeenCalled();
   });
 
   it('When user is logged in, then the current user logged out', async () => {
     const readUserSpy = vi.spyOn(ConfigService.instance, 'readUser').mockResolvedValue(UserCredentialsFixture);
     const clearUserSpy = vi.spyOn(ConfigService.instance, 'clearUser').mockResolvedValue();
-    const cleanSpy = vi.spyOn(DriveDatabaseManager, 'clean').mockResolvedValue();
 
     const message = 'User logged out successfully.';
     const expected = { success: true, message };
@@ -38,6 +34,5 @@ describe('Logout Command', () => {
     expect(result).to.be.deep.equal(expected);
     expect(readUserSpy).toHaveBeenCalledOnce();
     expect(clearUserSpy).toHaveBeenCalledOnce();
-    expect(cleanSpy).toHaveBeenCalledOnce();
   });
 });

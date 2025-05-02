@@ -7,7 +7,6 @@ import { FormatUtils } from '../../utils/format.utils';
 import { Request, Response } from 'express';
 import { randomUUID } from 'node:crypto';
 import mime from 'mime-types';
-import { DriveDatabaseManager } from '../../services/database/drive-database-manager.service';
 import { WebDavUtils } from '../../utils/webdav.utils';
 import { webdavLogger } from '../../utils/logger.utils';
 import { UsageService } from '../../services/usage.service';
@@ -17,36 +16,38 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
     private readonly dependencies: {
       driveFolderService: DriveFolderService;
       driveFileService: DriveFileService;
-      driveDatabaseManager: DriveDatabaseManager;
     },
   ) {}
 
   handle = async (req: Request, res: Response) => {
-    const { driveDatabaseManager, driveFolderService, driveFileService } = this.dependencies;
+    const { driveFolderService, driveFileService } = this.dependencies;
 
     const resource = await WebDavUtils.getRequestedResource(req);
     webdavLogger.info(`[PROPFIND] Request received for ${resource.type} at ${resource.url}`);
 
-    const driveItem = await WebDavUtils.getAndSearchItemFromResource({
-      resource,
-      driveDatabaseManager,
-      driveFolderService,
-      driveFileService,
-    });
+    try {
+      const driveItem = await WebDavUtils.getAndSearchItemFromResource({
+        resource,
+        driveFolderService,
+        driveFileService,
+      });
 
-    switch (resource.type) {
-      case 'file': {
-        const fileMetaXML = await this.getFileMetaXML(resource, driveItem as DriveFileItem);
-        res.status(207).send(fileMetaXML);
-        break;
-      }
+      switch (resource.type) {
+        case 'file': {
+          const fileMetaXML = await this.getFileMetaXML(resource, driveItem as DriveFileItem);
+          res.status(207).send(fileMetaXML);
+          break;
+        }
 
-      case 'folder': {
-        const depth = req.header('depth') ?? '1';
-        const folderMetaXML = await this.getFolderContentXML(resource, driveItem as DriveFolderItem, depth);
-        res.status(207).send(folderMetaXML);
-        break;
+        case 'folder': {
+          const depth = req.header('depth') ?? '1';
+          const folderMetaXML = await this.getFolderContentXML(resource, driveItem as DriveFolderItem, depth);
+          res.status(207).send(folderMetaXML);
+          break;
+        }
       }
+    } catch {
+      res.status(207).send();
     }
   };
 
@@ -117,7 +118,7 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
   };
 
   private readonly getFolderChildsXMLNode = async (relativePath: string, folderUuid: string) => {
-    const { driveFolderService, driveDatabaseManager } = this.dependencies;
+    const { driveFolderService } = this.dependencies;
 
     const folderContent = await driveFolderService.getFolderContent(folderUuid);
 
@@ -140,21 +141,6 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
         folderRelativePath,
       );
     });
-
-    await Promise.all(
-      folderContent.folders.map((folder) => {
-        const folderRelativePath = WebDavUtils.joinURL(relativePath, folder.plainName, '/');
-        return driveDatabaseManager.createFolder(
-          {
-            ...folder,
-            name: folder.plainName,
-            encryptedName: folder.name,
-            status: folder.deleted || folder.removed ? 'TRASHED' : 'EXISTS',
-          },
-          folderRelativePath,
-        );
-      }),
-    );
 
     const filesXML = folderContent.files.map((file) => {
       const fileRelativePath = WebDavUtils.joinURL(
@@ -180,25 +166,6 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
         fileRelativePath,
       );
     });
-
-    await Promise.all(
-      folderContent.files.map((file) => {
-        const fileRelativePath = WebDavUtils.joinURL(
-          relativePath,
-          file.type ? `${file.plainName}.${file.type}` : file.plainName,
-        );
-        return driveDatabaseManager.createFile(
-          {
-            ...file,
-            name: file.plainName,
-            fileId: file.fileId,
-            size: Number(file.size),
-            encryptedName: file.name,
-          },
-          fileRelativePath,
-        );
-      }),
-    );
 
     return foldersXML.concat(filesXML);
   };

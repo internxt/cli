@@ -2,7 +2,6 @@ import { WebDavMethodHandler } from '../../types/webdav.types';
 import { Request, Response } from 'express';
 import { WebDavUtils } from '../../utils/webdav.utils';
 import { DriveFileService } from '../../services/drive/drive-file.service';
-import { DriveDatabaseManager } from '../../services/database/drive-database-manager.service';
 import { NetworkFacade } from '../../services/network/network-facade.service';
 import { DownloadService } from '../../services/network/download.service';
 import { CryptoService } from '../../services/crypto.service';
@@ -16,7 +15,6 @@ export class GETRequestHandler implements WebDavMethodHandler {
   constructor(
     private readonly dependencies: {
       driveFileService: DriveFileService;
-      driveDatabaseManager: DriveDatabaseManager;
       downloadService: DownloadService;
       cryptoService: CryptoService;
       authService: AuthService;
@@ -25,7 +23,7 @@ export class GETRequestHandler implements WebDavMethodHandler {
   ) {}
 
   handle = async (req: Request, res: Response) => {
-    const { driveDatabaseManager, driveFileService, authService, networkFacade } = this.dependencies;
+    const { driveFileService, authService, networkFacade } = this.dependencies;
     const resource = await WebDavUtils.getRequestedResource(req);
 
     if (resource.name.startsWith('._')) throw new NotFoundError('File not found');
@@ -34,7 +32,6 @@ export class GETRequestHandler implements WebDavMethodHandler {
     webdavLogger.info(`[GET] Request received for ${resource.type} at ${resource.url}`);
     const driveFile = (await WebDavUtils.getAndSearchItemFromResource({
       resource,
-      driveDatabaseManager,
       driveFileService,
     })) as DriveFileItem;
 

@@ -52,8 +52,8 @@ describe('Drive folder Service', () => {
       } else if (offset === 50) {
         foldersContent = subContentFixture.folders.slice(50, 100);
       } else if (offset === 100) {
-        foldersContent = subContentFixture.folders.slice(100, 117);
-      } else if (offset === 117) {
+        foldersContent = subContentFixture.folders.slice(100, 112);
+      } else if (offset === 112) {
         foldersContent = [];
       }
       return [Promise.resolve({ folders: foldersContent }), requestCancelerMock];

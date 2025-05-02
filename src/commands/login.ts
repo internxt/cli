@@ -6,7 +6,6 @@ import { ValidationService } from '../services/validation.service';
 import { CLIUtils } from '../utils/cli.utils';
 import { ErrorUtils } from '../utils/errors.utils';
 import { SdkManager } from '../services/sdk-manager.service';
-import { DriveDatabaseManager } from '../services/database/drive-database-manager.service';
 
 export default class Login extends Command {
   static readonly args = {};
@@ -62,8 +61,6 @@ export default class Login extends Command {
     });
 
     await ConfigService.instance.saveUser(loginCredentials);
-    await DriveDatabaseManager.init();
-    await DriveDatabaseManager.clean();
     const message = `Succesfully logged in to: ${loginCredentials.user.email}`;
     CLIUtils.success(this.log.bind(this), message);
     return {

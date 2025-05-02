@@ -1,14 +1,10 @@
 import { Request } from 'express';
 import path from 'node:path';
 import { WebDavRequestedResource } from '../types/webdav.types';
-import { DriveFile } from '../services/database/drive-file/drive-file.domain';
-import { DriveFolder } from '../services/database/drive-folder/drive-folder.domain';
-import { DriveDatabaseManager } from '../services/database/drive-database-manager.service';
 import { DriveFolderService } from '../services/drive/drive-folder.service';
 import { DriveFileService } from '../services/drive/drive-file.service';
 import { DriveFileItem, DriveFolderItem } from '../types/drive.types';
 import { ConflictError, NotFoundError } from './errors.utils';
-import { webdavLogger } from './logger.utils';
 import AppError from '@internxt/sdk/dist/shared/types/errors';
 
 export class WebDavUtils {
@@ -28,7 +24,7 @@ export class WebDavUtils {
     return url;
   }
 
-  static async getRequestedResource(urlObject: string | Request): Promise<WebDavRequestedResource> {
+  static async getRequestedResource(urlObject: string | Request, decodeUri = true): Promise<WebDavRequestedResource> {
     let requestUrl: string;
     if (typeof urlObject === 'string') {
       requestUrl = urlObject;
@@ -36,7 +32,7 @@ export class WebDavUtils {
       requestUrl = urlObject.url;
     }
 
-    const decodedUrl = decodeURIComponent(requestUrl).replaceAll('/./', '/');
+    const decodedUrl = (decodeUri ? decodeURIComponent(requestUrl) : requestUrl).replaceAll('/./', '/');
     const parsedPath = path.parse(decodedUrl);
     let parentPath = path.dirname(decodedUrl);
     if (!parentPath.startsWith('/')) parentPath = '/'.concat(parentPath);
@@ -60,34 +56,6 @@ export class WebDavUtils {
         path: parsedPath,
         parentPath,
       };
-    }
-  }
-
-  static async getDatabaseItemFromResource(
-    resource: WebDavRequestedResource,
-    driveDatabaseManager: DriveDatabaseManager,
-  ): Promise<DriveFileItem | DriveFolderItem | null> {
-    let databaseResource: DriveFile | DriveFolder | null = null;
-    if (resource.type === 'folder') {
-      databaseResource = await driveDatabaseManager.findFolderByRelativePath(resource.url);
-    }
-    if (resource.type === 'file') {
-      databaseResource = await driveDatabaseManager.findFileByRelativePath(resource.url);
-    }
-    return databaseResource?.toItem() ?? null;
-  }
-
-  static async setDatabaseItem(
-    type: 'file' | 'folder',
-    driveItem: DriveFileItem | DriveFolderItem,
-    driveDatabaseManager: DriveDatabaseManager,
-    relativePath: string,
-  ): Promise<DriveFolder | DriveFile | undefined> {
-    if (type === 'folder') {
-      return await driveDatabaseManager.createFolder(driveItem as DriveFolderItem, relativePath);
-    }
-    if (type === 'file') {
-      return await driveDatabaseManager.createFile(driveItem as DriveFileItem, relativePath);
     }
   }
 
@@ -121,26 +89,17 @@ export class WebDavUtils {
 
   static async getAndSearchItemFromResource({
     resource,
-    driveDatabaseManager,
     driveFolderService,
     driveFileService,
   }: {
     resource: WebDavRequestedResource;
-    driveDatabaseManager: DriveDatabaseManager;
     driveFolderService?: DriveFolderService;
     driveFileService?: DriveFileService;
   }): Promise<DriveFileItem | DriveFolderItem> {
-    let databaseItem = await this.getDatabaseItemFromResource(resource, driveDatabaseManager);
-
-    if (!databaseItem) {
-      webdavLogger.info('Resource not found on local database', { resource });
-      const driveItem = await this.getDriveItemFromResource(resource, driveFolderService, driveFileService);
-      if (!driveItem) {
-        throw new NotFoundError(`Resource not found on Internxt Drive at ${resource.url}`);
-      }
-      databaseItem = driveItem;
-      await this.setDatabaseItem(resource.type, driveItem, driveDatabaseManager, resource.url);
+    const driveItem = await this.getDriveItemFromResource(resource, driveFolderService, driveFileService);
+    if (!driveItem) {
+      throw new NotFoundError(`Resource not found on Internxt Drive at ${resource.url}`);
     }
-    return databaseItem;
+    return driveItem;
   }
 }

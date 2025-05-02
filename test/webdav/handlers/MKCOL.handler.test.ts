@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MKCOLRequestHandler } from '../../../src/webdav/handlers/MKCOL.handler';
-import { getDriveDatabaseManager } from '../../fixtures/drive-database.fixture';
 import { DriveFolderService } from '../../../src/services/drive/drive-folder.service';
 import {
   createWebDavRequestFixture,
@@ -12,8 +11,7 @@ import { CreateFolderResponse } from '@internxt/sdk/dist/drive/storage/types';
 import { newCreateFolderResponse, newFolderItem } from '../../fixtures/drive.fixture';
 import { WebDavRequestedResource } from '../../../src/types/webdav.types';
 import { WebDavUtils } from '../../../src/utils/webdav.utils';
-import { DriveFolder } from '../../../src/services/database/drive-folder/drive-folder.domain';
-import AppError from '@internxt/sdk/dist/shared/types/errors';
+import { NotFoundError } from '../../../src/utils/errors.utils';
 
 describe('MKCOL request handler', () => {
   beforeEach(() => {
@@ -21,10 +19,8 @@ describe('MKCOL request handler', () => {
   });
 
   it('When a WebDav client sends a MKCOL request, it should reply with a 201 if success', async () => {
-    const driveDatabaseManager = getDriveDatabaseManager();
     const driveFolderService = DriveFolderService.instance;
     const requestHandler = new MKCOLRequestHandler({
-      driveDatabaseManager,
       driveFolderService,
     });
     const requestedFolderResource: WebDavRequestedResource = getRequestedFolderResource({
@@ -62,12 +58,9 @@ describe('MKCOL request handler', () => {
     const createFolderStub = vi
       .spyOn(driveFolderService, 'createFolder')
       .mockReturnValue([Promise.resolve(newFolderResponse), { cancel: () => {} }]);
-    const getFolderMetadataStub = vi
+    const getFolderBeforeItsCreation = vi
       .spyOn(driveFolderService, 'getFolderMetadataByPath')
-      .mockRejectedValue(new AppError('Folder not found', 404));
-    const createDatabaseFolderStub = vi
-      .spyOn(driveDatabaseManager, 'createFolder')
-      .mockResolvedValue({} as DriveFolder);
+      .mockRejectedValue(new NotFoundError('Folder not exists'));
 
     await requestHandler.handle(request, response);
     expect(response.status).toHaveBeenCalledWith(201);
@@ -77,7 +70,6 @@ describe('MKCOL request handler', () => {
       plainName: requestedFolderResource.name,
       parentFolderUuid: parentFolder.uuid,
     });
-    expect(createDatabaseFolderStub).toHaveBeenCalledOnce();
-    expect(getFolderMetadataStub).toHaveBeenCalledOnce();
+    expect(getFolderBeforeItsCreation).toHaveBeenCalledOnce();
   });
 });

@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ConfigService } from '../../src/services/config.service';
 import { UserCredentialsFixture, UserLoginFixture } from '../fixtures/login.fixture';
-import { DriveDatabaseManager } from '../../src/services/database/drive-database-manager.service';
 import { fail } from 'node:assert';
 import Login from '../../src/commands/login';
 import { AuthService } from '../../src/services/auth.service';
@@ -22,8 +21,6 @@ describe('Login Command', () => {
     const is2FaNeededSpy = vi.spyOn(AuthService.instance, 'is2FANeeded').mockRejectedValue(new Error());
     const doLoginSpy = vi.spyOn(AuthService.instance, 'doLogin').mockRejectedValue(new Error());
     const saveUserSpy = vi.spyOn(ConfigService.instance, 'saveUser').mockRejectedValue(new Error());
-    const initStub = vi.spyOn(DriveDatabaseManager, 'init').mockRejectedValue(new Error());
-    const cleanStub = vi.spyOn(DriveDatabaseManager, 'clean').mockRejectedValue(new Error());
 
     try {
       await Login.run(['--non-interactive', `--password="${UserLoginFixture.password}"`]);
@@ -36,8 +33,6 @@ describe('Login Command', () => {
     expect(is2FaNeededSpy).not.toHaveBeenCalled();
     expect(doLoginSpy).not.toHaveBeenCalled();
     expect(saveUserSpy).not.toHaveBeenCalled();
-    expect(initStub).not.toHaveBeenCalled();
-    expect(cleanStub).not.toHaveBeenCalled();
   });
 
   it('When user logs in with non-interactive and no password, then it throws error', async () => {
@@ -50,8 +45,6 @@ describe('Login Command', () => {
     const is2FaNeededSpy = vi.spyOn(AuthService.instance, 'is2FANeeded').mockRejectedValue(new Error());
     const doLoginSpy = vi.spyOn(AuthService.instance, 'doLogin').mockRejectedValue(new Error());
     const saveUserSpy = vi.spyOn(ConfigService.instance, 'saveUser').mockRejectedValue(new Error());
-    const initStub = vi.spyOn(DriveDatabaseManager, 'init').mockRejectedValue(new Error());
-    const cleanStub = vi.spyOn(DriveDatabaseManager, 'clean').mockRejectedValue(new Error());
 
     try {
       await Login.run(['--non-interactive', `--email="${UserLoginFixture.email}"`]);
@@ -64,8 +57,6 @@ describe('Login Command', () => {
     expect(is2FaNeededSpy).not.toHaveBeenCalled();
     expect(doLoginSpy).not.toHaveBeenCalled();
     expect(saveUserSpy).not.toHaveBeenCalled();
-    expect(initStub).not.toHaveBeenCalled();
-    expect(cleanStub).not.toHaveBeenCalled();
   });
 
   it('When user logs in with non-interactive and no two factor code, then it throws error', async () => {
@@ -78,8 +69,6 @@ describe('Login Command', () => {
     const is2FaNeededSpy = vi.spyOn(AuthService.instance, 'is2FANeeded').mockResolvedValue(true);
     const doLoginSpy = vi.spyOn(AuthService.instance, 'doLogin').mockRejectedValue(new Error());
     const saveUserSpy = vi.spyOn(ConfigService.instance, 'saveUser').mockRejectedValue(new Error());
-    const initStub = vi.spyOn(DriveDatabaseManager, 'init').mockRejectedValue(new Error());
-    const cleanStub = vi.spyOn(DriveDatabaseManager, 'clean').mockRejectedValue(new Error());
 
     try {
       await Login.run([
@@ -96,8 +85,6 @@ describe('Login Command', () => {
     expect(is2FaNeededSpy).toHaveBeenCalledOnce();
     expect(doLoginSpy).not.toHaveBeenCalled();
     expect(saveUserSpy).not.toHaveBeenCalled();
-    expect(initStub).not.toHaveBeenCalled();
-    expect(cleanStub).not.toHaveBeenCalled();
   });
 
   it('When two factor is not needed, then it saves and returns the credentials', async () => {
@@ -110,8 +97,6 @@ describe('Login Command', () => {
     const is2FaNeededSpy = vi.spyOn(AuthService.instance, 'is2FANeeded').mockResolvedValue(false);
     const doLoginSpy = vi.spyOn(AuthService.instance, 'doLogin').mockResolvedValue(UserCredentialsFixture);
     const saveUserSpy = vi.spyOn(ConfigService.instance, 'saveUser').mockResolvedValue();
-    const initStub = vi.spyOn(DriveDatabaseManager, 'init').mockResolvedValue();
-    const cleanStub = vi.spyOn(DriveDatabaseManager, 'clean').mockResolvedValue();
 
     const message = `Succesfully logged in to: ${UserCredentialsFixture.user.email}`;
     const expected = { success: true, message, login: UserCredentialsFixture };
@@ -126,8 +111,6 @@ describe('Login Command', () => {
     expect(is2FaNeededSpy).toHaveBeenCalledOnce();
     expect(doLoginSpy).toHaveBeenCalledOnce();
     expect(saveUserSpy).toHaveBeenCalledOnce();
-    expect(initStub).toHaveBeenCalledOnce();
-    expect(cleanStub).toHaveBeenCalledOnce();
   });
 
   it('When two factor is needed, then it saves and returns the credentials', async () => {
@@ -140,8 +123,6 @@ describe('Login Command', () => {
     const is2FaNeededSpy = vi.spyOn(AuthService.instance, 'is2FANeeded').mockResolvedValue(true);
     const doLoginSpy = vi.spyOn(AuthService.instance, 'doLogin').mockResolvedValue(UserCredentialsFixture);
     const saveUserSpy = vi.spyOn(ConfigService.instance, 'saveUser').mockResolvedValue();
-    const initStub = vi.spyOn(DriveDatabaseManager, 'init').mockResolvedValue();
-    const cleanStub = vi.spyOn(DriveDatabaseManager, 'clean').mockResolvedValue();
 
     const message = `Succesfully logged in to: ${UserCredentialsFixture.user.email}`;
     const expected = { success: true, message, login: UserCredentialsFixture };
@@ -157,7 +138,5 @@ describe('Login Command', () => {
     expect(is2FaNeededSpy).toHaveBeenCalledOnce();
     expect(doLoginSpy).toHaveBeenCalledOnce();
     expect(saveUserSpy).toHaveBeenCalledOnce();
-    expect(initStub).toHaveBeenCalledOnce();
-    expect(cleanStub).toHaveBeenCalledOnce();
   });
 });
