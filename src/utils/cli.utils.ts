@@ -3,11 +3,14 @@ import cliProgress from 'cli-progress';
 import Table, { Header } from 'tty-table';
 import { PromptOptions } from '../types/command.types';
 import { InquirerUtils } from './inquirer.utils';
+import { ErrorUtils } from './errors.utils';
 
 export class CLIUtils {
-  static readonly clearPreviousLine = () => {
-    process.stdout.write('\x1b[1A');
-    process.stdout.clearLine(0);
+  static readonly clearPreviousLine = (jsonFlag?: boolean) => {
+    if (!jsonFlag) {
+      process.stdout?.write?.('\x1b[1A');
+      process.stdout?.clearLine?.(0);
+    }
   };
 
   static readonly warning = (reporter: (message: string) => void, message: string) => {
@@ -18,10 +21,6 @@ export class CLIUtils {
     reporter(ux.colorize('red', `⚠ Error: ${message}`));
   };
 
-  static readonly doing = (message: string) => {
-    ux.action.start(message, undefined, {});
-  };
-
   static readonly success = (reporter: (message: string) => void, message: string) => {
     reporter(ux.colorize('green', `✓ ${message}`));
   };
@@ -30,15 +29,36 @@ export class CLIUtils {
     reporter(`${message}`);
   };
 
-  static readonly done = () => {
-    ux.action.stop(ux.colorize('green', 'done ✓'));
+  static readonly consoleLog = (message: string) => {
+    // eslint-disable-next-line no-console
+    console.log(message);
   };
 
-  static readonly progress = (opts: cliProgress.Options) => {
-    return new cliProgress.SingleBar(
-      { noTTYOutput: Boolean(!process.stdin.isTTY), ...opts },
-      cliProgress.Presets.shades_classic,
-    );
+  static readonly doing = (message: string, jsonFlag?: boolean) => {
+    if (!jsonFlag) {
+      ux.action.start(message, undefined, {});
+    }
+  };
+
+  static readonly done = (jsonFlag?: boolean) => {
+    if (!jsonFlag && ux.action.running) {
+      ux.action.stop(ux.colorize('green', 'done ✓'));
+    }
+  };
+
+  static readonly failed = (jsonFlag?: boolean) => {
+    if (!jsonFlag && ux.action.running) {
+      ux.action.stop(ux.colorize('red', 'failed ✕'));
+    }
+  };
+
+  static readonly progress = (opts: cliProgress.Options, jsonFlag?: boolean) => {
+    if (!jsonFlag) {
+      return new cliProgress.SingleBar(
+        { noTTYOutput: Boolean(!process.stdin.isTTY), ...opts },
+        cliProgress.Presets.shades_classic,
+      );
+    }
   };
 
   static readonly table = (reporter: (message: string) => void, header: Header[], rows: object[]) => {
@@ -150,6 +170,35 @@ export class CLIUtils {
         return time;
       },
     };
+  };
+
+  static readonly catchError = ({
+    error,
+    logReporter,
+    errorReporter,
+    command,
+    jsonFlag,
+  }: {
+    error: Error;
+    command?: string;
+    logReporter: (message: string) => void;
+    errorReporter: (message: string) => void;
+    jsonFlag?: boolean;
+  }) => {
+    let message;
+    if ('message' in error && error.message.trim().length > 0) {
+      message = error.message;
+    } else {
+      message = JSON.stringify(error);
+    }
+
+    CLIUtils.failed(jsonFlag);
+    if (jsonFlag) {
+      CLIUtils.consoleLog(JSON.stringify({ success: false, message }));
+    } else {
+      ErrorUtils.report(errorReporter, error, { command });
+      CLIUtils.error(logReporter, message);
+    }
   };
 
   static readonly parseEmpty = async (input: string) => (input.trim().length === 0 ? ' ' : input);
