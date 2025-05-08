@@ -13,13 +13,13 @@ export class XMLUtils {
     return builder.build(object);
   }
 
-  static toWebDavXML(object: object, options: XmlBuilderOptions) {
+  static toWebDavXML(object: object, options: XmlBuilderOptions, rootObject = 'multistatus') {
     const xmlContent = this.toXML(object, options);
     return (
       '<?xml version="1.0" encoding="utf-8" ?>' +
-      `<${XMLUtils.addDefaultNamespace('multistatus')} xmlns:${XMLUtils.DEFAULT_NAMESPACE_LETTER}="DAV:">` +
+      `<${XMLUtils.addDefaultNamespace(rootObject)} xmlns:${XMLUtils.DEFAULT_NAMESPACE_LETTER}="DAV:">` +
       `${xmlContent}` +
-      `</${XMLUtils.addDefaultNamespace('multistatus')}>`
+      `</${XMLUtils.addDefaultNamespace(rootObject)}>`
     );
   }
 
