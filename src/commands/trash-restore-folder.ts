@@ -4,7 +4,6 @@ import { DriveFolderService } from '../services/drive/drive-folder.service';
 import { CLIUtils } from '../utils/cli.utils';
 import { MissingCredentialsError, NotValidFolderUuidError } from '../types/command.types';
 import { ValidationService } from '../services/validation.service';
-import { ErrorUtils } from '../utils/errors.utils';
 
 export default class TrashRestoreFolder extends Command {
   static readonly args = {};
@@ -50,8 +49,14 @@ export default class TrashRestoreFolder extends Command {
   };
 
   public catch = async (error: Error) => {
-    ErrorUtils.report(this.error.bind(this), error, { command: this.id });
-    CLIUtils.error(this.log.bind(this), error.message);
+    const { flags } = await this.parse(TrashRestoreFolder);
+    CLIUtils.catchError({
+      error,
+      command: this.id,
+      logReporter: this.log.bind(this),
+      errorReporter: this.error.bind(this),
+      jsonFlag: flags['json'],
+    });
     this.exit(1);
   };
 

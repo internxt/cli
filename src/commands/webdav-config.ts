@@ -1,7 +1,6 @@
 import { Command, Flags } from '@oclif/core';
 import { ConfigService } from '../services/config.service';
 import { CLIUtils } from '../utils/cli.utils';
-import { ErrorUtils } from '../utils/errors.utils';
 import { NotValidPortError } from '../types/command.types';
 import { ValidationService } from '../services/validation.service';
 
@@ -72,8 +71,14 @@ export default class WebDAVConfig extends Command {
   };
 
   public catch = async (error: Error) => {
-    ErrorUtils.report(this.error.bind(this), error, { command: this.id });
-    CLIUtils.error(this.log.bind(this), error.message);
+    const { flags } = await this.parse(WebDAVConfig);
+    CLIUtils.catchError({
+      error,
+      command: this.id,
+      logReporter: this.log.bind(this),
+      errorReporter: this.error.bind(this),
+      jsonFlag: flags['json'],
+    });
     this.exit(1);
   };
 }
