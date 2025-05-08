@@ -12,7 +12,6 @@ import { DriveFileItem } from '../types/drive.types';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { StreamUtils } from '../utils/stream.utils';
-import { ErrorUtils } from '../utils/errors.utils';
 import { NotValidDirectoryError, NotValidFileUuidError } from '../types/command.types';
 import { ValidationService } from '../services/validation.service';
 import { Environment } from '@internxt/inxt-js';
@@ -60,22 +59,25 @@ export default class DownloadFile extends Command {
     const fileUuid = await this.getFileUuid(flags['id'], nonInteractive);
 
     // 1. Get file metadata
-    const driveFile = await this.getFileMetadata(fileUuid);
+    const driveFile = await this.getFileMetadata(fileUuid, flags['json']);
 
     const downloadPath = await this.getDownloadPath(downloadDirectory, driveFile, overwrite);
 
     // 2. Prepare the network
     const { user } = await AuthService.instance.getAuthDetails();
-    const networkFacade = await this.prepareNetwork(user);
+    const networkFacade = await this.prepareNetwork(user, flags['json']);
     // 3. Download the file
     const fileWriteStream = createWriteStream(downloadPath);
 
-    const progressBar = CLIUtils.progress({
-      format: 'Downloading file [{bar}] {percentage}%',
-      linewrap: true,
-    });
+    const progressBar = CLIUtils.progress(
+      {
+        format: 'Downloading file [{bar}] {percentage}%',
+        linewrap: true,
+      },
+      flags['json'],
+    );
 
-    progressBar.start(100, 0);
+    progressBar?.start(100, 0);
     const [executeDownload, abortable] = await networkFacade.downloadToStream(
       user.bucket,
       user.mnemonic,
@@ -86,7 +88,7 @@ export default class DownloadFile extends Command {
       {
         abortController: new AbortController(),
         progressCallback: (progress) => {
-          progressBar.update(progress * 0.99);
+          progressBar?.update(progress * 0.99);
         },
       },
     );
@@ -98,16 +100,22 @@ export default class DownloadFile extends Command {
 
     await executeDownload;
 
-    progressBar.update(100);
-    progressBar.stop();
+    progressBar?.update(100);
+    progressBar?.stop();
     const message = `File downloaded successfully to ${downloadPath}`;
     CLIUtils.success(this.log.bind(this), message);
     return { success: true, message, file: driveFile };
   };
 
   public catch = async (error: Error) => {
-    ErrorUtils.report(this.error.bind(this), error, { command: this.id });
-    CLIUtils.error(this.log.bind(this), error.message);
+    const { flags } = await this.parse(DownloadFile);
+    CLIUtils.catchError({
+      error,
+      command: this.id,
+      logReporter: this.log.bind(this),
+      errorReporter: this.error.bind(this),
+      jsonFlag: flags['json'],
+    });
     this.exit(1);
   };
 
@@ -156,10 +164,10 @@ export default class DownloadFile extends Command {
     return directory;
   };
 
-  private getFileMetadata = async (uuid: string) => {
-    CLIUtils.doing('Getting file metadata');
+  private getFileMetadata = async (uuid: string, jsonFlag?: boolean) => {
+    CLIUtils.doing('Getting file metadata', jsonFlag);
     const driveFile = await DriveFileService.instance.getFileMetadata(uuid);
-    CLIUtils.done();
+    CLIUtils.done(jsonFlag);
     if (!driveFile) {
       throw new Error('File not found');
     }
@@ -192,8 +200,8 @@ export default class DownloadFile extends Command {
     return downloadPath;
   };
 
-  private prepareNetwork = async (user: UserSettings) => {
-    CLIUtils.doing('Preparing Network');
+  private prepareNetwork = async (user: UserSettings, jsonFlag?: boolean) => {
+    CLIUtils.doing('Preparing Network', jsonFlag);
 
     const networkModule = SdkManager.instance.getNetwork({
       user: user.bridgeUser,
@@ -211,7 +219,7 @@ export default class DownloadFile extends Command {
       DownloadService.instance,
       CryptoService.instance,
     );
-    CLIUtils.done();
+    CLIUtils.done(jsonFlag);
 
     return networkFacade;
   };

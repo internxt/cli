@@ -66,7 +66,7 @@ export default class UploadFile extends Command {
     }
 
     // 1. Prepare the network
-    CLIUtils.doing('Preparing Network');
+    CLIUtils.doing('Preparing Network', flags['json']);
     const { user } = await AuthService.instance.getAuthDetails();
     const networkModule = SdkManager.instance.getNetwork({
       user: user.bridgeUser,
@@ -85,16 +85,19 @@ export default class UploadFile extends Command {
       CryptoService.instance,
     );
 
-    CLIUtils.done();
+    CLIUtils.done(flags['json']);
 
     // 2. Upload file to the Network
     const readStream = createReadStream(filePath);
     const timer = CLIUtils.timer();
-    const progressBar = CLIUtils.progress({
-      format: 'Uploading file [{bar}] {percentage}%',
-      linewrap: true,
-    });
-    progressBar.start(100, 0);
+    const progressBar = CLIUtils.progress(
+      {
+        format: 'Uploading file [{bar}] {percentage}%',
+        linewrap: true,
+      },
+      flags['json'],
+    );
+    progressBar?.start(100, 0);
 
     let bufferStream: BufferStream | undefined;
     let fileStream: Readable = readStream;
@@ -105,7 +108,7 @@ export default class UploadFile extends Command {
     }
 
     const progressCallback = (progress: number) => {
-      progressBar.update(progress * 100 * 0.99);
+      progressBar?.update(progress * 100 * 0.99);
     };
 
     const fileId = await new Promise((resolve: (fileId: string) => void, reject) => {
@@ -157,8 +160,8 @@ export default class UploadFile extends Command {
       ErrorUtils.report(this.error.bind(this), error, { command: this.id });
     }
 
-    progressBar.update(100);
-    progressBar.stop();
+    progressBar?.update(100);
+    progressBar?.stop();
 
     const uploadTime = timer.stop();
     this.log('\n');
@@ -169,8 +172,14 @@ export default class UploadFile extends Command {
   };
 
   public catch = async (error: Error) => {
-    ErrorUtils.report(this.error.bind(this), error, { command: this.id });
-    CLIUtils.error(this.log.bind(this), error.message);
+    const { flags } = await this.parse(UploadFile);
+    CLIUtils.catchError({
+      error,
+      command: this.id,
+      logReporter: this.log.bind(this),
+      errorReporter: this.error.bind(this),
+      jsonFlag: flags['json'],
+    });
     this.exit(1);
   };
 

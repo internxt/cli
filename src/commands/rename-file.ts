@@ -4,7 +4,6 @@ import { CLIUtils } from '../utils/cli.utils';
 import { EmptyFileNameError, MissingCredentialsError, NotValidFileUuidError } from '../types/command.types';
 import { ValidationService } from '../services/validation.service';
 import { DriveFileService } from '../services/drive/drive-file.service';
-import { ErrorUtils } from '../utils/errors.utils';
 
 export default class RenameFile extends Command {
   static readonly args = {};
@@ -43,8 +42,14 @@ export default class RenameFile extends Command {
   };
 
   public catch = async (error: Error) => {
-    ErrorUtils.report(this.error.bind(this), error, { command: this.id });
-    CLIUtils.error(this.log.bind(this), error.message);
+    const { flags } = await this.parse(RenameFile);
+    CLIUtils.catchError({
+      error,
+      command: this.id,
+      logReporter: this.log.bind(this),
+      errorReporter: this.error.bind(this),
+      jsonFlag: flags['json'],
+    });
     this.exit(1);
   };
 
