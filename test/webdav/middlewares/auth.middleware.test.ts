@@ -4,6 +4,7 @@ import { createWebDavRequestFixture, createWebDavResponseFixture } from '../../f
 import { UserCredentialsFixture } from '../../fixtures/login.fixture';
 import { AuthService } from '../../../src/services/auth.service';
 import { MissingCredentialsError } from '../../../src/types/command.types';
+import { XMLUtils } from '../../../src/utils/xml.utils';
 
 describe('Auth middleware', () => {
   beforeEach(() => {
@@ -28,7 +29,15 @@ describe('Auth middleware', () => {
     expect(authServiceStub).toHaveBeenCalledOnce();
     expect(next).not.toHaveBeenCalled();
     expect(res.status).toHaveBeenCalledWith(401);
-    expect(res.send).toHaveBeenCalledWith({ error: new MissingCredentialsError().message });
+    expect(res.send).toHaveBeenCalledWith(
+      XMLUtils.toWebDavXML(
+        {
+          [XMLUtils.addDefaultNamespace('responsedescription')]: new MissingCredentialsError().message,
+        },
+        {},
+        'error',
+      ),
+    );
   });
 
   it('When the user is authenticated, then it should add the user to the request', async () => {
