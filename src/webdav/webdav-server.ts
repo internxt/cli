@@ -66,8 +66,7 @@ export class WebDavServer {
     return networkFacade;
   };
 
-  private readonly registerMiddlewares = async () => {
-    this.app.use(ErrorHandlingMiddleware);
+  private readonly registerStartMiddlewares = () => {
     this.app.use(AuthMiddleware(AuthService.instance));
     this.app.use(
       RequestLoggerMiddleware({
@@ -76,6 +75,10 @@ export class WebDavServer {
     );
     this.app.use(bodyParser.text({ type: ['application/xml', 'text/xml'] }));
     this.app.use(MkcolMiddleware);
+  };
+
+  private readonly registerEndMiddleWares = () => {
+    this.app.use(ErrorHandlingMiddleware);
   };
 
   private readonly registerHandlers = async () => {
@@ -159,8 +162,9 @@ export class WebDavServer {
   start = async () => {
     const configs = await this.configService.readWebdavConfig();
     this.app.disable('x-powered-by');
-    await this.registerMiddlewares();
+    this.registerStartMiddlewares();
     await this.registerHandlers();
+    this.registerEndMiddleWares();
 
     const plainHttp = configs.protocol === 'http';
     let server: http.Server | https.Server;
