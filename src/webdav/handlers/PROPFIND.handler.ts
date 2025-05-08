@@ -47,7 +47,23 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
         }
       }
     } catch {
-      res.status(207).send();
+      res.status(207).send(
+        XMLUtils.toWebDavXML(
+          {
+            [XMLUtils.addDefaultNamespace('response')]: {
+              [XMLUtils.addDefaultNamespace('href')]: XMLUtils.encodeWebDavUri(resource.url),
+              [XMLUtils.addDefaultNamespace('propstat')]: {
+                [XMLUtils.addDefaultNamespace('status')]: 'HTTP/1.1 404 Not Found',
+                [XMLUtils.addDefaultNamespace('prop')]: {},
+              },
+            },
+          },
+          {
+            ignoreAttributes: false,
+            suppressEmptyNode: true,
+          },
+        ),
+      );
     }
   };
 
