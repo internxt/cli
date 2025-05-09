@@ -1149,5 +1149,37 @@ _See code: [src/commands/whoami.ts](https://github.com/internxt/cli/blob/v1.5.3/
 <!-- commandsstop -->
 
 # Current Limitations
+- Sure! Here’s a suggested GitHub issue post you can use to file a bug/feature request for Internxt CLI’s limited WebDAV support. You can paste this into a new issue on Internxt’s GitHub repo or wherever they track CLI issues:
 
-- We currently have a 20GB size upload limitation per file for both, CLI and WebDAV
+⸻
+
+# ❗ WebDAV Method Support – Feature Request
+
+## 🚫 Missing Methods
+
+| Method     | Status   | Importance |
+|------------|----------|------------|
+| `COPY`     | ❌       | Required for in-place file duplication, versioning, efficient sync |
+| `PROPPATCH`| ❌       | Required to set/modify file metadata (e.g. timestamps, attributes) |
+
+## 🔄 Why These Matter
+
+Backup and sync workflows often **depend on these methods** to:
+
+- Move files efficiently between directories **without re-uploading**
+- Retain original timestamps or metadata after uploads
+- Support **versioned** or **incremental** backups across sessions
+
+## ⚠️ Current Workarounds
+
+Some users have found limited success using:
+
+- [`rclone`](https://rclone.org/webdav/) with `--webdav-method PUT` and **disabled modtime updates**
+- [`Kopia`](https://kopia.io/) in basic backup modes (no metadata/versioning)
+- Manual scripting with `curl` or `davfs` for upload-only scenarios
+
+> 🔐 Note: There is currently a **20GB per-file upload limit** via both the CLI and WebDAV.
+
+---
+
+🙏 Please consider prioritizing support for `COPY` and `PROPPATCH` to enable full compatibility with backup tools and workflows.
