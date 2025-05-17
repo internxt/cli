@@ -1317,10 +1317,10 @@
     eslint-config-prettier "^9.1.0"
     typescript-eslint "^8.15.0"
 
-"@internxt/inxt-js@2.1.0":
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/@internxt/inxt-js/-/inxt-js-2.1.0.tgz#5e44da641f9b452d6cdcdf3f09a42e2f9cdeeeda"
-  integrity sha512-jAZfvFl1HqWbQ7QCxw6jYTKbhoh4pGyUdbkqQLz+xZykycgLY2rL/IfVH/7Y/N9sp1kiNTGjJbJmBGBytFbYzA==
+"@internxt/inxt-js@2.1.1":
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/@internxt/inxt-js/-/inxt-js-2.1.1.tgz#905454baa5e91ed05fa41f97a9bf455bd8b18c53"
+  integrity sha512-e6oXDirAHPLgiZP++r7mRKZLQFw42qzGlWYeywLcOcrGA8ccpqAK3QL+AvLHHOOMMP7LZtkia6MaGRCnSthI4A==
   dependencies:
     "@internxt/lib" "^1.1.6"
     "@internxt/sdk" "^1.4.27"
