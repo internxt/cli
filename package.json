@@ -51,7 +51,7 @@
     "express": "5.1.0",
     "express-async-handler": "1.2.0",
     "express-basic-auth": "1.2.1",
-    "fast-xml-parser": "5.2.2",
+    "fast-xml-parser": "5.2.3",
     "mime-types": "3.0.1",
     "openpgp": "5.11.2",
     "pm2": "6.0.5",
