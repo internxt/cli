@@ -1339,19 +1339,10 @@
   version "1.0.2"
   resolved "https://codeload.github.com/internxt/prettier-config/tar.gz/9fa74e9a2805e1538b50c3809324f1c9d0f3e4f9"
 
-"@internxt/sdk@1.7.0":
-  version "1.7.0"
-  resolved "https://registry.yarnpkg.com/@internxt/sdk/-/sdk-1.7.0.tgz#4d6aac6f5efa18d64d44e5e155f3df175c04f90a"
-  integrity sha512-K5ScK87gFCW5DBO0qt84x/EdroR42+pA5CCQZ8FbEmB8t5J14wxjiuyRedyYhPsqCB9jZptkFB9ZqHIP2zRNIA==
-  dependencies:
-    axios "^0.28.0"
-    query-string "^7.1.0"
-    uuid "^11.0.2"
-
-"@internxt/sdk@^1.4.27":
-  version "1.9.12"
-  resolved "https://registry.yarnpkg.com/@internxt/sdk/-/sdk-1.9.12.tgz#ce32ff62a5cd2bf8029b95cbc99610dd98517175"
-  integrity sha512-X6HK1D/+Z1st/2Arl5TDbnkfIglQu0KHQe5gntOX4fW6WMpqKq+azQneiOaPPraZLacMsYI8Wp/xrqQlMc/sfQ==
+"@internxt/sdk@1.9.24", "@internxt/sdk@^1.4.27":
+  version "1.9.24"
+  resolved "https://registry.yarnpkg.com/@internxt/sdk/-/sdk-1.9.24.tgz#75587de62a57bbc9379d536bc5133d64791bc647"
+  integrity sha512-X6W1tDY8YcR5MxI+lCwTrMYl6SskjoEQbtZXCF05n1oAxbRTzlV67yfZ+xQTbee2kfhIwuXNN8Br/WitLqLlTA==
   dependencies:
     axios "^0.24.0"
     query-string "^7.1.0"
@@ -2842,15 +2833,6 @@ axios@^0.24.0:
   dependencies:
     follow-redirects "^1.14.4"
 
-axios@^0.28.0:
-  version "0.28.1"
-  resolved "https://registry.yarnpkg.com/axios/-/axios-0.28.1.tgz#2a7bcd34a3837b71ee1a5ca3762214b86b703e70"
-  integrity sha512-iUcGA5a7p0mVb4Gm/sy+FSECNkPFT4y7wt6OM/CDpO/OnNCvSs3PoMG8ibrC9jRoGYU0gUK5pXVC4NPXq6lHRQ==
-  dependencies:
-    follow-redirects "^1.15.0"
-    form-data "^4.0.0"
-    proxy-from-env "^1.1.0"
-
 balanced-match@^1.0.0:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/balanced-match/-/balanced-match-1.0.2.tgz#e83e3a7e3f300b34cb9d87f615fa0cbf357690ee"
@@ -4181,7 +4163,7 @@ fn.name@1.x.x:
   resolved "https://registry.yarnpkg.com/fn.name/-/fn.name-1.1.0.tgz#26cad8017967aea8731bc42961d04a3d5988accc"
   integrity sha512-GRnmB5gPyJpAhTQdSZTSp9uaPSvl09KoYcMQtsB9rQoOmzs9dH6ffeccH+Z+cv6P68Hu5bC6JjRh4Ah/mHSNRw==
 
-follow-redirects@^1.14.0, follow-redirects@^1.14.4, follow-redirects@^1.15.0, follow-redirects@^1.15.6:
+follow-redirects@^1.14.0, follow-redirects@^1.14.4, follow-redirects@^1.15.6:
   version "1.15.9"
   resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.15.9.tgz#a604fa10e443bf98ca94228d9eebcc2e8a2c8ee1"
   integrity sha512-gew4GsXizNgdoRyqmyfMHyAmXsZDk6mHkSxZFCzW9gwlbtOW44CDtYavM+y+72qD/Vq2l550kMF52DT8fOLJqQ==
@@ -7126,11 +7108,6 @@ util-deprecate@^1.0.1:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/util-deprecate/-/util-deprecate-1.0.2.tgz#450d4dc9fa70de732762fbd2d4a28981419a0ccf"
   integrity sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==
-
-uuid@^11.0.2:
-  version "11.1.0"
-  resolved "https://registry.yarnpkg.com/uuid/-/uuid-11.1.0.tgz#9549028be1753bb934fc96e2bca09bb4105ae912"
-  integrity sha512-0/A9rDy9P7cJ+8w1c9WD9V//9Wj15Ce2MPz8Ri6032usz+NfePxx5AcN3bN+r6ZL6jEo066/yNYB3tn4pQEx+A==
 
 uuid@^8.3.2:
   version "8.3.2"
