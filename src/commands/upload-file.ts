@@ -151,7 +151,7 @@ export default class UploadFile extends Command {
             thumbnailBuffer,
             fileType,
             user.bucket,
-            createdDriveFile.id,
+            createdDriveFile.uuid,
             networkFacade,
           );
         }

@@ -134,7 +134,7 @@ export class PUTRequestHandler implements WebDavMethodHandler {
             thumbnailBuffer,
             fileType,
             user.bucket,
-            file.id,
+            file.uuid,
             networkFacade,
           );
         }
