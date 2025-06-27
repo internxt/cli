@@ -6,18 +6,18 @@ export class TrashService {
   static readonly instance = new TrashService();
 
   public trashItems = (payload: StorageTypes.AddItemsToTrashPayload) => {
-    const storageClient = SdkManager.instance.getStorage(true);
+    const storageClient = SdkManager.instance.getStorage();
     return storageClient.addItemsToTrash(payload);
   };
 
-  public deleteFile = (payload: StorageTypes.DeleteFilePayload) => {
-    const storageClient = SdkManager.instance.getStorage(false);
-    return storageClient.deleteFile(payload);
+  public deleteFile = (fileId: string) => {
+    const storageClient = SdkManager.instance.getStorage();
+    return storageClient.deleteFileByUuid(fileId);
   };
 
-  public deleteFolder = (folderId: number) => {
-    const storageClient = SdkManager.instance.getStorage(false);
-    return storageClient.deleteFolder(folderId);
+  public deleteFolder = (folderId: string) => {
+    const storageClient = SdkManager.instance.getStorage();
+    return storageClient.deleteFolderByUuid(folderId);
   };
 
   public clearTrash = () => {

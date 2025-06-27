@@ -117,7 +117,7 @@ export class AuthService {
       token: oldCreds.token,
       newToken: oldCreds.newToken,
     });
-    const usersClient = SdkManager.instance.getUsers(true);
+    const usersClient = SdkManager.instance.getUsers();
     const newCreds = await usersClient.getUserData({ userUuid: oldCreds.user.uuid });
 
     const loginCreds = {

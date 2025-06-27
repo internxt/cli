@@ -9,7 +9,7 @@ export class CryptoService {
   public static readonly instance: CryptoService = new CryptoService();
 
   public static readonly cryptoProvider: CryptoProvider = {
-    async encryptPasswordHash(password: Password, encryptedSalt: string): Promise<string> {
+    encryptPasswordHash(password: Password, encryptedSalt: string): string {
       const salt = CryptoService.instance.decryptText(encryptedSalt);
       const hashObj = CryptoService.instance.passToHash({ password, salt });
       return CryptoService.instance.encryptText(hashObj.hash);

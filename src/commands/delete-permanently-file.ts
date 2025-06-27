@@ -35,7 +35,7 @@ export default class DeletePermanentlyFile extends Command {
       throw new Error('File not found');
     }
 
-    await TrashService.instance.deleteFile({ fileId: driveFile.id, folderId: driveFile.folderId });
+    await TrashService.instance.deleteFile(driveFile.uuid);
     const message = 'File permanently deleted successfully';
     CLIUtils.success(this.log.bind(this), message);
     return { success: true, message };

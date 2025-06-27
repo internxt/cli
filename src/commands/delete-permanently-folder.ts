@@ -35,7 +35,7 @@ export default class DeletePermanentlyFolder extends Command {
       throw new Error('Folder not found');
     }
 
-    await TrashService.instance.deleteFolder(driveFolder.id);
+    await TrashService.instance.deleteFolder(driveFolder.uuid);
     const message = 'Folder permanently deleted successfully';
     CLIUtils.success(this.log.bind(this), message);
     return { success: true, message };

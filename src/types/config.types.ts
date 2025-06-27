@@ -1,6 +1,5 @@
 export interface ConfigKeys {
   readonly DRIVE_URL: string;
-  readonly DRIVE_API_URL: string;
   readonly DRIVE_NEW_API_URL: string;
   readonly PAYMENTS_API_URL: string;
   readonly APP_CRYPTO_SECRET: string;

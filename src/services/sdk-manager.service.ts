@@ -56,16 +56,14 @@ export class SdkManager {
   };
 
   /** Auth SDK */
-  getAuth(useNewApi = false) {
-    const DRIVE_API_URL = useNewApi
-      ? ConfigService.instance.get('DRIVE_NEW_API_URL')
-      : ConfigService.instance.get('DRIVE_API_URL');
+  getAuth() {
+    const DRIVE_API_URL = ConfigService.instance.get('DRIVE_NEW_API_URL');
 
     const apiSecurity = SdkManager.getApiSecurity({ throwErrorOnMissingCredentials: false });
     const appDetails = SdkManager.getAppDetails();
 
     return Auth.client(DRIVE_API_URL, appDetails, {
-      token: useNewApi ? apiSecurity?.newToken : apiSecurity?.token,
+      token: apiSecurity?.newToken,
     });
   }
 
@@ -73,50 +71,35 @@ export class SdkManager {
   getPayments() {
     const PAYMENTS_API_URL = ConfigService.instance.get('PAYMENTS_API_URL');
 
-    const newToken = SdkManager.getApiSecurity().newToken;
+    const apiSecurity = SdkManager.getApiSecurity();
     const appDetails = SdkManager.getAppDetails();
 
     return Drive.Payments.client(PAYMENTS_API_URL, appDetails, {
-      // Weird, normal accessToken doesn't work here
-      token: newToken,
+      token: apiSecurity.newToken,
     });
   }
 
   /** Users SDK */
-  getUsers(useNewApi = false) {
-    const DRIVE_API_URL = useNewApi
-      ? ConfigService.instance.get('DRIVE_NEW_API_URL')
-      : ConfigService.instance.get('DRIVE_API_URL');
+  getUsers() {
+    const DRIVE_API_URL = ConfigService.instance.get('DRIVE_NEW_API_URL');
 
     const apiSecurity = SdkManager.getApiSecurity({ throwErrorOnMissingCredentials: false });
     const appDetails = SdkManager.getAppDetails();
 
     return Drive.Users.client(DRIVE_API_URL, appDetails, {
-      token: useNewApi ? apiSecurity.newToken : apiSecurity.token,
+      token: apiSecurity.newToken,
     });
   }
 
-  /** Referrals SDK */
-  getReferrals() {
-    const DRIVE_API_URL = ConfigService.instance.get('DRIVE_API_URL');
-
-    const apiSecurity = SdkManager.getApiSecurity();
-    const appDetails = SdkManager.getAppDetails();
-
-    return Drive.Referrals.client(DRIVE_API_URL, appDetails, apiSecurity);
-  }
-
   /** Storage SDK */
-  getStorage(useNewApi = false) {
-    const DRIVE_API_URL = useNewApi
-      ? ConfigService.instance.get('DRIVE_NEW_API_URL')
-      : ConfigService.instance.get('DRIVE_API_URL');
+  getStorage() {
+    const DRIVE_API_URL = ConfigService.instance.get('DRIVE_NEW_API_URL');
 
     const apiSecurity = SdkManager.getApiSecurity();
     const appDetails = SdkManager.getAppDetails();
 
     return Drive.Storage.client(DRIVE_API_URL, appDetails, {
-      token: useNewApi ? apiSecurity.newToken : apiSecurity.token,
+      token: apiSecurity.newToken,
     });
   }
 
@@ -124,12 +107,11 @@ export class SdkManager {
   getTrash() {
     const DRIVE_NEW_API_URL = ConfigService.instance.get('DRIVE_NEW_API_URL');
 
-    const newToken = SdkManager.getApiSecurity().newToken;
+    const apiSecurity = SdkManager.getApiSecurity();
     const appDetails = SdkManager.getAppDetails();
 
     return Trash.client(DRIVE_NEW_API_URL, appDetails, {
-      // Weird, normal accessToken doesn't work here
-      token: newToken,
+      token: apiSecurity.newToken,
     });
   }
 
@@ -137,12 +119,11 @@ export class SdkManager {
   getShare() {
     const DRIVE_NEW_API_URL = ConfigService.instance.get('DRIVE_NEW_API_URL');
 
-    const newToken = SdkManager.getApiSecurity().newToken;
+    const apiSecurity = SdkManager.getApiSecurity();
     const appDetails = SdkManager.getAppDetails();
 
     return Drive.Share.client(DRIVE_NEW_API_URL, appDetails, {
-      // Weird, normal accessToken doesn't work here
-      token: newToken,
+      token: apiSecurity.newToken,
     });
   }
 

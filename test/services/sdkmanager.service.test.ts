@@ -64,27 +64,7 @@ describe('SDKManager service', () => {
     expect(expectedAppdetails).to.be.deep.equal(appDetailsResponse);
   });
 
-  it('When Auth client is requested, then it is generated using internxt sdk', () => {
-    const envEndpoint: { key: keyof ConfigKeys; value: string } = {
-      key: 'DRIVE_API_URL',
-      value: 'test/api',
-    };
-    SdkManager.init(ApiSecurityFixture);
-
-    const authClient = Auth.client(envEndpoint.value, appDetails, ApiSecurityFixture);
-
-    const spyConfigService = vi.spyOn(ConfigService.instance, 'get').mockReturnValue(envEndpoint.value);
-    vi.spyOn(SdkManager, 'getApiSecurity').mockReturnValue(ApiSecurityFixture);
-    vi.spyOn(SdkManager, 'getAppDetails').mockReturnValue(appDetails);
-    vi.spyOn(Auth, 'client').mockReturnValue(authClient);
-
-    const auth = SdkManager.instance.getAuth();
-
-    expect(spyConfigService).toHaveBeenCalledWith(envEndpoint.key);
-    expect(auth).to.be.deep.equal(authClient);
-  });
-
-  it('When Auth client is requested with useNewApi, then it returns the sdk that uses the new API endpoint', () => {
+  it('When Auth client is requested, then it returns the sdk that uses the new API endpoint', () => {
     const envEndpoint: { key: keyof ConfigKeys; value: string } = {
       key: 'DRIVE_NEW_API_URL',
       value: 'test/new-api',
@@ -98,7 +78,7 @@ describe('SDKManager service', () => {
     vi.spyOn(SdkManager, 'getAppDetails').mockReturnValue(appDetails);
     vi.spyOn(Auth, 'client').mockReturnValue(authClient);
 
-    const auth = SdkManager.instance.getAuth(true);
+    const auth = SdkManager.instance.getAuth();
 
     expect(spyConfigService).toHaveBeenCalledWith(envEndpoint.key);
     expect(auth).to.be.deep.equal(authClient);
@@ -126,7 +106,7 @@ describe('SDKManager service', () => {
 
   it('When Users client is requested, then it is generated using internxt sdk', () => {
     const envEndpoint: { key: keyof ConfigKeys; value: string } = {
-      key: 'DRIVE_API_URL',
+      key: 'DRIVE_NEW_API_URL',
       value: 'test/api',
     };
     SdkManager.init(ApiSecurityFixture);
@@ -144,29 +124,9 @@ describe('SDKManager service', () => {
     expect(newClient).to.be.deep.equal(client);
   });
 
-  it('When Referrals client is requested, then it is generated using internxt sdk', () => {
-    const envEndpoint: { key: keyof ConfigKeys; value: string } = {
-      key: 'DRIVE_API_URL',
-      value: 'test/api',
-    };
-    SdkManager.init(ApiSecurityFixture);
-
-    const client = Drive.Referrals.client(envEndpoint.value, appDetails, ApiSecurityFixture);
-
-    const spyConfigService = vi.spyOn(ConfigService.instance, 'get').mockReturnValue(envEndpoint.value);
-    vi.spyOn(SdkManager, 'getApiSecurity').mockReturnValue(ApiSecurityFixture);
-    vi.spyOn(SdkManager, 'getAppDetails').mockReturnValue(appDetails);
-    vi.spyOn(Drive.Referrals, 'client').mockReturnValue(client);
-
-    const newClient = SdkManager.instance.getReferrals();
-
-    expect(spyConfigService).toHaveBeenCalledWith(envEndpoint.key);
-    expect(newClient).to.be.deep.equal(client);
-  });
-
   it('When Storage client is requested, then it is generated using internxt sdk', () => {
     const envEndpoint: { key: keyof ConfigKeys; value: string } = {
-      key: 'DRIVE_API_URL',
+      key: 'DRIVE_NEW_API_URL',
       value: 'test/api',
     };
     SdkManager.init(ApiSecurityFixture);
@@ -179,26 +139,6 @@ describe('SDKManager service', () => {
     vi.spyOn(Drive.Storage, 'client').mockReturnValue(client);
 
     const newClient = SdkManager.instance.getStorage();
-
-    expect(spyConfigService).toHaveBeenCalledWith(envEndpoint.key);
-    expect(newClient).to.be.deep.equal(client);
-  });
-
-  it('When Storage client is requested with useNewApi, then it returns the sdk that uses the new API endpoint', () => {
-    const envEndpoint: { key: keyof ConfigKeys; value: string } = {
-      key: 'DRIVE_NEW_API_URL',
-      value: 'test/new-api',
-    };
-    SdkManager.init(ApiSecurityFixture);
-
-    const client = Drive.Storage.client(envEndpoint.value, appDetails, ApiSecurityFixture);
-
-    const spyConfigService = vi.spyOn(ConfigService.instance, 'get').mockReturnValue(envEndpoint.value);
-    vi.spyOn(SdkManager, 'getApiSecurity').mockReturnValue(ApiSecurityFixture);
-    vi.spyOn(SdkManager, 'getAppDetails').mockReturnValue(appDetails);
-    vi.spyOn(Drive.Storage, 'client').mockReturnValue(client);
-
-    const newClient = SdkManager.instance.getStorage(true);
 
     expect(spyConfigService).toHaveBeenCalledWith(envEndpoint.key);
     expect(newClient).to.be.deep.equal(client);

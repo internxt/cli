@@ -9,19 +9,19 @@ export class DriveFolderService {
   static readonly instance = new DriveFolderService();
 
   public getFolderMetaByUuid = async (uuid: string): Promise<DriveFolderItem> => {
-    const storageClient = SdkManager.instance.getStorage(true);
+    const storageClient = SdkManager.instance.getStorage();
     const folderMeta = await storageClient.getFolderMeta(uuid);
     return DriveUtils.driveFolderMetaToItem(folderMeta);
   };
 
   public getFolderMetaById = async (id: number): Promise<DriveFolderItem> => {
-    const storageClient = SdkManager.instance.getStorage(true);
+    const storageClient = SdkManager.instance.getStorage();
     const folderMeta = await storageClient.getFolderMetaById(id);
     return DriveUtils.driveFolderMetaToItem(folderMeta);
   };
 
   public getFolderContent = async (folderUuid: string) => {
-    const storageClient = SdkManager.instance.getStorage(true);
+    const storageClient = SdkManager.instance.getStorage();
     const folders = await this.getAllSubfolders(storageClient, folderUuid, 0);
     const files = await this.getAllSubfiles(storageClient, folderUuid, 0);
     return { folders, files };
@@ -58,7 +58,7 @@ export class DriveFolderService {
   };
 
   public moveFolder = (payload: StorageTypes.MoveFolderUuidPayload): Promise<StorageTypes.FolderMeta> => {
-    const storageClient = SdkManager.instance.getStorage(true);
+    const storageClient = SdkManager.instance.getStorage();
     return storageClient.moveFolderByUuid(payload);
   };
 
@@ -73,17 +73,17 @@ export class DriveFolderService {
   public createFolder(
     payload: StorageTypes.CreateFolderByUuidPayload,
   ): [Promise<StorageTypes.CreateFolderResponse>, RequestCanceler] {
-    const storageClient = SdkManager.instance.getStorage(true);
+    const storageClient = SdkManager.instance.getStorage();
     return storageClient.createFolderByUuid(payload);
   }
 
   public renameFolder = (payload: { folderUuid: string; name: string }): Promise<void> => {
-    const storageClient = SdkManager.instance.getStorage(true);
+    const storageClient = SdkManager.instance.getStorage();
     return storageClient.updateFolderNameWithUUID(payload);
   };
 
   public getFolderMetadataByPath = async (path: string): Promise<DriveFolderItem> => {
-    const storageClient = SdkManager.instance.getStorage(true);
+    const storageClient = SdkManager.instance.getStorage();
     const folderMeta = await storageClient.getFolderByPath(encodeURIComponent(path));
     return DriveUtils.driveFolderMetaToItem({
       ...folderMeta,

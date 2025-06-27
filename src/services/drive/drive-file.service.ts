@@ -7,7 +7,7 @@ export class DriveFileService {
   static readonly instance = new DriveFileService();
 
   public createFile = async (payload: StorageTypes.FileEntryByUuid): Promise<DriveFileItem> => {
-    const storageClient = SdkManager.instance.getStorage(true);
+    const storageClient = SdkManager.instance.getStorage();
     const driveFile = await storageClient.createFileEntryByUuid(payload);
 
     return {
@@ -28,7 +28,7 @@ export class DriveFileService {
   };
 
   public getFileMetadata = async (uuid: string): Promise<DriveFileItem> => {
-    const storageClient = SdkManager.instance.getStorage(true);
+    const storageClient = SdkManager.instance.getStorage();
 
     const [getFileMetadata] = storageClient.getFile(uuid);
 
@@ -37,23 +37,23 @@ export class DriveFileService {
   };
 
   public moveFile = (payload: StorageTypes.MoveFileUuidPayload): Promise<StorageTypes.FileMeta> => {
-    const storageClient = SdkManager.instance.getStorage(true);
+    const storageClient = SdkManager.instance.getStorage();
     return storageClient.moveFileByUuid(payload);
   };
 
   public renameFile = (fileUuid: string, payload: { plainName?: string; type?: string | null }): Promise<void> => {
-    const storageClient = SdkManager.instance.getStorage(true);
+    const storageClient = SdkManager.instance.getStorage();
     return storageClient.updateFileMetaByUUID(fileUuid, payload);
   };
 
   public getFileMetadataByPath = async (path: string): Promise<DriveFileItem> => {
-    const storageClient = SdkManager.instance.getStorage(true);
+    const storageClient = SdkManager.instance.getStorage();
     const fileMetadata = await storageClient.getFileByPath(encodeURIComponent(path));
     return DriveUtils.driveFileMetaToItem(fileMetadata);
   };
 
-  public createThumbnail = (payload: StorageTypes.ThumbnailEntry): Promise<StorageTypes.Thumbnail> => {
-    const storageClient = SdkManager.instance.getStorage(false);
-    return storageClient.createThumbnailEntry(payload);
+  public createThumbnail = (payload: StorageTypes.CreateThumbnailEntryPayload): Promise<StorageTypes.Thumbnail> => {
+    const storageClient = SdkManager.instance.getStorage();
+    return storageClient.createThumbnailEntryWithUUID(payload);
   };
 }
