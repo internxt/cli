@@ -1331,12 +1331,12 @@
     eslint-config-prettier "^9.1.0"
     typescript-eslint "^8.15.0"
 
-"@internxt/inxt-js@2.2.0":
-  version "2.2.0"
-  resolved "https://registry.yarnpkg.com/@internxt/inxt-js/-/inxt-js-2.2.0.tgz#0994ffb0c97482d8e8fbc00a0c27f0e714e9e65a"
-  integrity sha512-Aket6uE2o7B7U6cNr5po7ARzmnK+Pi+Na4G6igyMfoFw0FFZUD7kaJGDidNJTgWmkxpvR1kmiPgXVcg3jBG6zQ==
+"@internxt/inxt-js@2.2.1":
+  version "2.2.1"
+  resolved "https://registry.yarnpkg.com/@internxt/inxt-js/-/inxt-js-2.2.1.tgz#c5ef7cef9a9efc70c7aac3ea1b2b285e6c1181ac"
+  integrity sha512-gGQ7bVipkijTlFAPZGD+iEtP7QGxNORsT3CW++JO6oRNNusjXAOHd+bHq+v+U8g+u/F7voe431tDuE7Ug4Q8gA==
   dependencies:
-    "@internxt/lib" "1.2.0"
+    "@internxt/lib" "1.3.1"
     "@internxt/sdk" "1.10.0"
     async "3.2.6"
     axios "1.10.0"
@@ -1344,15 +1344,10 @@
     undici "7.10.0"
     winston "3.17.0"
 
-"@internxt/lib@1.2.0":
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/@internxt/lib/-/lib-1.2.1.tgz#fcf83351a178ec6d6038a4a0e251f2065340948b"
-  integrity sha512-Vepa2uEBPuvtqAPDhA5mgGYl6byZMaRWH0z67vPXoOb4cIfv++S8xXGaOmAUVBktwbhCE4lWuTgT6BN2N19INQ==
-
-"@internxt/lib@1.2.1":
-  version "1.2.1"
-  resolved "https://registry.yarnpkg.com/@internxt/lib/-/lib-1.2.1.tgz#fcf83351a178ec6d6038a4a0e251f2065340948b"
-  integrity sha512-Vepa2uEBPuvtqAPDhA5mgGYl6byZMaRWH0z67vPXoOb4cIfv++S8xXGaOmAUVBktwbhCE4lWuTgT6BN2N19INQ==
+"@internxt/lib@1.3.1":
+  version "1.3.1"
+  resolved "https://registry.yarnpkg.com/@internxt/lib/-/lib-1.3.1.tgz#7ba42996afe5c91e2badf3f6a02cedaa1671f4ee"
+  integrity sha512-3VWPRi0G8F7QR2pP+M7lM3Resw9zGSF0dFpE86pV7VyJt2WtxJW08AdxikjaBWR6knTHLU7BZPpnKQmUD/GFnw==
 
 "@internxt/prettier-config@internxt/prettier-config#v1.0.2":
   version "1.0.2"
