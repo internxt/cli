@@ -40,7 +40,7 @@ export class CryptoService {
    * @returns The hashed password and the salt
    **/
   public passToHash = (passObject: { password: string; salt?: string | null }): { salt: string; hash: string } => {
-    const salt = passObject.salt ? passObject.salt : randomBytes(128 / 8).toString('hex');
+    const salt = passObject.salt ?? randomBytes(128 / 8).toString('hex');
     const hash = pbkdf2Sync(passObject.password, Buffer.from(salt, 'hex'), 10000, 256 / 8, 'sha1').toString('hex');
     const hashedObjetc = {
       salt,
@@ -173,7 +173,7 @@ export class CryptoService {
    * @param salt The salt used to encrypt
    * @returns The key and the iv resulted from the secret and the salt combination
    **/
-  private getKeyAndIvFrom = (secret: string, salt: Buffer) => {
+  private readonly getKeyAndIvFrom = (secret: string, salt: Buffer) => {
     const TRANSFORM_ROUNDS = 3;
     const password = Buffer.concat([Buffer.from(secret, 'binary'), salt]);
     const md5Hashes = [];
