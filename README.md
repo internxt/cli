@@ -13,6 +13,25 @@ A CLI tool to interact with your Internxt encrypted files
 * [Current Limitations](#current-limitations)
 <!-- tocstop -->
 
+# Project Manteinance
+
+<!-- manteinance -->
+[![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=internxt_cli&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=internxt_cli)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=internxt_cli&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=internxt_cli)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=internxt_cli&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=internxt_cli)
+[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=internxt_cli&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=internxt_cli)
+[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=internxt_cli&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=internxt_cli)
+[![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=internxt_cli&metric=duplicated_lines_density)](https://sonarcloud.io/summary/new_code?id=internxt_cli)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=internxt_cli&metric=coverage)](https://sonarcloud.io/summary/new_code?id=internxt_cli)
+
+We aim to achieve:
+
+- An 'A' rating in Maintainability
+- An 'A' rating in Security
+- Less than 3% duplicated lines
+- At least 80% test coverage
+<!-- manteinancestop -->
+
 # Installation
 
 You can install the Internxt CLI by using NPM:
