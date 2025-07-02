@@ -14,8 +14,14 @@ jobs:
         os: ["ubuntu-latest", "windows-latest", "macos-latest"]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set core.autocrlf to false
+        run: git config --global core.autocrlf false
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
           node-version: '22.x'
           cache: yarn
@@ -25,9 +31,6 @@ jobs:
 
       - name: Add .npmrc
         run: cp .npmrc.template .npmrc
-
-      - name: Set core.autocrlf to false
-        run: git config --global core.autocrlf false
 
       - name: Install dependencies
         run: yarn
