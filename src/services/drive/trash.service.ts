@@ -32,7 +32,10 @@ export class TrashService {
     return { folders, files };
   };
 
-  private getAllTrashSubfolders = async (storageClient: Trash, offset: number): Promise<FetchPaginatedFolder[]> => {
+  private readonly getAllTrashSubfolders = async (
+    storageClient: Trash,
+    offset: number,
+  ): Promise<FetchPaginatedFolder[]> => {
     const folderContentPromise = storageClient.getTrashedFilesPaginated(50, offset, 'folders', true);
     const { result: folders } = (await folderContentPromise) as unknown as { result: FetchPaginatedFolder[] };
 
@@ -43,7 +46,10 @@ export class TrashService {
     }
   };
 
-  private getAllTrashSubfiles = async (storageClient: Trash, offset: number): Promise<FetchPaginatedFile[]> => {
+  private readonly getAllTrashSubfiles = async (
+    storageClient: Trash,
+    offset: number,
+  ): Promise<FetchPaginatedFile[]> => {
     const folderContentPromise = storageClient.getTrashedFilesPaginated(50, offset, 'files', true);
     const { result: folders } = (await folderContentPromise) as unknown as { result: FetchPaginatedFile[] };
 
