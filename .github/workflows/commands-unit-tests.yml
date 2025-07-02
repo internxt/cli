@@ -26,6 +26,9 @@ jobs:
       - name: Add .npmrc
         run: cp .npmrc.template .npmrc
 
+      - name: Set core.autocrlf to false
+        run: git config --global core.autocrlf false
+
       - name: Install dependencies
         run: yarn
 
