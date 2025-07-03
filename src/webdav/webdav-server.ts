@@ -9,7 +9,6 @@ import bodyParser from 'body-parser';
 import { DriveFolderService } from '../services/drive/drive-folder.service';
 import { AuthMiddleware } from './middewares/auth.middleware';
 import { RequestLoggerMiddleware } from './middewares/request-logger.middleware';
-import { DriveDatabaseManager } from '../services/database/drive-database-manager.service';
 import { GETRequestHandler } from './handlers/GET.handler';
 import { HEADRequestHandler } from './handlers/HEAD.handler';
 import { DriveFileService } from '../services/drive/drive-file.service';
@@ -29,6 +28,7 @@ import { MOVERequestHandler } from './handlers/MOVE.handler';
 import { COPYRequestHandler } from './handlers/COPY.handler';
 import { TrashService } from '../services/drive/trash.service';
 import { Environment } from '@internxt/inxt-js';
+import { MkcolMiddleware } from './middewares/mkcol.middleware';
 
 export class WebDavServer {
   constructor(
@@ -36,7 +36,6 @@ export class WebDavServer {
     private readonly configService: ConfigService,
     private readonly driveFileService: DriveFileService,
     private readonly driveFolderService: DriveFolderService,
-    private readonly driveDatabaseManager: DriveDatabaseManager,
     private readonly downloadService: DownloadService,
     private readonly authService: AuthService,
     private readonly cryptoService: CryptoService,
@@ -67,34 +66,37 @@ export class WebDavServer {
     return networkFacade;
   };
 
-  private readonly registerMiddlewares = async () => {
-    this.app.use(bodyParser.text({ type: ['application/xml', 'text/xml'] }));
-    this.app.use(ErrorHandlingMiddleware);
+  private readonly registerStartMiddlewares = () => {
     this.app.use(AuthMiddleware(AuthService.instance));
     this.app.use(
       RequestLoggerMiddleware({
         enable: true,
       }),
     );
+    this.app.use(bodyParser.text({ type: ['application/xml', 'text/xml'] }));
+    this.app.use(MkcolMiddleware);
+  };
+
+  private readonly registerEndMiddleWares = () => {
+    this.app.use(ErrorHandlingMiddleware);
   };
 
   private readonly registerHandlers = async () => {
+    const serverListenPath = /(.*)/;
     const networkFacade = await this.getNetworkFacade();
     this.app.head(
-      '*',
+      serverListenPath,
       asyncHandler(
         new HEADRequestHandler({
           driveFileService: this.driveFileService,
-          driveDatabaseManager: this.driveDatabaseManager,
         }).handle,
       ),
     );
     this.app.get(
-      '*',
+      serverListenPath,
       asyncHandler(
         new GETRequestHandler({
           driveFileService: this.driveFileService,
-          driveDatabaseManager: this.driveDatabaseManager,
           downloadService: this.downloadService,
           cryptoService: this.cryptoService,
           authService: this.authService,
@@ -102,25 +104,23 @@ export class WebDavServer {
         }).handle,
       ),
     );
-    this.app.options('*', asyncHandler(new OPTIONSRequestHandler().handle));
+    this.app.options(serverListenPath, asyncHandler(new OPTIONSRequestHandler().handle));
     this.app.propfind(
-      '*',
+      serverListenPath,
       asyncHandler(
         new PROPFINDRequestHandler({
           driveFileService: this.driveFileService,
           driveFolderService: this.driveFolderService,
-          driveDatabaseManager: this.driveDatabaseManager,
         }).handle,
       ),
     );
 
     this.app.put(
-      '*',
+      serverListenPath,
       asyncHandler(
         new PUTRequestHandler({
           driveFileService: this.driveFileService,
           driveFolderService: this.driveFolderService,
-          driveDatabaseManager: this.driveDatabaseManager,
           authService: this.authService,
           trashService: this.trashService,
           networkFacade: networkFacade,
@@ -129,44 +129,42 @@ export class WebDavServer {
     );
 
     this.app.mkcol(
-      '*',
+      serverListenPath,
       asyncHandler(
         new MKCOLRequestHandler({
-          driveDatabaseManager: this.driveDatabaseManager,
           driveFolderService: this.driveFolderService,
         }).handle,
       ),
     );
     this.app.delete(
-      '*',
+      serverListenPath,
       asyncHandler(
         new DELETERequestHandler({
-          driveDatabaseManager: this.driveDatabaseManager,
           trashService: this.trashService,
           driveFileService: this.driveFileService,
           driveFolderService: this.driveFolderService,
         }).handle,
       ),
     );
-    this.app.proppatch('*', asyncHandler(new PROPPATCHRequestHandler().handle));
+    this.app.proppatch(serverListenPath, asyncHandler(new PROPPATCHRequestHandler().handle));
     this.app.move(
-      '*',
+      serverListenPath,
       asyncHandler(
         new MOVERequestHandler({
-          driveDatabaseManager: this.driveDatabaseManager,
           driveFolderService: this.driveFolderService,
           driveFileService: this.driveFileService,
         }).handle,
       ),
     );
-    this.app.copy('*', asyncHandler(new COPYRequestHandler().handle));
+    this.app.copy(serverListenPath, asyncHandler(new COPYRequestHandler().handle));
   };
 
   start = async () => {
     const configs = await this.configService.readWebdavConfig();
     this.app.disable('x-powered-by');
-    await this.registerMiddlewares();
+    this.registerStartMiddlewares();
     await this.registerHandlers();
+    this.registerEndMiddleWares();
 
     const plainHttp = configs.protocol === 'http';
     let server: http.Server | https.Server;
@@ -177,8 +175,8 @@ export class WebDavServer {
       server = https.createServer(httpsCerts, this.app);
     }
 
-    // Allow long uploads/downloads from WebDAV clients (up to 15 minutes before closing connection):
-    server.requestTimeout = 15 * 60 * 1000;
+    // Allow long uploads/downloads from WebDAV clients:
+    server.requestTimeout = configs.timeoutMinutes * 60 * 1000;
 
     server.listen(configs.port, () => {
       webdavLogger.info(

@@ -12,7 +12,7 @@ export class ThumbnailService {
     fileContent: Buffer,
     fileType: string,
     userBucket: string,
-    file_id: number,
+    file_id: string,
     networkFacade: NetworkFacade,
   ): Promise<StorageTypes.Thumbnail | undefined> => {
     let thumbnailBuffer: Buffer | undefined;
@@ -38,20 +38,20 @@ export class ThumbnailService {
       });
 
       const createdThumbnailFile = await DriveFileService.instance.createThumbnail({
-        file_id: file_id,
-        max_width: ThumbnailConfig.MaxWidth,
-        max_height: ThumbnailConfig.MaxHeight,
+        fileUuid: file_id,
+        maxWidth: ThumbnailConfig.MaxWidth,
+        maxHeight: ThumbnailConfig.MaxHeight,
         type: ThumbnailConfig.Type,
         size: size,
-        bucket_id: userBucket,
-        bucket_file: fileId,
-        encrypt_version: StorageTypes.EncryptionVersion.Aes03,
+        bucketId: userBucket,
+        bucketFile: fileId,
+        encryptVersion: StorageTypes.EncryptionVersion.Aes03,
       });
       return createdThumbnailFile;
     }
   };
 
-  private getThumbnailFromImageBuffer = (buffer: Buffer): Promise<Buffer> => {
+  private readonly getThumbnailFromImageBuffer = (buffer: Buffer): Promise<Buffer> => {
     return sharp(buffer)
       .resize({
         height: ThumbnailConfig.MaxHeight,

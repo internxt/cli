@@ -1,5 +1,4 @@
 import { Command, Flags } from '@oclif/core';
-import { ErrorUtils } from '../utils/errors.utils';
 import { CLIUtils } from '../utils/cli.utils';
 import { DriveFolderService } from '../services/drive/drive-folder.service';
 import { ConfigService } from '../services/config.service';
@@ -42,7 +41,7 @@ export default class CreateFolder extends Command {
       folderUuid = userCredentials.user.rootFolderId;
     }
 
-    CLIUtils.doing('Creating folder...');
+    CLIUtils.doing('Creating folder...', flags['json']);
     const [createNewFolder, requestCanceler] = DriveFolderService.instance.createFolder({
       plainName: folderName,
       parentFolderUuid: folderUuid,
@@ -54,16 +53,22 @@ export default class CreateFolder extends Command {
     });
 
     const newFolder = await createNewFolder;
-    CLIUtils.done();
+    CLIUtils.done(flags['json']);
     // eslint-disable-next-line max-len
-    const message = `Folder ${newFolder.plainName} created successfully, view it at ${ConfigService.instance.get('DRIVE_URL')}/folder/${newFolder.uuid}`;
+    const message = `Folder ${newFolder.plainName} created successfully, view it at ${ConfigService.instance.get('DRIVE_WEB_URL')}/folder/${newFolder.uuid}`;
     CLIUtils.success(this.log.bind(this), message);
     return { success: true, message, folder: newFolder };
   };
 
   public catch = async (error: Error) => {
-    ErrorUtils.report(this.error.bind(this), error, { command: this.id });
-    CLIUtils.error(this.log.bind(this), error.message);
+    const { flags } = await this.parse(CreateFolder);
+    CLIUtils.catchError({
+      error,
+      command: this.id,
+      logReporter: this.log.bind(this),
+      errorReporter: this.error.bind(this),
+      jsonFlag: flags['json'],
+    });
     this.exit(1);
   };
 

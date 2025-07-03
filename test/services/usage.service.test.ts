@@ -15,7 +15,7 @@ describe('Usage Service', () => {
     const total = drive + backups;
     const driveSpaceUsage = { _id: randomUUID(), total, drive, backups };
 
-    vi.spyOn(Storage.prototype, 'spaceUsage').mockResolvedValue(driveSpaceUsage);
+    vi.spyOn(Storage.prototype, 'spaceUsageV2').mockResolvedValue(driveSpaceUsage);
     vi.spyOn(SdkManager.instance, 'getStorage').mockReturnValue(Storage.prototype);
 
     const result = await UsageService.instance.fetchUsage();
@@ -26,7 +26,7 @@ describe('Usage Service', () => {
   it('When getting user space limit, it should return the total usage', async () => {
     const driveSpaceLimit = { maxSpaceBytes: randomInt(5000000000) };
 
-    vi.spyOn(Storage.prototype, 'spaceLimit').mockResolvedValue(driveSpaceLimit);
+    vi.spyOn(Storage.prototype, 'spaceLimitV2').mockResolvedValue(driveSpaceLimit);
     vi.spyOn(SdkManager.instance, 'getStorage').mockReturnValue(Storage.prototype);
 
     const result = await UsageService.instance.fetchSpaceLimit();

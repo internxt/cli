@@ -11,21 +11,28 @@ import WebDAVConfig from '../../commands/webdav-config';
 
 const CommandsToSkip = [Whoami, Login, Logout, Logs, Webdav, WebDAVConfig];
 const hook: Hook<'prerun'> = async function (opts) {
-  if (!CommandsToSkip.map((command) => command.name).includes(opts.Command.name)) {
-    CLIUtils.doing('Checking credentials');
+  const { Command, argv } = opts;
+  const jsonFlag = argv.includes('--json');
+
+  if (!CommandsToSkip.map((command) => command.name).includes(Command.name)) {
+    CLIUtils.doing('Checking credentials', jsonFlag);
     try {
       const { token, newToken } = await AuthService.instance.getAuthDetails();
       SdkManager.init({
         token,
         newToken,
       });
-      CLIUtils.done();
-      CLIUtils.clearPreviousLine();
+      CLIUtils.done(jsonFlag);
+      CLIUtils.clearPreviousLine(jsonFlag);
     } catch (error) {
       const err = error as Error;
-      CLIUtils.done();
-      CLIUtils.clearPreviousLine();
-      CLIUtils.error(this.log.bind(this), err.message);
+      CLIUtils.catchError({
+        error: err,
+        command: Command.id,
+        logReporter: this.log.bind(this),
+        errorReporter: this.error.bind(this),
+        jsonFlag,
+      });
       opts.context.exit(1);
     }
   }

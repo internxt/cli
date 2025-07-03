@@ -12,7 +12,7 @@ export type WebDavProcessStatus =
   | 'unknown';
 
 export class PM2Utils {
-  private static WEBDAV_APP_NAME = 'Internxt CLI WebDav';
+  private static readonly WEBDAV_APP_NAME = 'Internxt CLI WebDav';
 
   static connect() {
     return new Promise<void>((resolve, reject) => {

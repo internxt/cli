@@ -6,7 +6,6 @@ import { WebDavMethodHandler } from '../../types/webdav.types';
 import { NotFoundError, UnsupportedMediaTypeError } from '../../utils/errors.utils';
 import { WebDavUtils } from '../../utils/webdav.utils';
 import { webdavLogger } from '../../utils/logger.utils';
-import { DriveDatabaseManager } from '../../services/database/drive-database-manager.service';
 import { DriveFileItem, DriveFolderItem } from '../../types/drive.types';
 import { DriveFolderService } from '../../services/drive/drive-folder.service';
 import { TrashService } from '../../services/drive/trash.service';
@@ -22,7 +21,6 @@ export class PUTRequestHandler implements WebDavMethodHandler {
     private readonly dependencies: {
       driveFileService: DriveFileService;
       driveFolderService: DriveFolderService;
-      driveDatabaseManager: DriveDatabaseManager;
       trashService: TrashService;
       authService: AuthService;
       networkFacade: NetworkFacade;
@@ -30,8 +28,7 @@ export class PUTRequestHandler implements WebDavMethodHandler {
   ) {}
 
   handle = async (req: Request, res: Response) => {
-    const { driveDatabaseManager, authService, networkFacade, driveFileService, driveFolderService, trashService } =
-      this.dependencies;
+    const { authService, networkFacade, driveFileService, driveFolderService, trashService } = this.dependencies;
     const contentLength = Number(req.headers['content-length']);
     if (!contentLength || isNaN(contentLength) || contentLength <= 0) {
       throw new UnsupportedMediaTypeError('Empty files are not supported');
@@ -44,11 +41,10 @@ export class PUTRequestHandler implements WebDavMethodHandler {
     webdavLogger.info(`[PUT] Request received for ${resource.type} at ${resource.url}`);
     webdavLogger.info(`[PUT] Uploading '${resource.name}' to '${resource.parentPath}'`);
 
-    const parentResource = await WebDavUtils.getRequestedResource(resource.parentPath);
+    const parentResource = await WebDavUtils.getRequestedResource(resource.parentPath, false);
 
     const parentFolderItem = (await WebDavUtils.getAndSearchItemFromResource({
       resource: parentResource,
-      driveDatabaseManager,
       driveFolderService,
     })) as DriveFolderItem;
 
@@ -57,12 +53,10 @@ export class PUTRequestHandler implements WebDavMethodHandler {
       // http://www.webdav.org/specs/rfc4918.html#put-resources
       const driveFileItem = (await WebDavUtils.getAndSearchItemFromResource({
         resource: resource,
-        driveDatabaseManager,
         driveFileService,
       })) as DriveFileItem;
       if (driveFileItem && driveFileItem.status === 'EXISTS') {
         webdavLogger.info(`[PUT] File '${resource.name}' already exists in '${resource.path.dir}', trashing it...`);
-        await driveDatabaseManager.deleteFileById(driveFileItem.id);
         await trashService.trashItems({
           items: [{ type: resource.type, uuid: driveFileItem.uuid }],
         });
@@ -140,7 +134,7 @@ export class PUTRequestHandler implements WebDavMethodHandler {
             thumbnailBuffer,
             fileType,
             user.bucket,
-            file.id,
+            file.uuid,
             networkFacade,
           );
         }
@@ -152,8 +146,6 @@ export class PUTRequestHandler implements WebDavMethodHandler {
     const uploadTime = timer.stop();
     webdavLogger.info(`[PUT] ✅ File uploaded in ${uploadTime}ms to Internxt Drive`);
 
-    await driveDatabaseManager.createFile(file, resource.path.dir + '/');
-
-    res.status(200).send();
+    res.status(201).send();
   };
 }

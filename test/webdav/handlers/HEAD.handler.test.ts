@@ -7,7 +7,6 @@ import {
   getRequestedFolderResource,
 } from '../../fixtures/webdav.fixture';
 import { DriveFileService } from '../../../src/services/drive/drive-file.service';
-import { getDriveDatabaseManager } from '../../fixtures/drive-database.fixture';
 import { WebDavRequestedResource } from '../../../src/types/webdav.types';
 import { newFileItem } from '../../fixtures/drive.fixture';
 import { WebDavUtils } from '../../../src/utils/webdav.utils';
@@ -20,7 +19,6 @@ describe('HEAD request handler', () => {
 
   it('When a folder is requested, it should reply with a 200', async () => {
     const requestHandler = new HEADRequestHandler({
-      driveDatabaseManager: getDriveDatabaseManager(),
       driveFileService: DriveFileService.instance,
     });
 
@@ -41,7 +39,6 @@ describe('HEAD request handler', () => {
 
   it('When a file is requested, it should reply with a 200 with the correct headers', async () => {
     const requestHandler = new HEADRequestHandler({
-      driveDatabaseManager: getDriveDatabaseManager(),
       driveFileService: DriveFileService.instance,
     });
 
@@ -76,7 +73,6 @@ describe('HEAD request handler', () => {
 
   it('When a file is requested with range-request, it should reply with a 200 with the correct headers', async () => {
     const requestHandler = new HEADRequestHandler({
-      driveDatabaseManager: getDriveDatabaseManager(),
       driveFileService: DriveFileService.instance,
     });
 

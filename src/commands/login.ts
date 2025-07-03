@@ -4,9 +4,7 @@ import { AuthService } from '../services/auth.service';
 import { ConfigService } from '../services/config.service';
 import { ValidationService } from '../services/validation.service';
 import { CLIUtils } from '../utils/cli.utils';
-import { ErrorUtils } from '../utils/errors.utils';
 import { SdkManager } from '../services/sdk-manager.service';
-import { DriveDatabaseManager } from '../services/database/drive-database-manager.service';
 
 export default class Login extends Command {
   static readonly args = {};
@@ -62,8 +60,6 @@ export default class Login extends Command {
     });
 
     await ConfigService.instance.saveUser(loginCredentials);
-    await DriveDatabaseManager.init();
-    await DriveDatabaseManager.clean();
     const message = `Succesfully logged in to: ${loginCredentials.user.email}`;
     CLIUtils.success(this.log.bind(this), message);
     return {
@@ -74,8 +70,14 @@ export default class Login extends Command {
   };
 
   public catch = async (error: Error) => {
-    ErrorUtils.report(this.error.bind(this), error, { command: this.id });
-    CLIUtils.error(this.log.bind(this), error.message);
+    const { flags } = await this.parse(Login);
+    CLIUtils.catchError({
+      error,
+      command: this.id,
+      logReporter: this.log.bind(this),
+      errorReporter: this.error.bind(this),
+      jsonFlag: flags['json'],
+    });
     this.exit(1);
   };
 

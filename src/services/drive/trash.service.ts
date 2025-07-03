@@ -6,18 +6,18 @@ export class TrashService {
   static readonly instance = new TrashService();
 
   public trashItems = (payload: StorageTypes.AddItemsToTrashPayload) => {
-    const storageClient = SdkManager.instance.getStorage(true);
+    const storageClient = SdkManager.instance.getStorage();
     return storageClient.addItemsToTrash(payload);
   };
 
-  public deleteFile = (payload: StorageTypes.DeleteFilePayload) => {
-    const storageClient = SdkManager.instance.getStorage(false);
-    return storageClient.deleteFile(payload);
+  public deleteFile = (fileId: string) => {
+    const storageClient = SdkManager.instance.getStorage();
+    return storageClient.deleteFileByUuid(fileId);
   };
 
-  public deleteFolder = (folderId: number) => {
-    const storageClient = SdkManager.instance.getStorage(false);
-    return storageClient.deleteFolder(folderId);
+  public deleteFolder = (folderId: string) => {
+    const storageClient = SdkManager.instance.getStorage();
+    return storageClient.deleteFolderByUuid(folderId);
   };
 
   public clearTrash = () => {
@@ -32,7 +32,10 @@ export class TrashService {
     return { folders, files };
   };
 
-  private getAllTrashSubfolders = async (storageClient: Trash, offset: number): Promise<FetchPaginatedFolder[]> => {
+  private readonly getAllTrashSubfolders = async (
+    storageClient: Trash,
+    offset: number,
+  ): Promise<FetchPaginatedFolder[]> => {
     const folderContentPromise = storageClient.getTrashedFilesPaginated(50, offset, 'folders', true);
     const { result: folders } = (await folderContentPromise) as unknown as { result: FetchPaginatedFolder[] };
 
@@ -43,7 +46,10 @@ export class TrashService {
     }
   };
 
-  private getAllTrashSubfiles = async (storageClient: Trash, offset: number): Promise<FetchPaginatedFile[]> => {
+  private readonly getAllTrashSubfiles = async (
+    storageClient: Trash,
+    offset: number,
+  ): Promise<FetchPaginatedFile[]> => {
     const folderContentPromise = storageClient.getTrashedFilesPaginated(50, offset, 'files', true);
     const { result: folders } = (await folderContentPromise) as unknown as { result: FetchPaginatedFile[] };
 

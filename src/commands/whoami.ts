@@ -1,10 +1,8 @@
 import { Command } from '@oclif/core';
 import { CLIUtils } from '../utils/cli.utils';
-import { ErrorUtils } from '../utils/errors.utils';
 import { ConfigService } from '../services/config.service';
 import { ValidationService } from '../services/validation.service';
 import { LoginCredentials } from '../types/command.types';
-import { DriveDatabaseManager } from '../services/database/drive-database-manager.service';
 
 export default class Whoami extends Command {
   static readonly args = {};
@@ -25,7 +23,6 @@ export default class Whoami extends Command {
       if (!validCreds) {
         const message = 'Your session has expired. You have been logged out. Please log in again.';
         await ConfigService.instance.clearUser();
-        await DriveDatabaseManager.clean();
         CLIUtils.error(this.log.bind(this), message);
         return { success: false, message };
       } else {
@@ -37,8 +34,14 @@ export default class Whoami extends Command {
   };
 
   public catch = async (error: Error) => {
-    ErrorUtils.report(this.error.bind(this), error, { command: this.id });
-    CLIUtils.error(this.log.bind(this), error.message);
+    const { flags } = await this.parse(Whoami);
+    CLIUtils.catchError({
+      error,
+      command: this.id,
+      logReporter: this.log.bind(this),
+      errorReporter: this.error.bind(this),
+      jsonFlag: flags['json'],
+    });
     this.exit(1);
   };
 

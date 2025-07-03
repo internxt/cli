@@ -4,7 +4,6 @@ import { ConfigService } from '../services/config.service';
 import os from 'node:os';
 import path from 'node:path';
 import { CLIUtils } from '../utils/cli.utils';
-import { ErrorUtils } from '../utils/errors.utils';
 
 export default class AddCert extends Command {
   static readonly args = {};
@@ -15,34 +14,36 @@ export default class AddCert extends Command {
   static readonly enableJsonFlag = true;
 
   public run = async () => {
-    try {
-      const certPath = path.join(ConfigService.WEBDAV_SSL_CERTS_DIR, 'cert.crt');
-      const platform = os.platform();
+    const certPath = path.join(ConfigService.WEBDAV_SSL_CERTS_DIR, 'cert.crt');
+    const platform = os.platform();
 
-      const scriptBasePath = path.join(__dirname, '../../scripts');
-      let command = '';
+    const scriptBasePath = path.join(__dirname, '../../scripts');
+    let command = '';
 
-      if (platform === 'win32') {
-        // eslint-disable-next-line max-len
-        command = `powershell -ExecutionPolicy Bypass -File "${path.join(scriptBasePath, 'add-cert.ps1')}" -certPath "${certPath}"`;
-      } else if (platform === 'darwin' || platform === 'linux') {
-        command = `bash "${path.join(scriptBasePath, 'add-cert.sh')}" "${certPath}"`;
-      } else {
-        throw new Error(`Unsupported OS: ${platform}`);
-      }
-
-      await this.executeCommand(command);
-      const message = 'Certificate successfully added to the trusted store.';
-      CLIUtils.success(this.log.bind(this), message);
-      return { success: true, message };
-    } catch (error) {
-      await this.catch(error as Error);
+    if (platform === 'win32') {
+      // eslint-disable-next-line max-len
+      command = `powershell -ExecutionPolicy Bypass -File "${path.join(scriptBasePath, 'add-cert.ps1')}" -certPath "${certPath}"`;
+    } else if (platform === 'darwin' || platform === 'linux') {
+      command = `bash "${path.join(scriptBasePath, 'add-cert.sh')}" "${certPath}"`;
+    } else {
+      throw new Error(`Unsupported OS: ${platform}`);
     }
+
+    await this.executeCommand(command);
+    const message = 'Certificate successfully added to the trusted store.';
+    CLIUtils.success(this.log.bind(this), message);
+    return { success: true, message };
   };
 
   public catch = async (error: Error) => {
-    ErrorUtils.report(this.error.bind(this), error, { command: this.id });
-    CLIUtils.error(this.log.bind(this), error.message);
+    const { flags } = await this.parse(AddCert);
+    CLIUtils.catchError({
+      error,
+      command: this.id,
+      logReporter: this.log.bind(this),
+      errorReporter: this.error.bind(this),
+      jsonFlag: flags['json'],
+    });
     this.exit(1);
   };
 

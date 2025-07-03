@@ -121,6 +121,7 @@ describe('Config service', () => {
     const webdavConfig: WebdavConfig = {
       port: String(crypto.randomInt(65000)),
       protocol: 'https',
+      timeoutMinutes: crypto.randomInt(100),
     };
     const stringConfig = JSON.stringify(webdavConfig);
 
@@ -134,6 +135,7 @@ describe('Config service', () => {
     const webdavConfig: WebdavConfig = {
       port: String(crypto.randomInt(65000)),
       protocol: 'http',
+      timeoutMinutes: crypto.randomInt(100),
     };
     const stringConfig = JSON.stringify(webdavConfig);
 
@@ -148,6 +150,7 @@ describe('Config service', () => {
     const defaultWebdavConfig: WebdavConfig = {
       port: ConfigService.WEBDAV_DEFAULT_PORT,
       protocol: ConfigService.WEBDAV_DEFAULT_PROTOCOL,
+      timeoutMinutes: ConfigService.WEBDAV_DEFAULT_TIMEOUT,
     };
 
     const fsStub = vi.spyOn(fs, 'readFile').mockResolvedValue('');
@@ -161,6 +164,7 @@ describe('Config service', () => {
     const defaultWebdavConfig: WebdavConfig = {
       port: ConfigService.WEBDAV_DEFAULT_PORT,
       protocol: ConfigService.WEBDAV_DEFAULT_PROTOCOL,
+      timeoutMinutes: ConfigService.WEBDAV_DEFAULT_TIMEOUT,
     };
 
     const fsStub = vi.spyOn(fs, 'readFile').mockRejectedValue(new Error());

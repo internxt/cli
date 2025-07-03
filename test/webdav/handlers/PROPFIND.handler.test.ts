@@ -9,7 +9,6 @@ import {
   getRequestedFileResource,
   getRequestedFolderResource,
 } from '../../fixtures/webdav.fixture';
-import { getDriveDatabaseManager } from '../../fixtures/drive-database.fixture';
 import { FormatUtils } from '../../../src/utils/format.utils';
 import { DriveFileService } from '../../../src/services/drive/drive-file.service';
 import { WebDavRequestedResource } from '../../../src/types/webdav.types';
@@ -17,7 +16,6 @@ import { WebDavUtils } from '../../../src/utils/webdav.utils';
 import mime from 'mime-types';
 import crypto, { randomUUID } from 'node:crypto';
 import { NotFoundError } from '../../../src/utils/errors.utils';
-import { fail } from 'node:assert';
 import { UsageService } from '../../../src/services/usage.service';
 import { XMLUtils } from '../../../src/utils/xml.utils';
 
@@ -42,7 +40,6 @@ describe('PROPFIND request handler', () => {
     const requestHandler = new PROPFINDRequestHandler({
       driveFileService,
       driveFolderService,
-      driveDatabaseManager: getDriveDatabaseManager(),
     });
     const requestedFolderResource: WebDavRequestedResource = getRequestedFolderResource({
       parentFolder: '/',
@@ -99,7 +96,6 @@ describe('PROPFIND request handler', () => {
     const requestHandler = new PROPFINDRequestHandler({
       driveFileService,
       driveFolderService,
-      driveDatabaseManager: getDriveDatabaseManager(),
     });
     const requestedFolderResource: WebDavRequestedResource = getRequestedFolderResource({
       parentFolder: '/',
@@ -161,7 +157,6 @@ describe('PROPFIND request handler', () => {
     const requestHandler = new PROPFINDRequestHandler({
       driveFileService,
       driveFolderService,
-      driveDatabaseManager: getDriveDatabaseManager(),
     });
     const requestedFileResource: WebDavRequestedResource = getRequestedFileResource({
       parentFolder: '/',
@@ -211,7 +206,6 @@ describe('PROPFIND request handler', () => {
     const requestHandler = new PROPFINDRequestHandler({
       driveFileService,
       driveFolderService,
-      driveDatabaseManager: getDriveDatabaseManager(),
     });
     const requestedFolderResource: WebDavRequestedResource = getRequestedFolderResource({
       parentFolder: '/',
@@ -249,13 +243,12 @@ describe('PROPFIND request handler', () => {
     expect(getFolderContentStub).toHaveBeenCalledOnce();
   });
 
-  it('When the folder does not exists, then it should return a 404', async () => {
+  it('When the folder does not exists, then it should return a 207 empty response', async () => {
     const driveFolderService = DriveFolderService.instance;
     const driveFileService = DriveFileService.instance;
     const requestHandler = new PROPFINDRequestHandler({
       driveFileService,
       driveFolderService,
-      driveDatabaseManager: getDriveDatabaseManager(),
     });
     const requestedFolderResource: WebDavRequestedResource = getRequestedFolderResource({
       parentFolder: '/',
@@ -281,12 +274,8 @@ describe('PROPFIND request handler', () => {
       .spyOn(WebDavUtils, 'getAndSearchItemFromResource')
       .mockRejectedValue(expectedError);
 
-    try {
-      await requestHandler.handle(request, response);
-      fail('Expected function to throw an error, but it did not.');
-    } catch (error) {
-      expect(error).to.be.instanceOf(NotFoundError);
-    }
+    await requestHandler.handle(request, response);
+    expect(response.status).toHaveBeenCalledWith(207);
     expect(getRequestedResourceStub).toHaveBeenCalledOnce();
     expect(getAndSearchItemFromResourceStub).toHaveBeenCalledOnce();
   });
