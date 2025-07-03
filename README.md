@@ -13,9 +13,9 @@ A CLI tool to interact with your Internxt encrypted files
 * [Current Limitations](#current-limitations)
 <!-- tocstop -->
 
-# Project Manteinance
+# Project Maintenance
 
-<!-- manteinance -->
+<!-- maintenance -->
 [![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=internxt_cli&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=internxt_cli)
 [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=internxt_cli&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=internxt_cli)
 [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=internxt_cli&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=internxt_cli)
@@ -30,7 +30,7 @@ We aim to achieve:
 - An 'A' rating in Security
 - Less than 3% duplicated lines
 - At least 80% test coverage
-<!-- manteinancestop -->
+<!-- maintenancestop -->
 
 # Installation
 
