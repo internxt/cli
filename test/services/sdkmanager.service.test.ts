@@ -84,26 +84,6 @@ describe('SDKManager service', () => {
     expect(auth).to.be.deep.equal(authClient);
   });
 
-  it('When Payments client is requested, then it is generated using internxt sdk', () => {
-    const envEndpoint: { key: keyof ConfigKeys; value: string } = {
-      key: 'PAYMENTS_API_URL',
-      value: 'test/api',
-    };
-    SdkManager.init(ApiSecurityFixture);
-
-    const client = Drive.Payments.client(envEndpoint.value, appDetails, ApiSecurityFixture);
-
-    const spyConfigService = vi.spyOn(ConfigService.instance, 'get').mockReturnValue(envEndpoint.value);
-    vi.spyOn(SdkManager, 'getApiSecurity').mockReturnValue(ApiSecurityFixture);
-    vi.spyOn(SdkManager, 'getAppDetails').mockReturnValue(appDetails);
-    vi.spyOn(Drive.Payments, 'client').mockReturnValue(client);
-
-    const newClient = SdkManager.instance.getPayments();
-
-    expect(spyConfigService).toHaveBeenCalledWith(envEndpoint.key);
-    expect(newClient).to.be.deep.equal(client);
-  });
-
   it('When Users client is requested, then it is generated using internxt sdk', () => {
     const envEndpoint: { key: keyof ConfigKeys; value: string } = {
       key: 'DRIVE_NEW_API_URL',

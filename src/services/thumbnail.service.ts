@@ -51,7 +51,7 @@ export class ThumbnailService {
     }
   };
 
-  private getThumbnailFromImageBuffer = (buffer: Buffer): Promise<Buffer> => {
+  private readonly getThumbnailFromImageBuffer = (buffer: Buffer): Promise<Buffer> => {
     return sharp(buffer)
       .resize({
         height: ThumbnailConfig.MaxHeight,

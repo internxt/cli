@@ -21,15 +21,14 @@ jobs:
         with:
           node-version: '22.x'
           cache: yarn
-      # Generate a .npmrc file with the NPM_TOKEN
-      - run: echo "registry=https://registry.yarnpkg.com/" > .npmrc
-      - run: echo "@internxt:registry=https://npm.pkg.github.com" >> .npmrc
-      - run: echo //npm.pkg.github.com/:_authToken=${{ secrets.NPM_TOKEN }} >> .npmrc
-      - run: echo "always-auth=true" >> .npmrc
-      # Create env file
-      - run: echo "${{ secrets.TEST_ENV}}" >> .env
-      # Install dependencies, build and run tests
-      - run: yarn install --network-timeout 600000
+
+      - name: Add .env
+        run: cp .env.template .env
+
+      - name: Add .npmrc
+        run: cp .npmrc.template .npmrc
+
+      - run: yarn
       - run: yarn build
       - run: yarn test:unit
       # Analyze with SonarCloud

@@ -67,18 +67,6 @@ export class SdkManager {
     });
   }
 
-  /** Payments SDK */
-  getPayments() {
-    const PAYMENTS_API_URL = ConfigService.instance.get('PAYMENTS_API_URL');
-
-    const apiSecurity = SdkManager.getApiSecurity();
-    const appDetails = SdkManager.getAppDetails();
-
-    return Drive.Payments.client(PAYMENTS_API_URL, appDetails, {
-      token: apiSecurity.newToken,
-    });
-  }
-
   /** Users SDK */
   getUsers() {
     const DRIVE_API_URL = ConfigService.instance.get('DRIVE_NEW_API_URL');

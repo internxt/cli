@@ -55,7 +55,7 @@ export default class CreateFolder extends Command {
     const newFolder = await createNewFolder;
     CLIUtils.done(flags['json']);
     // eslint-disable-next-line max-len
-    const message = `Folder ${newFolder.plainName} created successfully, view it at ${ConfigService.instance.get('DRIVE_URL')}/folder/${newFolder.uuid}`;
+    const message = `Folder ${newFolder.plainName} created successfully, view it at ${ConfigService.instance.get('DRIVE_WEB_URL')}/folder/${newFolder.uuid}`;
     CLIUtils.success(this.log.bind(this), message);
     return { success: true, message, folder: newFolder };
   };
