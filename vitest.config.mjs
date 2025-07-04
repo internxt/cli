@@ -16,5 +16,6 @@ export default defineConfig({
         ...coverageConfigDefaults.exclude
       ],
     },
-  },
+    setupFiles: ['dotenv/config']
+  }
 });

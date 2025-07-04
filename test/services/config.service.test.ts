@@ -7,9 +7,6 @@ import { LoginCredentials, WebdavConfig } from '../../src/types/command.types';
 import { UserCredentialsFixture } from '../fixtures/login.fixture';
 import { fail } from 'node:assert';
 
-import { config } from 'dotenv';
-config();
-
 const env = Object.assign({}, process.env);
 
 describe('Config service', () => {
