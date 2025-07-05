@@ -1365,10 +1365,10 @@
   dependencies:
     axios "1.10.0"
 
-"@internxt/sdk@1.10.3":
-  version "1.10.3"
-  resolved "https://registry.yarnpkg.com/@internxt/sdk/-/sdk-1.10.3.tgz#15ba0c78635eb94b8a0a942bda39708b2c40506f"
-  integrity sha512-E3bqOmfPRIdxJvk1Qr+plVS0e/fOejWPWNxeUgnZvrhAFEqkT/eEzj22fpYt6vWGW4JTtqanlEzMunMtswkMBw==
+"@internxt/sdk@1.10.4":
+  version "1.10.4"
+  resolved "https://registry.yarnpkg.com/@internxt/sdk/-/sdk-1.10.4.tgz#a8761c1b5a71709381293736ab67d17802ed2bb2"
+  integrity sha512-rn46XZdOdt263/lRleQjMz16JIJwTYrJrh3d1txcBuolXeOmCoRwvMnB9cRhkq3jySqCalZRDWqCZ7/QWP5arA==
   dependencies:
     axios "1.10.0"
 
