@@ -11,7 +11,7 @@ import { TrashService } from '../services/drive/trash.service';
 import { webdavLogger } from '../utils/logger.utils';
 import { SdkManager } from '../services/sdk-manager.service';
 
-dotenv.config();
+dotenv.config({ quiet: true });
 
 const init = async () => {
   await ConfigService.instance.ensureInternxtCliDataDirExists();
