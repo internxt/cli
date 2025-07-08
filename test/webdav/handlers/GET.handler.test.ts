@@ -68,14 +68,12 @@ describe('GET request handler', () => {
       status: vi.fn().mockReturnValue({ send: vi.fn() }),
     });
 
-    const expectedError = new NotFoundError(`Resource not found on Internxt Drive at ${requestedFileResource.url}`);
-
     const getRequestedResourceStub = vi
       .spyOn(WebDavUtils, 'getRequestedResource')
       .mockResolvedValue(requestedFileResource);
     const getAndSearchItemFromResourceStub = vi
-      .spyOn(WebDavUtils, 'getAndSearchItemFromResource')
-      .mockRejectedValue(expectedError);
+      .spyOn(WebDavUtils, 'getDriveItemFromResource')
+      .mockResolvedValue(undefined);
 
     try {
       await requestHandler.handle(request, response);
@@ -119,7 +117,7 @@ describe('GET request handler', () => {
       .spyOn(WebDavUtils, 'getRequestedResource')
       .mockResolvedValue(requestedFileResource);
     const getAndSearchItemFromResourceStub = vi
-      .spyOn(WebDavUtils, 'getAndSearchItemFromResource')
+      .spyOn(WebDavUtils, 'getDriveItemFromResource')
       .mockResolvedValue(mockFile);
     const authDetailsStub = vi.spyOn(authService, 'getAuthDetails').mockResolvedValue(mockAuthDetails);
     const downloadStreamStub = vi
@@ -188,7 +186,7 @@ describe('GET request handler', () => {
       .spyOn(WebDavUtils, 'getRequestedResource')
       .mockResolvedValue(requestedFileResource);
     const getAndSearchItemFromResourceStub = vi
-      .spyOn(WebDavUtils, 'getAndSearchItemFromResource')
+      .spyOn(WebDavUtils, 'getDriveItemFromResource')
       .mockResolvedValue(mockFile);
     const authDetailsStub = vi.spyOn(authService, 'getAuthDetails').mockResolvedValue(mockAuthDetails);
     const downloadStreamStub = vi

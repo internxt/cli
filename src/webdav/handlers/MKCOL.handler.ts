@@ -6,7 +6,7 @@ import { webdavLogger } from '../../utils/logger.utils';
 import { XMLUtils } from '../../utils/xml.utils';
 import { AsyncUtils } from '../../utils/async.utils';
 import { DriveFolderItem } from '../../types/drive.types';
-import { MethodNotAllowed } from '../../utils/errors.utils';
+import { ConflictError, MethodNotAllowed } from '../../utils/errors.utils';
 
 export class MKCOLRequestHandler implements WebDavMethodHandler {
   constructor(
@@ -23,19 +23,26 @@ export class MKCOLRequestHandler implements WebDavMethodHandler {
 
     const parentResource = await WebDavUtils.getRequestedResource(resource.parentPath, false);
 
-    const parentFolderItem = (await WebDavUtils.getAndSearchItemFromResource({
+    const parentDriveItem = await WebDavUtils.getDriveItemFromResource({
       resource: parentResource,
       driveFolderService,
-    })) as DriveFolderItem;
+    });
 
-    let folderAlreadyExists = true;
-    // try to get the folder from the drive before creating it
-    // The method getFolderMetadataByPath will throw an error if the folder does not exist, so we need to catch it
-    try {
-      await driveFolderService.getFolderMetadataByPath(resource.url);
-    } catch {
-      folderAlreadyExists = false;
+    if (!parentDriveItem) {
+      // WebDAV RFC
+      // When the MKCOL operation creates a new collection resource,
+      // all ancestors MUST already exist, or the method MUST fail
+      // with a 409 (Conflict) status code
+      throw new ConflictError(`Parent folders not found on Internxt Drive at ${resource.url}`);
     }
+    const parentFolderItem = parentDriveItem as DriveFolderItem;
+
+    const driveFolderItem = await WebDavUtils.getDriveItemFromResource({
+      resource,
+      driveFolderService,
+    });
+
+    const folderAlreadyExists = !!driveFolderItem;
 
     if (folderAlreadyExists) {
       webdavLogger.info(`[MKCOL] ❌ Folder '${resource.url}' already exists`);

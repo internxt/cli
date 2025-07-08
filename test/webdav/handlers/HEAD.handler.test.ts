@@ -60,7 +60,7 @@ describe('HEAD request handler', () => {
       .spyOn(WebDavUtils, 'getRequestedResource')
       .mockResolvedValue(requestedFileResource);
     const getAndSearchItemFromResourceStub = vi
-      .spyOn(WebDavUtils, 'getAndSearchItemFromResource')
+      .spyOn(WebDavUtils, 'getDriveItemFromResource')
       .mockResolvedValue(mockFile);
 
     await requestHandler.handle(request, response);
@@ -98,7 +98,7 @@ describe('HEAD request handler', () => {
       .spyOn(WebDavUtils, 'getRequestedResource')
       .mockResolvedValue(requestedFileResource);
     const getAndSearchItemFromResourceStub = vi
-      .spyOn(WebDavUtils, 'getAndSearchItemFromResource')
+      .spyOn(WebDavUtils, 'getDriveItemFromResource')
       .mockResolvedValue(mockFile);
 
     await requestHandler.handle(request, response);

@@ -37,14 +37,12 @@ describe('DELETE request handler', () => {
       status: vi.fn().mockReturnValue({ send: vi.fn() }),
     });
 
-    const expectedError = new NotFoundError(`Resource not found on Internxt Drive at ${requestedFileResource.url}`);
-
     const getRequestedResourceStub = vi
       .spyOn(WebDavUtils, 'getRequestedResource')
       .mockResolvedValue(requestedFileResource);
     const getAndSearchItemFromResourceStub = vi
-      .spyOn(WebDavUtils, 'getAndSearchItemFromResource')
-      .mockRejectedValue(expectedError);
+      .spyOn(WebDavUtils, 'getDriveItemFromResource')
+      .mockResolvedValue(undefined);
 
     try {
       await requestHandler.handle(request, response);
@@ -78,7 +76,7 @@ describe('DELETE request handler', () => {
       .spyOn(WebDavUtils, 'getRequestedResource')
       .mockResolvedValue(requestedFileResource);
     const getAndSearchItemFromResourceStub = vi
-      .spyOn(WebDavUtils, 'getAndSearchItemFromResource')
+      .spyOn(WebDavUtils, 'getDriveItemFromResource')
       .mockResolvedValue(mockFile);
     const trashItemsStub = vi.spyOn(trashService, 'trashItems').mockResolvedValue();
 
@@ -112,7 +110,7 @@ describe('DELETE request handler', () => {
       .spyOn(WebDavUtils, 'getRequestedResource')
       .mockResolvedValue(requestedFolderResource);
     const getAndSearchItemFromResourceStub = vi
-      .spyOn(WebDavUtils, 'getAndSearchItemFromResource')
+      .spyOn(WebDavUtils, 'getDriveItemFromResource')
       .mockResolvedValue(mockFolder);
     const trashItemsStub = vi.spyOn(trashService, 'trashItems').mockResolvedValue();
 

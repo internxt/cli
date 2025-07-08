@@ -5,8 +5,6 @@ import { WebDavRequestedResource } from '../../src/types/webdav.types';
 import { newFileItem, newFolderItem } from '../fixtures/drive.fixture';
 import { DriveFolderService } from '../../src/services/drive/drive-folder.service';
 import { DriveFileService } from '../../src/services/drive/drive-file.service';
-import { fail } from 'node:assert';
-import { ConflictError, NotFoundError } from '../../src/utils/errors.utils';
 import AppError from '@internxt/sdk/dist/shared/types/errors';
 
 describe('Webdav utils', () => {
@@ -151,31 +149,30 @@ describe('Webdav utils', () => {
         .mockResolvedValue(expectedFolder);
       const findFileStub = vi.spyOn(DriveFileService.instance, 'getFileMetadataByPath').mockRejectedValue(new Error());
 
-      const driveFolderItem = await WebDavUtils.getDriveItemFromResource(
-        requestFolderFixture,
-        DriveFolderService.instance,
-        undefined,
-      );
+      const driveFolderItem = await WebDavUtils.getDriveItemFromResource({
+        resource: requestFolderFixture,
+        driveFolderService: DriveFolderService.instance,
+        driveFileService: undefined,
+      });
       expect(driveFolderItem).to.be.deep.equal(expectedFolder);
       expect(findFolderStub).toHaveBeenCalledOnce();
       expect(findFileStub).not.toHaveBeenCalled();
     });
 
-    it('When folder is not found, then it throws ConflictError', async () => {
+    it('When folder is not found, then it returns undefined', async () => {
       const findFolderStub = vi
         .spyOn(DriveFolderService.instance, 'getFolderMetadataByPath')
         .mockRejectedValue(new AppError('Folder not found', 404));
       const findFileStub = vi.spyOn(DriveFileService.instance, 'getFileMetadataByPath').mockRejectedValue(new Error());
 
-      try {
-        await WebDavUtils.getDriveItemFromResource(requestFolderFixture, DriveFolderService.instance, undefined);
-        fail('Expected function to throw an error, but it did not.');
-      } catch (error) {
-        expect(error).to.be.instanceOf(ConflictError);
-      }
-
+      const item = await WebDavUtils.getDriveItemFromResource({
+        resource: requestFolderFixture,
+        driveFolderService: DriveFolderService.instance,
+        driveFileService: undefined,
+      });
       expect(findFolderStub).toHaveBeenCalledOnce();
       expect(findFileStub).not.toHaveBeenCalled();
+      expect(item).toBeUndefined();
     });
 
     it('When file resource is looked by its path, then it is returned', async () => {
@@ -185,73 +182,14 @@ describe('Webdav utils', () => {
         .spyOn(DriveFolderService.instance, 'getFolderMetadataByPath')
         .mockRejectedValue(new Error());
 
-      const driveFileItem = await WebDavUtils.getDriveItemFromResource(
-        requestFileFixture,
-        undefined,
-        DriveFileService.instance,
-      );
+      const driveFileItem = await WebDavUtils.getDriveItemFromResource({
+        resource: requestFileFixture,
+        driveFolderService: undefined,
+        driveFileService: DriveFileService.instance,
+      });
       expect(driveFileItem).to.be.deep.equal(expectedFile);
       expect(findFileStub).toHaveBeenCalledOnce();
       expect(findFolderStub).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('getAndSearchItemFromResource', () => {
-    const requestFileFixture: WebDavRequestedResource = {
-      url: '/url/to/test.png',
-      type: 'file',
-      name: 'test',
-      parentPath: '/url/to/',
-      path: {
-        base: 'test.png',
-        dir: '/url/to',
-        ext: '.png',
-        name: 'test',
-        root: '/',
-      },
-    };
-    const requestFolderFixture: WebDavRequestedResource = {
-      url: '/url/to/folder/',
-      type: 'folder',
-      name: 'folder',
-      parentPath: '/url/to/',
-      path: {
-        base: 'folder',
-        dir: '/url/to',
-        ext: '',
-        name: 'folder',
-        root: '/',
-      },
-    };
-
-    it('When folder item does exist, then it is returned from drive', async () => {
-      const expectedFolder = newFolderItem();
-      const findFolderOnDriveStub = vi.spyOn(WebDavUtils, 'getDriveItemFromResource').mockResolvedValue(expectedFolder);
-
-      const driveFolderItem = await WebDavUtils.getAndSearchItemFromResource({ resource: requestFolderFixture });
-      expect(driveFolderItem).to.be.deep.equal(expectedFolder);
-      expect(findFolderOnDriveStub).toHaveBeenCalledOnce();
-    });
-
-    it('When file item does exist, then it is returned from drive', async () => {
-      const expectedFile = newFileItem();
-      const findFileOnDriveStub = vi.spyOn(WebDavUtils, 'getDriveItemFromResource').mockResolvedValue(expectedFile);
-
-      const driveFolderItem = await WebDavUtils.getAndSearchItemFromResource({ resource: requestFileFixture });
-      expect(driveFolderItem).to.be.deep.equal(expectedFile);
-      expect(findFileOnDriveStub).toHaveBeenCalledOnce();
-    });
-
-    it('When file does not exist, then a not found error is thrown', async () => {
-      const findItemOnDriveStub = vi.spyOn(WebDavUtils, 'getDriveItemFromResource').mockResolvedValue(undefined);
-
-      try {
-        await WebDavUtils.getAndSearchItemFromResource({ resource: requestFileFixture });
-        fail('Expected function to throw an error, but it did not.');
-      } catch (error) {
-        expect(error).to.be.instanceOf(NotFoundError);
-      }
-      expect(findItemOnDriveStub).toHaveBeenCalledOnce();
     });
   });
 });

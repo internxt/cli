@@ -118,9 +118,9 @@ describe('PUT request handler', () => {
       .mockResolvedValueOnce(requestedFileResource)
       .mockResolvedValueOnce(requestedParentFolderResource);
     const getAndSearchItemFromResourceStub = vi
-      .spyOn(WebDavUtils, 'getAndSearchItemFromResource')
+      .spyOn(WebDavUtils, 'getDriveItemFromResource')
       .mockResolvedValueOnce(folderFixture)
-      .mockRejectedValue(new Error());
+      .mockResolvedValue(undefined);
     const getAuthDetailsStub = vi.spyOn(authService, 'getAuthDetails').mockResolvedValue(UserCredentialsFixture);
     const uploadStub = vi.spyOn(networkFacade, 'uploadFile').mockImplementation(
       // @ts-expect-error - We only mock the properties we need
@@ -180,7 +180,7 @@ describe('PUT request handler', () => {
       .mockResolvedValueOnce(requestedFileResource)
       .mockResolvedValueOnce(requestedParentFolderResource);
     const getAndSearchItemFromResourceStub = vi
-      .spyOn(WebDavUtils, 'getAndSearchItemFromResource')
+      .spyOn(WebDavUtils, 'getDriveItemFromResource')
       .mockResolvedValueOnce(folderFixture)
       .mockResolvedValueOnce(fileFixture.toItem());
     const deleteDriveFileStub = vi.spyOn(trashService, 'trashItems').mockResolvedValue();
