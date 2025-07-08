@@ -3,7 +3,7 @@ import { DriveFileService } from '../../services/drive/drive-file.service';
 import { NetworkFacade } from '../../services/network/network-facade.service';
 import { AuthService } from '../../services/auth.service';
 import { WebDavMethodHandler } from '../../types/webdav.types';
-import { NotFoundError, UnsupportedMediaTypeError } from '../../utils/errors.utils';
+import { ConflictError, NotFoundError, UnsupportedMediaTypeError } from '../../utils/errors.utils';
 import { WebDavUtils } from '../../utils/webdav.utils';
 import { webdavLogger } from '../../utils/logger.utils';
 import { DriveFileItem } from '../../types/drive.types';
@@ -49,7 +49,11 @@ export class PUTRequestHandler implements WebDavMethodHandler {
     });
 
     if (!parentDriveFolderItem) {
-      throw new NotFoundError(`Resource not found on Internxt Drive at ${resource.url}`);
+      // WebDAV RFC
+      // When the PUT operation creates a new resource,
+      // all ancestors MUST already exist, or the method MUST fail
+      // with a 409 (Conflict) status code
+      throw new ConflictError(`Parent folders not found on Internxt Drive at ${resource.url}`);
     }
     const parentFolderItem = parentDriveFolderItem as DriveFileItem;
 
