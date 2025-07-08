@@ -15,7 +15,6 @@ import { WebDavRequestedResource } from '../../../src/types/webdav.types';
 import { WebDavUtils } from '../../../src/utils/webdav.utils';
 import mime from 'mime-types';
 import crypto, { randomUUID } from 'node:crypto';
-import { NotFoundError } from '../../../src/utils/errors.utils';
 import { UsageService } from '../../../src/services/usage.service';
 import { XMLUtils } from '../../../src/utils/xml.utils';
 
@@ -69,7 +68,7 @@ describe('PROPFIND request handler', () => {
       .spyOn(WebDavUtils, 'getRequestedResource')
       .mockResolvedValue(requestedFolderResource);
     const getAndSearchItemFromResourceStub = vi
-      .spyOn(WebDavUtils, 'getAndSearchItemFromResource')
+      .spyOn(WebDavUtils, 'getDriveItemFromResource')
       .mockResolvedValue(folderFixture);
     const getFolderContentStub = vi
       .spyOn(driveFolderService, 'getFolderContent')
@@ -129,7 +128,7 @@ describe('PROPFIND request handler', () => {
       .spyOn(WebDavUtils, 'getRequestedResource')
       .mockResolvedValue(requestedFolderResource);
     const getAndSearchItemFromResourceStub = vi
-      .spyOn(WebDavUtils, 'getAndSearchItemFromResource')
+      .spyOn(WebDavUtils, 'getDriveItemFromResource')
       .mockResolvedValue(folderFixture);
     const getFolderContentStub = vi.spyOn(driveFolderService, 'getFolderContent').mockResolvedValue({
       files: [],
@@ -182,7 +181,7 @@ describe('PROPFIND request handler', () => {
       .spyOn(WebDavUtils, 'getRequestedResource')
       .mockResolvedValue(requestedFileResource);
     const getAndSearchItemFromResourceStub = vi
-      .spyOn(WebDavUtils, 'getAndSearchItemFromResource')
+      .spyOn(WebDavUtils, 'getDriveItemFromResource')
       .mockResolvedValue(fileFixture);
     randomUUIDStub.mockImplementation(() => 'test-test-test-test-test');
     randomUUIDStub.mockClear();
@@ -228,7 +227,7 @@ describe('PROPFIND request handler', () => {
       .spyOn(WebDavUtils, 'getRequestedResource')
       .mockResolvedValue(requestedFolderResource);
     const getAndSearchItemFromResourceStub = vi
-      .spyOn(WebDavUtils, 'getAndSearchItemFromResource')
+      .spyOn(WebDavUtils, 'getDriveItemFromResource')
       .mockResolvedValue(folderFixture);
     const getFolderContentStub = vi.spyOn(driveFolderService, 'getFolderContent').mockResolvedValue({
       files: [],
@@ -265,17 +264,19 @@ describe('PROPFIND request handler', () => {
       status: vi.fn().mockReturnValue({ send: vi.fn() }),
     });
 
-    const expectedError = new NotFoundError(`Resource not found on Internxt Drive at ${requestedFolderResource.url}`);
-
     const getRequestedResourceStub = vi
       .spyOn(WebDavUtils, 'getRequestedResource')
       .mockResolvedValue(requestedFolderResource);
     const getAndSearchItemFromResourceStub = vi
-      .spyOn(WebDavUtils, 'getAndSearchItemFromResource')
-      .mockRejectedValue(expectedError);
+      .spyOn(WebDavUtils, 'getDriveItemFromResource')
+      .mockResolvedValue(undefined);
 
     await requestHandler.handle(request, response);
     expect(response.status).toHaveBeenCalledWith(207);
+    expect(response.send).toHaveBeenCalledWith(
+      // eslint-disable-next-line max-len
+      `<?xml version="1.0" encoding="utf-8" ?><D:multistatus xmlns:D="DAV:"><D:response><D:href>${XMLUtils.encodeWebDavUri(requestedFolderResource.url)}</D:href><D:propstat><D:status>HTTP/1.1 404 Not Found</D:status><D:prop/></D:propstat></D:response></D:multistatus>`,
+    );
     expect(getRequestedResourceStub).toHaveBeenCalledOnce();
     expect(getAndSearchItemFromResourceStub).toHaveBeenCalledOnce();
   });

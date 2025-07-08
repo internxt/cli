@@ -30,10 +30,15 @@ export class GETRequestHandler implements WebDavMethodHandler {
     if (resource.type === 'folder') throw new NotFoundError('Folders cannot be listed with GET. Use PROPFIND instead.');
 
     webdavLogger.info(`[GET] Request received for ${resource.type} at ${resource.url}`);
-    const driveFile = (await WebDavUtils.getAndSearchItemFromResource({
+    const driveItem = await WebDavUtils.getDriveItemFromResource({
       resource,
       driveFileService,
-    })) as DriveFileItem;
+    });
+
+    if (!driveItem) {
+      throw new NotFoundError(`Resource not found on Internxt Drive at ${resource.url}`);
+    }
+    const driveFile = driveItem as DriveFileItem;
 
     webdavLogger.info(`[GET] [${driveFile.uuid}] Found Drive File`);
 

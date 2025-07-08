@@ -53,7 +53,7 @@ describe('MKCOL request handler', () => {
       .mockResolvedValueOnce(requestedFolderResource)
       .mockResolvedValueOnce(requestedParentFolderResource);
     const getAndSearchItemFromResourceStub = vi
-      .spyOn(WebDavUtils, 'getAndSearchItemFromResource')
+      .spyOn(WebDavUtils, 'getDriveItemFromResource')
       .mockResolvedValue(parentFolder);
     const createFolderStub = vi
       .spyOn(driveFolderService, 'createFolder')

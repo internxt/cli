@@ -5,6 +5,7 @@ import { webdavLogger } from '../../utils/logger.utils';
 import { DriveFileService } from '../../services/drive/drive-file.service';
 import { DriveFileItem } from '../../types/drive.types';
 import { NetworkUtils } from '../../utils/network.utils';
+import { NotFoundError } from '../../utils/errors.utils';
 
 export class HEADRequestHandler implements WebDavMethodHandler {
   constructor(
@@ -25,10 +26,15 @@ export class HEADRequestHandler implements WebDavMethodHandler {
     webdavLogger.info(`[HEAD] Request received for ${resource.type} at ${resource.url}`);
 
     try {
-      const driveFile = (await WebDavUtils.getAndSearchItemFromResource({
+      const driveItem = await WebDavUtils.getDriveItemFromResource({
         resource,
         driveFileService,
-      })) as DriveFileItem;
+      });
+
+      if (!driveItem) {
+        throw new NotFoundError(`Resource not found on Internxt Drive at ${resource.url}`);
+      }
+      const driveFile = driveItem as DriveFileItem;
 
       webdavLogger.info(`[HEAD] [${driveFile.uuid}] Found Drive File`);
 

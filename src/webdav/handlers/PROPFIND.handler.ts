@@ -25,28 +25,13 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
     const resource = await WebDavUtils.getRequestedResource(req);
     webdavLogger.info(`[PROPFIND] Request received for ${resource.type} at ${resource.url}`);
 
-    try {
-      const driveItem = await WebDavUtils.getAndSearchItemFromResource({
-        resource,
-        driveFolderService,
-        driveFileService,
-      });
+    const driveItem = await WebDavUtils.getDriveItemFromResource({
+      resource,
+      driveFolderService,
+      driveFileService,
+    });
 
-      switch (resource.type) {
-        case 'file': {
-          const fileMetaXML = await this.getFileMetaXML(resource, driveItem as DriveFileItem);
-          res.status(207).send(fileMetaXML);
-          break;
-        }
-
-        case 'folder': {
-          const depth = req.header('depth') ?? '1';
-          const folderMetaXML = await this.getFolderContentXML(resource, driveItem as DriveFolderItem, depth);
-          res.status(207).send(folderMetaXML);
-          break;
-        }
-      }
-    } catch {
+    if (!driveItem) {
       res.status(207).send(
         XMLUtils.toWebDavXML(
           {
@@ -64,6 +49,22 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
           },
         ),
       );
+      return;
+    }
+
+    switch (resource.type) {
+      case 'file': {
+        const fileMetaXML = await this.getFileMetaXML(resource, driveItem as DriveFileItem);
+        res.status(207).send(fileMetaXML);
+        break;
+      }
+
+      case 'folder': {
+        const depth = req.header('depth') ?? '1';
+        const folderMetaXML = await this.getFolderContentXML(resource, driveItem as DriveFolderItem, depth);
+        res.status(207).send(folderMetaXML);
+        break;
+      }
     }
   };
 

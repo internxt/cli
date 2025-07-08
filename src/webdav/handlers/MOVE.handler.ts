@@ -30,11 +30,15 @@ export class MOVERequestHandler implements WebDavMethodHandler {
 
     webdavLogger.info('[MOVE] Destination resource found', { destinationResource });
 
-    const originalDriveItem = await WebDavUtils.getAndSearchItemFromResource({
+    const originalDriveItem = await WebDavUtils.getDriveItemFromResource({
       resource,
       driveFolderService,
       driveFileService,
     });
+
+    if (!originalDriveItem) {
+      throw new NotFoundError(`Resource not found on Internxt Drive at ${resource.url}`);
+    }
 
     if (destinationResource.path.dir === resource.path.dir) {
       // RENAME (the operation is from the same dir)
@@ -62,10 +66,15 @@ export class MOVERequestHandler implements WebDavMethodHandler {
       webdavLogger.info(`[MOVE] Moving ${resource.type} with UUID ${originalDriveItem.uuid} to ${destinationPath}`);
       const destinationFolderResource = await WebDavUtils.getRequestedResource(destinationResource.parentPath);
 
-      const destinationFolderItem = (await WebDavUtils.getAndSearchItemFromResource({
+      const destinationDriveFolderItem = await WebDavUtils.getDriveItemFromResource({
         resource: destinationFolderResource,
         driveFolderService,
-      })) as DriveFolderItem;
+      });
+
+      if (!destinationDriveFolderItem) {
+        throw new NotFoundError(`Resource not found on Internxt Drive at ${resource.url}`);
+      }
+      const destinationFolderItem = destinationDriveFolderItem as DriveFileItem;
 
       if (resource.type === 'folder') {
         const folder = originalDriveItem as DriveFolderItem;

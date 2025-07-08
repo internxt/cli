@@ -6,7 +6,7 @@ import { WebDavMethodHandler } from '../../types/webdav.types';
 import { NotFoundError, UnsupportedMediaTypeError } from '../../utils/errors.utils';
 import { WebDavUtils } from '../../utils/webdav.utils';
 import { webdavLogger } from '../../utils/logger.utils';
-import { DriveFileItem, DriveFolderItem } from '../../types/drive.types';
+import { DriveFileItem } from '../../types/drive.types';
 import { DriveFolderService } from '../../services/drive/drive-folder.service';
 import { TrashService } from '../../services/drive/trash.service';
 import { EncryptionVersion } from '@internxt/sdk/dist/drive/storage/types';
@@ -43,15 +43,20 @@ export class PUTRequestHandler implements WebDavMethodHandler {
 
     const parentResource = await WebDavUtils.getRequestedResource(resource.parentPath, false);
 
-    const parentFolderItem = (await WebDavUtils.getAndSearchItemFromResource({
+    const parentDriveFolderItem = await WebDavUtils.getDriveItemFromResource({
       resource: parentResource,
       driveFolderService,
-    })) as DriveFolderItem;
+    });
+
+    if (!parentDriveFolderItem) {
+      throw new NotFoundError(`Resource not found on Internxt Drive at ${resource.url}`);
+    }
+    const parentFolderItem = parentDriveFolderItem as DriveFileItem;
 
     try {
       // If the file already exists, the WebDAV specification states that 'PUT /…/file' should replace it.
       // http://www.webdav.org/specs/rfc4918.html#put-resources
-      const driveFileItem = (await WebDavUtils.getAndSearchItemFromResource({
+      const driveFileItem = (await WebDavUtils.getDriveItemFromResource({
         resource: resource,
         driveFileService,
       })) as DriveFileItem;
