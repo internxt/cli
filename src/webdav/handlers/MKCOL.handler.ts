@@ -37,14 +37,12 @@ export class MKCOLRequestHandler implements WebDavMethodHandler {
     }
     const parentFolderItem = parentDriveItem as DriveFolderItem;
 
-    let folderAlreadyExists = true;
-    // try to get the folder from the drive before creating it
-    // The method getFolderMetadataByPath will throw an error if the folder does not exist, so we need to catch it
-    try {
-      await driveFolderService.getFolderMetadataByPath(resource.url);
-    } catch {
-      folderAlreadyExists = false;
-    }
+    const driveFolderItem = await WebDavUtils.getDriveItemFromResource({
+      resource,
+      driveFolderService,
+    });
+
+    const folderAlreadyExists = !!driveFolderItem;
 
     if (folderAlreadyExists) {
       webdavLogger.info(`[MKCOL] ❌ Folder '${resource.url}' already exists`);
