@@ -137,4 +137,24 @@ export class AuthService {
     });
     return loginCreds;
   };
+
+  /**
+   * Logs the user out of the application by invoking the logout method
+   * from the authentication client. This will terminate the user's session
+   * and clear any associated authentication data.
+   *
+   * @returns A promise that resolves when the logout process is complete.
+   */
+  public logout = async (): Promise<void> => {
+    try {
+      const user = await ConfigService.instance.readUser();
+      if (!user || !user.newToken) {
+        return;
+      }
+      const authClient = SdkManager.instance.getAuth();
+      return authClient.logout(user.newToken);
+    } catch {
+      //no op
+    }
+  };
 }
