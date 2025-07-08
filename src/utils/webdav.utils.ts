@@ -82,7 +82,11 @@ export class WebDavUtils {
       }
     }
     if (resource.type === 'file') {
-      item = await driveFileService?.getFileMetadataByPath(resource.url);
+      try {
+        item = await driveFileService?.getFileMetadataByPath(resource.url);
+      } catch {
+        //no op
+      }
     }
     return item;
   }
