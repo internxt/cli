@@ -1,6 +1,7 @@
 import { Command } from '@oclif/core';
 import { ConfigService } from '../services/config.service';
 import { CLIUtils } from '../utils/cli.utils';
+import { AuthService } from '../services/auth.service';
 
 export default class Logout extends Command {
   static readonly args = {};
@@ -13,6 +14,7 @@ export default class Logout extends Command {
   public run = async () => {
     const user = await ConfigService.instance.readUser();
     if (user) {
+      await AuthService.instance.logout();
       await ConfigService.instance.clearUser();
       const message = 'User logged out successfully.';
       CLIUtils.success(this.log.bind(this), message);
