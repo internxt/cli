@@ -17,7 +17,7 @@
     "dev:webdav": "nodemon -e ts --exec ts-node src/webdav/index.ts",
     "pack:win": "oclif pack win",
     "publish:npm": "npm run build && npm publish --scope=@internxt --registry=https://registry.npmjs.org/ --access public",
-    "publish:github": "npm run build && npm publish --scope=@internxt --registry=https://npm.pkg.github.com",
+    "publish:github": "npm run build && npm publish --scope=@internxt --registry=https://npm.pkg.github.com --tag latest",
     "postinstall": "node ./scripts/restart-webdav.js"
   },
   "homepage": "https://github.com/internxt/cli",
