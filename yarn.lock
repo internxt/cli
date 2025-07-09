@@ -1367,8 +1367,8 @@
 
 "@internxt/sdk@1.10.5":
   version "1.10.5"
-  resolved "https://npm.pkg.github.com/download/@internxt/sdk/1.10.5/86c0f183fa10c6621994f20d2815e38d30f4101e#86c0f183fa10c6621994f20d2815e38d30f4101e"
-  integrity sha512-pwXjWWtx+/hbdeL6MKl5lcyGFjmolGFtP3Quq79lXBa7hwD6/K6ad2iBcoZWVM8CUawganryTQrIVbBjW5juQQ==
+  resolved "https://registry.yarnpkg.com/@internxt/sdk/-/sdk-1.10.5.tgz#b07fb5d7cc5d1d21acc1c953f0826172f7a410a3"
+  integrity sha512-yymepNZwuuWBcpGnyRdU5WhBIgis0Xh2kEnoXcmZJyqaWp7LYbTKHz1xGQ/wOFguSw15X/0k3BBBO5BEUXHpCQ==
   dependencies:
     axios "1.10.0"
     uuid "11.1.0"
