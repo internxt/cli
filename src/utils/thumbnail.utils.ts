@@ -31,13 +31,13 @@ const thumbnailablePdfExtension: string[] = pdfExtensions['pdf'];
 const thumbnailableExtension: string[] = [...thumbnailableImageExtension];
 
 export const isFileThumbnailable = (fileType: string) => {
-  return fileType.toLowerCase().trim().length > 0 && thumbnailableExtension.includes(fileType);
+  return fileType.trim().length > 0 && thumbnailableExtension.includes(fileType.trim().toLowerCase());
 };
 
 export const isPDFThumbnailable = (fileType: string) => {
-  return fileType.toLowerCase().trim().length > 0 && thumbnailablePdfExtension.includes(fileType);
+  return fileType.trim().length > 0 && thumbnailablePdfExtension.includes(fileType.trim().toLowerCase());
 };
 
 export const isImageThumbnailable = (fileType: string) => {
-  return fileType.toLowerCase().trim().length > 0 && thumbnailableImageExtension.includes(fileType);
+  return fileType.trim().length > 0 && thumbnailableImageExtension.includes(fileType.trim().toLowerCase());
 };
