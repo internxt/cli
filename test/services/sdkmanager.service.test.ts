@@ -54,7 +54,7 @@ describe('SDKManager service', () => {
 
   it('When getAppDetails is requested, then it is generated using packageJson values', () => {
     const expectedAppdetails = {
-      clientName: 'internxt-cli',
+      clientName: packageJson.clientName,
       clientVersion: packageJson.version,
     };
     /*vi.spyOn(packageJson, 'name').mockReturnValue(appDetails.clientName);
