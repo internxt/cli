@@ -50,7 +50,7 @@ export class SdkManager {
    **/
   public static readonly getAppDetails = (): AppDetails => {
     return {
-      clientName: packageJson.name,
+      clientName: 'internxt-cli',
       clientVersion: packageJson.version,
     };
   };
