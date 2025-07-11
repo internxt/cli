@@ -50,7 +50,7 @@ export class SdkManager {
    **/
   public static readonly getAppDetails = (): AppDetails => {
     return {
-      clientName: packageJson.name,
+      clientName: packageJson.clientName,
       clientVersion: packageJson.version,
     };
   };

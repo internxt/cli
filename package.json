@@ -24,6 +24,7 @@
   "license": "MIT",
   "main": "",
   "name": "@internxt/cli",
+  "clientName": "internxt-cli",
   "repository": "https://github.com/internxt/cli",
   "bugs": "https://github.com/internxt/cli",
   "types": "dist/index.d.ts",
