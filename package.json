@@ -59,7 +59,7 @@
     "range-parser": "1.2.1",
     "reflect-metadata": "0.2.2",
     "selfsigned": "2.4.1",
-    "sharp": "0.34.2",
+    "sharp": "0.34.3",
     "tty-table": "4.2.3",
     "winston": "3.17.0"
   },
