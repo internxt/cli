@@ -1,0 +1,117 @@
+#compdef internxt
+#
+# zsh completion for internxt cli (https://github.com/internxt/cli)
+#
+# contributors:
+# 	- Elia Nitsche
+#
+# License (MIT):
+# Copyright 2025 Elia Nitsche
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy of this software 
+# and associated documentation files (the “Software”), to deal in the Software without restriction, 
+# including without limitation the rights to use, copy, modify, merge, publish, distribute, 
+# sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is 
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all copies 
+# or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING 
+# BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND 
+# NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, 
+# DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
+local -a internxt_commands
+internxt_commands=(
+	'add-cert:Add a self-signed certificate'
+	'config:Show information about the logged in user'
+	'create-folder:Create a new folder'
+	'delete-permanently-file:Permanently delete a file (This action cannot be undone)'
+	'delete-permanently-folder:Permanently delete a folder (This action cannot be undone)'
+	'download-file:Download a file'
+	'list:List the content of a folder' 
+	'login:Log in to an Internxt account'
+	'logout:Log out of the logged in account'
+	'logs:Show the Internxt CLI logs directory path'
+	'move-file:Move a file to a folder'
+	'move-folder:Move a folder'
+	'rename-file:Rename a file'
+	'rename-folder:Rename a folder'
+	'trash-clear:Empty the trash (This action cannot be undone)'
+	'trash-file:Move a file to trash'
+	'trash-folder:Move a folder to trash'
+	'trash-list:List trashed items'
+	'trash-restore-file:Restore a trashed file'
+	'trash-restore-folder:Restore a trashed folder'
+	'upload-file:Upload a file'
+	'webdav-config:Configure the Internxt CLI WebDav server'
+	'webdav:Enable/Disable/Restart/Status (of) the Internxt CLI WebDav server'
+	'whoami:Show the current user'
+)
+
+# top‑level completions
+_arguments -C \
+	'1: :->cmds' \
+	'*::arg:->args'
+
+local -a global_opts
+global_opts=('--help[show command help]' '--json[format output as json]')
+
+case $state in
+	cmds)
+		_describe 'internxt command' internxt_commands
+		;;
+	args)
+		case $words[1] in
+			add-cert|config|whoami|logout|logs)
+				_arguments -s $global_opts;;  # no further args
+			create-folder)
+				_arguments -s '-i[parent folder ID]::' '-n[new folder name]:new folder name' '-x[non-interactive]' $global_opts
+				;;
+			delete-permanently-file|delete-permanently-folder)
+				_arguments -s '-i[ID of item]::' '-x[non-interactive]' $global_opts
+				;;
+			download-file)
+				_arguments -s '-i[ID of file]::' '-d[directory to download to]::' '-o[overwrite existing]' '-x[non-interactive]' $global_opts
+				;;
+			list)
+				_arguments -s '-i[folder ID]::' '-e[extended view]' $global_opts
+				;;
+			login)
+				_arguments -s '-e[email]:email' '-p[password]:password' '-w[two‑factor code]::' '-x[non‑interactive]' $global_opts
+				;;
+			move-file|move-folder)
+				_arguments -s '-i[ID of item]::' '-d[destination folder ID]::' '-x[non‑interactive]' $global_opts
+				;;
+			rename-file|rename-folder)
+				_arguments -s '-i[ID of item]::' '-n[new name]::' '-x[non‑interactive]' $global_opts
+				;;
+			trash-clear)
+				_arguments -s '-f[force]' '-x[non‑interactive]' $global_opts
+				;;
+			trash-file|trash-folder)
+				_arguments -s '-i[ID of item]::' '-x[non‑interactive]' $global_opts
+				;;
+			trash-list)
+				_arguments -s '-e[extended]' '-x[non‑interactive]' $global_opts
+				;;
+			trash-restore-file|trash-restore-folder)
+				_arguments -s '-i[ID of item]::' '-d[destination folder ID]' '-x[non‑interactive]' $global_opts
+				;;
+			upload-file)
+				_arguments -s '-f[file to upload]:file:_files' '-i[destination folder ID]::' '-x[non‑interactive]' $global_opts
+				;;
+			webdav-config)
+				_arguments -s '(--http --https)--http[use insecure http]' '(--http --https)--https[use https with self-signed certificates]' '-p[port]::' '-t[timeout (in minutes)]::' $global_opts
+				;;
+			webdav)
+				_arguments -s '1:subcommand:(enable disable restart status)' $global_opts
+				;;
+			*)
+				;;
+		esac
+		;;
+esac
