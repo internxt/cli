@@ -6,6 +6,9 @@ import { KeysService } from '../../src/services/keys.service';
 import { ConfigService } from '../../src/services/config.service';
 import { AesInit, CorruptedEncryptedPrivateKeyError } from '../../src/types/keys.types';
 import { fail } from 'node:assert';
+import { Data } from '@openpgp/web-stream-tools';
+
+vi.mock('openpgp', { spy: true });
 
 describe('Keys service', () => {
   const aesInit: AesInit = {
@@ -21,7 +24,7 @@ describe('Keys service', () => {
     vi.spyOn(openpgp, 'readKey').mockResolvedValue({} as openpgp.Key);
     vi.spyOn(openpgp, 'readPrivateKey').mockResolvedValue({} as openpgp.PrivateKey);
     vi.spyOn(openpgp, 'createMessage').mockResolvedValue({} as openpgp.Message<openpgp.MaybeStream<Uint8Array>>);
-    vi.spyOn(openpgp, 'encrypt').mockResolvedValue({} as openpgp.Message<openpgp.MaybeStream<openpgp.Data>>);
+    vi.spyOn(openpgp, 'encrypt').mockResolvedValue({} as openpgp.Message<openpgp.MaybeStream<Data>>);
     vi.spyOn(openpgp, 'readMessage').mockResolvedValue({} as openpgp.Message<openpgp.MaybeStream<Uint8Array>>);
     vi.spyOn(openpgp, 'decrypt').mockResolvedValue({ data: 'validate-keys' } as openpgp.DecryptMessageResult & {
       data: openpgp.MaybeStream<string>;
@@ -43,7 +46,7 @@ describe('Keys service', () => {
     vi.spyOn(openpgp, 'readKey').mockResolvedValue({} as openpgp.Key);
     vi.spyOn(openpgp, 'readPrivateKey').mockResolvedValue({} as openpgp.PrivateKey);
     vi.spyOn(openpgp, 'createMessage').mockResolvedValue({} as openpgp.Message<openpgp.MaybeStream<Uint8Array>>);
-    vi.spyOn(openpgp, 'encrypt').mockResolvedValue({} as openpgp.Message<openpgp.MaybeStream<openpgp.Data>>);
+    vi.spyOn(openpgp, 'encrypt').mockResolvedValue({} as openpgp.Message<openpgp.MaybeStream<Data>>);
     vi.spyOn(openpgp, 'readMessage').mockResolvedValue({} as openpgp.Message<openpgp.MaybeStream<Uint8Array>>);
     vi.spyOn(openpgp, 'decrypt').mockResolvedValue({ data: 'bad-validation' } as openpgp.DecryptMessageResult & {
       data: openpgp.MaybeStream<string>;
@@ -84,7 +87,7 @@ describe('Keys service', () => {
     vi.spyOn(openpgp, 'readKey').mockResolvedValue({} as openpgp.Key);
     vi.spyOn(openpgp, 'readPrivateKey').mockResolvedValue({} as openpgp.PrivateKey);
     vi.spyOn(openpgp, 'createMessage').mockResolvedValue({} as openpgp.Message<openpgp.MaybeStream<Uint8Array>>);
-    vi.spyOn(openpgp, 'encrypt').mockResolvedValue({} as openpgp.Message<openpgp.MaybeStream<openpgp.Data>>);
+    vi.spyOn(openpgp, 'encrypt').mockResolvedValue({} as openpgp.Message<openpgp.MaybeStream<Data>>);
     vi.spyOn(openpgp, 'readMessage').mockResolvedValue({} as openpgp.Message<openpgp.MaybeStream<Uint8Array>>);
     vi.spyOn(openpgp, 'decrypt').mockRejectedValue(new Error('Decryption failed'));
 
@@ -195,11 +198,16 @@ describe('Keys service', () => {
   });
 
   it('When new pgp keys are required, then it generates them from the openpgp library', async () => {
+    interface KeyPair {
+      privateKey: openpgp.PrivateKey;
+      publicKey: openpgp.PublicKey;
+    }
+
     const pgpKeys = {
       privateKey: crypto.randomBytes(16).toString('hex'),
       publicKey: crypto.randomBytes(16).toString('hex'),
       revocationCertificate: crypto.randomBytes(16).toString('hex'),
-    } as unknown as openpgp.KeyPair & { revocationCertificate: string };
+    } as unknown as KeyPair & { revocationCertificate: string };
 
     const pgpKeysWithEncrypted = {
       privateKeyArmored: pgpKeys.privateKey,
