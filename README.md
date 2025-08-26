@@ -63,6 +63,7 @@ USAGE
 
 <!-- commands -->
 * [`internxt add-cert`](#internxt-add-cert)
+* [`internxt autocomplete [SHELL]`](#internxt-autocomplete-shell)
 * [`internxt config`](#internxt-config)
 * [`internxt create-folder`](#internxt-create-folder)
 * [`internxt delete-permanently-file`](#internxt-delete-permanently-file)
@@ -120,6 +121,37 @@ EXAMPLES
 ```
 
 _See code: [src/commands/add-cert.ts](https://github.com/internxt/cli/blob/v1.5.5/src/commands/add-cert.ts)_
+
+## `internxt autocomplete [SHELL]`
+
+Display autocomplete installation instructions.
+
+```
+USAGE
+  $ internxt autocomplete [SHELL] [-r]
+
+ARGUMENTS
+  SHELL  (zsh|bash|powershell) Shell type
+
+FLAGS
+  -r, --refresh-cache  Refresh cache (ignores displaying instructions)
+
+DESCRIPTION
+  Display autocomplete installation instructions.
+
+EXAMPLES
+  $ internxt autocomplete
+
+  $ internxt autocomplete bash
+
+  $ internxt autocomplete zsh
+
+  $ internxt autocomplete powershell
+
+  $ internxt autocomplete --refresh-cache
+```
+
+_See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v3.2.34/src/commands/autocomplete/index.ts)_
 
 ## `internxt config`
 
