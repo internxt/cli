@@ -212,6 +212,7 @@ export default class DownloadFile extends Command {
       bridgePass: user.userId,
       bridgeUrl: ConfigService.instance.get('NETWORK_URL'),
       encryptionKey: user.mnemonic,
+      appDetails: SdkManager.getAppDetails(),
     });
     const networkFacade = new NetworkFacade(
       networkModule,

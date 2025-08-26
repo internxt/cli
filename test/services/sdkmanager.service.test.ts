@@ -56,6 +56,7 @@ describe('SDKManager service', () => {
     const expectedAppdetails = {
       clientName: packageJson.clientName,
       clientVersion: packageJson.version,
+      desktopHeader: ConfigService.instance.get('DESKTOP_HEADER'),
     };
     /*vi.spyOn(packageJson, 'name').mockReturnValue(appDetails.clientName);
     vi.spyOn(packageJson, 'version').mockReturnValue(appDetails.clientVersion);*/

@@ -38,6 +38,7 @@ describe('GET request handler', () => {
       bridgePass: 'pass',
       bridgeUrl: ConfigService.instance.get('NETWORK_URL'),
       encryptionKey: UserFixture.mnemonic,
+      appDetails: SdkManager.getAppDetails(),
     });
   };
 
