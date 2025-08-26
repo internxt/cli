@@ -79,7 +79,7 @@ export default class DownloadFile extends Command {
 
     progressBar?.start(100, 0);
     const [executeDownload, abortable] = await networkFacade.downloadToStream(
-      user.bucket,
+      driveFile.bucket,
       user.mnemonic,
       driveFile.fileId,
       driveFile.size,
