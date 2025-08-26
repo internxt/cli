@@ -1550,6 +1550,16 @@
     wordwrap "^1.0.0"
     wrap-ansi "^7.0.0"
 
+"@oclif/plugin-autocomplete@^3.2.34":
+  version "3.2.34"
+  resolved "https://registry.yarnpkg.com/@oclif/plugin-autocomplete/-/plugin-autocomplete-3.2.34.tgz#1669fb16bfa887a465bf30181bb69cf14437fbd4"
+  integrity sha512-KhbPcNjitAU7jUojMXJ3l7duWVub0L0pEr3r3bLrpJBNuIJhoIJ7p56Ropcb7OMH2xcaz5B8HGq56cTOe1FHEg==
+  dependencies:
+    "@oclif/core" "^4"
+    ansis "^3.16.0"
+    debug "^4.4.1"
+    ejs "^3.1.10"
+
 "@oclif/plugin-help@^6.2.32":
   version "6.2.32"
   resolved "https://registry.yarnpkg.com/@oclif/plugin-help/-/plugin-help-6.2.32.tgz#b903d845b271737811383fed879cf6c379bf23fa"
