@@ -55,7 +55,7 @@
     "express-basic-auth": "1.2.1",
     "fast-xml-parser": "5.2.5",
     "mime-types": "3.0.1",
-    "openpgp": "6.2.0",
+    "openpgp": "6.2.1",
     "pm2": "6.0.8",
     "range-parser": "1.2.1",
     "reflect-metadata": "0.2.2",

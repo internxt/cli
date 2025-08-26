@@ -5514,10 +5514,10 @@ onetime@^7.0.0:
   dependencies:
     mimic-function "^5.0.0"
 
-openpgp@6.2.0:
-  version "6.2.0"
-  resolved "https://registry.yarnpkg.com/openpgp/-/openpgp-6.2.0.tgz#f9ce7b4fa298c9d1c4c51f8d1bd0d6cb00372144"
-  integrity sha512-zKbgazxMeGrTqUEWicKufbdcjv2E0om3YVxw+I3hRykp8ODp+yQOJIDqIr1UXJjP8vR2fky3bNQwYoQXyFkYMA==
+openpgp@6.2.1:
+  version "6.2.1"
+  resolved "https://registry.yarnpkg.com/openpgp/-/openpgp-6.2.1.tgz#a661ded66fdefdb87afcbf95ecbb293e5eaa8c7a"
+  integrity sha512-5vkqxQWgyrfY0shygqJTaCoa4SbPdjrpmtfREyXBBDrXjoRT25edEMQbdKH5/WxDXlLVn9TxPsVrKP72Jjuz2A==
 
 optionator@^0.9.3:
   version "0.9.4"
