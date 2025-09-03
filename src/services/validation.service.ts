@@ -68,11 +68,11 @@ export class ValidationService {
       }
 
       const currentTime = Math.floor(Date.now() / 1000);
-      const twoDaysInSeconds = 2 * 24 * 60 * 60;
+      const oneDayInSeconds = 1 * 24 * 60 * 60;
       const remainingSeconds = payload.exp - currentTime;
 
       const expired = remainingSeconds <= 0;
-      const refreshRequired = remainingSeconds > 0 && remainingSeconds <= twoDaysInSeconds;
+      const refreshRequired = remainingSeconds > 0 && remainingSeconds <= oneDayInSeconds;
 
       return { isValid: true, expiration: { expired, refreshRequired } };
     } catch {
