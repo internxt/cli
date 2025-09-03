@@ -79,7 +79,7 @@ export default class DownloadFile extends Command {
 
     progressBar?.start(100, 0);
     const [executeDownload, abortable] = await networkFacade.downloadToStream(
-      user.bucket,
+      driveFile.bucket,
       user.mnemonic,
       driveFile.fileId,
       driveFile.size,
@@ -212,6 +212,7 @@ export default class DownloadFile extends Command {
       bridgePass: user.userId,
       bridgeUrl: ConfigService.instance.get('NETWORK_URL'),
       encryptionKey: user.mnemonic,
+      appDetails: SdkManager.getAppDetails(),
     });
     const networkFacade = new NetworkFacade(
       networkModule,

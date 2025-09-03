@@ -52,6 +52,7 @@ export class SdkManager {
     return {
       clientName: packageJson.clientName,
       clientVersion: packageJson.version,
+      desktopHeader: ConfigService.instance.get('DESKTOP_HEADER'),
     };
   };
 

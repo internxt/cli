@@ -135,6 +135,7 @@ export class AuthService {
       token: newCreds.oldToken,
       newToken: newCreds.newToken,
     });
+    await ConfigService.instance.saveUser(loginCreds);
     return loginCreds;
   };
 

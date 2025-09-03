@@ -55,6 +55,7 @@ export class WebDavServer {
       bridgePass: credentials.user.userId,
       bridgeUrl: ConfigService.instance.get('NETWORK_URL'),
       encryptionKey: credentials.user.mnemonic,
+      appDetails: SdkManager.getAppDetails(),
     });
     const networkFacade = new NetworkFacade(
       networkModule,

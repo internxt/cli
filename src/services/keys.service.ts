@@ -126,7 +126,7 @@ export class KeysService {
   public generateNewKeysWithEncrypted = async (password: string) => {
     const { privateKey, publicKey, revocationCertificate } = await openpgp.generateKey({
       userIDs: [{ email: 'inxt@inxt.com' }],
-      curve: 'ed25519',
+      curve: 'ed25519Legacy',
     });
 
     return {
