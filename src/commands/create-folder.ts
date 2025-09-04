@@ -4,6 +4,7 @@ import { DriveFolderService } from '../services/drive/drive-folder.service';
 import { ConfigService } from '../services/config.service';
 import { ValidationService } from '../services/validation.service';
 import { EmptyFolderNameError, MissingCredentialsError, NotValidFolderUuidError } from '../types/command.types';
+import { AsyncUtils } from '../utils/async.utils';
 
 export default class CreateFolder extends Command {
   static readonly args = {};
@@ -53,6 +54,9 @@ export default class CreateFolder extends Command {
     });
 
     const newFolder = await createNewFolder;
+    // This aims to prevent this issue: https://inxt.atlassian.net/browse/PB-1446
+    await AsyncUtils.sleep(500);
+
     CLIUtils.done(flags['json']);
     // eslint-disable-next-line max-len
     const message = `Folder ${newFolder.plainName} created successfully, view it at ${ConfigService.instance.get('DRIVE_WEB_URL')}/folder/${newFolder.uuid}`;
