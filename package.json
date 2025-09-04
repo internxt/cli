@@ -56,7 +56,6 @@
     "pm2": "6.0.10",
     "range-parser": "1.2.1",
     "selfsigned": "3.0.1",
-    "sharp": "0.34.3",
     "tty-table": "4.2.3",
     "winston": "3.17.0"
   },
@@ -82,6 +81,9 @@
     "typescript": "5.9.2",
     "vitest": "3.2.4",
     "vitest-mock-express": "2.2.0"
+  },
+  "optionalDependencies": {
+    "sharp": "0.34.3"
   },
   "engines": {
     "node": ">=22.12.0"
