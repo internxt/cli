@@ -133,14 +133,15 @@ export default class UploadFile extends Command {
 
     // 3. Create the file in Drive
     const createdDriveFile = await DriveFileService.instance.createFile({
-      plain_name: fileInfo.name,
+      plainName: fileInfo.name,
       type: fileType,
       size: stats.size,
-      folder_id: destinationFolderUuid,
-      id: fileId,
+      folderUuid: destinationFolderUuid,
+      fileId: fileId,
       bucket: user.bucket,
-      encrypt_version: EncryptionVersion.Aes03,
-      name: '',
+      encryptVersion: EncryptionVersion.Aes03,
+      creationTime: stats.birthtime?.toISOString(),
+      modificationTime: stats.mtime?.toISOString(),
     });
 
     try {

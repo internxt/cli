@@ -11,7 +11,7 @@ export class DriveFileService {
     const driveFile = await storageClient.createFileEntryByUuid(payload);
 
     return {
-      name: payload.plain_name,
+      name: payload.plainName,
       encryptedName: driveFile.name,
       id: driveFile.id,
       uuid: driveFile.uuid,
@@ -36,9 +36,9 @@ export class DriveFileService {
     return DriveUtils.driveFileMetaToItem(fileMetadata);
   };
 
-  public moveFile = (payload: StorageTypes.MoveFileUuidPayload): Promise<StorageTypes.FileMeta> => {
+  public moveFile = (uuid: string, payload: StorageTypes.MoveFileUuidPayload): Promise<StorageTypes.FileMeta> => {
     const storageClient = SdkManager.instance.getStorage();
-    return storageClient.moveFileByUuid(payload);
+    return storageClient.moveFileByUuid(uuid, payload);
   };
 
   public renameFile = (fileUuid: string, payload: { plainName?: string; type?: string | null }): Promise<void> => {

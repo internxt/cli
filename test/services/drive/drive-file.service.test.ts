@@ -15,14 +15,13 @@ describe('Drive file Service', () => {
 
   it('When a file is created, should be created successfully', async () => {
     const payload: Storage.FileEntryByUuid = {
-      plain_name: 'example.txt',
+      plainName: 'example.txt',
       type: 'txt',
       size: 1024,
-      folder_id: 'folder_uuid',
-      id: 'fileId_123456',
+      folderUuid: 'folder_uuid',
+      fileId: 'fileId_123456',
       bucket: 'bucket123',
-      encrypt_version: EncryptionVersion.Aes03,
-      name: '',
+      encryptVersion: EncryptionVersion.Aes03,
     };
 
     const storageClientMock: Partial<Drive.Storage> = {
@@ -32,8 +31,8 @@ describe('Drive file Service', () => {
         createdAt: new Date(),
         updatedAt: new Date(),
         bucket: payload.bucket,
-        plain_name: payload.plain_name,
-        folderUuid: payload.folder_id,
+        plainName: payload.plainName,
+        folderUuid: payload.folderUuid,
       }),
     };
 
@@ -43,8 +42,8 @@ describe('Drive file Service', () => {
     const result = await sut.createFile(payload);
 
     expect(result.bucket).to.be.equal(payload.bucket);
-    expect(result.name).to.be.equal(payload.plain_name);
-    expect(result.folderUuid).to.be.equal(payload.folder_id);
+    expect(result.name).to.be.equal(payload.plainName);
+    expect(result.folderUuid).to.be.equal(payload.folderUuid);
   });
 
   it('When we want to obtain a file metadata, should return it successfully', async () => {

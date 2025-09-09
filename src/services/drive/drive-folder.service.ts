@@ -57,9 +57,9 @@ export class DriveFolderService {
     }
   };
 
-  public moveFolder = (payload: StorageTypes.MoveFolderUuidPayload): Promise<StorageTypes.FolderMeta> => {
+  public moveFolder = (uuid: string, payload: StorageTypes.MoveFolderUuidPayload): Promise<StorageTypes.FolderMeta> => {
     const storageClient = SdkManager.instance.getStorage();
-    return storageClient.moveFolderByUuid(payload);
+    return storageClient.moveFolderByUuid(uuid, payload);
   };
 
   /**

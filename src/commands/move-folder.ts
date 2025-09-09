@@ -40,7 +40,9 @@ export default class MoveFolder extends Command {
       destinationFolderUuid = userCredentials.user.rootFolderId;
     }
 
-    const newFolder = await DriveFolderService.instance.moveFolder({ folderUuid, destinationFolderUuid });
+    const newFolder = await DriveFolderService.instance.moveFolder(folderUuid, {
+      destinationFolder: destinationFolderUuid,
+    });
     const message = `Folder moved successfully to: ${destinationFolderUuid}`;
     CLIUtils.success(this.log.bind(this), message);
     return { success: true, message, folder: newFolder };
