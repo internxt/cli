@@ -5,18 +5,11 @@ import { webdavLogger } from '../../utils/logger.utils';
 import { XMLUtils } from '../../utils/xml.utils';
 
 export const AuthMiddleware = (authService: AuthService): RequestHandler => {
-  return (req, res, next) => {
+  return (_, res, next) => {
     (async () => {
       try {
-        const { token, newToken, user } = await authService.getAuthDetails();
-        SdkManager.init({
-          token,
-          newToken,
-        });
-        req.user = {
-          uuid: user.uuid,
-          rootFolderId: user.root_folder_id,
-        };
+        const { token } = await authService.getAuthDetails();
+        SdkManager.init({ token });
         next();
       } catch (error) {
         let message = 'Authentication required to access this resource.';
