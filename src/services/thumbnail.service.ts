@@ -3,7 +3,19 @@ import { DriveFileService } from './drive/drive-file.service';
 import { StorageTypes } from '@internxt/sdk/dist/drive';
 import { NetworkFacade } from './network/network-facade.service';
 import { isImageThumbnailable, ThumbnailConfig } from '../utils/thumbnail.utils';
-import sharp from 'sharp';
+
+let sharpDependency: typeof import('sharp') | null = null;
+
+const getSharp = async () => {
+  if (!sharpDependency) {
+    try {
+      sharpDependency = (await import('sharp')).default;
+    } catch {
+      return null;
+    }
+  }
+  return sharpDependency;
+};
 
 export class ThumbnailService {
   public static readonly instance: ThumbnailService = new ThumbnailService();
@@ -51,16 +63,19 @@ export class ThumbnailService {
     }
   };
 
-  private readonly getThumbnailFromImageBuffer = (buffer: Buffer): Promise<Buffer> => {
-    return sharp(buffer)
-      .resize({
-        height: ThumbnailConfig.MaxHeight,
-        width: ThumbnailConfig.MaxWidth,
-        fit: 'inside',
-      })
-      .png({
-        quality: ThumbnailConfig.Quality,
-      })
-      .toBuffer();
+  private readonly getThumbnailFromImageBuffer = async (buffer: Buffer): Promise<Buffer | undefined> => {
+    const sharp = await getSharp();
+    if (sharp) {
+      return sharp(buffer, { failOnError: false })
+        .resize({
+          height: ThumbnailConfig.MaxHeight,
+          width: ThumbnailConfig.MaxWidth,
+          fit: 'inside',
+        })
+        .png({
+          quality: ThumbnailConfig.Quality,
+        })
+        .toBuffer();
+    }
   };
 }
