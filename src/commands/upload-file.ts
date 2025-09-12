@@ -170,7 +170,14 @@ export default class UploadFile extends Command {
     // eslint-disable-next-line max-len
     const message = `File uploaded in ${uploadTime}ms, view it at ${ConfigService.instance.get('DRIVE_WEB_URL')}/file/${createdDriveFile.uuid}`;
     CLIUtils.success(this.log.bind(this), message);
-    return { success: true, message, file: createdDriveFile };
+    return {
+      success: true,
+      message,
+      file: {
+        ...createdDriveFile,
+        plainName: fileInfo.name,
+      },
+    };
   };
 
   public catch = async (error: Error) => {
