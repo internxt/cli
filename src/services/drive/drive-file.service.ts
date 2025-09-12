@@ -12,7 +12,6 @@ export class DriveFileService {
 
     return {
       name: payload.plainName,
-      encryptedName: driveFile.name,
       id: driveFile.id,
       uuid: driveFile.uuid,
       size: driveFile.size,
@@ -21,9 +20,11 @@ export class DriveFileService {
       updatedAt: new Date(driveFile.updatedAt),
       fileId: driveFile.fileId,
       type: driveFile.type,
-      status: driveFile.status,
+      status: driveFile.status as DriveFileItem['status'],
       folderId: driveFile.folderId,
       folderUuid: driveFile.folderUuid,
+      creationTime: new Date(driveFile.creationTime ?? driveFile.createdAt),
+      modificationTime: new Date(driveFile.modificationTime ?? driveFile.updatedAt),
     };
   };
 

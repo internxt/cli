@@ -18,6 +18,10 @@ import { DriveFolder } from '../../src/services/database/drive-folder/drive-fold
 const wordlist = wordlists[getDefaultWordlist()];
 const fileTypes = ['png', 'jpg', 'docx', 'pdf', 'mp4', 'mp3'];
 
+const getRandomDate = (start = new Date(2000, 0, 1), end = new Date()) => {
+  return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+};
+
 export const newFolderItem = (attributes?: Partial<DriveFolderItem>): DriveFolderItem => {
   const folder: DriveFolderItem = {
     id: randomInt(1, 100000),
@@ -26,8 +30,8 @@ export const newFolderItem = (attributes?: Partial<DriveFolderItem>): DriveFolde
     bucket: crypto.randomBytes(16).toString('hex'),
     name: wordlist[randomInt(wordlist.length)],
     encryptedName: crypto.randomBytes(16).toString('hex'),
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: getRandomDate(),
+    updatedAt: getRandomDate(),
     status: 'EXISTS',
     parentUuid: randomUUID(),
   };
@@ -42,22 +46,25 @@ export const newFileItem = (attributes?: Partial<DriveFileItem>): DriveFileItem 
     folderId: randomInt(1, 100000),
     bucket: crypto.randomBytes(16).toString('hex'),
     name: wordlist[randomInt(wordlist.length)],
-    encryptedName: crypto.randomBytes(16).toString('hex'),
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: getRandomDate(),
+    updatedAt: getRandomDate(),
     size: randomInt(1, 10000),
     type: fileTypes[randomInt(fileTypes.length)],
     status: FileStatus.EXISTS,
     folderUuid: randomUUID(),
+    creationTime: getRandomDate(),
+    modificationTime: getRandomDate(),
   };
   return { ...file, ...attributes };
 };
 
 export const newFolderMeta = (attributes?: Partial<FolderMeta>): FolderMeta => {
+  const createdAt = getRandomDate();
+  const updatedAt = getRandomDate();
   const folder: FolderMeta = {
     bucket: crypto.randomBytes(16).toString('hex'),
-    createdAt: new Date().toString(),
-    created_at: new Date().toString(),
+    createdAt: createdAt.toString(),
+    created_at: createdAt.toString(),
     deleted: false,
     deletedAt: null,
     deleted_at: null,
@@ -75,16 +82,16 @@ export const newFolderMeta = (attributes?: Partial<FolderMeta>): FolderMeta => {
     removed_at: null,
     size: randomInt(1, 10000),
     type: 'folder',
-    updatedAt: new Date().toString(),
-    updated_at: new Date().toString(),
+    updatedAt: updatedAt.toString(),
+    updated_at: updatedAt.toString(),
     user: null,
     userId: randomInt(1, 100000),
     user_id: randomInt(1, 100000),
     uuid: randomUUID(),
     parentUuid: randomUUID(),
     parent_uuid: randomUUID(),
-    creation_time: new Date().toString(),
-    modification_time: new Date().toString(),
+    creation_time: getRandomDate().toString(),
+    modification_time: getRandomDate().toString(),
   };
   return { ...folder, ...attributes };
 };
@@ -92,26 +99,22 @@ export const newFolderMeta = (attributes?: Partial<FolderMeta>): FolderMeta => {
 export const newFileMeta = (attributes?: Partial<FileMeta>): FileMeta => {
   const file: FileMeta = {
     bucket: crypto.randomBytes(16).toString('hex'),
-    createdAt: new Date().toString(),
-    created_at: new Date().toString(),
-    deleted: false,
-    deletedAt: null,
-    encrypt_version: EncryptionVersion.Aes03,
+    createdAt: getRandomDate().toString(),
+    encryptVersion: EncryptionVersion.Aes03,
     fileId: crypto.randomBytes(16).toString('hex'),
     folderId: randomInt(1, 100000),
-    folder_id: randomInt(1, 100000),
     id: randomInt(1, 100000),
     name: crypto.randomBytes(16).toString('hex'),
-    plain_name: wordlist[randomInt(wordlist.length)],
     plainName: wordlist[randomInt(wordlist.length)],
-    size: randomInt(1, 10000),
+    size: randomInt(1, 10000).toString(),
     type: fileTypes[randomInt(fileTypes.length)],
-    updatedAt: new Date().toString(),
+    updatedAt: getRandomDate().toString(),
     status: FileStatus.EXISTS,
-    thumbnails: [],
-    currentThumbnail: null,
     uuid: crypto.randomBytes(16).toString('hex'),
     folderUuid: crypto.randomBytes(16).toString('hex'),
+    creationTime: getRandomDate().toString(),
+    modificationTime: getRandomDate().toString(),
+    userId: randomInt(1, 100000),
   };
   return { ...file, ...attributes };
 };
@@ -119,22 +122,24 @@ export const newFileMeta = (attributes?: Partial<FileMeta>): FileMeta => {
 export const newPaginatedFolder = (attributes?: Partial<FetchPaginatedFolder>): FetchPaginatedFolder => {
   const folder: FetchPaginatedFolder = {
     bucket: crypto.randomBytes(16).toString('hex'),
-    createdAt: new Date(),
+    createdAt: getRandomDate().toISOString(),
     deleted: false,
-    deletedAt: null,
     encryptVersion: EncryptionVersion.Aes03,
     id: randomInt(1, 100000),
     name: crypto.randomBytes(16).toString('hex'),
-    parent: null,
+    parent: {},
     parentId: randomInt(1, 100000),
     plainName: wordlist[randomInt(wordlist.length)],
     removed: false,
-    removedAt: null,
-    updatedAt: new Date(),
-    user: null,
+    updatedAt: getRandomDate().toISOString(),
     userId: randomInt(1, 100000),
     uuid: randomUUID(),
     parentUuid: randomUUID(),
+    creationTime: getRandomDate().toISOString(),
+    modificationTime: getRandomDate().toISOString(),
+    size: 0,
+    type: 'folder',
+    status: FileStatus.EXISTS,
   };
   return { ...folder, ...attributes };
 };
@@ -142,26 +147,22 @@ export const newPaginatedFolder = (attributes?: Partial<FetchPaginatedFolder>): 
 export const newPaginatedFile = (attributes?: Partial<FetchPaginatedFile>): FetchPaginatedFile => {
   const file: FetchPaginatedFile = {
     bucket: crypto.randomBytes(16).toString('hex'),
-    createdAt: new Date(),
-    deleted: false,
-    deletedAt: null,
+    createdAt: getRandomDate().toISOString(),
     encryptVersion: EncryptionVersion.Aes03,
     fileId: crypto.randomBytes(16).toString('hex'),
     folderId: randomInt(1, 100000),
     id: randomInt(1, 100000),
     name: crypto.randomBytes(16).toString('hex'),
     plainName: wordlist[randomInt(wordlist.length)],
-    size: BigInt(randomInt(1, 10000)),
+    size: String(randomInt(1, 10000)),
     type: fileTypes[randomInt(fileTypes.length)],
-    updatedAt: new Date(),
+    updatedAt: getRandomDate().toISOString(),
     status: FileStatus.EXISTS,
-    thumbnails: [],
     uuid: randomUUID(),
     folderUuid: randomUUID(),
-    removed: false,
-    removedAt: null,
     userId: randomInt(1, 100000),
-    modificationTime: new Date(),
+    creationTime: getRandomDate().toISOString(),
+    modificationTime: getRandomDate().toISOString(),
   };
   return { ...file, ...attributes };
 };
@@ -174,8 +175,8 @@ export const newDriveFolder = (attributes?: Partial<DriveFolderAttributes>): Dri
     relativePath: crypto.randomBytes(16).toString('hex'),
     parentId: randomInt(1, 100000),
     parentUuid: crypto.randomBytes(16).toString('hex'),
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: getRandomDate(),
+    updatedAt: getRandomDate(),
     status: FileStatus.EXISTS,
   };
   return new DriveFolder({ ...folder, ...attributes });
@@ -192,10 +193,12 @@ export const newDriveFile = (attributes?: Partial<DriveFileAttributes>): DriveFi
     folderUuid: crypto.randomBytes(16).toString('hex'),
     bucket: crypto.randomBytes(16).toString('hex'),
     relativePath: crypto.randomBytes(16).toString('hex'),
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: getRandomDate(),
+    updatedAt: getRandomDate(),
     size: randomInt(1, 10000),
     status: FileStatus.EXISTS,
+    creationTime: getRandomDate(),
+    modificationTime: getRandomDate(),
   };
   return new DriveFile({ ...file, ...attributes });
 };
@@ -223,14 +226,14 @@ export const newCreateFolderResponse = (attributes?: Partial<CreateFolderRespons
     encryptVersion: EncryptionVersion.Aes03,
     deleted: false,
     deletedAt: null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: getRandomDate(),
+    updatedAt: getRandomDate(),
     uuid: randomUUID(),
     plainName: wordlist[randomInt(wordlist.length)],
     removed: false,
     removedAt: null,
-    creationTime: new Date(),
-    modificationTime: new Date(),
+    creationTime: getRandomDate(),
+    modificationTime: getRandomDate(),
   };
   return { ...folder, ...attributes };
 };

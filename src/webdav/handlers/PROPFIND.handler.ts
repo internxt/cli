@@ -80,13 +80,14 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
         id: driveFileItem.id,
         uuid: driveFileItem.uuid,
         fileId: driveFileItem.fileId,
-        encryptedName: driveFileItem.name,
         size: driveFileItem.size,
         createdAt: driveFileItem.createdAt,
         updatedAt: driveFileItem.updatedAt,
         status: driveFileItem.status,
         folderId: driveFileItem.folderId,
         folderUuid: driveFileItem.folderUuid,
+        creationTime: driveFileItem.creationTime,
+        modificationTime: driveFileItem.modificationTime,
       },
       resource.url,
     );
@@ -169,16 +170,17 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
           name: file.plainName,
           bucket: file.bucket,
           id: file.id,
-          createdAt: new Date(file.createdAt),
-          updatedAt: new Date(file.updatedAt),
           fileId: file.fileId,
           uuid: file.uuid,
           type: file.type,
-          encryptedName: file.name,
           status: file.status,
           folderId: file.folderId,
           folderUuid: file.folderUuid,
           size: Number(file.size),
+          creationTime: new Date(file.creationTime),
+          modificationTime: new Date(file.modificationTime),
+          createdAt: new Date(file.createdAt),
+          updatedAt: new Date(file.updatedAt),
         },
         fileRelativePath,
       );
@@ -246,6 +248,7 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
 
   private readonly driveFileItemToXMLNode = (driveFileItem: DriveFileItem, relativePath: string): object => {
     const displayName = driveFileItem.type ? `${driveFileItem.name}.${driveFileItem.type}` : driveFileItem.name;
+    const lastModified = FormatUtils.formatDateForWebDav(driveFileItem.modificationTime ?? driveFileItem.updatedAt);
 
     const driveFileXML = {
       [XMLUtils.addDefaultNamespace('href')]: XMLUtils.encodeWebDavUri(relativePath),
@@ -256,7 +259,7 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
           [XMLUtils.addDefaultNamespace('getetag')]: '"' + randomUUID().replaceAll('-', '') + '"',
           [XMLUtils.addDefaultNamespace('displayname')]: displayName,
           [XMLUtils.addDefaultNamespace('getcontenttype')]: mime.lookup(displayName) || 'application/octet-stream',
-          [XMLUtils.addDefaultNamespace('getlastmodified')]: FormatUtils.formatDateForWebDav(driveFileItem.updatedAt),
+          [XMLUtils.addDefaultNamespace('getlastmodified')]: lastModified,
           [XMLUtils.addDefaultNamespace('getcontentlength')]: driveFileItem.size,
         },
       },
