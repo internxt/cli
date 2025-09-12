@@ -34,8 +34,7 @@ describe('Whoami Command', () => {
     const clearUserSpy = vi.spyOn(ConfigService.instance, 'clearUser').mockResolvedValue();
     const validateTokensSpy = vi
       .spyOn(ValidationService.instance, 'validateTokenAndCheckExpiration')
-      .mockReturnValueOnce({ expiration: { expired: true, refreshRequired: false }, isValid: true }) // token
-      .mockReturnValueOnce({ expiration: { expired: false, refreshRequired: true }, isValid: false }); // newtoken
+      .mockReturnValueOnce({ expiration: { expired: true, refreshRequired: false }, isValid: true });
     const validateMnemonicSpy = vi.spyOn(ValidationService.instance, 'validateMnemonic').mockReturnValue(true);
 
     const message = 'Your session has expired. You have been logged out. Please log in again.';
@@ -46,7 +45,7 @@ describe('Whoami Command', () => {
     expect(result).to.be.deep.equal(expected);
     expect(readUserSpy).toHaveBeenCalledOnce();
     expect(clearUserSpy).toHaveBeenCalledOnce();
-    expect(validateTokensSpy).toHaveBeenCalledTimes(2);
+    expect(validateTokensSpy).toHaveBeenCalledOnce();
     expect(validateMnemonicSpy).toHaveBeenCalledOnce();
   });
 
@@ -55,8 +54,7 @@ describe('Whoami Command', () => {
     const clearUserSpy = vi.spyOn(ConfigService.instance, 'clearUser').mockResolvedValue();
     const validateTokensSpy = vi
       .spyOn(ValidationService.instance, 'validateTokenAndCheckExpiration')
-      .mockReturnValueOnce({ expiration: { expired: false, refreshRequired: false }, isValid: true }) // token
-      .mockReturnValueOnce({ expiration: { expired: false, refreshRequired: false }, isValid: true }); // newtoken
+      .mockReturnValueOnce({ expiration: { expired: false, refreshRequired: false }, isValid: true });
     const validateMnemonicSpy = vi.spyOn(ValidationService.instance, 'validateMnemonic').mockReturnValue(true);
 
     const message = `You are logged in as: ${UserCredentialsFixture.user.email}.`;
@@ -67,7 +65,7 @@ describe('Whoami Command', () => {
     expect(result).to.be.deep.equal(expected);
     expect(readUserSpy).toHaveBeenCalledOnce();
     expect(clearUserSpy).not.toHaveBeenCalled();
-    expect(validateTokensSpy).toHaveBeenCalledTimes(2);
+    expect(validateTokensSpy).toHaveBeenCalledOnce();
     expect(validateMnemonicSpy).toHaveBeenCalledOnce();
   });
 });

@@ -46,15 +46,13 @@ export default class Whoami extends Command {
   };
 
   private checkUserAndTokens = (loginCreds: LoginCredentials): boolean => {
-    if (!(loginCreds?.newToken && loginCreds?.token && loginCreds?.user?.mnemonic)) {
+    if (!(loginCreds?.token && loginCreds?.user?.mnemonic)) {
       return false;
     }
-    const oldTokenDetails = ValidationService.instance.validateTokenAndCheckExpiration(loginCreds.token);
-    const newTokenDetails = ValidationService.instance.validateTokenAndCheckExpiration(loginCreds.newToken);
+    const tokenDetails = ValidationService.instance.validateTokenAndCheckExpiration(loginCreds.token);
     const goodMnemonic = ValidationService.instance.validateMnemonic(loginCreds.user.mnemonic);
-    const goodToken = oldTokenDetails.isValid && !oldTokenDetails.expiration.expired;
-    const goodNewToken = newTokenDetails.isValid && !newTokenDetails.expiration.expired;
+    const goodToken = tokenDetails.isValid && !tokenDetails.expiration.expired;
 
-    return goodToken && goodNewToken && goodMnemonic;
+    return goodToken && goodMnemonic;
   };
 }
