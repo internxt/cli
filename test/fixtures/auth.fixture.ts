@@ -31,11 +31,10 @@ export const UserFixture: UserSettings = {
     ecc: {
       privateKey: crypto.randomBytes(16).toString('hex'),
       publicKey: crypto.randomBytes(16).toString('hex'),
-      revocationKey: crypto.randomBytes(16).toString('hex'),
     },
     kyber: {
-      privateKyberKey: crypto.randomBytes(16).toString('hex'),
-      publicKyberKey: crypto.randomBytes(16).toString('hex'),
+      privateKey: crypto.randomBytes(16).toString('hex'),
+      publicKey: crypto.randomBytes(16).toString('hex'),
     },
   },
 };
@@ -70,11 +69,10 @@ export const UserSettingsFixture: UserSettings = {
     ecc: {
       privateKey: UserFixture.keys.ecc.privateKey,
       publicKey: UserFixture.keys.ecc.publicKey,
-      revocationKey: UserFixture.keys.ecc.revocationKey,
     },
     kyber: {
-      privateKyberKey: UserFixture.keys.kyber.privateKyberKey,
-      publicKyberKey: UserFixture.keys.kyber.publicKyberKey,
+      privateKey: UserFixture.keys.kyber.privateKey,
+      publicKey: UserFixture.keys.kyber.publicKey,
     },
   },
 };

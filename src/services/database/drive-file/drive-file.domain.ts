@@ -14,7 +14,9 @@ export class DriveFile implements DriveFileAttributes {
   createdAt: Date;
   updatedAt: Date;
   size: number;
-  status: string;
+  status: 'EXISTS' | 'TRASHED' | 'DELETED';
+  creationTime: Date;
+  modificationTime: Date;
 
   constructor({
     id,
@@ -30,6 +32,8 @@ export class DriveFile implements DriveFileAttributes {
     updatedAt,
     size,
     status,
+    creationTime,
+    modificationTime,
   }: DriveFileAttributes) {
     this.id = id;
     this.name = name;
@@ -44,6 +48,8 @@ export class DriveFile implements DriveFileAttributes {
     this.updatedAt = updatedAt;
     this.size = size;
     this.status = status;
+    this.creationTime = creationTime;
+    this.modificationTime = modificationTime;
   }
 
   static build(file: DriveFileAttributes): DriveFile {
@@ -65,6 +71,8 @@ export class DriveFile implements DriveFileAttributes {
       updatedAt: this.updatedAt,
       size: this.size,
       status: this.status,
+      creationTime: this.creationTime,
+      modificationTime: this.modificationTime,
     };
   }
 
@@ -82,7 +90,8 @@ export class DriveFile implements DriveFileAttributes {
       updatedAt: this.updatedAt,
       size: this.size,
       status: this.status,
-      encryptedName: '',
+      creationTime: this.creationTime,
+      modificationTime: this.modificationTime,
     };
   }
 }

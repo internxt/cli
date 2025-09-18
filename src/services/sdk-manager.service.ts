@@ -5,7 +5,8 @@ import { ConfigService } from './config.service';
 import packageJson from '../../package.json';
 import { NetworkUtils } from '../utils/network.utils';
 
-export type SdkManagerApiSecurity = ApiSecurity & { newToken: string };
+export type SdkManagerApiSecurity = ApiSecurity;
+
 /**
  * Manages all the sdk submodules initialization
  * based on the current apiSecurity details
@@ -63,9 +64,7 @@ export class SdkManager {
     const apiSecurity = SdkManager.getApiSecurity({ throwErrorOnMissingCredentials: false });
     const appDetails = SdkManager.getAppDetails();
 
-    return Auth.client(DRIVE_API_URL, appDetails, {
-      token: apiSecurity?.newToken,
-    });
+    return Auth.client(DRIVE_API_URL, appDetails, apiSecurity);
   }
 
   /** Users SDK */
@@ -75,9 +74,7 @@ export class SdkManager {
     const apiSecurity = SdkManager.getApiSecurity({ throwErrorOnMissingCredentials: false });
     const appDetails = SdkManager.getAppDetails();
 
-    return Drive.Users.client(DRIVE_API_URL, appDetails, {
-      token: apiSecurity.newToken,
-    });
+    return Drive.Users.client(DRIVE_API_URL, appDetails, apiSecurity);
   }
 
   /** Storage SDK */
@@ -87,9 +84,7 @@ export class SdkManager {
     const apiSecurity = SdkManager.getApiSecurity();
     const appDetails = SdkManager.getAppDetails();
 
-    return Drive.Storage.client(DRIVE_API_URL, appDetails, {
-      token: apiSecurity.newToken,
-    });
+    return Drive.Storage.client(DRIVE_API_URL, appDetails, apiSecurity);
   }
 
   /** Trash SDK */
@@ -99,9 +94,7 @@ export class SdkManager {
     const apiSecurity = SdkManager.getApiSecurity();
     const appDetails = SdkManager.getAppDetails();
 
-    return Trash.client(DRIVE_NEW_API_URL, appDetails, {
-      token: apiSecurity.newToken,
-    });
+    return Trash.client(DRIVE_NEW_API_URL, appDetails, apiSecurity);
   }
 
   /** Share SDK */
@@ -111,9 +104,7 @@ export class SdkManager {
     const apiSecurity = SdkManager.getApiSecurity();
     const appDetails = SdkManager.getAppDetails();
 
-    return Drive.Share.client(DRIVE_NEW_API_URL, appDetails, {
-      token: apiSecurity.newToken,
-    });
+    return Drive.Share.client(DRIVE_NEW_API_URL, appDetails, apiSecurity);
   }
 
   /** Network SDK */

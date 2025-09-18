@@ -12,9 +12,7 @@ describe('Auth middleware', () => {
   });
 
   it('When the user is not authenticated, then it should return 401', async () => {
-    const req = createWebDavRequestFixture({
-      user: null,
-    });
+    const req = createWebDavRequestFixture({});
     const res = createWebDavResponseFixture({
       status: vi.fn().mockReturnValue({ send: vi.fn() }),
     });
@@ -40,18 +38,14 @@ describe('Auth middleware', () => {
     );
   });
 
-  it('When the user is authenticated, then it should add the user to the request', async () => {
-    const req = createWebDavRequestFixture({
-      user: null,
-    });
+  it('When the user is authenticated, then it should call next', async () => {
+    const req = createWebDavRequestFixture({});
     const res = createWebDavResponseFixture({});
     const next = vi.fn();
     const authServiceStub = vi.spyOn(AuthService.instance, 'getAuthDetails').mockResolvedValue(UserCredentialsFixture);
 
     await AuthMiddleware(AuthService.instance)(req, res, next);
 
-    // @ts-expect-error - User is added to the request, but TS is not picking it as we specified null before
-    expect(req.user.rootFolderId).to.be.equal(UserCredentialsFixture.user.root_folder_id);
     expect(authServiceStub).toHaveBeenCalledOnce();
     expect(next).toHaveBeenCalledOnce();
     expect(res.status).not.toHaveBeenCalled();

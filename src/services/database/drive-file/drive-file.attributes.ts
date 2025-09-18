@@ -11,5 +11,7 @@ export interface DriveFileAttributes {
   createdAt: Date;
   updatedAt: Date;
   size: number;
-  status: string;
+  status: 'EXISTS' | 'TRASHED' | 'DELETED';
+  creationTime: Date;
+  modificationTime: Date;
 }

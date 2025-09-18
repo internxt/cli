@@ -54,10 +54,7 @@ export default class Login extends Command {
 
     const loginCredentials = await AuthService.instance.doLogin(email, password, twoFactorCode);
 
-    SdkManager.init({
-      token: loginCredentials.token,
-      newToken: loginCredentials.newToken,
-    });
+    SdkManager.init({ token: loginCredentials.token });
 
     await ConfigService.instance.saveUser(loginCredentials);
     const message = `Succesfully logged in to: ${loginCredentials.user.email}`;

@@ -67,7 +67,7 @@ export class PUTRequestHandler implements WebDavMethodHandler {
       if (driveFileItem && driveFileItem.status === 'EXISTS') {
         webdavLogger.info(`[PUT] File '${resource.name}' already exists in '${resource.path.dir}', trashing it...`);
         await trashService.trashItems({
-          items: [{ type: resource.type, uuid: driveFileItem.uuid }],
+          items: [{ type: resource.type, uuid: driveFileItem.uuid, id: null }],
         });
       }
     } catch {
@@ -124,14 +124,13 @@ export class PUTRequestHandler implements WebDavMethodHandler {
     webdavLogger.info('[PUT] ✅ File uploaded to network');
 
     const file = await DriveFileService.instance.createFile({
-      plain_name: resource.path.name,
+      plainName: resource.path.name,
       type: fileType,
       size: contentLength,
-      folder_id: parentFolderItem.uuid,
-      id: fileId,
+      folderUuid: parentFolderItem.uuid,
+      fileId: fileId,
       bucket: user.bucket,
-      encrypt_version: EncryptionVersion.Aes03,
-      name: '',
+      encryptVersion: EncryptionVersion.Aes03,
     });
 
     try {

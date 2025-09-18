@@ -31,7 +31,7 @@ export class AuthService {
     };
 
     const data = await authClient.login(loginDetails, CryptoService.cryptoProvider);
-    const { user, token, newToken } = data;
+    const { user, newToken } = data;
     const { privateKey, publicKey } = user;
 
     const plainPrivateKeyInBase64 = privateKey
@@ -54,8 +54,7 @@ export class AuthService {
     };
     return {
       user: clearUser,
-      token: token,
-      newToken: newToken,
+      token: newToken,
       lastLoggedInAt: new Date().toISOString(),
       lastTokenRefreshAt: new Date().toISOString(),
     };
@@ -83,60 +82,75 @@ export class AuthService {
    */
   public getAuthDetails = async (): Promise<LoginCredentials> => {
     let loginCreds = await ConfigService.instance.readUser();
-    if (!loginCreds?.newToken || !loginCreds?.token || !loginCreds?.user?.mnemonic) {
+    if (!loginCreds?.token || !loginCreds?.user?.mnemonic) {
       throw new MissingCredentialsError();
     }
 
-    const oldTokenDetails = ValidationService.instance.validateTokenAndCheckExpiration(loginCreds.token);
-    const newTokenDetails = ValidationService.instance.validateTokenAndCheckExpiration(loginCreds.newToken);
+    const tokenDetails = ValidationService.instance.validateTokenAndCheckExpiration(loginCreds.token);
     const isValidMnemonic = ValidationService.instance.validateMnemonic(loginCreds.user.mnemonic);
-    if (!oldTokenDetails.isValid || !newTokenDetails.isValid || !isValidMnemonic) {
+
+    if (!tokenDetails.isValid || !isValidMnemonic) {
       throw new InvalidCredentialsError();
     }
-
-    if (oldTokenDetails.expiration.expired || newTokenDetails.expiration.expired) {
+    if (tokenDetails.expiration.expired) {
       throw new ExpiredCredentialsError();
     }
 
-    const refreshOldToken = !oldTokenDetails.expiration.expired && oldTokenDetails.expiration.refreshRequired;
-    const refreshNewToken = !newTokenDetails.expiration.expired && newTokenDetails.expiration.refreshRequired;
-
-    if (refreshOldToken || refreshNewToken) {
-      loginCreds = await this.refreshUserTokens(loginCreds);
+    const refreshToken = tokenDetails.expiration.refreshRequired;
+    if (refreshToken) {
+      loginCreds = await this.refreshUserToken(loginCreds);
     }
+
     return loginCreds;
   };
 
   /**
    * Refreshes the user auth details
    *
-   * @returns The user details and its auth tokens
+   * @returns The user details and its renewed auth token
    */
-  public refreshUserTokens = async (oldCreds: LoginCredentials): Promise<LoginCredentials> => {
-    SdkManager.init({
-      token: oldCreds.token,
-      newToken: oldCreds.newToken,
-    });
+  public refreshUserDetails = async (oldCreds: LoginCredentials): Promise<LoginCredentials> => {
+    SdkManager.init({ token: oldCreds.token });
     const usersClient = SdkManager.instance.getUsers();
     const newCreds = await usersClient.getUserData({ userUuid: oldCreds.user.uuid });
 
-    const loginCreds = {
+    const loginCreds: LoginCredentials = {
       user: {
         ...newCreds.user,
         mnemonic: oldCreds.user.mnemonic,
         privateKey: oldCreds.user.privateKey,
       },
-      token: newCreds.oldToken,
-      newToken: newCreds.newToken,
+      token: newCreds.newToken,
       lastLoggedInAt: oldCreds.lastLoggedInAt,
       lastTokenRefreshAt: new Date().toISOString(),
     };
-    SdkManager.init({
-      token: newCreds.oldToken,
-      newToken: newCreds.newToken,
-    });
+    SdkManager.init({ token: newCreds.newToken });
     await ConfigService.instance.saveUser(loginCreds);
     return loginCreds;
+  };
+
+  /**
+   * Refreshes the user tokens
+   *
+   * @returns The user details and its renewed auth token
+   */
+  public refreshUserToken = async (oldCreds: LoginCredentials): Promise<LoginCredentials> => {
+    SdkManager.init({ token: oldCreds.token });
+
+    const usersClient = SdkManager.instance.getUsers();
+    const newCreds = await usersClient.refreshUser();
+
+    SdkManager.init({ token: newCreds.newToken });
+
+    const newLoginCreds: LoginCredentials = {
+      ...oldCreds,
+      token: newCreds.newToken,
+      lastLoggedInAt: oldCreds.lastLoggedInAt,
+      lastTokenRefreshAt: new Date().toISOString(),
+    };
+
+    await ConfigService.instance.saveUser(newLoginCreds);
+    return newLoginCreds;
   };
 
   /**
@@ -149,11 +163,11 @@ export class AuthService {
   public logout = async (): Promise<void> => {
     try {
       const user = await ConfigService.instance.readUser();
-      if (!user || !user.newToken) {
+      if (!user || !user.token) {
         return;
       }
       const authClient = SdkManager.instance.getAuth();
-      return authClient.logout(user.newToken);
+      return authClient.logout(user.token);
     } catch {
       //no op
     }

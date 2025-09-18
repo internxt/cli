@@ -1,14 +1,23 @@
-import { DriveFileData, DriveFolderData } from '@internxt/sdk/dist/drive/storage/types';
+import { DriveFolderData, FileMeta } from '@internxt/sdk/dist/drive/storage/types';
 
-export type DriveFileItem = Pick<
-  DriveFileData,
-  'name' | 'bucket' | 'fileId' | 'id' | 'uuid' | 'folderId' | 'status' | 'folderUuid'
+export type DriveFileItem = Omit<
+  FileMeta,
+  | 'plainName'
+  | 'userId'
+  | 'encryptVersion'
+  | 'size'
+  | 'createdAt'
+  | 'updatedAt'
+  | 'creationTime'
+  | 'modificationTime'
+  | 'type'
 > & {
-  encryptedName: string;
   size: number;
   createdAt: Date;
   updatedAt: Date;
-  type?: string;
+  creationTime: Date;
+  modificationTime: Date;
+  type?: string | null;
 };
 
 export type DriveFolderItem = Pick<DriveFolderData, 'name' | 'bucket' | 'id' | 'parentId'> & {

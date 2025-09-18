@@ -18,11 +18,8 @@ const init = async () => {
   await ConfigService.instance.ensureWebdavCertsDirExists();
   await ConfigService.instance.ensureInternxtLogsDirExists();
 
-  const { token, newToken } = await AuthService.instance.getAuthDetails();
-  SdkManager.init({
-    token,
-    newToken,
-  });
+  const { token } = await AuthService.instance.getAuthDetails();
+  SdkManager.init({ token });
 
   new WebDavServer(
     express(),

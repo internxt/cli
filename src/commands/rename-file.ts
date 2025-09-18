@@ -4,6 +4,7 @@ import { CLIUtils } from '../utils/cli.utils';
 import { EmptyFileNameError, MissingCredentialsError, NotValidFileUuidError } from '../types/command.types';
 import { ValidationService } from '../services/validation.service';
 import { DriveFileService } from '../services/drive/drive-file.service';
+import path from 'node:path';
 
 export default class RenameFile extends Command {
   static readonly args = {};
@@ -33,12 +34,16 @@ export default class RenameFile extends Command {
     if (!userCredentials) throw new MissingCredentialsError();
 
     const fileUuid = await this.getFileUuid(flags['id'], nonInteractive);
-    const newName = await this.getFileName(flags['name'], nonInteractive);
+    const fileName = await this.getFileName(flags['name'], nonInteractive);
 
-    await DriveFileService.instance.renameFile(fileUuid, { plainName: newName });
-    const message = `File renamed successfully with: ${newName}`;
+    const pathInfo = path.parse(fileName);
+    const newName = pathInfo.name;
+    const newType = pathInfo.ext.replace('.', '');
+
+    await DriveFileService.instance.renameFile(fileUuid, { plainName: newName, type: newType });
+    const message = `File renamed successfully with: ${newName}${newType ? '.' + newType : ''}`;
     CLIUtils.success(this.log.bind(this), message);
-    return { success: true, message, file: { uuid: fileUuid, plainName: newName } };
+    return { success: true, message, file: { uuid: fileUuid, plainName: newName, type: newType } };
   };
 
   public catch = async (error: Error) => {

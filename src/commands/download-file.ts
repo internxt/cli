@@ -100,6 +100,12 @@ export default class DownloadFile extends Command {
 
     await executeDownload;
 
+    try {
+      await fs.utimes(downloadPath, new Date(), driveFile.modificationTime ?? driveFile.updatedAt);
+    } catch {
+      /* noop */
+    }
+
     progressBar?.update(100);
     progressBar?.stop();
     const message = `File downloaded successfully to ${downloadPath}`;

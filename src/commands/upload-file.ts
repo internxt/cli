@@ -11,7 +11,7 @@ import { DriveFileService } from '../services/drive/drive-file.service';
 import { CryptoService } from '../services/crypto.service';
 import { DownloadService } from '../services/network/download.service';
 import { ErrorUtils } from '../utils/errors.utils';
-import { MissingCredentialsError, NotValidDirectoryError, NotValidFolderUuidError } from '../types/command.types';
+import { NotValidDirectoryError, NotValidFolderUuidError } from '../types/command.types';
 import { ValidationService } from '../services/validation.service';
 import { EncryptionVersion } from '@internxt/sdk/dist/drive/storage/types';
 import { ThumbnailService } from '../services/thumbnail.service';
@@ -46,8 +46,7 @@ export default class UploadFile extends Command {
 
     const nonInteractive = flags['non-interactive'];
 
-    const userCredentials = await ConfigService.instance.readUser();
-    if (!userCredentials) throw new MissingCredentialsError();
+    const { user } = await AuthService.instance.getAuthDetails();
 
     const filePath = await this.getFilePath(flags['file'], nonInteractive);
 
@@ -62,12 +61,11 @@ export default class UploadFile extends Command {
     let destinationFolderUuid = await this.getDestinationFolderUuid(flags['destination'], nonInteractive);
     if (destinationFolderUuid.trim().length === 0) {
       // destinationFolderUuid is empty from flags&prompt, which means we should use RootFolderUuid
-      destinationFolderUuid = userCredentials.user.rootFolderId;
+      destinationFolderUuid = user.rootFolderId;
     }
 
     // 1. Prepare the network
     CLIUtils.doing('Preparing Network', flags['json']);
-    const { user } = await AuthService.instance.getAuthDetails();
     const networkModule = SdkManager.instance.getNetwork({
       user: user.bridgeUser,
       pass: user.userId,
@@ -133,14 +131,15 @@ export default class UploadFile extends Command {
 
     // 3. Create the file in Drive
     const createdDriveFile = await DriveFileService.instance.createFile({
-      plain_name: fileInfo.name,
+      plainName: fileInfo.name,
       type: fileType,
       size: stats.size,
-      folder_id: destinationFolderUuid,
-      id: fileId,
+      folderUuid: destinationFolderUuid,
+      fileId: fileId,
       bucket: user.bucket,
-      encrypt_version: EncryptionVersion.Aes03,
-      name: '',
+      encryptVersion: EncryptionVersion.Aes03,
+      creationTime: stats.birthtime?.toISOString(),
+      modificationTime: stats.mtime?.toISOString(),
     });
 
     try {
@@ -169,7 +168,14 @@ export default class UploadFile extends Command {
     // eslint-disable-next-line max-len
     const message = `File uploaded in ${uploadTime}ms, view it at ${ConfigService.instance.get('DRIVE_WEB_URL')}/file/${createdDriveFile.uuid}`;
     CLIUtils.success(this.log.bind(this), message);
-    return { success: true, message, file: createdDriveFile };
+    return {
+      success: true,
+      message,
+      file: {
+        ...createdDriveFile,
+        plainName: fileInfo.name,
+      },
+    };
   };
 
   public catch = async (error: Error) => {

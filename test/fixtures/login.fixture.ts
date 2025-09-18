@@ -10,14 +10,12 @@ export const UserLoginFixture = {
 };
 
 export const ApiSecurityFixture: SdkManagerApiSecurity = {
-  newToken: randomBytes(16).toString('hex'),
   token: randomBytes(16).toString('hex'),
 };
 
 export const UserCredentialsFixture: LoginCredentials = {
   user: { ...UserFixture, email: UserLoginFixture.email },
   token: ApiSecurityFixture.token,
-  newToken: ApiSecurityFixture.newToken,
   lastLoggedInAt: randomBytes(16).toString('hex'),
   lastTokenRefreshAt: randomBytes(16).toString('hex'),
 };
