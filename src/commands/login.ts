@@ -5,6 +5,7 @@ import { ConfigService } from '../services/config.service';
 import { ValidationService } from '../services/validation.service';
 import { CLIUtils } from '../utils/cli.utils';
 import { SdkManager } from '../services/sdk-manager.service';
+import * as OTPAuth from 'otpauth';
 
 export default class Login extends Command {
   static readonly args = {};
@@ -17,7 +18,7 @@ export default class Login extends Command {
     email: Flags.string({
       char: 'e',
       aliases: ['mail'],
-      env: 'INXT_EMAIL',
+      env: 'INXT_USER',
       description: 'The email to log in',
       required: false,
     }),
@@ -32,9 +33,19 @@ export default class Login extends Command {
       char: 'w',
       aliases: ['two', 'two-factor'],
       env: 'INXT_TWOFACTORCODE',
-      description: 'The two factor auth code (only needed if the account is two-factor protected)',
+      description: 'The two factor auth code (TOTP). ',
       required: false,
       helpValue: '123456',
+    }),
+    twofactortoken: Flags.string({
+      char: 't',
+      aliases: ['otp', 'otp-token'],
+      env: 'INXT_OTPTOKEN',
+      description:
+        'The TOTP secret token. It is used to generate a TOTP code if needed.' +
+        ' It has prority over the two factor code flag.',
+      required: false,
+      helpValue: 'token',
     }),
   };
   static readonly enableJsonFlag = true;
@@ -49,7 +60,16 @@ export default class Login extends Command {
     const is2FANeeded = await AuthService.instance.is2FANeeded(email);
     let twoFactorCode: string | undefined;
     if (is2FANeeded) {
-      twoFactorCode = await this.getTwoFactorCode(flags['twofactor'], nonInteractive);
+      const twoFactorToken = flags['twofactortoken'];
+      if (twoFactorToken && twoFactorToken.trim().length > 0) {
+        const totp = new OTPAuth.TOTP({
+          secret: twoFactorToken,
+          digits: 6,
+        });
+        twoFactorCode = totp.generate();
+      } else {
+        twoFactorCode = await this.getTwoFactorCode(flags['twofactor'], nonInteractive);
+      }
     }
 
     const loginCredentials = await AuthService.instance.doLogin(email, password, twoFactorCode);
@@ -131,7 +151,7 @@ export default class Login extends Command {
       {
         nonInteractive,
         prompt: {
-          message: 'What is your two-factor token?',
+          message: 'What is your two-factor code?',
           options: { type: 'mask' },
         },
       },
