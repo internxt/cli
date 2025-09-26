@@ -1518,6 +1518,14 @@
     axios "^1.12.2"
     uuid "11.1.0"
 
+"@internxt/sdk@1.11.11":
+  version "1.11.11"
+  resolved "https://registry.yarnpkg.com/@internxt/sdk/-/sdk-1.11.11.tgz#7fa44584b1bc6ab47fef6d138e228f509b449254"
+  integrity sha512-gq13+EtYWEW4BgCMJdspXCSLJR4U9JAdL78bVpCkZxv7UCyVlfxXI72ECsgk3CpT5b+/JmEMUAxX65AKOCLrVA==
+  dependencies:
+    axios "^1.12.2"
+    uuid "11.1.0"
+
 "@isaacs/balanced-match@^4.0.1":
   version "4.0.1"
   resolved "https://registry.yarnpkg.com/@isaacs/balanced-match/-/balanced-match-4.0.1.tgz#3081dadbc3460661b751e7591d7faea5df39dd29"
