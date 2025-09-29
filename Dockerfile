@@ -3,6 +3,9 @@ FROM node:24-alpine
 WORKDIR /app
 COPY . .
 
+COPY .env.template .env
+COPY .npmrc.template .npmrc
+
 RUN yarn install
 RUN yarn build
 
