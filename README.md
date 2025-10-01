@@ -151,7 +151,7 @@ EXAMPLES
   $ internxt autocomplete --refresh-cache
 ```
 
-_See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v3.2.34/src/commands/autocomplete/index.ts)_
+_See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v3.2.35/src/commands/autocomplete/index.ts)_
 
 ## `internxt config`
 
@@ -416,12 +416,14 @@ Logs into an Internxt account. If the account is two-factor protected, then an e
 
 ```
 USAGE
-  $ internxt login [--json] [-x] [-e <value>] [-p <value>] [-w 123456]
+  $ internxt login [--json] [-x] [-e <value>] [-p <value>] [-w 123456] [-t token]
 
 FLAGS
-  -e, --email=<value>     The email to log in
-  -p, --password=<value>  The plain password to log in
-  -w, --twofactor=123456  The two factor auth code (only needed if the account is two-factor protected)
+  -e, --email=<value>         The email to log in
+  -p, --password=<value>      The plain password to log in
+  -t, --twofactortoken=token  The TOTP secret token. It is used to generate a TOTP code if needed. It has prority over
+                              the two factor code flag.
+  -w, --twofactor=123456      The two factor auth code (TOTP).
 
 HELPER FLAGS
   -x, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
