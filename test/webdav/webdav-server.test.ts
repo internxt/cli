@@ -22,6 +22,7 @@ describe('WebDav server', () => {
 
   it('When the WebDav server is started with https, it should generate self-signed certificates', async () => {
     const webdavConfig: WebdavConfig = {
+      host: '127.0.0.1',
       port: randomInt(65535).toString(),
       protocol: 'https',
       timeoutMinutes: randomInt(900),
@@ -68,6 +69,7 @@ describe('WebDav server', () => {
 
   it('When the WebDav server is started with http, it should run http', async () => {
     const webdavConfig: WebdavConfig = {
+      host: '127.0.0.1',
       port: randomInt(65535).toString(),
       protocol: 'http',
       timeoutMinutes: randomInt(900),
