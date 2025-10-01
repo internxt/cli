@@ -1,6 +1,6 @@
 {
   "author": "Internxt <hello@internxt.com>",
-  "version": "1.5.5",
+  "version": "1.5.6",
   "description": "Internxt CLI to manage your encrypted storage",
   "scripts": {
     "build": "yarn clean && tsc",
