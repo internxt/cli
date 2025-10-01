@@ -3,6 +3,7 @@ import { CLIUtils } from '../utils/cli.utils';
 import { ConfigService } from '../services/config.service';
 import { ValidationService } from '../services/validation.service';
 import { LoginCredentials } from '../types/command.types';
+import { AuthService } from '../services/auth.service';
 
 export default class Whoami extends Command {
   static readonly args = {};
@@ -20,12 +21,19 @@ export default class Whoami extends Command {
       return { success: false, message };
     } else {
       const validCreds = this.checkUserAndTokens(userCredentials);
-      if (!validCreds) {
+      if (!validCreds.valid) {
         const message = 'Your session has expired. You have been logged out. Please log in again.';
         await ConfigService.instance.clearUser();
         CLIUtils.error(this.log.bind(this), message);
         return { success: false, message };
       } else {
+        if (validCreds.refreshRequired) {
+          try {
+            await AuthService.instance.refreshUserToken(userCredentials);
+          } catch {
+            /* noop */
+          }
+        }
         const message = `You are logged in as: ${userCredentials.user.email}.`;
         CLIUtils.success(this.log.bind(this), message);
         return { success: true, message, login: userCredentials };
@@ -45,14 +53,14 @@ export default class Whoami extends Command {
     this.exit(1);
   };
 
-  private checkUserAndTokens = (loginCreds: LoginCredentials): boolean => {
+  private checkUserAndTokens = (loginCreds: LoginCredentials): { valid: boolean; refreshRequired: boolean } => {
     if (!(loginCreds?.token && loginCreds?.user?.mnemonic)) {
-      return false;
+      return { valid: false, refreshRequired: false };
     }
     const tokenDetails = ValidationService.instance.validateTokenAndCheckExpiration(loginCreds.token);
     const goodMnemonic = ValidationService.instance.validateMnemonic(loginCreds.user.mnemonic);
     const goodToken = tokenDetails.isValid && !tokenDetails.expiration.expired;
 
-    return goodToken && goodMnemonic;
+    return { valid: goodToken && goodMnemonic, refreshRequired: tokenDetails.expiration.refreshRequired };
   };
 }
