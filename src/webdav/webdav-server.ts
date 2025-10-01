@@ -172,17 +172,17 @@ export class WebDavServer {
     if (plainHttp) {
       server = http.createServer(this.app);
     } else {
-      const httpsCerts = await NetworkUtils.getWebdavSSLCerts();
+      const httpsCerts = await NetworkUtils.getWebdavSSLCerts(configs);
       server = https.createServer(httpsCerts, this.app);
     }
 
     // Allow long uploads/downloads from WebDAV clients:
     server.requestTimeout = configs.timeoutMinutes * 60 * 1000;
 
-    server.listen(configs.port, () => {
+    server.listen(Number(configs.port), configs.host, undefined, () => {
       webdavLogger.info(
         `Internxt ${SdkManager.getAppDetails().clientVersion} WebDav server ` +
-          `listening at ${configs.protocol}://${ConfigService.WEBDAV_LOCAL_URL}:${configs.port}`,
+          `listening at ${configs.protocol}://${configs.host}:${configs.port}`,
       );
     });
   };

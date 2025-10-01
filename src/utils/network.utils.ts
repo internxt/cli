@@ -5,6 +5,7 @@ import path from 'node:path';
 import selfsigned from 'selfsigned';
 import parseRange from 'range-parser';
 import { ConfigService } from '../services/config.service';
+import { WebdavConfig } from '../types/command.types';
 
 export class NetworkUtils {
   static getAuthFromCredentials(creds: NetworkCredentials): { username: string; password: string } {
@@ -19,8 +20,8 @@ export class NetworkUtils {
     privateKey: path.join(ConfigService.WEBDAV_SSL_CERTS_DIR, 'priv.key'),
   };
 
-  static generateNewSelfsignedCerts(): SelfsignedCert {
-    const newCerts = this.generateSelfSignedSSLCerts();
+  static generateNewSelfsignedCerts(configs: WebdavConfig): SelfsignedCert {
+    const newCerts = this.generateSelfSignedSSLCerts(configs);
     this.saveWebdavSSLCerts(newCerts);
     return {
       cert: newCerts.cert,
@@ -28,11 +29,11 @@ export class NetworkUtils {
     };
   }
 
-  static async getWebdavSSLCerts() {
+  static async getWebdavSSLCerts(configs: WebdavConfig) {
     const existCert = !!(await stat(this.WEBDAV_SSL_CERTS_PATH.cert).catch(() => false));
     const existKey = !!(await stat(this.WEBDAV_SSL_CERTS_PATH.privateKey).catch(() => false));
     if (!existCert || !existKey) {
-      return this.generateNewSelfsignedCerts();
+      return this.generateNewSelfsignedCerts(configs);
     } else {
       let selfsignedCert: SelfsignedCert = {
         cert: await readFile(this.WEBDAV_SSL_CERTS_PATH.cert),
@@ -44,7 +45,7 @@ export class NetworkUtils {
       const dateValid = new Date(validTo);
 
       if (dateToday > dateValid) {
-        const newCerts = this.generateNewSelfsignedCerts();
+        const newCerts = this.generateNewSelfsignedCerts(configs);
         selfsignedCert = {
           cert: newCerts.cert,
           key: newCerts.key,
@@ -59,15 +60,15 @@ export class NetworkUtils {
     await writeFile(this.WEBDAV_SSL_CERTS_PATH.privateKey, pems.private, 'utf8');
   }
 
-  static generateSelfSignedSSLCerts(): selfsigned.GenerateResult {
-    const attrs = [{ name: 'commonName', value: ConfigService.WEBDAV_LOCAL_URL }];
+  static generateSelfSignedSSLCerts(configs: WebdavConfig): selfsigned.GenerateResult {
+    const attrs = [{ name: 'commonName', value: configs.host }];
     const extensions = [
       {
         name: 'subjectAltName',
         altNames: [
           {
             type: 2,
-            value: ConfigService.WEBDAV_LOCAL_URL,
+            value: configs.host,
           },
         ],
       },

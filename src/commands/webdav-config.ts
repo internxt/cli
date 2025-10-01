@@ -10,6 +10,11 @@ export default class WebDAVConfig extends Command {
   static readonly aliases = [];
   static readonly examples = ['<%= config.bin %> <%= command.id %>'];
   static readonly flags = {
+    host: Flags.string({
+      char: 'l',
+      description: 'The listening host for the WebDAV server.',
+      required: false,
+    }),
     port: Flags.string({
       char: 'p',
       description: 'The new port for the WebDAV server.',
@@ -39,6 +44,11 @@ export default class WebDAVConfig extends Command {
   public run = async () => {
     const { flags } = await this.parse(WebDAVConfig);
     const webdavConfig = await ConfigService.instance.readWebdavConfig();
+
+    const host = flags['host'];
+    if (host) {
+      webdavConfig['host'] = host;
+    }
 
     const port = flags['port'];
     if (port) {

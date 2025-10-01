@@ -13,7 +13,7 @@ export class ConfigService {
   static readonly DRIVE_SQLITE_FILE = path.join(this.INTERNXT_CLI_DATA_DIR, 'internxt-cli-drive.sqlite');
   static readonly WEBDAV_SSL_CERTS_DIR = path.join(this.INTERNXT_CLI_DATA_DIR, 'certs');
   static readonly WEBDAV_CONFIGS_FILE = path.join(this.INTERNXT_CLI_DATA_DIR, 'config.webdav.inxt');
-  static readonly WEBDAV_LOCAL_URL = 'webdav.local.internxt.com';
+  static readonly WEBDAV_DEFAULT_HOST = '127.0.0.1';
   static readonly WEBDAV_DEFAULT_PORT = '3005';
   static readonly WEBDAV_DEFAULT_PROTOCOL = 'https';
   static readonly WEBDAV_DEFAULT_TIMEOUT = 0;
@@ -86,12 +86,14 @@ export class ConfigService {
       const configsData = await fs.readFile(ConfigService.WEBDAV_CONFIGS_FILE, 'utf8');
       const configs = JSON.parse(configsData);
       return {
+        host: configs?.host ?? ConfigService.WEBDAV_DEFAULT_HOST,
         port: configs?.port ?? ConfigService.WEBDAV_DEFAULT_PORT,
         protocol: configs?.protocol ?? ConfigService.WEBDAV_DEFAULT_PROTOCOL,
         timeoutMinutes: configs?.timeoutMinutes ?? ConfigService.WEBDAV_DEFAULT_TIMEOUT,
       };
     } catch {
       return {
+        host: ConfigService.WEBDAV_DEFAULT_HOST,
         port: ConfigService.WEBDAV_DEFAULT_PORT,
         protocol: ConfigService.WEBDAV_DEFAULT_PROTOCOL,
         timeoutMinutes: ConfigService.WEBDAV_DEFAULT_TIMEOUT,

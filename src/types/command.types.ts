@@ -8,6 +8,7 @@ export interface LoginCredentials {
 }
 
 export interface WebdavConfig {
+  host: string;
   port: string;
   protocol: 'http' | 'https';
   timeoutMinutes: number;

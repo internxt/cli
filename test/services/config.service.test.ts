@@ -116,7 +116,8 @@ describe('Config service', () => {
 
   it('When webdav config options are saved, then they are written to a file', async () => {
     const webdavConfig: WebdavConfig = {
-      port: String(crypto.randomInt(65000)),
+      host: '127.0.0.1',
+      port: crypto.randomInt(65000).toString(),
       protocol: 'https',
       timeoutMinutes: crypto.randomInt(100),
     };
@@ -130,7 +131,8 @@ describe('Config service', () => {
 
   it('When webdav config options are read and exist, then they are read from a file', async () => {
     const webdavConfig: WebdavConfig = {
-      port: String(crypto.randomInt(65000)),
+      host: '127.0.0.1',
+      port: crypto.randomInt(65000).toString(),
       protocol: 'http',
       timeoutMinutes: crypto.randomInt(100),
     };
@@ -145,6 +147,7 @@ describe('Config service', () => {
 
   it('When webdav config options are read but not exist, then they are returned from defaults', async () => {
     const defaultWebdavConfig: WebdavConfig = {
+      host: ConfigService.WEBDAV_DEFAULT_HOST,
       port: ConfigService.WEBDAV_DEFAULT_PORT,
       protocol: ConfigService.WEBDAV_DEFAULT_PROTOCOL,
       timeoutMinutes: ConfigService.WEBDAV_DEFAULT_TIMEOUT,
@@ -159,6 +162,7 @@ describe('Config service', () => {
 
   it('When webdav config options are read but an error is thrown, then they are returned from defaults', async () => {
     const defaultWebdavConfig: WebdavConfig = {
+      host: ConfigService.WEBDAV_DEFAULT_HOST,
       port: ConfigService.WEBDAV_DEFAULT_PORT,
       protocol: ConfigService.WEBDAV_DEFAULT_PROTOCOL,
       timeoutMinutes: ConfigService.WEBDAV_DEFAULT_TIMEOUT,
