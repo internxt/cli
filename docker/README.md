@@ -12,7 +12,7 @@ With this image, you can quickly deploy and access your Internxt files over the 
 ```yaml
 services:
   internxt-webdav:
-    image: internxt-webdav:latest
+    image: internxt/webdav:latest
     container_name: internxt-webdav
     restart: unless-stopped
     environment:
@@ -45,25 +45,25 @@ docker run -d \
   -e WEBDAV_PORT="" \
   -e WEBDAV_PROTOCOL="" \
   -p 3005:3005 \
-  internxt-webdav:latest
+  internxt/webdav:latest
 ```
 
 ### Using Docker on NAS Devices
 
-You can also run the `internxt-webdav` image directly on popular NAS devices like **Synology** or **QNAP**.
+You can also run the `internxt/webdav` image directly on popular NAS devices like **Synology** or **QNAP**.
 
 **Synology DSM (Docker Package):**
 
 1. Open the Docker app.
-2. Go to **Registry**, search for `internxt-webdav`, and download the latest image.
-3. Go to **Image**, select `internxt-webdav`, and click **Launch**.
+2. Go to **Registry**, search for `internxt/webdav`, and download the latest image.
+3. Go to **Image**, select `internxt/webdav`, and click **Launch**.
 4. Configure environment variables (`INXT_USER`, `INXT_PASSWORD`, etc.) and port mappings (e.g., `3005:3005`).
 5. Start the container.
 
 **QNAP Container Station:**
 
 1. Open Container Station.
-2. Click **Create Container** and search for `internxt-webdav`.
+2. Click **Create Container** and search for `internxt/webdav`.
 3. Select the latest image and click **Next**.
 4. Set environment variables (`INXT_USER`, `INXT_PASSWORD`, etc.) and port mappings.
 5. Apply settings and start the container.
