@@ -7,6 +7,9 @@ if [ -z "$INXT_USER" ] || [ -z "$INXT_PASSWORD" ]; then
   exit 1
 fi
 
+
+echo "Logging into your account [$INXT_USER]"
+
 LOGIN_CMD="internxt login -x -e=\"$INXT_USER\" -p=\"$INXT_PASSWORD\""
 
 if [ -n "$INXT_OTPTOKEN" ]; then
@@ -18,6 +21,22 @@ elif [ -n "$INXT_TWOFACTORCODE" ]; then
 fi
 
 eval $LOGIN_CMD
+
+
+WEBDAV_CMD="internxt webdav-config"
+
+if [ -n "$WEBDAV_PORT" ]; then
+  WEBDAV_CMD="$WEBDAV_CMD -p=$WEBDAV_PORT"
+fi
+
+proto=$(echo "$WEBDAV_PROTOCOL" | tr '[:upper:]' '[:lower:]')
+if [ "$proto" = "http" ]; then
+  WEBDAV_CMD="$WEBDAV_CMD -h"
+elif [ "$proto" = "https" ]; then
+  WEBDAV_CMD="$WEBDAV_CMD -s"
+fi
+
+eval $WEBDAV_CMD
 
 internxt webdav enable
 
