@@ -7,12 +7,11 @@ import { CryptoService } from '../services/crypto.service';
 import { DownloadService } from '../services/network/download.service';
 import { SdkManager } from '../services/sdk-manager.service';
 import { createWriteStream } from 'node:fs';
-import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
 import { DriveFileItem } from '../types/drive.types';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { StreamUtils } from '../utils/stream.utils';
-import { NotValidDirectoryError, NotValidFileUuidError } from '../types/command.types';
+import { LoginUserDetails, NotValidDirectoryError, NotValidFileUuidError } from '../types/command.types';
 import { ValidationService } from '../services/validation.service';
 import { Environment } from '@internxt/inxt-js';
 import { ConfigService } from '../services/config.service';
@@ -20,8 +19,8 @@ import { ConfigService } from '../services/config.service';
 export default class DownloadFile extends Command {
   static readonly args = {};
   static readonly description =
-    // eslint-disable-next-line max-len
-    'Download and decrypts a file from Internxt Drive to a directory. The file name will be the same as the file name in your Drive.';
+    'Download and decrypts a file from Internxt Drive to a directory.' +
+    ' The file name will be the same as the file name in your Drive.';
   static readonly aliases = ['download:file'];
   static readonly examples = ['<%= config.bin %> <%= command.id %>'];
   static readonly flags = {
@@ -206,7 +205,7 @@ export default class DownloadFile extends Command {
     return downloadPath;
   };
 
-  private prepareNetwork = async (user: UserSettings, jsonFlag?: boolean) => {
+  private prepareNetwork = async (user: LoginUserDetails, jsonFlag?: boolean) => {
     CLIUtils.doing('Preparing Network', jsonFlag);
 
     const networkModule = SdkManager.instance.getNetwork({

@@ -1,6 +1,5 @@
 import { LoginDetails } from '@internxt/sdk';
 import { SdkManager } from './sdk-manager.service';
-import { KeysService } from './keys.service';
 import { CryptoService } from './crypto.service';
 import { ConfigService } from './config.service';
 import {
@@ -30,27 +29,13 @@ export class AuthService {
       tfaCode: twoFactorCode,
     };
 
-    const data = await authClient.login(loginDetails, CryptoService.cryptoProvider);
+    const data = await authClient.loginAccess(loginDetails, CryptoService.cryptoProvider);
     const { user, newToken } = data;
-    const { privateKey, publicKey } = user;
-
-    const plainPrivateKeyInBase64 = privateKey
-      ? Buffer.from(KeysService.instance.decryptPrivateKey(privateKey, password)).toString('base64')
-      : '';
-
-    if (privateKey) {
-      await KeysService.instance.assertPrivateKeyIsValid(privateKey, password);
-      await KeysService.instance.assertValidateKeys(
-        Buffer.from(plainPrivateKeyInBase64, 'base64').toString(),
-        Buffer.from(publicKey, 'base64').toString(),
-      );
-    }
 
     const clearMnemonic = CryptoService.instance.decryptTextWithKey(user.mnemonic, password);
-    const clearUser = {
+    const clearUser: LoginCredentials['user'] = {
       ...user,
       mnemonic: clearMnemonic,
-      privateKey: plainPrivateKeyInBase64,
     };
     return {
       user: clearUser,
@@ -118,7 +103,7 @@ export class AuthService {
       user: {
         ...newCreds.user,
         mnemonic: oldCreds.user.mnemonic,
-        privateKey: oldCreds.user.privateKey,
+        createdAt: new Date(newCreds.user.createdAt).toISOString(),
       },
       token: newCreds.newToken,
       lastLoggedInAt: oldCreds.lastLoggedInAt,
