@@ -63,12 +63,7 @@ export class ConfigService {
     try {
       const encryptedCredentials = await fs.readFile(ConfigService.CREDENTIALS_FILE, 'utf8');
       const credentialsString = CryptoService.instance.decryptText(encryptedCredentials);
-      const loginCredentials = JSON.parse(credentialsString, (key, value) => {
-        if (typeof value === 'string' && key === 'createdAt') {
-          return new Date(value);
-        }
-        return value;
-      }) as LoginCredentials;
+      const loginCredentials = JSON.parse(credentialsString) as LoginCredentials;
       return loginCredentials;
     } catch {
       return;

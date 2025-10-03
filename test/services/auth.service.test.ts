@@ -2,7 +2,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import crypto from 'node:crypto';
 import { Auth, LoginDetails, SecurityDetails } from '@internxt/sdk';
 import { AuthService } from '../../src/services/auth.service';
-import { KeysService } from '../../src/services/keys.service';
 import { CryptoService } from '../../src/services/crypto.service';
 import { SdkManager } from '../../src/services/sdk-manager.service';
 import { ConfigService } from '../../src/services/config.service';
@@ -16,6 +15,7 @@ import {
 } from '../../src/types/command.types';
 import { UserCredentialsFixture } from '../fixtures/login.fixture';
 import { fail } from 'node:assert';
+import { paths } from '@internxt/sdk/dist/schema';
 
 describe('Auth service', () => {
   beforeEach(() => {
@@ -28,14 +28,11 @@ describe('Auth service', () => {
       newToken: crypto.randomBytes(16).toString('hex'),
       user: UserFixture,
       userTeam: null,
-    };
+    } as unknown as paths['/auth/cli/login/access']['post']['responses']['200']['content']['application/json'];
     const mockDate = new Date().toISOString();
 
-    vi.spyOn(Auth.prototype, 'login').mockResolvedValue(loginResponse);
+    vi.spyOn(Auth.prototype, 'loginAccess').mockResolvedValue(loginResponse);
     vi.spyOn(SdkManager.instance, 'getAuth').mockReturnValue(Auth.prototype);
-    vi.spyOn(KeysService.instance, 'decryptPrivateKey').mockReturnValue(loginResponse.user.privateKey);
-    vi.spyOn(KeysService.instance, 'assertPrivateKeyIsValid').mockResolvedValue();
-    vi.spyOn(KeysService.instance, 'assertValidateKeys').mockResolvedValue();
     vi.spyOn(CryptoService.instance, 'decryptTextWithKey').mockReturnValue(loginResponse.user.mnemonic);
     vi.spyOn(Date.prototype, 'toISOString').mockReturnValue(mockDate);
 
@@ -46,7 +43,7 @@ describe('Auth service', () => {
     );
 
     const expectedResponseLogin: LoginCredentials = {
-      user: { ...loginResponse.user, privateKey: Buffer.from(loginResponse.user.privateKey).toString('base64') },
+      user: { ...loginResponse.user },
       token: loginResponse.newToken,
       lastLoggedInAt: mockDate,
       lastTokenRefreshAt: mockDate,
@@ -61,7 +58,7 @@ describe('Auth service', () => {
       tfaCode: crypto.randomInt(1, 999999).toString().padStart(6, '0'),
     };
 
-    const loginStub = vi.spyOn(Auth.prototype, 'login').mockRejectedValue(new Error('Login failed'));
+    const loginStub = vi.spyOn(Auth.prototype, 'loginAccess').mockRejectedValue(new Error('Login failed'));
     vi.spyOn(SdkManager.instance, 'getAuth').mockReturnValue(Auth.prototype);
 
     try {

@@ -1,7 +1,31 @@
-import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
+export interface LoginUserDetails {
+  userId: string;
+  uuid: string;
+  email: string;
+  name: string;
+  lastname: string;
+  username: string;
+  bridgeUser: string;
+  bucket: string;
+  rootFolderId: string;
+  mnemonic: string;
+  keys: {
+    ecc: {
+      publicKey: string;
+      privateKey: string;
+    };
+    kyber: {
+      publicKey: string;
+      privateKey: string;
+    };
+  };
+  createdAt: string;
+  avatar: string | null;
+  emailVerified: boolean;
+}
 
 export interface LoginCredentials {
-  user: UserSettings;
+  user: LoginUserDetails;
   token: string;
   lastLoggedInAt: string;
   lastTokenRefreshAt: string;

@@ -1534,10 +1534,10 @@
     axios "^1.12.2"
     uuid "11.1.0"
 
-"@internxt/sdk@1.11.11":
-  version "1.11.11"
-  resolved "https://registry.yarnpkg.com/@internxt/sdk/-/sdk-1.11.11.tgz#7fa44584b1bc6ab47fef6d138e228f509b449254"
-  integrity sha512-gq13+EtYWEW4BgCMJdspXCSLJR4U9JAdL78bVpCkZxv7UCyVlfxXI72ECsgk3CpT5b+/JmEMUAxX65AKOCLrVA==
+"@internxt/sdk@1.11.12":
+  version "1.11.12"
+  resolved "https://registry.yarnpkg.com/@internxt/sdk/-/sdk-1.11.12.tgz#17077cf244e61406b2183a0b6ea380c944bab030"
+  integrity sha512-ubYhtGy5QyM4bLpu2us5QgONjC6VHBT7u2xuh5/MuUV0+F/A+qQlFPf2x7L+TGydGz91JOj10Th+EJ76gS5Rtg==
   dependencies:
     axios "^1.12.2"
     uuid "11.1.0"
