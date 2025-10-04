@@ -50,7 +50,7 @@
     "dotenv": "17.2.3",
     "express": "5.1.0",
     "express-async-handler": "1.2.0",
-    "fast-xml-parser": "5.2.5",
+    "fast-xml-parser": "5.3.0",
     "mime-types": "3.0.1",
     "openpgp": "6.2.2",
     "otpauth": "9.4.1",
