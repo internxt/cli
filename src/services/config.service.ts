@@ -17,6 +17,7 @@ export class ConfigService {
   static readonly WEBDAV_DEFAULT_PORT = '3005';
   static readonly WEBDAV_DEFAULT_PROTOCOL = 'https';
   static readonly WEBDAV_DEFAULT_TIMEOUT = 0;
+  static readonly WEBDAV_DEFAULT_CREATE_FULL_PATH = false;
   public static readonly instance: ConfigService = new ConfigService();
 
   /**
@@ -85,6 +86,7 @@ export class ConfigService {
         port: configs?.port ?? ConfigService.WEBDAV_DEFAULT_PORT,
         protocol: configs?.protocol ?? ConfigService.WEBDAV_DEFAULT_PROTOCOL,
         timeoutMinutes: configs?.timeoutMinutes ?? ConfigService.WEBDAV_DEFAULT_TIMEOUT,
+        createFullPath: configs?.createFullPath ?? ConfigService.WEBDAV_DEFAULT_CREATE_FULL_PATH,
       };
     } catch {
       return {
@@ -92,6 +94,7 @@ export class ConfigService {
         port: ConfigService.WEBDAV_DEFAULT_PORT,
         protocol: ConfigService.WEBDAV_DEFAULT_PROTOCOL,
         timeoutMinutes: ConfigService.WEBDAV_DEFAULT_TIMEOUT,
+        createFullPath: ConfigService.WEBDAV_DEFAULT_CREATE_FULL_PATH,
       };
     }
   };
