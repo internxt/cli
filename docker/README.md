@@ -16,14 +16,14 @@ services:
     container_name: internxt-webdav
     restart: unless-stopped
     environment:
-      INXT_USER: ""          # Your Internxt account email
-      INXT_PASSWORD: ""      # Your Internxt account password
-      INXT_TWOFACTORCODE: "" # (Optional) Current 2FA one-time code
-      INXT_OTPTOKEN: ""      # (Optional) OTP secret for auto-generating 2FA codes
-      WEBDAV_PORT: ""        # (Optional) WebDAV port. Defaults to 3005 if empty
-      WEBDAV_PROTOCOL: ""    # (Optional) WebDAV protocol. Accepts 'http' or 'https'. Defaults to 'https' if empty
+      INXT_USER: ""           # Your Internxt account email
+      INXT_PASSWORD: ""       # Your Internxt account password
+      INXT_TWOFACTORCODE: ""  # (Optional) Current 2FA one-time code
+      INXT_OTPTOKEN: ""       # (Optional) OTP secret for auto-generating 2FA codes
+      WEBDAV_PORT: ""         # (Optional) WebDAV port. Defaults to 3005 if empty
+      WEBDAV_PROTOCOL: ""     # (Optional) WebDAV protocol. Accepts 'http' or 'https'. Defaults to 'https' if empty
     ports:
-      - "3005:3005"          # Map container port to host. Change if WEBDAV_PORT is customized
+      - "127.0.0.1:3005:3005" # Map container port to host. Change if WEBDAV_PORT is customized
 ```
 
 Start it detached with:
@@ -44,7 +44,7 @@ docker run -d \
   -e INXT_OTPTOKEN="" \
   -e WEBDAV_PORT="" \
   -e WEBDAV_PROTOCOL="" \
-  -p 3005:3005 \
+  -p 127.0.0.1:3005:3005 \
   internxt/webdav:latest
 ```
 
