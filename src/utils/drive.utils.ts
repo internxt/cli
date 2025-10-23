@@ -1,4 +1,4 @@
-import { FileMeta, FolderMeta } from '@internxt/sdk/dist/drive/storage/types';
+import { FileMeta, FolderMeta, CreateFolderResponse } from '@internxt/sdk/dist/drive/storage/types';
 import { DriveFileItem, DriveFolderItem } from '../types/drive.types';
 
 export class DriveUtils {
@@ -33,6 +33,21 @@ export class DriveUtils {
       parentUuid: folderMeta.parentUuid,
       createdAt: new Date(folderMeta.createdAt),
       updatedAt: new Date(folderMeta.updatedAt),
+    };
+  }
+
+  static createFolderResponseToItem(folderResponse: CreateFolderResponse): DriveFolderItem {
+    return {
+      uuid: folderResponse.uuid,
+      id: folderResponse.id,
+      bucket: folderResponse.bucket,
+      status: folderResponse.deleted || folderResponse.removed ? 'TRASHED' : 'EXISTS',
+      name: folderResponse.plainName ?? folderResponse.name,
+      encryptedName: folderResponse.name,
+      parentId: folderResponse.parentId,
+      parentUuid: folderResponse.parentUuid,
+      createdAt: new Date(folderResponse.createdAt),
+      updatedAt: new Date(folderResponse.updatedAt),
     };
   }
 }

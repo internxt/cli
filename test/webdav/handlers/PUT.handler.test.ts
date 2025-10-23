@@ -6,6 +6,7 @@ import {
   getRequestedFolderResource,
 } from '../../fixtures/webdav.fixture';
 import { DriveFileService } from '../../../src/services/drive/drive-file.service';
+import { DriveFolderService } from '../../../src/services/drive/drive-folder.service';
 import { CryptoService } from '../../../src/services/crypto.service';
 import { DownloadService } from '../../../src/services/network/download.service';
 import { AuthService } from '../../../src/services/auth.service';
@@ -14,7 +15,7 @@ import { SdkManager } from '../../../src/services/sdk-manager.service';
 import { NetworkFacade } from '../../../src/services/network/network-facade.service';
 import { PUTRequestHandler } from '../../../src/webdav/handlers/PUT.handler';
 import { fail } from 'node:assert';
-import { DriveFolderService } from '../../../src/services/drive/drive-folder.service';
+import { WebDavFolderService } from '../../../src/webdav/services/webdav-folder.service';
 import { TrashService } from '../../../src/services/drive/trash.service';
 import { WebDavRequestedResource } from '../../../src/types/webdav.types';
 import { WebDavUtils } from '../../../src/utils/webdav.utils';
@@ -53,9 +54,13 @@ describe('PUT request handler', () => {
       DownloadService.instance,
       CryptoService.instance,
     );
+    const webDavFolderService = new WebDavFolderService({
+      driveFolderService: DriveFolderService.instance,
+      configService: ConfigService.instance,
+    });
     const sut = new PUTRequestHandler({
       driveFileService: DriveFileService.instance,
-      driveFolderService: DriveFolderService.instance,
+      webDavFolderService,
       authService: AuthService.instance,
       trashService: TrashService.instance,
       networkFacade,
@@ -86,9 +91,13 @@ describe('PUT request handler', () => {
     const cryptoService = CryptoService.instance;
     const authService = AuthService.instance;
     const networkFacade = new NetworkFacade(getNetworkMock(), getEnvironmentMock(), downloadService, cryptoService);
+    const webDavFolderService = new WebDavFolderService({
+      driveFolderService: DriveFolderService.instance,
+      configService: ConfigService.instance,
+    });
     const sut = new PUTRequestHandler({
       driveFileService: DriveFileService.instance,
-      driveFolderService: DriveFolderService.instance,
+      webDavFolderService,
       authService: AuthService.instance,
       trashService: TrashService.instance,
       networkFacade,
@@ -148,9 +157,13 @@ describe('PUT request handler', () => {
     const authService = AuthService.instance;
     const trashService = TrashService.instance;
     const networkFacade = new NetworkFacade(getNetworkMock(), getEnvironmentMock(), downloadService, cryptoService);
+    const webDavFolderService = new WebDavFolderService({
+      driveFolderService: DriveFolderService.instance,
+      configService: ConfigService.instance,
+    });
     const sut = new PUTRequestHandler({
       driveFileService: DriveFileService.instance,
-      driveFolderService: DriveFolderService.instance,
+      webDavFolderService,
       authService: AuthService.instance,
       trashService: TrashService.instance,
       networkFacade,
@@ -204,5 +217,63 @@ describe('PUT request handler', () => {
     expect(uploadStub).toHaveBeenCalledOnce();
     expect(createDriveFileStub).toHaveBeenCalledOnce();
     expect(deleteDriveFileStub).toHaveBeenCalledOnce();
+  });
+
+  it('When file is uploaded, then it should wait 500ms for backend propagation before returning 201', async () => {
+    const downloadService = DownloadService.instance;
+    const cryptoService = CryptoService.instance;
+    const authService = AuthService.instance;
+    const networkFacade = new NetworkFacade(getNetworkMock(), getEnvironmentMock(), downloadService, cryptoService);
+    const webDavFolderService = new WebDavFolderService({
+      driveFolderService: DriveFolderService.instance,
+      configService: ConfigService.instance,
+    });
+    const sut = new PUTRequestHandler({
+      driveFileService: DriveFileService.instance,
+      webDavFolderService,
+      authService: AuthService.instance,
+      trashService: TrashService.instance,
+      networkFacade,
+    });
+
+    const requestedFileResource: WebDavRequestedResource = getRequestedFileResource();
+    const requestedParentFolderResource: WebDavRequestedResource = getRequestedFolderResource({
+      parentFolder: '/',
+      folderName: '',
+    });
+    const folderFixture = newFolderItem({ name: requestedParentFolderResource.name });
+    const fileFixture = newDriveFile({ folderId: folderFixture.id, folderUuid: folderFixture.uuid });
+
+    const request = createWebDavRequestFixture({
+      method: 'PUT',
+      url: requestedFileResource.url,
+      headers: {
+        'content-length': '100',
+      },
+    });
+
+    const response = createWebDavResponseFixture({
+      status: vi.fn().mockReturnValue({ send: vi.fn() }),
+    });
+
+    vi.spyOn(WebDavUtils, 'getRequestedResource')
+      .mockResolvedValueOnce(requestedFileResource)
+      .mockResolvedValueOnce(requestedParentFolderResource);
+    vi.spyOn(WebDavUtils, 'getDriveItemFromResource').mockResolvedValueOnce(folderFixture).mockResolvedValue(undefined);
+    vi.spyOn(authService, 'getAuthDetails').mockResolvedValue(UserCredentialsFixture);
+    vi.spyOn(networkFacade, 'uploadFile').mockImplementation(
+      // @ts-expect-error - We only mock the properties we need
+      (_, __, ___, callback: (err: Error | null, res: string | null) => void) => {
+        return callback(null, 'uploaded-file-id');
+      },
+    );
+    vi.spyOn(DriveFileService.instance, 'createFile').mockResolvedValue(fileFixture.toItem());
+
+    const startTime = Date.now();
+    await sut.handle(request, response);
+    const endTime = Date.now();
+
+    expect(response.status).toHaveBeenCalledWith(201);
+    expect(endTime - startTime).toBeGreaterThanOrEqual(500);
   });
 });

@@ -29,6 +29,7 @@ import { COPYRequestHandler } from './handlers/COPY.handler';
 import { TrashService } from '../services/drive/trash.service';
 import { Environment } from '@internxt/inxt-js';
 import { MkcolMiddleware } from './middewares/mkcol.middleware';
+import { WebDavFolderService } from './services/webdav-folder.service';
 
 export class WebDavServer {
   constructor(
@@ -85,6 +86,10 @@ export class WebDavServer {
   private readonly registerHandlers = async () => {
     const serverListenPath = /(.*)/;
     const networkFacade = await this.getNetworkFacade();
+    const webDavFolderService = new WebDavFolderService({
+      driveFolderService: this.driveFolderService,
+      configService: this.configService,
+    });
     this.app.head(
       serverListenPath,
       asyncHandler(
@@ -121,7 +126,7 @@ export class WebDavServer {
       asyncHandler(
         new PUTRequestHandler({
           driveFileService: this.driveFileService,
-          driveFolderService: this.driveFolderService,
+          webDavFolderService: webDavFolderService,
           authService: this.authService,
           trashService: this.trashService,
           networkFacade: networkFacade,
@@ -134,6 +139,7 @@ export class WebDavServer {
       asyncHandler(
         new MKCOLRequestHandler({
           driveFolderService: this.driveFolderService,
+          webDavFolderService: webDavFolderService,
         }).handle,
       ),
     );
@@ -152,6 +158,7 @@ export class WebDavServer {
       serverListenPath,
       asyncHandler(
         new MOVERequestHandler({
+          // TODO: Add WebDavFolderService
           driveFolderService: this.driveFolderService,
           driveFileService: this.driveFileService,
         }).handle,

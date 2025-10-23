@@ -75,7 +75,7 @@ export class MOVERequestHandler implements WebDavMethodHandler {
       if (!destinationDriveFolderItem) {
         throw new NotFoundError(`Resource not found on Internxt Drive at ${resource.url}`);
       }
-      const destinationFolderItem = destinationDriveFolderItem as DriveFileItem;
+      const destinationFolderItem = destinationDriveFolderItem;
 
       if (resource.type === 'folder') {
         const folder = originalDriveItem as DriveFolderItem;
