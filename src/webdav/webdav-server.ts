@@ -158,9 +158,9 @@ export class WebDavServer {
       serverListenPath,
       asyncHandler(
         new MOVERequestHandler({
-          // TODO: Add WebDavFolderService
           driveFolderService: this.driveFolderService,
           driveFileService: this.driveFileService,
+          webDavFolderService,
         }).handle,
       ),
     );
