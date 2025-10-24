@@ -17,3 +17,6 @@ coverage
 cli.inxt
 *.log
 .vscode
+
+# Claude Code project instructions
+CLAUDE.md
