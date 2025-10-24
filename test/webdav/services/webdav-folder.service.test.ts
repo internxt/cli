@@ -12,7 +12,7 @@ describe('WebDavFolderService', () => {
   let sut: WebDavFolderService;
   let driveFolderService: DriveFolderService;
   let configService: ConfigService;
-
+  const rootFolderId = 'root-uuid-123';
   const mockWebdavConfig = (createFullPath: boolean) => {
     vi.spyOn(configService, 'readWebdavConfig').mockResolvedValue({
       createFullPath,
@@ -56,7 +56,6 @@ describe('WebDavFolderService', () => {
     });
 
     it('should create a single folder at root level when path has one segment', async () => {
-      const rootFolderId = 'root-uuid-123';
       const createdFolder = newFolderItem({ name: 'backup', uuid: 'backup-uuid' });
 
       mockWebdavConfig(true);
@@ -78,6 +77,7 @@ describe('WebDavFolderService', () => {
       const existingFolder = newFolderItem({ name: 'backup', uuid: 'backup-uuid' });
 
       mockWebdavConfig(true);
+      mockAuthDetails(rootFolderId);
       const getDriveFolderSpy = vi.spyOn(sut, 'getDriveFolderItemFromPath').mockResolvedValue(existingFolder);
       const createFolderSpy = vi.spyOn(sut, 'createFolder');
 
@@ -89,7 +89,6 @@ describe('WebDavFolderService', () => {
     });
 
     it('should recursively create nested folders when path has multiple segments', async () => {
-      const rootFolderId = 'root-uuid-123';
       const backupFolder = newFolderItem({ name: 'backup', uuid: 'backup-uuid' });
       const folder1 = newFolderItem({ name: 'folder1', uuid: 'folder1-uuid' });
       const subfolder = newFolderItem({ name: 'subfolder', uuid: 'subfolder-uuid' });
