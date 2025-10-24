@@ -56,7 +56,6 @@ export default class TrashRestoreFolder extends Command {
       error,
       command: this.id,
       logReporter: this.log.bind(this),
-      errorReporter: this.error.bind(this),
       jsonFlag: flags['json'],
     });
     this.exit(1);

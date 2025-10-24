@@ -6,6 +6,12 @@ import Login from '../../src/commands/login';
 import { AuthService } from '../../src/services/auth.service';
 import { CLIUtils, NoFlagProvidedError } from '../../src/utils/cli.utils';
 
+vi.mock('../../src/utils/logger.utils', () => ({
+  logger: {
+    error: vi.fn(),
+  },
+}));
+
 describe('Login Command', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
@@ -26,7 +32,8 @@ describe('Login Command', () => {
       await Login.run(['--non-interactive', `--password="${UserLoginFixture.password}"`]);
       fail('Expected function to throw an error, but it did not.');
     } catch (error) {
-      expect((error as Error).message).to.contain(new NoFlagProvidedError('email').message);
+      expect((error as Error).message).to.contain('EEXIT: 1');
+      expect((error as Error & { oclif?: { exit: number } }).oclif?.exit).to.equal(1);
     }
 
     expect(getValueFromFlagsSpy).toHaveBeenCalledOnce();
@@ -50,7 +57,8 @@ describe('Login Command', () => {
       await Login.run(['--non-interactive', `--email="${UserLoginFixture.email}"`]);
       fail('Expected function to throw an error, but it did not.');
     } catch (error) {
-      expect((error as Error).message).to.contain(new NoFlagProvidedError('password').message);
+      expect((error as Error).message).to.contain('EEXIT: 1');
+      expect((error as Error & { oclif?: { exit: number } }).oclif?.exit).to.equal(1);
     }
 
     expect(getValueFromFlagsSpy).toHaveBeenCalledTimes(2);
@@ -78,7 +86,8 @@ describe('Login Command', () => {
       ]);
       fail('Expected function to throw an error, but it did not.');
     } catch (error) {
-      expect((error as Error).message).to.contain(new NoFlagProvidedError('twofactor').message);
+      expect((error as Error).message).to.contain('EEXIT: 1');
+      expect((error as Error & { oclif?: { exit: number } }).oclif?.exit).to.equal(1);
     }
 
     expect(getValueFromFlagsSpy).toHaveBeenCalledTimes(3);
