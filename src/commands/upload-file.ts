@@ -157,7 +157,7 @@ export default class UploadFile extends Command {
         }
       }
     } catch (error) {
-      ErrorUtils.report(this.error.bind(this), error, { command: this.id });
+      ErrorUtils.report(error, { command: this.id });
     }
 
     progressBar?.update(100);
@@ -184,7 +184,6 @@ export default class UploadFile extends Command {
       error,
       command: this.id,
       logReporter: this.log.bind(this),
-      errorReporter: this.error.bind(this),
       jsonFlag: flags['json'],
     });
     this.exit(1);

@@ -27,7 +27,6 @@ const hook: Hook<'prerun'> = async function (opts) {
         error: err,
         command: Command.id,
         logReporter: this.log.bind(this),
-        errorReporter: this.error.bind(this),
         jsonFlag,
       });
       opts.context.exit(1);
