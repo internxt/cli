@@ -3,7 +3,7 @@ import path from 'node:path';
 import { WebDavRequestedResource } from '../types/webdav.types';
 import { DriveFolderService } from '../services/drive/drive-folder.service';
 import { DriveFileService } from '../services/drive/drive-file.service';
-import { DriveFileItem, DriveFolderItem } from '../types/drive.types';
+import { DriveFileItem, DriveFolderItem, DriveItem } from '../types/drive.types';
 
 export class WebDavUtils {
   static joinURL(...pathComponents: string[]): string {
@@ -88,7 +88,7 @@ export class WebDavUtils {
     resource: WebDavRequestedResource;
     driveFolderService: DriveFolderService;
     driveFileService: DriveFileService;
-  }): Promise<DriveFileItem | DriveFolderItem | undefined>;
+  }): Promise<DriveItem | undefined>;
 
   static async getDriveItemFromResource({
     resource,
@@ -98,8 +98,8 @@ export class WebDavUtils {
     resource: WebDavRequestedResource;
     driveFolderService?: DriveFolderService;
     driveFileService?: DriveFileService;
-  }): Promise<DriveFileItem | DriveFolderItem | undefined> {
-    let item: DriveFileItem | DriveFolderItem | undefined = undefined;
+  }): Promise<DriveItem | undefined> {
+    let item: DriveItem | undefined = undefined;
 
     try {
       if (resource.type === 'folder') {

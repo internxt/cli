@@ -17,7 +17,7 @@ export class ConfigService {
   static readonly WEBDAV_DEFAULT_PORT = '3005';
   static readonly WEBDAV_DEFAULT_PROTOCOL = 'https';
   static readonly WEBDAV_DEFAULT_TIMEOUT = 0;
-  static readonly WEBDAV_DEFAULT_CREATE_FULL_PATH = false;
+  static readonly WEBDAV_DEFAULT_CREATE_FULL_PATH = true;
   public static readonly instance: ConfigService = new ConfigService();
 
   /**
