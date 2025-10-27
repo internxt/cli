@@ -14,6 +14,7 @@
     "test": "yarn test:unit",
     "test:unit": "vitest run --coverage",
     "test:watch": "vitest watch",
+    "find-deadcode": "ts-prune -e",
     "dev:webdav": "nodemon -e ts --exec ts-node src/webdav/index.ts",
     "pack:win": "oclif pack win",
     "publish:npm": "npm run build && npm publish --scope=@internxt --registry=https://registry.npmjs.org/ --access public",
@@ -79,6 +80,7 @@
     "prettier": "3.6.2",
     "rimraf": "6.0.1",
     "ts-node": "10.9.2",
+    "ts-prune": "^0.10.3",
     "typescript": "5.9.3",
     "vitest": "3.2.4",
     "vitest-mock-express": "2.2.0"
