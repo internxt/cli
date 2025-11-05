@@ -55,13 +55,3 @@ jobs:
           tags: |
             internxt/webdav:latest
             internxt/webdav:${{ env.DOCKER_TAG }}
-
-      - name: Update Docker Hub Description
-        uses: peter-evans/dockerhub-description@v5
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-          repository: internxt/webdav
-          short-description: Official WebDAV server for Internxt
-          readme-filepath: ./docker/README.md
-          enable-url-completion: true

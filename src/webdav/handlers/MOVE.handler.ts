@@ -6,17 +6,19 @@ import { NotFoundError } from '../../utils/errors.utils';
 import { webdavLogger } from '../../utils/logger.utils';
 import { WebDavUtils } from '../../utils/webdav.utils';
 import { DriveFileItem, DriveFolderItem } from '../../types/drive.types';
+import { WebDavFolderService } from '../services/webdav-folder.service';
 
 export class MOVERequestHandler implements WebDavMethodHandler {
   constructor(
     private readonly dependencies: {
       driveFolderService: DriveFolderService;
       driveFileService: DriveFileService;
+      webDavFolderService: WebDavFolderService;
     },
   ) {}
 
   handle = async (req: Request, res: Response) => {
-    const { driveFolderService, driveFileService } = this.dependencies;
+    const { driveFolderService, driveFileService, webDavFolderService } = this.dependencies;
     const resource = await WebDavUtils.getRequestedResource(req);
 
     webdavLogger.info(`[MOVE] Request received for ${resource.type} at ${resource.url}`);
@@ -65,17 +67,10 @@ export class MOVERequestHandler implements WebDavMethodHandler {
     } else {
       // MOVE (the operation is from different dirs)
       webdavLogger.info(`[MOVE] Moving ${resource.type} with UUID ${originalDriveItem.uuid} to ${destinationPath}`);
-      const destinationFolderResource = await WebDavUtils.getRequestedResource(destinationResource.parentPath);
 
-      const destinationDriveFolderItem = await WebDavUtils.getDriveItemFromResource({
-        resource: destinationFolderResource,
-        driveFolderService,
-      });
-
-      if (!destinationDriveFolderItem) {
-        throw new NotFoundError(`Resource not found on Internxt Drive at ${resource.url}`);
-      }
-      const destinationFolderItem = destinationDriveFolderItem as DriveFileItem;
+      const destinationFolderItem =
+        (await webDavFolderService.getDriveFolderItemFromPath(destinationResource.parentPath)) ??
+        (await webDavFolderService.createParentPathOrThrow(destinationResource.parentPath));
 
       if (resource.type === 'folder') {
         const folder = originalDriveItem as DriveFolderItem;

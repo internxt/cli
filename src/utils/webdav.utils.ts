@@ -3,7 +3,7 @@ import path from 'node:path';
 import { WebDavRequestedResource } from '../types/webdav.types';
 import { DriveFolderService } from '../services/drive/drive-folder.service';
 import { DriveFileService } from '../services/drive/drive-file.service';
-import { DriveFileItem, DriveFolderItem } from '../types/drive.types';
+import { DriveFileItem, DriveFolderItem, DriveItem } from '../types/drive.types';
 
 export class WebDavUtils {
   static joinURL(...pathComponents: string[]): string {
@@ -22,6 +22,23 @@ export class WebDavUtils {
     return url;
   }
 
+  static decodeUrl(requestUrl: string, decodeUri = true): string {
+    return (decodeUri ? decodeURIComponent(requestUrl) : requestUrl).replaceAll('/./', '/');
+  }
+
+  static normalizeFolderPath(path: string): string {
+    let normalizedPath = path;
+
+    if (!normalizedPath.startsWith('/')) {
+      normalizedPath = `/${normalizedPath}`;
+    }
+
+    if (!normalizedPath.endsWith('/')) {
+      normalizedPath = `${normalizedPath}/`;
+    }
+    return normalizedPath;
+  }
+
   static async getRequestedResource(urlObject: string | Request, decodeUri = true): Promise<WebDavRequestedResource> {
     let requestUrl: string;
     if (typeof urlObject === 'string') {
@@ -30,11 +47,9 @@ export class WebDavUtils {
       requestUrl = urlObject.url;
     }
 
-    const decodedUrl = (decodeUri ? decodeURIComponent(requestUrl) : requestUrl).replaceAll('/./', '/');
+    const decodedUrl = this.decodeUrl(requestUrl, decodeUri);
     const parsedPath = path.parse(decodedUrl);
-    let parentPath = path.dirname(decodedUrl);
-    if (!parentPath.startsWith('/')) parentPath = '/'.concat(parentPath);
-    if (!parentPath.endsWith('/')) parentPath = parentPath.concat('/');
+    const parentPath = this.normalizeFolderPath(path.dirname(decodedUrl));
 
     const isFolder = requestUrl.endsWith('/');
 
@@ -57,6 +72,24 @@ export class WebDavUtils {
     }
   }
 
+  static async getDriveItemFromResource(params: {
+    resource: WebDavRequestedResource;
+    driveFolderService: DriveFolderService;
+    driveFileService?: never;
+  }): Promise<DriveFolderItem | undefined>;
+
+  static async getDriveItemFromResource(params: {
+    resource: WebDavRequestedResource;
+    driveFolderService?: never;
+    driveFileService: DriveFileService;
+  }): Promise<DriveFileItem | undefined>;
+
+  static async getDriveItemFromResource(params: {
+    resource: WebDavRequestedResource;
+    driveFolderService: DriveFolderService;
+    driveFileService: DriveFileService;
+  }): Promise<DriveItem | undefined>;
+
   static async getDriveItemFromResource({
     resource,
     driveFolderService,
@@ -65,8 +98,8 @@ export class WebDavUtils {
     resource: WebDavRequestedResource;
     driveFolderService?: DriveFolderService;
     driveFileService?: DriveFileService;
-  }): Promise<DriveFileItem | DriveFolderItem | undefined> {
-    let item: DriveFileItem | DriveFolderItem | undefined = undefined;
+  }): Promise<DriveItem | undefined> {
+    let item: DriveItem | undefined = undefined;
 
     try {
       if (resource.type === 'folder') {
