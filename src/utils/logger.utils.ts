@@ -49,3 +49,19 @@ export const webdavLogger = winston.createLogger({
     }),
   ],
 });
+
+if (process.env.NODE_ENV !== 'production') {
+  webdavLogger.add(
+    new winston.transports.Console({
+      format: winston.format.simple(),
+    }),
+  );
+}
+
+if (process.env.NODE_ENV !== 'production') {
+  logger.add(
+    new winston.transports.Console({
+      format: winston.format.simple(),
+    }),
+  );
+}
