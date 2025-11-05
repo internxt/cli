@@ -1,11 +1,18 @@
+import { logger } from './logger.utils';
+import { types } from 'node:util';
+
+export function isError(error: unknown): error is Error {
+  return types.isNativeError(error);
+}
+
 export class ErrorUtils {
-  static report(reporter: (error: string) => void, error: unknown, props: Record<string, unknown> = {}) {
-    if (error instanceof Error) {
-      reporter(
+  static report(error: unknown, props: Record<string, unknown> = {}) {
+    if (isError(error)) {
+      logger.error(
         `[REPORTED_ERROR]: ${error.message}\nProperties => ${JSON.stringify(props, null, 2)}\nStack => ${error.stack}`,
       );
     } else {
-      reporter(`[REPORTED_ERROR]: ${JSON.stringify(error)}\nProperties => ${JSON.stringify(props, null, 2)}\n`);
+      logger.error(`[REPORTED_ERROR]: ${JSON.stringify(error)}\nProperties => ${JSON.stringify(props, null, 2)}\n`);
     }
   }
 }
