@@ -59,6 +59,10 @@ USAGE
 ```
 <!-- usagestop -->
 
+# Docker
+
+[`Internxt WebDAV (Docker Integration)`](docker/README.md)
+
 # Commands
 
 <!-- commands -->

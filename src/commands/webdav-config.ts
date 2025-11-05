@@ -38,19 +38,25 @@ export default class WebDAVConfig extends Command {
       required: false,
       min: 0,
     }),
+    createFullPath: Flags.boolean({
+      char: 'c',
+      description: 'Auto-create missing parent directories during file uploads.',
+      required: false,
+      allowNo: true,
+    }),
   };
   static readonly enableJsonFlag = true;
 
   public run = async () => {
-    const { flags } = await this.parse(WebDAVConfig);
+    const {
+      flags: { host, port, http, https, timeout, createFullPath },
+    } = await this.parse(WebDAVConfig);
     const webdavConfig = await ConfigService.instance.readWebdavConfig();
 
-    const host = flags['host'];
     if (host) {
       webdavConfig['host'] = host;
     }
 
-    const port = flags['port'];
     if (port) {
       if (ValidationService.instance.validateTCPIntegerPort(port)) {
         webdavConfig['port'] = port;
@@ -59,19 +65,20 @@ export default class WebDAVConfig extends Command {
       }
     }
 
-    const http = flags['http'];
     if (http) {
       webdavConfig['protocol'] = 'http';
     }
 
-    const https = flags['https'];
     if (https) {
       webdavConfig['protocol'] = 'https';
     }
 
-    const timeout = flags['timeout'];
     if (timeout !== undefined) {
       webdavConfig['timeoutMinutes'] = timeout;
+    }
+
+    if (createFullPath !== undefined) {
+      webdavConfig['createFullPath'] = createFullPath;
     }
 
     await ConfigService.instance.saveWebdavConfig(webdavConfig);
@@ -86,7 +93,6 @@ export default class WebDAVConfig extends Command {
       error,
       command: this.id,
       logReporter: this.log.bind(this),
-      errorReporter: this.error.bind(this),
       jsonFlag: flags['json'],
     });
     this.exit(1);

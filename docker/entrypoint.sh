@@ -23,7 +23,7 @@ fi
 eval $LOGIN_CMD
 
 
-WEBDAV_CMD="internxt webdav-config"
+WEBDAV_CMD="internxt webdav-config -l='0.0.0.0'"
 
 if [ -n "$WEBDAV_PORT" ]; then
   WEBDAV_CMD="$WEBDAV_CMD -p=$WEBDAV_PORT"

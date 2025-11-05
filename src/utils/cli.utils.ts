@@ -175,14 +175,12 @@ export class CLIUtils {
   static readonly catchError = ({
     error,
     logReporter,
-    errorReporter,
     command,
     jsonFlag,
   }: {
     error: Error;
     command?: string;
     logReporter: (message: string) => void;
-    errorReporter: (message: string) => void;
     jsonFlag?: boolean;
   }) => {
     let message;
@@ -196,7 +194,7 @@ export class CLIUtils {
     if (jsonFlag) {
       CLIUtils.consoleLog(JSON.stringify({ success: false, message }));
     } else {
-      ErrorUtils.report(errorReporter, error, { command });
+      ErrorUtils.report(error, { command });
       CLIUtils.error(logReporter, message);
     }
   };
