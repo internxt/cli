@@ -1,6 +1,6 @@
 {
   "author": "Internxt <hello@internxt.com>",
-  "version": "1.5.7",
+  "version": "1.5.8",
   "description": "Internxt CLI to manage your encrypted storage",
   "scripts": {
     "build": "yarn clean && tsc",
@@ -40,7 +40,7 @@
     "@internxt/inxt-js": "2.2.9",
     "@internxt/lib": "1.3.1",
     "@internxt/sdk": "1.11.12",
-    "@oclif/core": "4.5.5",
+    "@oclif/core": "4.7.2",
     "@oclif/plugin-autocomplete": "3.2.36",
     "axios": "1.12.2",
     "bip39": "3.1.0",
@@ -67,7 +67,7 @@
     "@types/cli-progress": "3.11.6",
     "@types/express": "5.0.3",
     "@types/mime-types": "3.0.1",
-    "@types/node": "22.18.9",
+    "@types/node": "22.18.12",
     "@types/range-parser": "1.2.7",
     "@vitest/coverage-istanbul": "3.2.4",
     "@vitest/spy": "3.2.4",

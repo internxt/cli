@@ -28,3 +28,5 @@ export type DriveFolderItem = Pick<DriveFolderData, 'name' | 'bucket' | 'id' | '
   status: 'EXISTS' | 'TRASHED';
   parentUuid: string | null;
 };
+
+export type DriveItem = DriveFileItem | DriveFolderItem;
