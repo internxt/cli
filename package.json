@@ -1,6 +1,6 @@
 {
   "author": "Internxt <hello@internxt.com>",
-  "version": "1.5.7",
+  "version": "1.5.8",
   "description": "Internxt CLI to manage your encrypted storage",
   "scripts": {
     "build": "yarn clean && tsc",
@@ -67,7 +67,7 @@
     "@types/cli-progress": "3.11.6",
     "@types/express": "5.0.3",
     "@types/mime-types": "3.0.1",
-    "@types/node": "22.18.9",
+    "@types/node": "22.18.12",
     "@types/range-parser": "1.2.7",
     "@vitest/coverage-istanbul": "3.2.4",
     "@vitest/spy": "3.2.4",
