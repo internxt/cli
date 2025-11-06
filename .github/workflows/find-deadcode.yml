@@ -1,4 +1,6 @@
 name: Find deadcode
+permissions:
+  contents: read
 
 on: pull_request
 
