@@ -51,7 +51,8 @@ export class WebDavFolderService {
       // all ancestors MUST already exist, or the method MUST fail
       // with a 409 (Conflict) status code
       throw new ConflictError(
-        `Parent folders not found on Internxt Drive at ${WebDavUtils.decodeUrl(parentPath, false)}`,
+        `Parent folders not found on Internxt Drive at ${WebDavUtils.decodeUrl(parentPath, false)},
+        createFullPath flag is set to: ${createFullPath}`,
       );
     }
     const folders = parentPath.split('/').filter((f) => f.length > 0);
