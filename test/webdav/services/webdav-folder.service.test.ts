@@ -130,6 +130,8 @@ describe('WebDavFolderService', () => {
 
   describe('createFolder', () => {
     it('it should wait 500ms for backend propagation when folder is created', async () => {
+      vi.useFakeTimers();
+
       const folderResponse = newCreateFolderResponse({
         plainName: 'test-folder',
         uuid: 'test-uuid',
@@ -140,20 +142,23 @@ describe('WebDavFolderService', () => {
         { cancel: () => {} },
       ]);
 
-      const startTime = Date.now();
-      const result = await sut.createFolder({
+      const createPromise = sut.createFolder({
         folderName: 'test-folder',
         parentFolderUuid: 'parent-uuid',
       });
-      const endTime = Date.now();
+
+      await vi.advanceTimersByTimeAsync(500);
+
+      const result = await createPromise;
 
       expect(result.uuid).to.equal('test-uuid');
       expect(result.name).to.equal('test-folder');
-      expect(endTime - startTime).toBeGreaterThanOrEqual(500);
       expect(driveFolderService.createFolder).toHaveBeenCalledWith({
         plainName: 'test-folder',
         parentFolderUuid: 'parent-uuid',
       });
+
+      vi.useRealTimers();
     });
   });
 });
