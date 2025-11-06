@@ -178,4 +178,56 @@ describe('Config service', () => {
     expect(webdavConfigResult).to.be.deep.equal(defaultWebdavConfig);
     expect(fsStub).toHaveBeenCalledWith(ConfigService.WEBDAV_CONFIGS_FILE, 'utf8');
   });
+
+  it('should default to true when webdav config exists but createFullPath property is missing', async () => {
+    const partialWebdavConfig = {
+      host: '192.168.1.1',
+      port: '8080',
+      protocol: 'https',
+      timeoutMinutes: 30,
+    };
+    const stringConfig = JSON.stringify(partialWebdavConfig);
+
+    const fsStub = vi.spyOn(fs, 'readFile').mockResolvedValue(stringConfig);
+
+    const webdavConfigResult = await ConfigService.instance.readWebdavConfig();
+    expect(webdavConfigResult.createFullPath).to.be.equal(true);
+    expect(webdavConfigResult.host).to.be.equal(partialWebdavConfig.host);
+    expect(webdavConfigResult.port).to.be.equal(partialWebdavConfig.port);
+    expect(fsStub).toHaveBeenCalledWith(ConfigService.WEBDAV_CONFIGS_FILE, 'utf8');
+  });
+
+  it('shoud return false when webdav config has createFullPath explicitly set to false', async () => {
+    const webdavConfig = {
+      host: '192.168.1.1',
+      port: '8080',
+      protocol: 'https',
+      timeoutMinutes: 30,
+      createFullPath: false,
+    };
+    const stringConfig = JSON.stringify(webdavConfig);
+
+    const fsStub = vi.spyOn(fs, 'readFile').mockResolvedValue(stringConfig);
+
+    const webdavConfigResult = await ConfigService.instance.readWebdavConfig();
+    expect(webdavConfigResult.createFullPath).to.be.equal(false);
+    expect(fsStub).toHaveBeenCalledWith(ConfigService.WEBDAV_CONFIGS_FILE, 'utf8');
+  });
+
+  it('should return true when webdav config has createFullPath explicitly set to true', async () => {
+    const webdavConfig = {
+      host: '192.168.1.1',
+      port: '8080',
+      protocol: 'https',
+      timeoutMinutes: 30,
+      createFullPath: true,
+    };
+    const stringConfig = JSON.stringify(webdavConfig);
+
+    const fsStub = vi.spyOn(fs, 'readFile').mockResolvedValue(stringConfig);
+
+    const webdavConfigResult = await ConfigService.instance.readWebdavConfig();
+    expect(webdavConfigResult.createFullPath).to.be.equal(true);
+    expect(fsStub).toHaveBeenCalledWith(ConfigService.WEBDAV_CONFIGS_FILE, 'utf8');
+  });
 });
