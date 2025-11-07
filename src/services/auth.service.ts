@@ -71,55 +71,32 @@ export class AuthService {
       throw new MissingCredentialsError();
     }
 
-    const tokenDetails = ValidationService.instance.validateTokenAndCheckExpiration(loginCreds.token);
+    const {
+      isValid,
+      expiration: { expired, refreshRequired },
+    } = ValidationService.instance.validateTokenAndCheckExpiration(loginCreds.token);
     const isValidMnemonic = ValidationService.instance.validateMnemonic(loginCreds.user.mnemonic);
 
-    if (!tokenDetails.isValid || !isValidMnemonic) {
+    if (!isValid || !isValidMnemonic) {
       throw new InvalidCredentialsError();
     }
-    if (tokenDetails.expiration.expired) {
+    if (expired) {
       throw new ExpiredCredentialsError();
     }
 
-    const refreshToken = tokenDetails.expiration.refreshRequired;
-    if (refreshToken) {
-      loginCreds = await this.refreshUserToken(loginCreds);
+    if (refreshRequired) {
+      loginCreds = await this.refreshAndStoreUserToken(loginCreds);
     }
 
     return loginCreds;
   };
 
   /**
-   * Refreshes the user auth details
+   * Refreshes the user tokens and stores them in the credentials file
    *
    * @returns The user details and its renewed auth token
    */
-  public refreshUserDetails = async (oldCreds: LoginCredentials): Promise<LoginCredentials> => {
-    SdkManager.init({ token: oldCreds.token });
-    const usersClient = SdkManager.instance.getUsers();
-    const newCreds = await usersClient.getUserData({ userUuid: oldCreds.user.uuid });
-
-    const loginCreds: LoginCredentials = {
-      user: {
-        ...newCreds.user,
-        mnemonic: oldCreds.user.mnemonic,
-        createdAt: new Date(newCreds.user.createdAt).toISOString(),
-      },
-      token: newCreds.newToken,
-      lastLoggedInAt: oldCreds.lastLoggedInAt,
-      lastTokenRefreshAt: new Date().toISOString(),
-    };
-    SdkManager.init({ token: newCreds.newToken });
-    await ConfigService.instance.saveUser(loginCreds);
-    return loginCreds;
-  };
-
-  /**
-   * Refreshes the user tokens
-   *
-   * @returns The user details and its renewed auth token
-   */
-  public refreshUserToken = async (oldCreds: LoginCredentials): Promise<LoginCredentials> => {
+  public refreshAndStoreUserToken = async (oldCreds: LoginCredentials): Promise<LoginCredentials> => {
     SdkManager.init({ token: oldCreds.token });
 
     const usersClient = SdkManager.instance.getUsers();

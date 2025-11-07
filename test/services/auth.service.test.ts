@@ -231,7 +231,7 @@ describe('Auth service', () => {
       .spyOn(ValidationService.instance, 'validateTokenAndCheckExpiration')
       .mockImplementationOnce(() => mockToken);
     const validateMnemonicStub = vi.spyOn(ValidationService.instance, 'validateMnemonic').mockReturnValue(true);
-    const refreshTokensStub = vi.spyOn(sut, 'refreshUserToken').mockResolvedValue(UserCredentialsFixture);
+    const refreshTokensStub = vi.spyOn(sut, 'refreshAndStoreUserToken').mockResolvedValue(UserCredentialsFixture);
 
     await sut.getAuthDetails();
     expect(authStub).toHaveBeenCalledOnce();
