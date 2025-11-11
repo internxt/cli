@@ -29,12 +29,10 @@ describe('Auth service', () => {
       user: UserFixture,
       userTeam: null,
     } as unknown as paths['/auth/cli/login/access']['post']['responses']['200']['content']['application/json'];
-    const mockDate = new Date().toISOString();
 
     vi.spyOn(Auth.prototype, 'loginAccess').mockResolvedValue(loginResponse);
     vi.spyOn(SdkManager.instance, 'getAuth').mockReturnValue(Auth.prototype);
     vi.spyOn(CryptoService.instance, 'decryptTextWithKey').mockReturnValue(loginResponse.user.mnemonic);
-    vi.spyOn(Date.prototype, 'toISOString').mockReturnValue(mockDate);
 
     const responseLogin = await AuthService.instance.doLogin(
       loginResponse.user.email,
@@ -45,8 +43,6 @@ describe('Auth service', () => {
     const expectedResponseLogin: LoginCredentials = {
       user: { ...loginResponse.user },
       token: loginResponse.newToken,
-      lastLoggedInAt: mockDate,
-      lastTokenRefreshAt: mockDate,
     };
     expect(responseLogin).to.be.deep.equal(expectedResponseLogin);
   });

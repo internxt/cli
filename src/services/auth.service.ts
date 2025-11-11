@@ -40,8 +40,6 @@ export class AuthService {
     return {
       user: clearUser,
       token: newToken,
-      lastLoggedInAt: new Date().toISOString(),
-      lastTokenRefreshAt: new Date().toISOString(),
     };
   };
 
@@ -130,8 +128,6 @@ export class AuthService {
     const newLoginCreds: LoginCredentials = {
       ...oldCreds,
       token: newCreds.newToken,
-      lastLoggedInAt: oldCreds.lastLoggedInAt,
-      lastTokenRefreshAt: new Date().toISOString(),
     };
 
     await ConfigService.instance.saveUser(newLoginCreds);
