@@ -56,7 +56,7 @@ describe('PROPFIND request handler', () => {
     });
 
     const folderFixture = newFolderItem({
-      id: UserSettingsFixture.root_folder_id,
+      id: parseInt(UserSettingsFixture.rootFolderId),
     });
     const drive = crypto.randomInt(2000000000);
     const backups = crypto.randomInt(2000000000);
@@ -111,11 +111,11 @@ describe('PROPFIND request handler', () => {
     });
 
     const folderFixture = newFolderItem({
-      id: UserSettingsFixture.root_folder_id,
+      id: parseInt(UserSettingsFixture.rootFolderId),
     });
     const paginatedFolder1 = newPaginatedFolder({
       plainName: 'folder_1',
-      updatedAt: new Date('2024-03-04T15:11:01.000Z'),
+      updatedAt: new Date('2024-03-04T15:11:01.000Z').toString(),
       uuid: 'FOLDER_UUID_1',
     });
     const drive = crypto.randomInt(2000000000);
