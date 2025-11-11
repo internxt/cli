@@ -75,6 +75,7 @@ describe('Auth service', () => {
     const securityDetails: SecurityDetails = {
       encryptedSalt: crypto.randomBytes(16).toString('hex'),
       tfaEnabled: true,
+      useOpaqueLogin: false,
     };
 
     vi.spyOn(Auth.prototype, 'securityDetails').mockResolvedValue(securityDetails);
