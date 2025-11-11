@@ -1,4 +1,3 @@
-import { Request } from 'express';
 import path from 'node:path';
 import { WebDavRequestedResource } from '../types/webdav.types';
 import { DriveFolderService } from '../services/drive/drive-folder.service';
@@ -39,14 +38,7 @@ export class WebDavUtils {
     return normalizedPath;
   }
 
-  static async getRequestedResource(urlObject: string | Request, decodeUri = true): Promise<WebDavRequestedResource> {
-    let requestUrl: string;
-    if (typeof urlObject === 'string') {
-      requestUrl = urlObject;
-    } else {
-      requestUrl = urlObject.url;
-    }
-
+  static async getRequestedResource(requestUrl: string, decodeUri = true): Promise<WebDavRequestedResource> {
     const decodedUrl = this.decodeUrl(requestUrl, decodeUri);
     const parsedPath = path.parse(decodedUrl);
     const parentPath = this.normalizeFolderPath(path.dirname(decodedUrl));

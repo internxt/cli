@@ -33,7 +33,7 @@ export class PUTRequestHandler implements WebDavMethodHandler {
       throw new UnsupportedMediaTypeError('Empty files are not supported');
     }
 
-    const resource = await WebDavUtils.getRequestedResource(req);
+    const resource = await WebDavUtils.getRequestedResource(req.url);
 
     if (resource.type === 'folder') throw new NotFoundError('Folders cannot be created with PUT. Use MKCOL instead.');
 

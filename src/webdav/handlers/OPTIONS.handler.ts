@@ -5,7 +5,7 @@ import { webdavLogger } from '../../utils/logger.utils';
 
 export class OPTIONSRequestHandler implements WebDavMethodHandler {
   handle = async (req: Request, res: Response) => {
-    const resource = await WebDavUtils.getRequestedResource(req);
+    const resource = await WebDavUtils.getRequestedResource(req.url);
 
     webdavLogger.info(`[OPTIONS] Request received for ${resource.type} at ${resource.url}`);
 

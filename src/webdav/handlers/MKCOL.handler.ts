@@ -17,7 +17,7 @@ export class MKCOLRequestHandler implements WebDavMethodHandler {
 
   handle = async (req: Request, res: Response) => {
     const { driveFolderService, webDavFolderService } = this.dependencies;
-    const resource = await WebDavUtils.getRequestedResource(req);
+    const resource = await WebDavUtils.getRequestedResource(req.url);
 
     webdavLogger.info(`[MKCOL] Request received for ${resource.type} at ${resource.url}`);
 

@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { WebDavUtils } from '../../src/utils/webdav.utils';
-import { createWebDavRequestFixture } from '../fixtures/webdav.fixture';
 import { WebDavRequestedResource } from '../../src/types/webdav.types';
 import { newFileItem, newFolderItem } from '../fixtures/drive.fixture';
 import { DriveFolderService } from '../../src/services/drive/drive-folder.service';
@@ -37,26 +36,6 @@ describe('Webdav utils', () => {
   });
 
   describe('getRequestedResource', () => {
-    it('When folder request is given, then it should return the requested resource', async () => {
-      const request = createWebDavRequestFixture({
-        url: '/url/to/folder/',
-      });
-      const resource = await WebDavUtils.getRequestedResource(request);
-      expect(resource).to.deep.equal({
-        url: '/url/to/folder/',
-        type: 'folder',
-        name: 'folder',
-        parentPath: '/url/to/',
-        path: {
-          base: 'folder',
-          dir: '/url/to',
-          ext: '',
-          name: 'folder',
-          root: '/',
-        },
-      });
-    });
-
     it('When folder url is given, then it should generate the requested resource', async () => {
       const requestURL = '/url/to/folder/';
       const resource = await WebDavUtils.getRequestedResource(requestURL);
@@ -70,26 +49,6 @@ describe('Webdav utils', () => {
           dir: '/url/to',
           ext: '',
           name: 'folder',
-          root: '/',
-        },
-      });
-    });
-
-    it('When file request is given, then it should generate the requested resource', async () => {
-      const request = createWebDavRequestFixture({
-        url: '/url/to/test.png',
-      });
-      const resource = await WebDavUtils.getRequestedResource(request);
-      expect(resource).to.deep.equal({
-        url: '/url/to/test.png',
-        type: 'file',
-        name: 'test',
-        parentPath: '/url/to/',
-        path: {
-          base: 'test.png',
-          dir: '/url/to',
-          ext: '.png',
-          name: 'test',
           root: '/',
         },
       });

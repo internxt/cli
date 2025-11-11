@@ -58,7 +58,7 @@ describe('MKCOL request handler', () => {
 
     await requestHandler.handle(request, response);
     expect(response.status).toHaveBeenCalledWith(201);
-    expect(getRequestedResourceStub).toHaveBeenCalledWith(request);
+    expect(getRequestedResourceStub).toHaveBeenCalledWith(request.url);
     expect(getDriveFolderItemFromPathStub).toHaveBeenCalledWith(requestedFolderResource.parentPath);
     expect(getAndSearchItemFromResourceStub).toHaveBeenCalledWith({
       resource: requestedFolderResource,

@@ -16,7 +16,7 @@ export class HEADRequestHandler implements WebDavMethodHandler {
 
   handle = async (req: Request, res: Response) => {
     const { driveFileService } = this.dependencies;
-    const resource = await WebDavUtils.getRequestedResource(req);
+    const resource = await WebDavUtils.getRequestedResource(req.url);
 
     if (resource.type === 'folder') {
       res.status(200).send();
