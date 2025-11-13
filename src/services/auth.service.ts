@@ -81,52 +81,30 @@ export class AuthService {
 
     const refreshToken = tokenDetails.expiration.refreshRequired;
     if (refreshToken) {
-      loginCreds = await this.refreshUserToken(loginCreds);
+      loginCreds = await this.refreshUserToken(loginCreds.token, loginCreds.user.mnemonic);
     }
 
     return loginCreds;
   };
 
   /**
-   * Refreshes the user auth details
+   * Refreshes the user tokens and stores them in the credentials file
    *
-   * @returns The user details and its renewed auth token
+   * @returns The user details and the renewed auth token
    */
-  public refreshUserDetails = async (oldCreds: LoginCredentials): Promise<LoginCredentials> => {
-    SdkManager.init({ token: oldCreds.token });
-    const usersClient = SdkManager.instance.getUsers();
-    const newCreds = await usersClient.getUserData({ userUuid: oldCreds.user.uuid });
-
-    const loginCreds: LoginCredentials = {
-      user: {
-        ...newCreds.user,
-        mnemonic: oldCreds.user.mnemonic,
-        createdAt: new Date(newCreds.user.createdAt).toISOString(),
-      },
-      token: newCreds.newToken,
-      lastLoggedInAt: oldCreds.lastLoggedInAt,
-      lastTokenRefreshAt: new Date().toISOString(),
-    };
-    SdkManager.init({ token: newCreds.newToken });
-    await ConfigService.instance.saveUser(loginCreds);
-    return loginCreds;
-  };
-
-  /**
-   * Refreshes the user tokens
-   *
-   * @returns The user details and its renewed auth token
-   */
-  public refreshUserToken = async (oldCreds: LoginCredentials): Promise<LoginCredentials> => {
-    SdkManager.init({ token: oldCreds.token });
+  public refreshUserToken = async (oldToken: string, mnemonic: string): Promise<LoginCredentials> => {
+    SdkManager.init({ token: oldToken });
 
     const usersClient = SdkManager.instance.getUsers();
-    const newCreds = await usersClient.refreshUser();
+    const newCreds = await usersClient.refreshUserCredentials();
 
     SdkManager.init({ token: newCreds.newToken });
 
     const newLoginCreds: LoginCredentials = {
-      ...oldCreds,
+      user: {
+        ...newCreds.user,
+        mnemonic: mnemonic,
+      },
       token: newCreds.newToken,
     };
 
