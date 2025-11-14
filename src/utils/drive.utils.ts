@@ -4,6 +4,7 @@ import { DriveFileItem, DriveFolderItem } from '../types/drive.types';
 export class DriveUtils {
   static driveFileMetaToItem(fileMeta: FileMeta): DriveFileItem {
     return {
+      itemType: 'file',
       uuid: fileMeta.uuid ?? '',
       status: fileMeta.status,
       folderId: fileMeta.folderId,
@@ -23,6 +24,7 @@ export class DriveUtils {
 
   static driveFolderMetaToItem(folderMeta: FolderMeta): DriveFolderItem {
     return {
+      itemType: 'folder',
       uuid: folderMeta.uuid,
       id: folderMeta.id,
       bucket: folderMeta.bucket,
@@ -38,6 +40,7 @@ export class DriveUtils {
 
   static createFolderResponseToItem(folderResponse: CreateFolderResponse): DriveFolderItem {
     return {
+      itemType: 'folder',
       uuid: folderResponse.uuid,
       id: folderResponse.id,
       bucket: folderResponse.bucket,

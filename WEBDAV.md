@@ -28,6 +28,7 @@ Below you can find a list of WebDav clients that we officially support in the In
 | CyberDuck for MacOS   | ✅        |
 | Transmit              | ✅        |
 | Cadaver               | ✅        |
+| Nautilus (GNOME Files)| ✅        |
 
 ## Supported WebDav methods
 

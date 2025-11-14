@@ -78,6 +78,7 @@ export class DriveFile implements DriveFileAttributes {
 
   public toItem(): DriveFileItem {
     return {
+      itemType: 'file',
       id: this.id,
       name: this.name,
       type: this.type,

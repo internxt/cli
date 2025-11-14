@@ -15,11 +15,13 @@ import { isFileThumbnailable } from '../../utils/thumbnail.utils';
 import { ThumbnailService } from '../../services/thumbnail.service';
 import { WebDavFolderService } from '../services/webdav-folder.service';
 import { AsyncUtils } from '../../utils/async.utils';
+import { DriveFolderService } from '../../services/drive/drive-folder.service';
 
 export class PUTRequestHandler implements WebDavMethodHandler {
   constructor(
     private readonly dependencies: {
       driveFileService: DriveFileService;
+      driveFolderService: DriveFolderService;
       webDavFolderService: WebDavFolderService;
       trashService: TrashService;
       authService: AuthService;
@@ -33,27 +35,30 @@ export class PUTRequestHandler implements WebDavMethodHandler {
       throw new UnsupportedMediaTypeError('Empty files are not supported');
     }
 
-    const resource = await WebDavUtils.getRequestedResource(req);
+    const resource = await WebDavUtils.getRequestedResource(req.url);
 
-    if (resource.type === 'folder') throw new NotFoundError('Folders cannot be created with PUT. Use MKCOL instead.');
-
-    webdavLogger.info(`[PUT] Request received for ${resource.type} at ${resource.url}`);
+    // If the file already exists, the WebDAV specification states that 'PUT /…/file' should replace it.
+    // http://www.webdav.org/specs/rfc4918.html#put-resources
+    const driveFileItem = await WebDavUtils.getDriveItemFromResource({
+      resource: resource,
+      driveFileService: this.dependencies.driveFileService,
+      driveFolderService: this.dependencies.driveFolderService,
+    });
+    if (driveFileItem?.itemType === 'folder') {
+      throw new NotFoundError('Folders cannot be created with PUT. Use MKCOL instead.');
+    }
+    webdavLogger.info(`[PUT] Request received for file at ${resource.url}`);
     webdavLogger.info(`[PUT] Uploading '${resource.name}' to '${resource.parentPath}'`);
 
     const parentDriveFolderItem =
       (await this.dependencies.webDavFolderService.getDriveFolderItemFromPath(resource.parentPath)) ??
       (await this.dependencies.webDavFolderService.createParentPathOrThrow(resource.parentPath));
+
     try {
-      // If the file already exists, the WebDAV specification states that 'PUT /…/file' should replace it.
-      // http://www.webdav.org/specs/rfc4918.html#put-resources
-      const driveFileItem = await WebDavUtils.getDriveItemFromResource({
-        resource: resource,
-        driveFileService: this.dependencies.driveFileService,
-      });
       if (driveFileItem && driveFileItem.status === 'EXISTS') {
         webdavLogger.info(`[PUT] File '${resource.name}' already exists in '${resource.path.dir}', trashing it...`);
         await this.dependencies.trashService.trashItems({
-          items: [{ type: resource.type, uuid: driveFileItem.uuid, id: null }],
+          items: [{ type: driveFileItem.itemType, uuid: driveFileItem.uuid, id: null }],
         });
       }
     } catch {
