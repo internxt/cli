@@ -12,6 +12,7 @@ export type DriveFileItem = Omit<
   | 'modificationTime'
   | 'type'
 > & {
+  itemType: 'file';
   size: number;
   createdAt: Date;
   updatedAt: Date;
@@ -21,6 +22,7 @@ export type DriveFileItem = Omit<
 };
 
 export type DriveFolderItem = Pick<DriveFolderData, 'name' | 'bucket' | 'id' | 'parentId'> & {
+  itemType: 'folder';
   encryptedName: string;
   uuid: string;
   createdAt: Date;

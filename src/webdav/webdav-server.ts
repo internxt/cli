@@ -126,6 +126,7 @@ export class WebDavServer {
       asyncHandler(
         new PUTRequestHandler({
           driveFileService: this.driveFileService,
+          driveFolderService: this.driveFolderService,
           webDavFolderService: webDavFolderService,
           authService: this.authService,
           trashService: this.trashService,

@@ -1,9 +1,9 @@
-import { Request } from 'express';
 import path from 'node:path';
 import { WebDavRequestedResource } from '../types/webdav.types';
 import { DriveFolderService } from '../services/drive/drive-folder.service';
 import { DriveFileService } from '../services/drive/drive-file.service';
 import { DriveFileItem, DriveFolderItem, DriveItem } from '../types/drive.types';
+import { webdavLogger } from './logger.utils';
 
 export class WebDavUtils {
   static joinURL(...pathComponents: string[]): string {
@@ -39,56 +39,62 @@ export class WebDavUtils {
     return normalizedPath;
   }
 
-  static async getRequestedResource(urlObject: string | Request, decodeUri = true): Promise<WebDavRequestedResource> {
-    let requestUrl: string;
-    if (typeof urlObject === 'string') {
-      requestUrl = urlObject;
-    } else {
-      requestUrl = urlObject.url;
-    }
-
+  static async getRequestedResource(requestUrl: string, decodeUri = true): Promise<WebDavRequestedResource> {
     const decodedUrl = this.decodeUrl(requestUrl, decodeUri);
     const parsedPath = path.parse(decodedUrl);
     const parentPath = this.normalizeFolderPath(path.dirname(decodedUrl));
 
-    const isFolder = requestUrl.endsWith('/');
+    return {
+      url: decodedUrl,
+      name: parsedPath.base,
+      path: parsedPath,
+      parentPath,
+    };
+  }
 
-    if (isFolder) {
-      return {
-        type: 'folder',
-        url: decodedUrl,
-        name: parsedPath.base,
-        path: parsedPath,
-        parentPath,
-      };
-    } else {
-      return {
-        type: 'file',
-        url: decodedUrl,
-        name: parsedPath.name,
-        path: parsedPath,
-        parentPath,
-      };
+  static async tryGetFileOrFolderMetadata({
+    url,
+    driveFileService,
+    driveFolderService,
+  }: {
+    url: string;
+    driveFolderService: DriveFolderService;
+    driveFileService: DriveFileService;
+  }): Promise<DriveItem | undefined> {
+    try {
+      return await driveFileService.getFileMetadataByPath(url);
+    } catch {
+      return await driveFolderService.getFolderMetadataByPath(url);
     }
   }
 
-  static async getDriveItemFromResource(params: {
-    resource: WebDavRequestedResource;
-    driveFolderService: DriveFolderService;
-    driveFileService?: never;
-  }): Promise<DriveFolderItem | undefined>;
-
-  static async getDriveItemFromResource(params: {
-    resource: WebDavRequestedResource;
-    driveFolderService?: never;
+  static async getDriveFileFromResource({
+    url,
+    driveFileService,
+  }: {
+    url: string;
     driveFileService: DriveFileService;
-  }): Promise<DriveFileItem | undefined>;
+  }): Promise<DriveFileItem | undefined> {
+    try {
+      return await driveFileService.getFileMetadataByPath(url);
+    } catch (err) {
+      webdavLogger.error('Exception while getting the file metadata by path', err);
+    }
+  }
 
-  static async getDriveItemFromResource(params: {
-    resource: WebDavRequestedResource;
+  static async getDriveFolderFromResource({
+    url,
+    driveFolderService,
+  }: {
+    url: string;
     driveFolderService: DriveFolderService;
-    driveFileService: DriveFileService;
-  }): Promise<DriveItem | undefined>;
+  }): Promise<DriveFolderItem | undefined> {
+    try {
+      return await driveFolderService.getFolderMetadataByPath(url);
+    } catch (err) {
+      webdavLogger.error('Exception while getting the folder metadata by path', err);
+    }
+  }
 
   static async getDriveItemFromResource({
     resource,
@@ -96,17 +102,22 @@ export class WebDavUtils {
     driveFileService,
   }: {
     resource: WebDavRequestedResource;
-    driveFolderService?: DriveFolderService;
-    driveFileService?: DriveFileService;
+    driveFolderService: DriveFolderService;
+    driveFileService: DriveFileService;
   }): Promise<DriveItem | undefined> {
     let item: DriveItem | undefined = undefined;
 
+    const isFolder = resource.url.endsWith('/');
+
     try {
-      if (resource.type === 'folder') {
-        item = await driveFolderService?.getFolderMetadataByPath(resource.url);
-      }
-      if (resource.type === 'file') {
-        item = await driveFileService?.getFileMetadataByPath(resource.url);
+      if (isFolder) {
+        item = await driveFolderService.getFolderMetadataByPath(resource.url);
+      } else {
+        item = await this.tryGetFileOrFolderMetadata({
+          url: resource.url,
+          driveFileService,
+          driveFolderService,
+        });
       }
     } catch {
       //no op
