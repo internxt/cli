@@ -1,6 +1,6 @@
-import http from 'http';
+import http from 'node:http';
 import open from 'open';
-import { AddressInfo } from 'net';
+import { AddressInfo } from 'node:net';
 import { LoginCredentials } from '../types/command.types';
 import { ConfigService } from './config.service';
 import { AuthService } from './auth.service';
