@@ -73,4 +73,83 @@ describe('Validation Service', () => {
     expect(ValidationService.instance.validateStringIsNotEmpty('\t')).to.be.equal(false);
     expect(ValidationService.instance.validateStringIsNotEmpty('\t\n')).to.be.equal(false);
   });
+
+  describe('Token validation', () => {
+    const createJWT = (payload: object): string => {
+      const header = { alg: 'HS256', typ: 'JWT' };
+      const encodedHeader = btoa(JSON.stringify(header));
+      const encodedPayload = btoa(JSON.stringify(payload));
+      const signature = btoa('fake-signature');
+      return `${encodedHeader}.${encodedPayload}.${signature}`;
+    };
+
+    const getCurrentTimeInSeconds = () => Math.floor(Date.now() / 1000);
+    const oneDayInSeconds = 24 * 60 * 60;
+    const threeDaysInSeconds = 3 * 24 * 60 * 60;
+
+    it('should return result with isValid false when token is not a string', () => {
+      const result = ValidationService.instance.validateTokenAndCheckExpiration(undefined);
+      expect(result.isValid).to.be.equal(false);
+      expect(result.expiration.expired).to.be.equal(true);
+      expect(result.expiration.refreshRequired).to.be.equal(false);
+    });
+
+    it('should return result with isValid false when token does not have the proper jwt.token format', () => {
+      const invalidToken = 'not.a.valid.jwt.token';
+      const result = ValidationService.instance.validateTokenAndCheckExpiration(invalidToken);
+      expect(result.isValid).to.be.equal(false);
+      expect(result.expiration.expired).to.be.equal(true);
+      expect(result.expiration.refreshRequired).to.be.equal(false);
+    });
+
+    it('should return result with isValid false when token payload expiration is not a number', () => {
+      const tokenWithInvalidExp = createJWT({ exp: 'not-a-number' });
+      const result = ValidationService.instance.validateTokenAndCheckExpiration(tokenWithInvalidExp);
+      expect(result.isValid).to.be.equal(false);
+      expect(result.expiration.expired).to.be.equal(true);
+      expect(result.expiration.refreshRequired).to.be.equal(false);
+    });
+
+    it('should return result with isValid true when token is valid', () => {
+      const futureExp = getCurrentTimeInSeconds();
+      const validToken = createJWT({ exp: futureExp });
+      const result = ValidationService.instance.validateTokenAndCheckExpiration(validToken);
+      expect(result.isValid).to.be.equal(true);
+    });
+
+    it('should return result with expiration.expired true when token is expired', () => {
+      const pastExp = getCurrentTimeInSeconds();
+      const expiredToken = createJWT({ exp: pastExp });
+      const result = ValidationService.instance.validateTokenAndCheckExpiration(expiredToken);
+      expect(result.isValid).to.be.equal(true);
+      expect(result.expiration.expired).to.be.equal(true);
+      expect(result.expiration.refreshRequired).to.be.equal(false);
+    });
+
+    it('should return result with expiration.expired false when token is not expired', () => {
+      const futureExp = getCurrentTimeInSeconds() + threeDaysInSeconds;
+      const validToken = createJWT({ exp: futureExp });
+      const result = ValidationService.instance.validateTokenAndCheckExpiration(validToken);
+      expect(result.isValid).to.be.equal(true);
+      expect(result.expiration.expired).to.be.equal(false);
+    });
+
+    it('should return result with refreshRequired true when token is about to expire in 2 days or less', () => {
+      const expiresInOneDayExp = getCurrentTimeInSeconds() + oneDayInSeconds;
+      const tokenExpiringSoon = createJWT({ exp: expiresInOneDayExp });
+      const result = ValidationService.instance.validateTokenAndCheckExpiration(tokenExpiringSoon);
+      expect(result.isValid).to.be.equal(true);
+      expect(result.expiration.expired).to.be.equal(false);
+      expect(result.expiration.refreshRequired).to.be.equal(true);
+    });
+
+    it('should return object with refreshRequired false when token is not about to expire in 2 days', () => {
+      const expiresInThreeDaysExp = getCurrentTimeInSeconds() + threeDaysInSeconds;
+      const tokenNotExpiringSoon = createJWT({ exp: expiresInThreeDaysExp });
+      const result = ValidationService.instance.validateTokenAndCheckExpiration(tokenNotExpiringSoon);
+      expect(result.isValid).to.be.equal(true);
+      expect(result.expiration.expired).to.be.equal(false);
+      expect(result.expiration.refreshRequired).to.be.equal(false);
+    });
+  });
 });
