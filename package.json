@@ -50,7 +50,7 @@
     "dotenv": "17.2.3",
     "express": "5.1.0",
     "express-async-handler": "1.2.0",
-    "fast-xml-parser": "5.3.1",
+    "fast-xml-parser": "5.3.2",
     "mime-types": "3.0.1",
     "open": "10.2.0",
     "openpgp": "6.2.2",
@@ -70,8 +70,8 @@
     "@types/mime-types": "3.0.1",
     "@types/node": "22.18.12",
     "@types/range-parser": "1.2.7",
-    "@vitest/coverage-istanbul": "4.0.8",
-    "@vitest/spy": "4.0.8",
+    "@vitest/coverage-istanbul": "4.0.9",
+    "@vitest/spy": "4.0.9",
     "eslint": "9.39.1",
     "husky": "9.1.7",
     "lint-staged": "16.2.6",
@@ -81,7 +81,7 @@
     "rimraf": "6.1.0",
     "ts-node": "10.9.2",
     "typescript": "5.9.3",
-    "vitest": "4.0.8",
+    "vitest": "4.0.9",
     "vitest-mock-express": "2.2.0"
   },
   "optionalDependencies": {
