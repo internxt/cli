@@ -14,20 +14,22 @@ import { WebDavFolderService } from '../../../src/webdav/services/webdav-folder.
 import { ConfigService } from '../../../src/services/config.service';
 
 describe('MKCOL request handler', () => {
+  let webDavFolderService: WebDavFolderService;
+  let sut: MKCOLRequestHandler;
+
   beforeEach(() => {
+    webDavFolderService = new WebDavFolderService({
+      driveFolderService: DriveFolderService.instance,
+      configService: ConfigService.instance,
+    });
+    sut = new MKCOLRequestHandler({
+      driveFolderService: DriveFolderService.instance,
+      webDavFolderService,
+    });
     vi.restoreAllMocks();
   });
 
   it('When a WebDav client sends a MKCOL request, it should reply with a 201 if success', async () => {
-    const driveFolderService = DriveFolderService.instance;
-    const webDavFolderService = new WebDavFolderService({
-      driveFolderService: DriveFolderService.instance,
-      configService: ConfigService.instance,
-    });
-    const requestHandler = new MKCOLRequestHandler({
-      driveFolderService,
-      webDavFolderService,
-    });
     const requestedFolderResource: WebDavRequestedResource = getRequestedFolderResource({
       parentFolder: '/test',
       folderName: 'FolderA',
@@ -49,20 +51,20 @@ describe('MKCOL request handler', () => {
     const getDriveFolderItemFromPathStub = vi
       .spyOn(webDavFolderService, 'getDriveFolderItemFromPath')
       .mockResolvedValue(parentFolder);
-    const getAndSearchItemFromResourceStub = vi
-      .spyOn(WebDavUtils, 'getDriveItemFromResource')
+    const getDriveFolderFromResourceStub = vi
+      .spyOn(WebDavUtils, 'getDriveFolderFromResource')
       .mockResolvedValue(undefined);
     const createFolderStub = vi
       .spyOn(webDavFolderService, 'createFolder')
       .mockResolvedValue(newFolderItem({ name: 'FolderA', uuid: 'new-folder-uuid' }));
 
-    await requestHandler.handle(request, response);
+    await sut.handle(request, response);
     expect(response.status).toHaveBeenCalledWith(201);
-    expect(getRequestedResourceStub).toHaveBeenCalledWith(request);
+    expect(getRequestedResourceStub).toHaveBeenCalledWith(request.url);
     expect(getDriveFolderItemFromPathStub).toHaveBeenCalledWith(requestedFolderResource.parentPath);
-    expect(getAndSearchItemFromResourceStub).toHaveBeenCalledWith({
-      resource: requestedFolderResource,
-      driveFolderService,
+    expect(getDriveFolderFromResourceStub).toHaveBeenCalledWith({
+      url: requestedFolderResource.url,
+      driveFolderService: DriveFolderService.instance,
     });
     expect(createFolderStub).toHaveBeenCalledWith({
       folderName: requestedFolderResource.path.base,

@@ -8,7 +8,6 @@ import { CryptoService } from '../../services/crypto.service';
 import { AuthService } from '../../services/auth.service';
 import { NotFoundError } from '../../utils/errors.utils';
 import { webdavLogger } from '../../utils/logger.utils';
-import { DriveFileItem } from '../../types/drive.types';
 import { NetworkUtils } from '../../utils/network.utils';
 
 export class GETRequestHandler implements WebDavMethodHandler {
@@ -24,21 +23,21 @@ export class GETRequestHandler implements WebDavMethodHandler {
 
   handle = async (req: Request, res: Response) => {
     const { driveFileService, authService, networkFacade } = this.dependencies;
-    const resource = await WebDavUtils.getRequestedResource(req);
+    const resource = await WebDavUtils.getRequestedResource(req.url);
 
     if (resource.name.startsWith('._')) throw new NotFoundError('File not found');
-    if (resource.type === 'folder') throw new NotFoundError('Folders cannot be listed with GET. Use PROPFIND instead.');
 
-    webdavLogger.info(`[GET] Request received for ${resource.type} at ${resource.url}`);
-    const driveItem = await WebDavUtils.getDriveItemFromResource({
-      resource,
+    webdavLogger.info(`[GET] Request received item at ${resource.url}`);
+    const driveFile = await WebDavUtils.getDriveFileFromResource({
+      url: resource.url,
       driveFileService,
     });
 
-    if (!driveItem) {
-      throw new NotFoundError(`Resource not found on Internxt Drive at ${resource.url}`);
+    if (!driveFile) {
+      throw new NotFoundError(
+        `Resource not found on Internxt Drive at ${resource.url}, if trying to access a folder use PROPFIND instead.`,
+      );
     }
-    const driveFile = driveItem as DriveFileItem;
 
     webdavLogger.info(`[GET] [${driveFile.uuid}] Found Drive File`);
 
