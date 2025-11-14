@@ -37,7 +37,6 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
 
     switch (driveItem.itemType) {
       case 'file': {
-        // Here its only used the url
         const fileMetaXML = await this.getFileMetaXML(resource, driveItem);
         res.status(207).send(fileMetaXML);
         break;
@@ -45,7 +44,6 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
 
       case 'folder': {
         const depth = req.header('depth') ?? '1';
-        // Here its only used the url
         const folderMetaXML = await this.getFolderContentXML(resource, driveItem, depth);
         res.status(207).send(folderMetaXML);
         break;

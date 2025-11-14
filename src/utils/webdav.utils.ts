@@ -39,7 +39,6 @@ export class WebDavUtils {
     return normalizedPath;
   }
 
-  // TODO: We can rename this method to parseUrlToPathMetadata so its more descriptive
   static async getRequestedResource(requestUrl: string, decodeUri = true): Promise<WebDavRequestedResource> {
     const decodedUrl = this.decodeUrl(requestUrl, decodeUri);
     const parsedPath = path.parse(decodedUrl);
@@ -97,7 +96,6 @@ export class WebDavUtils {
     }
   }
 
-  // This method will be used mainly for propfind, since we dont know what the user is requesting for
   static async getDriveItemFromResource({
     resource,
     driveFolderService,
@@ -109,8 +107,6 @@ export class WebDavUtils {
   }): Promise<DriveItem | undefined> {
     let item: DriveItem | undefined = undefined;
 
-    // This is exactly the problem, nautilus sends folder urls without trailing slash
-    // There is just no other way to check wether its a folder or file at this point other than checking ourselves
     const isFolder = resource.url.endsWith('/');
 
     try {
