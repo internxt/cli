@@ -41,7 +41,6 @@ describe('Webdav utils', () => {
       const resource = await WebDavUtils.getRequestedResource(requestURL);
       expect(resource).to.deep.equal({
         url: '/url/to/folder/',
-        type: 'folder',
         name: 'folder',
         parentPath: '/url/to/',
         path: {
@@ -59,8 +58,7 @@ describe('Webdav utils', () => {
       const resource = await WebDavUtils.getRequestedResource(requestURL);
       expect(resource).to.deep.equal({
         url: '/url/to/test.png',
-        type: 'file',
-        name: 'test',
+        name: 'test.png',
         parentPath: '/url/to/',
         path: {
           base: 'test.png',
@@ -76,8 +74,7 @@ describe('Webdav utils', () => {
   describe('getDriveItemFromResource', () => {
     const requestFileFixture: WebDavRequestedResource = {
       url: '/url/to/test.png',
-      type: 'file',
-      name: 'test',
+      name: 'test.png',
       parentPath: '/url/to/',
       path: {
         base: 'test.png',
@@ -89,7 +86,6 @@ describe('Webdav utils', () => {
     };
     const requestFolderFixture: WebDavRequestedResource = {
       url: '/url/to/folder/',
-      type: 'folder',
       name: 'folder',
       parentPath: '/url/to/',
       path: {
@@ -111,7 +107,7 @@ describe('Webdav utils', () => {
       const driveFolderItem = await WebDavUtils.getDriveItemFromResource({
         resource: requestFolderFixture,
         driveFolderService: DriveFolderService.instance,
-        driveFileService: undefined,
+        driveFileService: DriveFileService.instance,
       });
       expect(driveFolderItem).to.be.deep.equal(expectedFolder);
       expect(findFolderStub).toHaveBeenCalledOnce();
@@ -127,7 +123,7 @@ describe('Webdav utils', () => {
       const item = await WebDavUtils.getDriveItemFromResource({
         resource: requestFolderFixture,
         driveFolderService: DriveFolderService.instance,
-        driveFileService: undefined,
+        driveFileService: DriveFileService.instance,
       });
       expect(findFolderStub).toHaveBeenCalledOnce();
       expect(findFileStub).not.toHaveBeenCalled();
@@ -143,7 +139,7 @@ describe('Webdav utils', () => {
 
       const driveFileItem = await WebDavUtils.getDriveItemFromResource({
         resource: requestFileFixture,
-        driveFolderService: undefined,
+        driveFolderService: DriveFolderService.instance,
         driveFileService: DriveFileService.instance,
       });
       expect(driveFileItem).to.be.deep.equal(expectedFile);

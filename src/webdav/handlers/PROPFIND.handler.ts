@@ -21,9 +21,8 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
 
   handle = async (req: Request, res: Response) => {
     const { driveFolderService, driveFileService } = this.dependencies;
-
     const resource = await WebDavUtils.getRequestedResource(req.url);
-    webdavLogger.info(`[PROPFIND] Request received for ${resource.type} at ${resource.url}`);
+    webdavLogger.info(`[PROPFIND] Request received for item at ${resource.url}`);
 
     const driveItem = await WebDavUtils.getDriveItemFromResource({
       resource,
@@ -32,36 +31,22 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
     });
 
     if (!driveItem) {
-      res.status(207).send(
-        XMLUtils.toWebDavXML(
-          {
-            [XMLUtils.addDefaultNamespace('response')]: {
-              [XMLUtils.addDefaultNamespace('href')]: XMLUtils.encodeWebDavUri(resource.url),
-              [XMLUtils.addDefaultNamespace('propstat')]: {
-                [XMLUtils.addDefaultNamespace('status')]: 'HTTP/1.1 404 Not Found',
-                [XMLUtils.addDefaultNamespace('prop')]: {},
-              },
-            },
-          },
-          {
-            ignoreAttributes: false,
-            suppressEmptyNode: true,
-          },
-        ),
-      );
+      res.status(404).send();
       return;
     }
 
-    switch (resource.type) {
+    switch (driveItem.itemType) {
       case 'file': {
-        const fileMetaXML = await this.getFileMetaXML(resource, driveItem as DriveFileItem);
+        // Here its only used the url
+        const fileMetaXML = await this.getFileMetaXML(resource, driveItem);
         res.status(207).send(fileMetaXML);
         break;
       }
 
       case 'folder': {
         const depth = req.header('depth') ?? '1';
-        const folderMetaXML = await this.getFolderContentXML(resource, driveItem as DriveFolderItem, depth);
+        // Here its only used the url
+        const folderMetaXML = await this.getFolderContentXML(resource, driveItem, depth);
         res.status(207).send(folderMetaXML);
         break;
       }
@@ -72,25 +57,7 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
     resource: WebDavRequestedResource,
     driveFileItem: DriveFileItem,
   ): Promise<string> => {
-    const driveFile = this.driveFileItemToXMLNode(
-      {
-        name: driveFileItem.name,
-        type: driveFileItem.type,
-        bucket: driveFileItem.bucket,
-        id: driveFileItem.id,
-        uuid: driveFileItem.uuid,
-        fileId: driveFileItem.fileId,
-        size: driveFileItem.size,
-        createdAt: driveFileItem.createdAt,
-        updatedAt: driveFileItem.updatedAt,
-        status: driveFileItem.status,
-        folderId: driveFileItem.folderId,
-        folderUuid: driveFileItem.folderUuid,
-        creationTime: driveFileItem.creationTime,
-        modificationTime: driveFileItem.modificationTime,
-      },
-      resource.url,
-    );
+    const driveFile = this.driveFileItemToXMLNode(driveFileItem, resource.url);
     const xml = XMLUtils.toWebDavXML([driveFile], {
       arrayNodeName: XMLUtils.addDefaultNamespace('response'),
     });
@@ -145,6 +112,7 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
 
       return this.driveFolderItemToXMLNode(
         {
+          itemType: 'folder',
           name: folder.plainName,
           bucket: folder.bucket,
           status: folder.deleted || folder.removed ? 'TRASHED' : 'EXISTS',
@@ -167,6 +135,7 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
       );
       return this.driveFileItemToXMLNode(
         {
+          itemType: 'file',
           name: file.plainName,
           bucket: file.bucket,
           id: file.id,

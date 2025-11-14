@@ -19,14 +19,14 @@ export class MKCOLRequestHandler implements WebDavMethodHandler {
     const { driveFolderService, webDavFolderService } = this.dependencies;
     const resource = await WebDavUtils.getRequestedResource(req.url);
 
-    webdavLogger.info(`[MKCOL] Request received for ${resource.type} at ${resource.url}`);
+    webdavLogger.info(`[MKCOL] Request received for folder at ${resource.url}`);
 
     const parentDriveFolderItem =
       (await webDavFolderService.getDriveFolderItemFromPath(resource.parentPath)) ??
       (await webDavFolderService.createParentPathOrThrow(resource.parentPath));
 
-    const driveFolderItem = await WebDavUtils.getDriveItemFromResource({
-      resource,
+    const driveFolderItem = await WebDavUtils.getDriveFolderFromResource({
+      url: resource.url,
       driveFolderService,
     });
 

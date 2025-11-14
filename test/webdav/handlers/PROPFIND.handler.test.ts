@@ -29,17 +29,16 @@ vi.mock('node:crypto', async () => {
 const randomUUIDStub = vi.mocked(randomUUID);
 
 describe('PROPFIND request handler', () => {
+  let sut: PROPFINDRequestHandler;
   beforeEach(() => {
+    sut = new PROPFINDRequestHandler({
+      driveFileService: DriveFileService.instance,
+      driveFolderService: DriveFolderService.instance,
+    });
     vi.restoreAllMocks();
   });
 
-  it('When the root folder exists and there is no content, then itshould return the correct XML', async () => {
-    const driveFolderService = DriveFolderService.instance;
-    const driveFileService = DriveFileService.instance;
-    const requestHandler = new PROPFINDRequestHandler({
-      driveFileService,
-      driveFolderService,
-    });
+  it('When the root folder exists and there is no content, then it should return the correct XML', async () => {
     const requestedFolderResource: WebDavRequestedResource = getRequestedFolderResource({
       parentFolder: '/',
       folderName: '',
@@ -67,35 +66,29 @@ describe('PROPFIND request handler', () => {
     const getRequestedResourceStub = vi
       .spyOn(WebDavUtils, 'getRequestedResource')
       .mockResolvedValue(requestedFolderResource);
-    const getAndSearchItemFromResourceStub = vi
-      .spyOn(WebDavUtils, 'getDriveItemFromResource')
+    const getFolderMetadataStub = vi
+      .spyOn(DriveFolderService.instance, 'getFolderMetadataByPath')
       .mockResolvedValue(folderFixture);
     const getFolderContentStub = vi
-      .spyOn(driveFolderService, 'getFolderContent')
+      .spyOn(DriveFolderService.instance, 'getFolderContent')
       .mockResolvedValue({ folders: [], files: [] });
     const getUsageStub = vi.spyOn(UsageService.instance, 'fetchUsage').mockResolvedValue(usageFixture);
     const spaceLimitStub = vi.spyOn(UsageService.instance, 'fetchSpaceLimit').mockResolvedValue(spaceLimitFixture);
 
-    await requestHandler.handle(request, response);
+    await sut.handle(request, response);
     expect(response.status).toHaveBeenCalledWith(207);
     expect(response.send).toHaveBeenCalledWith(
       // eslint-disable-next-line max-len
       `<?xml version="1.0" encoding="utf-8" ?><D:multistatus xmlns:D="DAV:"><D:response><D:href>${XMLUtils.encodeWebDavUri('/')}</D:href><D:propstat><D:status>HTTP/1.1 200 OK</D:status><D:prop><D:getcontenttype>application/octet-stream</D:getcontenttype><x1:lastmodified xmlns:x1="SAR:">${FormatUtils.formatDateForWebDav(folderFixture.updatedAt)}</x1:lastmodified><x2:executable xmlns:x2="http://apache.org/dav/props/">F</x2:executable><x3:Win32FileAttributes xmlns:x3="urn:schemas-microsoft-com:">00000030</x3:Win32FileAttributes><D:quota-available-bytes>${spaceLimitFixture - usageFixture.total}</D:quota-available-bytes><D:quota-used-bytes>${usageFixture.total}</D:quota-used-bytes><D:resourcetype><D:collection/></D:resourcetype></D:prop></D:propstat></D:response></D:multistatus>`,
     );
     expect(getRequestedResourceStub).toHaveBeenCalledOnce();
-    expect(getAndSearchItemFromResourceStub).toHaveBeenCalledOnce();
+    expect(getFolderMetadataStub).toHaveBeenCalledOnce();
     expect(getFolderContentStub).toHaveBeenCalledOnce();
     expect(getUsageStub).toHaveBeenCalledOnce();
     expect(spaceLimitStub).toHaveBeenCalledOnce();
   });
 
   it('When the root folder exists and there is content, then it should return the correct XML', async () => {
-    const driveFolderService = DriveFolderService.instance;
-    const driveFileService = DriveFileService.instance;
-    const requestHandler = new PROPFINDRequestHandler({
-      driveFileService,
-      driveFolderService,
-    });
     const requestedFolderResource: WebDavRequestedResource = getRequestedFolderResource({
       parentFolder: '/',
       folderName: '',
@@ -130,14 +123,14 @@ describe('PROPFIND request handler', () => {
     const getAndSearchItemFromResourceStub = vi
       .spyOn(WebDavUtils, 'getDriveItemFromResource')
       .mockResolvedValue(folderFixture);
-    const getFolderContentStub = vi.spyOn(driveFolderService, 'getFolderContent').mockResolvedValue({
+    const getFolderContentStub = vi.spyOn(DriveFolderService.instance, 'getFolderContent').mockResolvedValue({
       files: [],
       folders: [paginatedFolder1],
     });
     const getUsageStub = vi.spyOn(UsageService.instance, 'fetchUsage').mockResolvedValue(usageFixture);
     const spaceLimitStub = vi.spyOn(UsageService.instance, 'fetchSpaceLimit').mockResolvedValue(spaceLimitFixture);
 
-    await requestHandler.handle(request, response);
+    await sut.handle(request, response);
     expect(response.status).toHaveBeenCalledWith(207);
     expect(response.send).toHaveBeenCalledWith(
       // eslint-disable-next-line max-len
@@ -151,12 +144,6 @@ describe('PROPFIND request handler', () => {
   });
 
   it('When the file exists, then it should return the correct XML', async () => {
-    const driveFolderService = DriveFolderService.instance;
-    const driveFileService = DriveFileService.instance;
-    const requestHandler = new PROPFINDRequestHandler({
-      driveFileService,
-      driveFolderService,
-    });
     const requestedFileResource: WebDavRequestedResource = getRequestedFileResource({
       parentFolder: '/',
       fileName: 'file',
@@ -187,7 +174,7 @@ describe('PROPFIND request handler', () => {
     randomUUIDStub.mockClear();
     const mimeLookupStub = vi.spyOn(mime, 'lookup').mockReturnValue(mimeFixture);
 
-    await requestHandler.handle(request, response);
+    await sut.handle(request, response);
     expect(response.status).toHaveBeenCalledWith(207);
     expect(response.send).toHaveBeenCalledWith(
       // eslint-disable-next-line max-len
@@ -200,12 +187,6 @@ describe('PROPFIND request handler', () => {
   });
 
   it('When the folder exists, then it should return the correct XML', async () => {
-    const driveFolderService = DriveFolderService.instance;
-    const driveFileService = DriveFileService.instance;
-    const requestHandler = new PROPFINDRequestHandler({
-      driveFileService,
-      driveFolderService,
-    });
     const requestedFolderResource: WebDavRequestedResource = getRequestedFolderResource({
       parentFolder: '/',
       folderName: 'folder_a',
@@ -229,12 +210,12 @@ describe('PROPFIND request handler', () => {
     const getAndSearchItemFromResourceStub = vi
       .spyOn(WebDavUtils, 'getDriveItemFromResource')
       .mockResolvedValue(folderFixture);
-    const getFolderContentStub = vi.spyOn(driveFolderService, 'getFolderContent').mockResolvedValue({
+    const getFolderContentStub = vi.spyOn(DriveFolderService.instance, 'getFolderContent').mockResolvedValue({
       files: [],
       folders: [paginatedFolder1],
     });
 
-    await requestHandler.handle(request, response);
+    await sut.handle(request, response);
     expect(response.status).toHaveBeenCalledWith(207);
     // TODO: Test the XML response
     expect(getRequestedResourceStub).toHaveBeenCalledOnce();
@@ -242,13 +223,7 @@ describe('PROPFIND request handler', () => {
     expect(getFolderContentStub).toHaveBeenCalledOnce();
   });
 
-  it('When the folder does not exists, then it should return a 207 empty response', async () => {
-    const driveFolderService = DriveFolderService.instance;
-    const driveFileService = DriveFileService.instance;
-    const requestHandler = new PROPFINDRequestHandler({
-      driveFileService,
-      driveFolderService,
-    });
+  it('When the folder does not exists, then it should return a 404 empty response', async () => {
     const requestedFolderResource: WebDavRequestedResource = getRequestedFolderResource({
       parentFolder: '/',
       folderName: 'folder_a',
@@ -271,12 +246,9 @@ describe('PROPFIND request handler', () => {
       .spyOn(WebDavUtils, 'getDriveItemFromResource')
       .mockResolvedValue(undefined);
 
-    await requestHandler.handle(request, response);
-    expect(response.status).toHaveBeenCalledWith(207);
-    expect(response.send).toHaveBeenCalledWith(
-      // eslint-disable-next-line max-len
-      `<?xml version="1.0" encoding="utf-8" ?><D:multistatus xmlns:D="DAV:"><D:response><D:href>${XMLUtils.encodeWebDavUri(requestedFolderResource.url)}</D:href><D:propstat><D:status>HTTP/1.1 404 Not Found</D:status><D:prop/></D:propstat></D:response></D:multistatus>`,
-    );
+    await sut.handle(request, response);
+    expect(response.status).toHaveBeenCalledWith(404);
+    expect(response.send).toHaveBeenCalledWith();
     expect(getRequestedResourceStub).toHaveBeenCalledOnce();
     expect(getAndSearchItemFromResourceStub).toHaveBeenCalledOnce();
   });

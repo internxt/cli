@@ -13,17 +13,16 @@ import { WebDavUtils } from '../../../src/utils/webdav.utils';
 import { randomInt } from 'crypto';
 
 describe('HEAD request handler', () => {
+  let sut: HEADRequestHandler;
   beforeEach(() => {
+    sut = new HEADRequestHandler({
+      driveFileService: DriveFileService.instance,
+    });
     vi.restoreAllMocks();
   });
 
   it('When a folder is requested, it should reply with a 200', async () => {
-    const requestHandler = new HEADRequestHandler({
-      driveFileService: DriveFileService.instance,
-    });
-
     const requestedFolderResource: WebDavRequestedResource = getRequestedFolderResource();
-
     const request = createWebDavRequestFixture({
       method: 'HEAD',
       url: requestedFolderResource.url,
@@ -33,15 +32,11 @@ describe('HEAD request handler', () => {
       status: vi.fn().mockReturnValue({ send: vi.fn() }),
     });
 
-    await requestHandler.handle(request, response);
+    await sut.handle(request, response);
     expect(response.status).toHaveBeenCalledWith(200);
   });
 
   it('When a file is requested, it should reply with a 200 with the correct headers', async () => {
-    const requestHandler = new HEADRequestHandler({
-      driveFileService: DriveFileService.instance,
-    });
-
     const requestedFileResource: WebDavRequestedResource = getRequestedFileResource();
 
     const request = createWebDavRequestFixture({
@@ -59,23 +54,19 @@ describe('HEAD request handler', () => {
     const getRequestedResourceStub = vi
       .spyOn(WebDavUtils, 'getRequestedResource')
       .mockResolvedValue(requestedFileResource);
-    const getAndSearchItemFromResourceStub = vi
-      .spyOn(WebDavUtils, 'getDriveItemFromResource')
+    const getFileMetadataStub = vi
+      .spyOn(DriveFileService.instance, 'getFileMetadataByPath')
       .mockResolvedValue(mockFile);
 
-    await requestHandler.handle(request, response);
+    await sut.handle(request, response);
     expect(response.status).toHaveBeenCalledWith(200);
     expect(response.header).toHaveBeenCalledWith('Content-Type', 'application/octet-stream');
     expect(response.header).toHaveBeenCalledWith('Content-length', mockFile.size.toString());
     expect(getRequestedResourceStub).toHaveBeenCalledOnce();
-    expect(getAndSearchItemFromResourceStub).toHaveBeenCalledOnce();
+    expect(getFileMetadataStub).toHaveBeenCalledOnce();
   });
 
   it('When a file is requested with range-request, it should reply with a 200 with the correct headers', async () => {
-    const requestHandler = new HEADRequestHandler({
-      driveFileService: DriveFileService.instance,
-    });
-
     const requestedFileResource: WebDavRequestedResource = getRequestedFileResource();
 
     const mockSize = randomInt(500, 10000);
@@ -97,15 +88,15 @@ describe('HEAD request handler', () => {
     const getRequestedResourceStub = vi
       .spyOn(WebDavUtils, 'getRequestedResource')
       .mockResolvedValue(requestedFileResource);
-    const getAndSearchItemFromResourceStub = vi
-      .spyOn(WebDavUtils, 'getDriveItemFromResource')
+    const getFileMetadataStub = vi
+      .spyOn(DriveFileService.instance, 'getFileMetadataByPath')
       .mockResolvedValue(mockFile);
 
-    await requestHandler.handle(request, response);
+    await sut.handle(request, response);
     expect(response.status).toHaveBeenCalledWith(200);
     expect(response.header).toHaveBeenCalledWith('Content-length', (mockSize - rangeStart).toString());
     expect(response.header).toHaveBeenCalledWith('Content-Type', 'application/octet-stream');
     expect(getRequestedResourceStub).toHaveBeenCalledOnce();
-    expect(getAndSearchItemFromResourceStub).toHaveBeenCalledOnce();
+    expect(getFileMetadataStub).toHaveBeenCalledOnce();
   });
 });

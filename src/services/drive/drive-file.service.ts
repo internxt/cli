@@ -11,6 +11,7 @@ export class DriveFileService {
     const driveFile = await storageClient.createFileEntryByUuid(payload);
 
     return {
+      itemType: 'file',
       name: payload.plainName,
       id: driveFile.id,
       uuid: driveFile.uuid,

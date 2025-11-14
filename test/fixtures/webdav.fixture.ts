@@ -29,7 +29,6 @@ export const getRequestedFileResource = ({
     name: fileName,
     parentPath: parentFolder,
     path: path.parse(completeURL),
-    type: 'file',
     url: completeURL,
   };
 };
@@ -54,7 +53,6 @@ export const getRequestedFolderResource = ({
     name: folderName,
     parentPath: parentFolder,
     path: path.parse(completeURL),
-    type: 'folder',
     url: completeURL,
   };
 };
