@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ConfigService } from '../../src/services/config.service';
 import { UserCredentialsFixture, UserLoginFixture } from '../fixtures/login.fixture';
 import { fail } from 'node:assert';
-import Login from '../../src/commands/login';
+import LoginLegacy from '../../src/commands/login-legacy';
 import { AuthService } from '../../src/services/auth.service';
 import { CLIUtils, NoFlagProvidedError } from '../../src/utils/cli.utils';
 
@@ -29,7 +29,7 @@ describe('Login Command', () => {
     const saveUserSpy = vi.spyOn(ConfigService.instance, 'saveUser').mockRejectedValue(new Error());
 
     try {
-      await Login.run(['--non-interactive', `--password="${UserLoginFixture.password}"`]);
+      await LoginLegacy.run(['--non-interactive', `--password="${UserLoginFixture.password}"`]);
       fail('Expected function to throw an error, but it did not.');
     } catch (error) {
       expect((error as Error).message).to.contain('EEXIT: 1');
@@ -54,7 +54,7 @@ describe('Login Command', () => {
     const saveUserSpy = vi.spyOn(ConfigService.instance, 'saveUser').mockRejectedValue(new Error());
 
     try {
-      await Login.run(['--non-interactive', `--email="${UserLoginFixture.email}"`]);
+      await LoginLegacy.run(['--non-interactive', `--email="${UserLoginFixture.email}"`]);
       fail('Expected function to throw an error, but it did not.');
     } catch (error) {
       expect((error as Error).message).to.contain('EEXIT: 1');
@@ -79,7 +79,7 @@ describe('Login Command', () => {
     const saveUserSpy = vi.spyOn(ConfigService.instance, 'saveUser').mockRejectedValue(new Error());
 
     try {
-      await Login.run([
+      await LoginLegacy.run([
         '--non-interactive',
         `--email="${UserLoginFixture.email}"`,
         `--password="${UserLoginFixture.password}"`,
@@ -110,7 +110,7 @@ describe('Login Command', () => {
     const message = `Succesfully logged in to: ${UserCredentialsFixture.user.email}`;
     const expected = { success: true, message, login: UserCredentialsFixture };
 
-    const result = await Login.run([
+    const result = await LoginLegacy.run([
       `--email="${UserLoginFixture.email}"`,
       `--password="${UserLoginFixture.password}"`,
     ]);
@@ -136,7 +136,7 @@ describe('Login Command', () => {
     const message = `Succesfully logged in to: ${UserCredentialsFixture.user.email}`;
     const expected = { success: true, message, login: UserCredentialsFixture };
 
-    const result = await Login.run([
+    const result = await LoginLegacy.run([
       `--email="${UserLoginFixture.email}"`,
       `--password="${UserLoginFixture.password}"`,
       `--twofactor="${UserLoginFixture.twoFactor}"`,

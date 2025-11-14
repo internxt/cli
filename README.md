@@ -10,6 +10,7 @@ A CLI tool to interact with your Internxt encrypted files
 * [Project Maintenance](#project-maintenance)
 * [Installation](#installation)
 * [Usage](#usage)
+* [Docker](#docker)
 * [Commands](#commands)
 * [Current Limitations](#current-limitations)
 <!-- tocstop -->
@@ -51,7 +52,7 @@ $ npm install -g @internxt/cli
 $ internxt COMMAND
 running command...
 $ internxt (--version)
-@internxt/cli/1.5.6 win32-x64 node-v23.7.0
+@internxt/cli/1.5.9 win32-x64 node-v24.3.0
 $ internxt --help [COMMAND]
 USAGE
   $ internxt COMMAND
@@ -78,6 +79,7 @@ USAGE
 * [`internxt download file`](#internxt-download-file)
 * [`internxt list`](#internxt-list)
 * [`internxt login`](#internxt-login)
+* [`internxt login-legacy`](#internxt-login-legacy)
 * [`internxt logout`](#internxt-logout)
 * [`internxt logs`](#internxt-logs)
 * [`internxt move-file`](#internxt-move-file)
@@ -124,7 +126,7 @@ EXAMPLES
   $ internxt add-cert
 ```
 
-_See code: [src/commands/add-cert.ts](https://github.com/internxt/cli/blob/v1.5.6/src/commands/add-cert.ts)_
+_See code: [src/commands/add-cert.ts](https://github.com/internxt/cli/blob/v1.5.9/src/commands/add-cert.ts)_
 
 ## `internxt autocomplete [SHELL]`
 
@@ -135,7 +137,7 @@ USAGE
   $ internxt autocomplete [SHELL] [-r]
 
 ARGUMENTS
-  SHELL  (zsh|bash|powershell) Shell type
+  [SHELL]  (zsh|bash|powershell) Shell type
 
 FLAGS
   -r, --refresh-cache  Refresh cache (ignores displaying instructions)
@@ -155,7 +157,7 @@ EXAMPLES
   $ internxt autocomplete --refresh-cache
 ```
 
-_See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v3.2.35/src/commands/autocomplete/index.ts)_
+_See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v3.2.39/src/commands/autocomplete/index.ts)_
 
 ## `internxt config`
 
@@ -175,7 +177,7 @@ EXAMPLES
   $ internxt config
 ```
 
-_See code: [src/commands/config.ts](https://github.com/internxt/cli/blob/v1.5.6/src/commands/config.ts)_
+_See code: [src/commands/config.ts](https://github.com/internxt/cli/blob/v1.5.9/src/commands/config.ts)_
 
 ## `internxt create-folder`
 
@@ -191,8 +193,8 @@ FLAGS
   -n, --name=<value>  The new name for the folder
 
 HELPER FLAGS
-  -x, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
-                         the console and will throw errors directly.
+  -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
+                         not request input through the console and will throw errors directly.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -204,7 +206,7 @@ EXAMPLES
   $ internxt create-folder
 ```
 
-_See code: [src/commands/create-folder.ts](https://github.com/internxt/cli/blob/v1.5.6/src/commands/create-folder.ts)_
+_See code: [src/commands/create-folder.ts](https://github.com/internxt/cli/blob/v1.5.9/src/commands/create-folder.ts)_
 
 ## `internxt delete-permanently-file`
 
@@ -218,8 +220,8 @@ FLAGS
   -i, --id=<value>  The file id to be permanently deleted.
 
 HELPER FLAGS
-  -x, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
-                         the console and will throw errors directly.
+  -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
+                         not request input through the console and will throw errors directly.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -234,7 +236,7 @@ EXAMPLES
   $ internxt delete-permanently-file
 ```
 
-_See code: [src/commands/delete-permanently-file.ts](https://github.com/internxt/cli/blob/v1.5.6/src/commands/delete-permanently-file.ts)_
+_See code: [src/commands/delete-permanently-file.ts](https://github.com/internxt/cli/blob/v1.5.9/src/commands/delete-permanently-file.ts)_
 
 ## `internxt delete-permanently-folder`
 
@@ -248,8 +250,8 @@ FLAGS
   -i, --id=<value>  The folder id to be permanently deleted.
 
 HELPER FLAGS
-  -x, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
-                         the console and will throw errors directly.
+  -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
+                         not request input through the console and will throw errors directly.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -264,7 +266,7 @@ EXAMPLES
   $ internxt delete-permanently-folder
 ```
 
-_See code: [src/commands/delete-permanently-folder.ts](https://github.com/internxt/cli/blob/v1.5.6/src/commands/delete-permanently-folder.ts)_
+_See code: [src/commands/delete-permanently-folder.ts](https://github.com/internxt/cli/blob/v1.5.9/src/commands/delete-permanently-folder.ts)_
 
 ## `internxt delete permanently file`
 
@@ -278,8 +280,8 @@ FLAGS
   -i, --id=<value>  The file id to be permanently deleted.
 
 HELPER FLAGS
-  -x, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
-                         the console and will throw errors directly.
+  -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
+                         not request input through the console and will throw errors directly.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -306,8 +308,8 @@ FLAGS
   -i, --id=<value>  The folder id to be permanently deleted.
 
 HELPER FLAGS
-  -x, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
-                         the console and will throw errors directly.
+  -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
+                         not request input through the console and will throw errors directly.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -336,8 +338,8 @@ FLAGS
   -o, --overwrite          Overwrite the file if it already exists
 
 HELPER FLAGS
-  -x, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
-                         the console and will throw errors directly.
+  -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
+                         not request input through the console and will throw errors directly.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -353,7 +355,7 @@ EXAMPLES
   $ internxt download-file
 ```
 
-_See code: [src/commands/download-file.ts](https://github.com/internxt/cli/blob/v1.5.6/src/commands/download-file.ts)_
+_See code: [src/commands/download-file.ts](https://github.com/internxt/cli/blob/v1.5.9/src/commands/download-file.ts)_
 
 ## `internxt download file`
 
@@ -369,8 +371,8 @@ FLAGS
   -o, --overwrite          Overwrite the file if it already exists
 
 HELPER FLAGS
-  -x, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
-                         the console and will throw errors directly.
+  -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
+                         not request input through the console and will throw errors directly.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -399,8 +401,8 @@ FLAGS
   -i, --id=<value>  The folder id to list. Leave empty for the root folder.
 
 HELPER FLAGS
-  -x, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
-                         the console and will throw errors directly.
+  -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
+                         not request input through the console and will throw errors directly.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -412,38 +414,67 @@ EXAMPLES
   $ internxt list
 ```
 
-_See code: [src/commands/list.ts](https://github.com/internxt/cli/blob/v1.5.6/src/commands/list.ts)_
+_See code: [src/commands/list.ts](https://github.com/internxt/cli/blob/v1.5.9/src/commands/list.ts)_
 
 ## `internxt login`
 
-Logs into an Internxt account. If the account is two-factor protected, then an extra code will be required.
+Logs into your Internxt account using the web-based login flow. A temporary local server is started to securely receive the authentication response.
 
 ```
 USAGE
-  $ internxt login [--json] [-x] [-e <value>] [-p <value>] [-w 123456] [-t token]
+  $ internxt login [--json] [-h <value>] [-p <value>]
 
 FLAGS
-  -e, --email=<value>         The email to log in
-  -p, --password=<value>      The plain password to log in
-  -t, --twofactortoken=token  The TOTP secret token. It is used to generate a TOTP code if needed. It has prority over
-                              the two factor code flag.
-  -w, --twofactor=123456      The two factor auth code (TOTP).
-
-HELPER FLAGS
-  -x, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
-                         the console and will throw errors directly.
+  -h, --host=<value>  [env: INXT_LOGIN_SERVER_HOST] IP address of the machine where the CLI is running. If you are
+                      opening the login page in a browser on another device, set this to the IP address of the machine
+                      running the CLI. Defaults to 127.0.0.1.
+  -p, --port=<value>  [env: INXT_LOGIN_SERVER_PORT] Port used by the temporary local server to handle the login
+                      callback. If not specified, a random available port will be used automatically.
 
 GLOBAL FLAGS
   --json  Format output as json.
 
 DESCRIPTION
-  Logs into an Internxt account. If the account is two-factor protected, then an extra code will be required.
+  Logs into your Internxt account using the web-based login flow. A temporary local server is started to securely
+  receive the authentication response.
 
 EXAMPLES
   $ internxt login
 ```
 
-_See code: [src/commands/login.ts](https://github.com/internxt/cli/blob/v1.5.6/src/commands/login.ts)_
+_See code: [src/commands/login.ts](https://github.com/internxt/cli/blob/v1.5.9/src/commands/login.ts)_
+
+## `internxt login-legacy`
+
+[Legacy] Logs into an Internxt account using user and password. If the account is two-factor protected, then an extra code will be required.
+
+```
+USAGE
+  $ internxt login-legacy [--json] [-x] [-e <value>] [-p <value>] [-w 123456] [-t token]
+
+FLAGS
+  -e, --email=<value>         [env: INXT_USER] The email to log in
+  -p, --password=<value>      [env: INXT_PASSWORD] The plain password to log in
+  -t, --twofactortoken=token  [env: INXT_OTPTOKEN] The TOTP secret token. It is used to generate a TOTP code if needed.
+                              It has prority over the two factor code flag.
+  -w, --twofactor=123456      [env: INXT_TWOFACTORCODE] The two factor auth code (TOTP).
+
+HELPER FLAGS
+  -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
+                         not request input through the console and will throw errors directly.
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  [Legacy] Logs into an Internxt account using user and password. If the account is two-factor protected, then an extra
+  code will be required.
+
+EXAMPLES
+  $ internxt login-legacy
+```
+
+_See code: [src/commands/login-legacy.ts](https://github.com/internxt/cli/blob/v1.5.9/src/commands/login-legacy.ts)_
 
 ## `internxt logout`
 
@@ -463,7 +494,7 @@ EXAMPLES
   $ internxt logout
 ```
 
-_See code: [src/commands/logout.ts](https://github.com/internxt/cli/blob/v1.5.6/src/commands/logout.ts)_
+_See code: [src/commands/logout.ts](https://github.com/internxt/cli/blob/v1.5.9/src/commands/logout.ts)_
 
 ## `internxt logs`
 
@@ -483,7 +514,7 @@ EXAMPLES
   $ internxt logs
 ```
 
-_See code: [src/commands/logs.ts](https://github.com/internxt/cli/blob/v1.5.6/src/commands/logs.ts)_
+_See code: [src/commands/logs.ts](https://github.com/internxt/cli/blob/v1.5.9/src/commands/logs.ts)_
 
 ## `internxt move-file`
 
@@ -499,8 +530,8 @@ FLAGS
   -i, --id=<value>           The ID of the file to be moved.
 
 HELPER FLAGS
-  -x, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
-                         the console and will throw errors directly.
+  -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
+                         not request input through the console and will throw errors directly.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -515,7 +546,7 @@ EXAMPLES
   $ internxt move-file
 ```
 
-_See code: [src/commands/move-file.ts](https://github.com/internxt/cli/blob/v1.5.6/src/commands/move-file.ts)_
+_See code: [src/commands/move-file.ts](https://github.com/internxt/cli/blob/v1.5.9/src/commands/move-file.ts)_
 
 ## `internxt move-folder`
 
@@ -531,8 +562,8 @@ FLAGS
   -i, --id=<value>           The ID of the folder to be moved.
 
 HELPER FLAGS
-  -x, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
-                         the console and will throw errors directly.
+  -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
+                         not request input through the console and will throw errors directly.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -547,7 +578,7 @@ EXAMPLES
   $ internxt move-folder
 ```
 
-_See code: [src/commands/move-folder.ts](https://github.com/internxt/cli/blob/v1.5.6/src/commands/move-folder.ts)_
+_See code: [src/commands/move-folder.ts](https://github.com/internxt/cli/blob/v1.5.9/src/commands/move-folder.ts)_
 
 ## `internxt move file`
 
@@ -563,8 +594,8 @@ FLAGS
   -i, --id=<value>           The ID of the file to be moved.
 
 HELPER FLAGS
-  -x, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
-                         the console and will throw errors directly.
+  -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
+                         not request input through the console and will throw errors directly.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -593,8 +624,8 @@ FLAGS
   -i, --id=<value>           The ID of the folder to be moved.
 
 HELPER FLAGS
-  -x, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
-                         the console and will throw errors directly.
+  -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
+                         not request input through the console and will throw errors directly.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -622,8 +653,8 @@ FLAGS
   -n, --name=<value>  The new name for the file.
 
 HELPER FLAGS
-  -x, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
-                         the console and will throw errors directly.
+  -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
+                         not request input through the console and will throw errors directly.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -638,7 +669,7 @@ EXAMPLES
   $ internxt rename-file
 ```
 
-_See code: [src/commands/rename-file.ts](https://github.com/internxt/cli/blob/v1.5.6/src/commands/rename-file.ts)_
+_See code: [src/commands/rename-file.ts](https://github.com/internxt/cli/blob/v1.5.9/src/commands/rename-file.ts)_
 
 ## `internxt rename-folder`
 
@@ -653,8 +684,8 @@ FLAGS
   -n, --name=<value>  The new name for the folder.
 
 HELPER FLAGS
-  -x, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
-                         the console and will throw errors directly.
+  -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
+                         not request input through the console and will throw errors directly.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -669,7 +700,7 @@ EXAMPLES
   $ internxt rename-folder
 ```
 
-_See code: [src/commands/rename-folder.ts](https://github.com/internxt/cli/blob/v1.5.6/src/commands/rename-folder.ts)_
+_See code: [src/commands/rename-folder.ts](https://github.com/internxt/cli/blob/v1.5.9/src/commands/rename-folder.ts)_
 
 ## `internxt rename file`
 
@@ -684,8 +715,8 @@ FLAGS
   -n, --name=<value>  The new name for the file.
 
 HELPER FLAGS
-  -x, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
-                         the console and will throw errors directly.
+  -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
+                         not request input through the console and will throw errors directly.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -713,8 +744,8 @@ FLAGS
   -n, --name=<value>  The new name for the folder.
 
 HELPER FLAGS
-  -x, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
-                         the console and will throw errors directly.
+  -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
+                         not request input through the console and will throw errors directly.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -741,8 +772,8 @@ FLAGS
   -f, --force  It forces the trash to be emptied without confirmation.
 
 HELPER FLAGS
-  -x, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
-                         the console and will throw errors directly.
+  -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
+                         not request input through the console and will throw errors directly.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -757,7 +788,7 @@ EXAMPLES
   $ internxt trash-clear
 ```
 
-_See code: [src/commands/trash-clear.ts](https://github.com/internxt/cli/blob/v1.5.6/src/commands/trash-clear.ts)_
+_See code: [src/commands/trash-clear.ts](https://github.com/internxt/cli/blob/v1.5.9/src/commands/trash-clear.ts)_
 
 ## `internxt trash-file`
 
@@ -771,8 +802,8 @@ FLAGS
   -i, --id=<value>  The file id to be trashed.
 
 HELPER FLAGS
-  -x, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
-                         the console and will throw errors directly.
+  -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
+                         not request input through the console and will throw errors directly.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -787,7 +818,7 @@ EXAMPLES
   $ internxt trash-file
 ```
 
-_See code: [src/commands/trash-file.ts](https://github.com/internxt/cli/blob/v1.5.6/src/commands/trash-file.ts)_
+_See code: [src/commands/trash-file.ts](https://github.com/internxt/cli/blob/v1.5.9/src/commands/trash-file.ts)_
 
 ## `internxt trash-folder`
 
@@ -801,8 +832,8 @@ FLAGS
   -i, --id=<value>  The folder id to be trashed.
 
 HELPER FLAGS
-  -x, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
-                         the console and will throw errors directly.
+  -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
+                         not request input through the console and will throw errors directly.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -817,7 +848,7 @@ EXAMPLES
   $ internxt trash-folder
 ```
 
-_See code: [src/commands/trash-folder.ts](https://github.com/internxt/cli/blob/v1.5.6/src/commands/trash-folder.ts)_
+_See code: [src/commands/trash-folder.ts](https://github.com/internxt/cli/blob/v1.5.9/src/commands/trash-folder.ts)_
 
 ## `internxt trash-list`
 
@@ -843,7 +874,7 @@ EXAMPLES
   $ internxt trash-list
 ```
 
-_See code: [src/commands/trash-list.ts](https://github.com/internxt/cli/blob/v1.5.6/src/commands/trash-list.ts)_
+_See code: [src/commands/trash-list.ts](https://github.com/internxt/cli/blob/v1.5.9/src/commands/trash-list.ts)_
 
 ## `internxt trash-restore-file`
 
@@ -858,8 +889,8 @@ FLAGS
   -i, --id=<value>           The file id to be restored from the trash.
 
 HELPER FLAGS
-  -x, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
-                         the console and will throw errors directly.
+  -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
+                         not request input through the console and will throw errors directly.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -874,7 +905,7 @@ EXAMPLES
   $ internxt trash-restore-file
 ```
 
-_See code: [src/commands/trash-restore-file.ts](https://github.com/internxt/cli/blob/v1.5.6/src/commands/trash-restore-file.ts)_
+_See code: [src/commands/trash-restore-file.ts](https://github.com/internxt/cli/blob/v1.5.9/src/commands/trash-restore-file.ts)_
 
 ## `internxt trash-restore-folder`
 
@@ -889,8 +920,8 @@ FLAGS
   -i, --id=<value>           The folder id to be restored from the trash.
 
 HELPER FLAGS
-  -x, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
-                         the console and will throw errors directly.
+  -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
+                         not request input through the console and will throw errors directly.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -905,7 +936,7 @@ EXAMPLES
   $ internxt trash-restore-folder
 ```
 
-_See code: [src/commands/trash-restore-folder.ts](https://github.com/internxt/cli/blob/v1.5.6/src/commands/trash-restore-folder.ts)_
+_See code: [src/commands/trash-restore-folder.ts](https://github.com/internxt/cli/blob/v1.5.9/src/commands/trash-restore-folder.ts)_
 
 ## `internxt trash clear`
 
@@ -919,8 +950,8 @@ FLAGS
   -f, --force  It forces the trash to be emptied without confirmation.
 
 HELPER FLAGS
-  -x, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
-                         the console and will throw errors directly.
+  -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
+                         not request input through the console and will throw errors directly.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -947,8 +978,8 @@ FLAGS
   -i, --id=<value>  The file id to be trashed.
 
 HELPER FLAGS
-  -x, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
-                         the console and will throw errors directly.
+  -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
+                         not request input through the console and will throw errors directly.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -975,8 +1006,8 @@ FLAGS
   -i, --id=<value>  The folder id to be trashed.
 
 HELPER FLAGS
-  -x, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
-                         the console and will throw errors directly.
+  -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
+                         not request input through the console and will throw errors directly.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -1028,8 +1059,8 @@ FLAGS
   -i, --id=<value>           The file id to be restored from the trash.
 
 HELPER FLAGS
-  -x, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
-                         the console and will throw errors directly.
+  -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
+                         not request input through the console and will throw errors directly.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -1057,8 +1088,8 @@ FLAGS
   -i, --id=<value>           The folder id to be restored from the trash.
 
 HELPER FLAGS
-  -x, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
-                         the console and will throw errors directly.
+  -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
+                         not request input through the console and will throw errors directly.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -1086,8 +1117,8 @@ FLAGS
   -i, --destination=<value>  The folder id where the file is going to be uploaded to. Leave empty for the root folder.
 
 HELPER FLAGS
-  -x, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
-                         the console and will throw errors directly.
+  -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
+                         not request input through the console and will throw errors directly.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -1102,7 +1133,7 @@ EXAMPLES
   $ internxt upload-file
 ```
 
-_See code: [src/commands/upload-file.ts](https://github.com/internxt/cli/blob/v1.5.6/src/commands/upload-file.ts)_
+_See code: [src/commands/upload-file.ts](https://github.com/internxt/cli/blob/v1.5.9/src/commands/upload-file.ts)_
 
 ## `internxt upload file`
 
@@ -1117,8 +1148,8 @@ FLAGS
   -i, --destination=<value>  The folder id where the file is going to be uploaded to. Leave empty for the root folder.
 
 HELPER FLAGS
-  -x, --non-interactive  Prevents the CLI from being interactive. When enabled, the CLI will not request input through
-                         the console and will throw errors directly.
+  -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
+                         not request input through the console and will throw errors directly.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -1157,7 +1188,7 @@ EXAMPLES
   $ internxt webdav status
 ```
 
-_See code: [src/commands/webdav.ts](https://github.com/internxt/cli/blob/v1.5.6/src/commands/webdav.ts)_
+_See code: [src/commands/webdav.ts](https://github.com/internxt/cli/blob/v1.5.9/src/commands/webdav.ts)_
 
 ## `internxt webdav-config`
 
@@ -1165,14 +1196,15 @@ Edit the configuration of the Internxt CLI WebDav server as the port or the prot
 
 ```
 USAGE
-  $ internxt webdav-config [--json] [-l <value>] [-p <value>] [-s | -h] [-t <value>]
+  $ internxt webdav-config [--json] [-l <value>] [-p <value>] [-s | -h] [-t <value>] [-c]
 
 FLAGS
-  -h, --http             Configures the WebDAV server to use insecure plain HTTP.
-  -l, --host=<value>     The listening host for the WebDAV server.
-  -p, --port=<value>     The new port for the WebDAV server.
-  -s, --https            Configures the WebDAV server to use HTTPS with self-signed certificates.
-  -t, --timeout=<value>  Configures the WebDAV server to use this timeout in minutes.
+  -c, --[no-]createFullPath  Auto-create missing parent directories during file uploads.
+  -h, --http                 Configures the WebDAV server to use insecure plain HTTP.
+  -l, --host=<value>         The listening host for the WebDAV server.
+  -p, --port=<value>         The new port for the WebDAV server.
+  -s, --https                Configures the WebDAV server to use HTTPS with self-signed certificates.
+  -t, --timeout=<value>      Configures the WebDAV server to use this timeout in minutes.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -1184,7 +1216,7 @@ EXAMPLES
   $ internxt webdav-config
 ```
 
-_See code: [src/commands/webdav-config.ts](https://github.com/internxt/cli/blob/v1.5.6/src/commands/webdav-config.ts)_
+_See code: [src/commands/webdav-config.ts](https://github.com/internxt/cli/blob/v1.5.9/src/commands/webdav-config.ts)_
 
 ## `internxt whoami`
 
@@ -1204,7 +1236,7 @@ EXAMPLES
   $ internxt whoami
 ```
 
-_See code: [src/commands/whoami.ts](https://github.com/internxt/cli/blob/v1.5.6/src/commands/whoami.ts)_
+_See code: [src/commands/whoami.ts](https://github.com/internxt/cli/blob/v1.5.9/src/commands/whoami.ts)_
 <!-- commandsstop -->
 
 # Current Limitations

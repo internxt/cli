@@ -27,8 +27,6 @@ export interface LoginUserDetails {
 export interface LoginCredentials {
   user: LoginUserDetails;
   token: string;
-  lastLoggedInAt: string;
-  lastTokenRefreshAt: string;
 }
 
 export interface WebdavConfig {

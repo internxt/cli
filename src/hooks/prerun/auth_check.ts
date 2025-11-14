@@ -1,6 +1,7 @@
 import { Hook } from '@oclif/core';
 import Whoami from '../../commands/whoami';
 import Login from '../../commands/login';
+import LoginLegacy from '../../commands/login-legacy';
 import Logout from '../../commands/logout';
 import Logs from '../../commands/logs';
 import { CLIUtils } from '../../utils/cli.utils';
@@ -9,7 +10,7 @@ import { AuthService } from '../../services/auth.service';
 import Webdav from '../../commands/webdav';
 import WebDAVConfig from '../../commands/webdav-config';
 
-const CommandsToSkip = [Whoami, Login, Logout, Logs, Webdav, WebDAVConfig];
+const CommandsToSkip = [Whoami, Login, LoginLegacy, Logout, Logs, Webdav, WebDAVConfig];
 const hook: Hook<'prerun'> = async function (opts) {
   const { Command, argv } = opts;
   const jsonFlag = argv.includes('--json');

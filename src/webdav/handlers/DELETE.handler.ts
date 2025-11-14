@@ -33,7 +33,7 @@ export class DELETERequestHandler implements WebDavMethodHandler {
 
     webdavLogger.info(`[DELETE] [${driveItem.uuid}] Trashing ${driveItem.itemType}`);
     await trashService.trashItems({
-      items: [{ type: driveItem.itemType, uuid: driveItem.uuid, id: null }],
+      items: [{ type: driveItem.itemType, uuid: driveItem.uuid }],
     });
 
     res.status(204).send();

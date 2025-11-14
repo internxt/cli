@@ -175,7 +175,7 @@ export class CryptoService {
    **/
   private readonly getKeyAndIvFrom = (secret: string, salt: Buffer) => {
     const TRANSFORM_ROUNDS = 3;
-    const password = Buffer.concat([Buffer.from(secret, 'binary'), salt]);
+    const password = Buffer.concat([Buffer.from(secret, 'utf8'), salt]);
     const md5Hashes = [];
     let digest = password;
 

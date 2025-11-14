@@ -16,6 +16,4 @@ export const ApiSecurityFixture: SdkManagerApiSecurity = {
 export const UserCredentialsFixture: LoginCredentials = {
   user: { ...UserFixture, email: UserLoginFixture.email },
   token: ApiSecurityFixture.token,
-  lastLoggedInAt: randomBytes(16).toString('hex'),
-  lastTokenRefreshAt: randomBytes(16).toString('hex'),
 };

@@ -84,7 +84,7 @@ describe('DELETE request handler', () => {
     expect(response.status).toHaveBeenCalledWith(204);
     expect(getRequestedResourceStub).toHaveBeenCalledOnce();
     expect(getAndSearchItemFromResourceStub).toHaveBeenCalledOnce();
-    expect(trashItemsStub).toHaveBeenCalledWith({ items: [{ type: 'file', uuid: mockFile.uuid, id: null }] });
+    expect(trashItemsStub).toHaveBeenCalledWith({ items: [{ type: 'file', uuid: mockFile.uuid }] });
   });
 
   it('When folder exists, then it should reply with a 204 response', async () => {
@@ -118,6 +118,6 @@ describe('DELETE request handler', () => {
     expect(response.status).toHaveBeenCalledWith(204);
     expect(getRequestedResourceStub).toHaveBeenCalledOnce();
     expect(getAndSearchItemFromResourceStub).toHaveBeenCalledOnce();
-    expect(trashItemsStub).toHaveBeenCalledWith({ items: [{ type: 'folder', uuid: mockFolder.uuid, id: null }] });
+    expect(trashItemsStub).toHaveBeenCalledWith({ items: [{ type: 'folder', uuid: mockFolder.uuid }] });
   });
 });
