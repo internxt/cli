@@ -30,7 +30,7 @@ export default class TrashFile extends Command {
 
     const uuid = await this.getFileUuid(flags['id'], nonInteractive);
 
-    await TrashService.instance.trashItems({ items: [{ uuid, type: 'file', id: null }] });
+    await TrashService.instance.trashItems({ items: [{ uuid, type: 'file' }] });
     const message = 'File trashed successfully.';
     CLIUtils.success(this.log.bind(this), message);
     return { success: true, message, file: { uuid } };

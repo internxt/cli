@@ -8,9 +8,9 @@ if [ -z "$INXT_USER" ] || [ -z "$INXT_PASSWORD" ]; then
 fi
 
 
-echo "Logging into your account [$INXT_USER]"
+echo "Logging into your account [$INXT_USER] using legacy authentication..."
 
-LOGIN_CMD="internxt login -x -e=\"$INXT_USER\" -p=\"$INXT_PASSWORD\""
+LOGIN_CMD="internxt login-legacy -x -e=\"$INXT_USER\" -p=\"$INXT_PASSWORD\""
 
 if [ -n "$INXT_OTPTOKEN" ]; then
   echo "Using 2FA secret token"
