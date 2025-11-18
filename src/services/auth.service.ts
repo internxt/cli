@@ -95,6 +95,11 @@ export class AuthService {
   public refreshUserToken = async (oldToken: string, mnemonic: string): Promise<LoginCredentials> => {
     SdkManager.init({ token: oldToken });
 
+    const isValidMnemonic = ValidationService.instance.validateMnemonic(mnemonic);
+    if (!isValidMnemonic) {
+      throw new InvalidCredentialsError();
+    }
+
     const usersClient = SdkManager.instance.getUsers();
     const newCreds = await usersClient.refreshUserCredentials();
 
