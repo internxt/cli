@@ -18,8 +18,8 @@ export class DELETERequestHandler implements WebDavMethodHandler {
 
   handle = async (req: Request, res: Response) => {
     const { driveFileService, driveFolderService, trashService } = this.dependencies;
-    const resource = await WebDavUtils.getRequestedResource(req);
-    webdavLogger.info(`[DELETE] Request received for ${resource.type} at ${resource.url}`);
+    const resource = await WebDavUtils.getRequestedResource(req.url);
+    webdavLogger.info(`[DELETE] Request received for item at ${resource.url}`);
 
     const driveItem = await WebDavUtils.getDriveItemFromResource({
       resource,
@@ -31,13 +31,13 @@ export class DELETERequestHandler implements WebDavMethodHandler {
       throw new NotFoundError(`Resource not found on Internxt Drive at ${resource.url}`);
     }
 
-    webdavLogger.info(`[DELETE] [${driveItem.uuid}] Trashing ${resource.type}`);
+    webdavLogger.info(`[DELETE] [${driveItem.uuid}] Trashing ${driveItem.itemType}`);
     await trashService.trashItems({
-      items: [{ type: resource.type, uuid: driveItem.uuid, id: null }],
+      items: [{ type: driveItem.itemType, uuid: driveItem.uuid }],
     });
 
     res.status(204).send();
-    const type = resource.type.charAt(0).toUpperCase() + resource.type.substring(1);
+    const type = driveItem.itemType.charAt(0).toUpperCase() + driveItem.itemType.substring(1);
     webdavLogger.info(`[DELETE] [${driveItem.uuid}] ${type} trashed successfully`);
   };
 }

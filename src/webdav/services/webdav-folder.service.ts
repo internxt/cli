@@ -16,9 +16,9 @@ export class WebDavFolderService {
   ) {}
 
   public getDriveFolderItemFromPath = async (path: string): Promise<DriveFolderItem | undefined> => {
-    const resource = await WebDavUtils.getRequestedResource(path, false);
-    return await WebDavUtils.getDriveItemFromResource({
-      resource,
+    const { url } = await WebDavUtils.getRequestedResource(path, false);
+    return await WebDavUtils.getDriveFolderFromResource({
+      url,
       driveFolderService: this.dependencies.driveFolderService,
     });
   };

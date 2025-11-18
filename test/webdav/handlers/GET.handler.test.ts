@@ -25,6 +25,8 @@ import { ConfigService } from '../../../src/services/config.service';
 import { UserFixture } from '../../fixtures/auth.fixture';
 
 describe('GET request handler', () => {
+  let networkFacade: NetworkFacade;
+  let sut: GETRequestHandler;
   const getNetworkMock = () => {
     return SdkManager.instance.getNetwork({
       user: 'user',
@@ -43,21 +45,24 @@ describe('GET request handler', () => {
   };
 
   beforeEach(() => {
+    networkFacade = new NetworkFacade(
+      getNetworkMock(),
+      getEnvironmentMock(),
+      DownloadService.instance,
+      CryptoService.instance,
+    );
+    sut = new GETRequestHandler({
+      driveFileService: DriveFileService.instance,
+      downloadService: DownloadService.instance,
+      authService: AuthService.instance,
+      cryptoService: CryptoService.instance,
+      networkFacade,
+    });
+
     vi.restoreAllMocks();
   });
 
   it('When the Drive file is not found, then it should throw a NotFoundError', async () => {
-    const downloadService = DownloadService.instance;
-    const cryptoService = CryptoService.instance;
-    const networkFacade = new NetworkFacade(getNetworkMock(), getEnvironmentMock(), downloadService, cryptoService);
-    const requestHandler = new GETRequestHandler({
-      driveFileService: DriveFileService.instance,
-      downloadService,
-      authService: AuthService.instance,
-      cryptoService,
-      networkFacade,
-    });
-
     const requestedFileResource: WebDavRequestedResource = getRequestedFileResource();
 
     const request = createWebDavRequestFixture({
@@ -72,33 +77,21 @@ describe('GET request handler', () => {
     const getRequestedResourceStub = vi
       .spyOn(WebDavUtils, 'getRequestedResource')
       .mockResolvedValue(requestedFileResource);
-    const getAndSearchItemFromResourceStub = vi
-      .spyOn(WebDavUtils, 'getDriveItemFromResource')
-      .mockResolvedValue(undefined);
+    const getFileMetadataStub = vi
+      .spyOn(DriveFileService.instance, 'getFileMetadataByPath')
+      .mockRejectedValue(new Error('File not found'));
 
     try {
-      await requestHandler.handle(request, response);
+      await sut.handle(request, response);
       fail('Expected function to throw an error, but it did not.');
     } catch (error) {
       expect(error).to.be.instanceOf(NotFoundError);
     }
     expect(getRequestedResourceStub).toHaveBeenCalledOnce();
-    expect(getAndSearchItemFromResourceStub).toHaveBeenCalledOnce();
+    expect(getFileMetadataStub).toHaveBeenCalledOnce();
   });
 
   it('When file is requested, then it should write a response with the content', async () => {
-    const downloadService = DownloadService.instance;
-    const cryptoService = CryptoService.instance;
-    const authService = AuthService.instance;
-    const networkFacade = new NetworkFacade(getNetworkMock(), getEnvironmentMock(), downloadService, cryptoService);
-    const requestHandler = new GETRequestHandler({
-      driveFileService: DriveFileService.instance,
-      downloadService,
-      authService,
-      cryptoService,
-      networkFacade,
-    });
-
     const requestedFileResource: WebDavRequestedResource = getRequestedFileResource();
 
     const request = createWebDavRequestFixture({
@@ -117,21 +110,21 @@ describe('GET request handler', () => {
     const getRequestedResourceStub = vi
       .spyOn(WebDavUtils, 'getRequestedResource')
       .mockResolvedValue(requestedFileResource);
-    const getAndSearchItemFromResourceStub = vi
-      .spyOn(WebDavUtils, 'getDriveItemFromResource')
+    const getFileMetadataStub = vi
+      .spyOn(DriveFileService.instance, 'getFileMetadataByPath')
       .mockResolvedValue(mockFile);
-    const authDetailsStub = vi.spyOn(authService, 'getAuthDetails').mockResolvedValue(mockAuthDetails);
+    const authDetailsStub = vi.spyOn(AuthService.instance, 'getAuthDetails').mockResolvedValue(mockAuthDetails);
     const downloadStreamStub = vi
       .spyOn(networkFacade, 'downloadToStream')
       .mockResolvedValue([Promise.resolve(), new AbortController()]);
 
-    await requestHandler.handle(request, response);
+    await sut.handle(request, response);
 
     expect(response.status).toHaveBeenCalledWith(200);
     expect(response.header).toHaveBeenCalledWith('Content-length', mockFile.size.toString());
     expect(response.header).toHaveBeenCalledWith('Content-Type', 'application/octet-stream');
     expect(getRequestedResourceStub).toHaveBeenCalledOnce();
-    expect(getAndSearchItemFromResourceStub).toHaveBeenCalledOnce();
+    expect(getFileMetadataStub).toHaveBeenCalledOnce();
     expect(authDetailsStub).toHaveBeenCalledOnce();
     expect(downloadStreamStub).toHaveBeenCalledWith(
       mockFile.bucket,
@@ -144,18 +137,6 @@ describe('GET request handler', () => {
   });
 
   it('When file is requested with Range, then it should write a response with the ranged content', async () => {
-    const downloadService = DownloadService.instance;
-    const cryptoService = CryptoService.instance;
-    const authService = AuthService.instance;
-    const networkFacade = new NetworkFacade(getNetworkMock(), getEnvironmentMock(), downloadService, cryptoService);
-    const requestHandler = new GETRequestHandler({
-      driveFileService: DriveFileService.instance,
-      downloadService,
-      authService,
-      cryptoService,
-      networkFacade,
-    });
-
     const requestedFileResource: WebDavRequestedResource = getRequestedFileResource();
 
     const mockSize = randomInt(500, 10000);
@@ -186,21 +167,21 @@ describe('GET request handler', () => {
     const getRequestedResourceStub = vi
       .spyOn(WebDavUtils, 'getRequestedResource')
       .mockResolvedValue(requestedFileResource);
-    const getAndSearchItemFromResourceStub = vi
-      .spyOn(WebDavUtils, 'getDriveItemFromResource')
+    const getFileMetadataStub = vi
+      .spyOn(DriveFileService.instance, 'getFileMetadataByPath')
       .mockResolvedValue(mockFile);
-    const authDetailsStub = vi.spyOn(authService, 'getAuthDetails').mockResolvedValue(mockAuthDetails);
+    const authDetailsStub = vi.spyOn(AuthService.instance, 'getAuthDetails').mockResolvedValue(mockAuthDetails);
     const downloadStreamStub = vi
       .spyOn(networkFacade, 'downloadToStream')
       .mockResolvedValue([Promise.resolve(), new AbortController()]);
 
-    await requestHandler.handle(request, response);
+    await sut.handle(request, response);
 
     expect(response.status).toHaveBeenCalledWith(200);
     expect(response.header).toHaveBeenCalledWith('Content-length', (mockSize - rangeStart).toString());
     expect(response.header).toHaveBeenCalledWith('Content-Type', 'application/octet-stream');
     expect(getRequestedResourceStub).toHaveBeenCalledOnce();
-    expect(getAndSearchItemFromResourceStub).toHaveBeenCalledOnce();
+    expect(getFileMetadataStub).toHaveBeenCalledOnce();
     expect(authDetailsStub).toHaveBeenCalledOnce();
     expect(downloadStreamStub).toHaveBeenCalledWith(
       mockFile.bucket,

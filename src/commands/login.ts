@@ -1,51 +1,35 @@
 import { Command, Flags } from '@oclif/core';
-import { EmptyPasswordError, NotValidEmailError, NotValidTwoFactorCodeError } from '../types/command.types';
-import { AuthService } from '../services/auth.service';
 import { ConfigService } from '../services/config.service';
-import { ValidationService } from '../services/validation.service';
 import { CLIUtils } from '../utils/cli.utils';
 import { SdkManager } from '../services/sdk-manager.service';
-import * as OTPAuth from 'otpauth';
+import { UniversalLinkService } from '../services/universal-link.service';
 
 export default class Login extends Command {
   static readonly args = {};
   static readonly description =
-    'Logs into an Internxt account. If the account is two-factor protected, then an extra code will be required.';
+    'Logs into your Internxt account using the web-based login flow. ' +
+    'A temporary local server is started to securely receive the authentication response.';
   static readonly aliases = [];
   static readonly examples = ['<%= config.bin %> <%= command.id %>'];
   static readonly flags = {
-    ...CLIUtils.CommonFlags,
-    email: Flags.string({
-      char: 'e',
-      aliases: ['mail'],
-      env: 'INXT_USER',
-      description: 'The email to log in',
-      required: false,
-    }),
-    password: Flags.string({
-      char: 'p',
-      aliases: ['pass'],
-      env: 'INXT_PASSWORD',
-      description: 'The plain password to log in',
-      required: false,
-    }),
-    twofactor: Flags.string({
-      char: 'w',
-      aliases: ['two', 'two-factor'],
-      env: 'INXT_TWOFACTORCODE',
-      description: 'The two factor auth code (TOTP). ',
-      required: false,
-      helpValue: '123456',
-    }),
-    twofactortoken: Flags.string({
-      char: 't',
-      aliases: ['otp', 'otp-token'],
-      env: 'INXT_OTPTOKEN',
+    host: Flags.string({
+      char: 'h',
+      aliases: ['host'],
+      env: 'INXT_LOGIN_SERVER_HOST',
       description:
-        'The TOTP secret token. It is used to generate a TOTP code if needed.' +
-        ' It has prority over the two factor code flag.',
+        'IP address of the machine where the CLI is running. ' +
+        'If you are opening the login page in a browser on another device, ' +
+        'set this to the IP address of the machine running the CLI. Defaults to 127.0.0.1.',
       required: false,
-      helpValue: 'token',
+    }),
+    port: Flags.integer({
+      char: 'p',
+      aliases: ['port'],
+      env: 'INXT_LOGIN_SERVER_PORT',
+      description:
+        'Port used by the temporary local server to handle the login callback. ' +
+        'If not specified, a random available port will be used automatically.',
+      required: false,
     }),
   };
   static readonly enableJsonFlag = true;
@@ -53,26 +37,14 @@ export default class Login extends Command {
   public run = async () => {
     const { flags } = await this.parse(Login);
 
-    const nonInteractive = flags['non-interactive'];
-    const email = await this.getEmail(flags['email'], nonInteractive);
-    const password = await this.getPassword(flags['password'], nonInteractive);
-
-    const is2FANeeded = await AuthService.instance.is2FANeeded(email);
-    let twoFactorCode: string | undefined;
-    if (is2FANeeded) {
-      const twoFactorToken = flags['twofactortoken'];
-      if (twoFactorToken && twoFactorToken.trim().length > 0) {
-        const totp = new OTPAuth.TOTP({
-          secret: twoFactorToken,
-          digits: 6,
-        });
-        twoFactorCode = totp.generate();
-      } else {
-        twoFactorCode = await this.getTwoFactorCode(flags['twofactor'], nonInteractive);
-      }
-    }
-
-    const loginCredentials = await AuthService.instance.doLogin(email, password, twoFactorCode);
+    const host = flags['host'];
+    const port = flags['port'];
+    const loginCredentials = await UniversalLinkService.instance.loginSSO(
+      flags['json'] ?? false,
+      this.log.bind(this),
+      host,
+      port,
+    );
 
     SdkManager.init({ token: loginCredentials.token });
 
@@ -95,71 +67,5 @@ export default class Login extends Command {
       jsonFlag: flags['json'],
     });
     this.exit(1);
-  };
-
-  private getEmail = async (emailFlag: string | undefined, nonInteractive: boolean): Promise<string> => {
-    const email = await CLIUtils.getValueFromFlag(
-      {
-        value: emailFlag,
-        name: Login.flags['email'].name,
-      },
-      {
-        nonInteractive,
-        prompt: {
-          message: 'What is your email?',
-          options: { type: 'input' },
-        },
-      },
-      {
-        validate: ValidationService.instance.validateEmail,
-        error: new NotValidEmailError(),
-      },
-      this.log.bind(this),
-    );
-    return email;
-  };
-
-  private getPassword = async (passwordFlag: string | undefined, nonInteractive: boolean): Promise<string> => {
-    const password = await CLIUtils.getValueFromFlag(
-      {
-        value: passwordFlag,
-        name: Login.flags['password'].name,
-      },
-      {
-        nonInteractive,
-        prompt: {
-          message: 'What is your password?',
-          options: { type: 'password' },
-        },
-      },
-      {
-        validate: ValidationService.instance.validateStringIsNotEmpty,
-        error: new EmptyPasswordError(),
-      },
-      this.log.bind(this),
-    );
-    return password;
-  };
-
-  private getTwoFactorCode = async (twoFactorFlag: string | undefined, nonInteractive: boolean): Promise<string> => {
-    const twoFactor = await CLIUtils.getValueFromFlag(
-      {
-        value: twoFactorFlag,
-        name: Login.flags['twofactor'].name,
-      },
-      {
-        nonInteractive,
-        prompt: {
-          message: 'What is your two-factor code?',
-          options: { type: 'mask' },
-        },
-      },
-      {
-        validate: ValidationService.instance.validate2FA,
-        error: new NotValidTwoFactorCodeError(),
-      },
-      this.log.bind(this),
-    );
-    return twoFactor;
   };
 }

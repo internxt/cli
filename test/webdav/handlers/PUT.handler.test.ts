@@ -26,6 +26,8 @@ import { ConfigService } from '../../../src/services/config.service';
 import { UserFixture } from '../../fixtures/auth.fixture';
 
 describe('PUT request handler', () => {
+  let networkFacade: NetworkFacade;
+  let sut: PUTRequestHandler;
   const getNetworkMock = () => {
     return SdkManager.instance.getNetwork({
       user: 'user',
@@ -45,10 +47,7 @@ describe('PUT request handler', () => {
 
   beforeEach(() => {
     vi.restoreAllMocks();
-  });
-
-  it('When the content-length request is 0, then it should throw an UnsupportedMediaTypeError', async () => {
-    const networkFacade = new NetworkFacade(
+    networkFacade = new NetworkFacade(
       getNetworkMock(),
       getEnvironmentMock(),
       DownloadService.instance,
@@ -58,14 +57,17 @@ describe('PUT request handler', () => {
       driveFolderService: DriveFolderService.instance,
       configService: ConfigService.instance,
     });
-    const sut = new PUTRequestHandler({
+    sut = new PUTRequestHandler({
       driveFileService: DriveFileService.instance,
+      driveFolderService: DriveFolderService.instance,
       webDavFolderService,
       authService: AuthService.instance,
       trashService: TrashService.instance,
       networkFacade,
     });
+  });
 
+  it('When the content-length request is 0, then it should throw an UnsupportedMediaTypeError', async () => {
     const request = createWebDavRequestFixture({
       method: 'PUT',
       url: '/file.txt',
@@ -87,22 +89,6 @@ describe('PUT request handler', () => {
   });
 
   it('When the Drive destination folder is found, then it should upload the file to the folder', async () => {
-    const downloadService = DownloadService.instance;
-    const cryptoService = CryptoService.instance;
-    const authService = AuthService.instance;
-    const networkFacade = new NetworkFacade(getNetworkMock(), getEnvironmentMock(), downloadService, cryptoService);
-    const webDavFolderService = new WebDavFolderService({
-      driveFolderService: DriveFolderService.instance,
-      configService: ConfigService.instance,
-    });
-    const sut = new PUTRequestHandler({
-      driveFileService: DriveFileService.instance,
-      webDavFolderService,
-      authService: AuthService.instance,
-      trashService: TrashService.instance,
-      networkFacade,
-    });
-
     const requestedFileResource: WebDavRequestedResource = getRequestedFileResource();
     const requestedParentFolderResource: WebDavRequestedResource = getRequestedFolderResource({
       parentFolder: '/',
@@ -129,9 +115,13 @@ describe('PUT request handler', () => {
       .mockResolvedValueOnce(requestedParentFolderResource);
     const getAndSearchItemFromResourceStub = vi
       .spyOn(WebDavUtils, 'getDriveItemFromResource')
-      .mockResolvedValueOnce(folderFixture)
       .mockResolvedValue(undefined);
-    const getAuthDetailsStub = vi.spyOn(authService, 'getAuthDetails').mockResolvedValue(UserCredentialsFixture);
+    const getDriveFolderFromResourceStub = vi
+      .spyOn(WebDavUtils, 'getDriveFolderFromResource')
+      .mockResolvedValue(folderFixture);
+    const getAuthDetailsStub = vi
+      .spyOn(AuthService.instance, 'getAuthDetails')
+      .mockResolvedValue(UserCredentialsFixture);
     const uploadStub = vi.spyOn(networkFacade, 'uploadFile').mockImplementation(
       // @ts-expect-error - We only mock the properties we need
       (_, __, ___, callback: (err: Error | null, res: string | null) => void) => {
@@ -145,30 +135,14 @@ describe('PUT request handler', () => {
     await sut.handle(request, response);
     expect(response.status).toHaveBeenCalledWith(201);
     expect(getRequestedResourceStub).toHaveBeenCalledTimes(2);
-    expect(getAndSearchItemFromResourceStub).toHaveBeenCalledTimes(2);
+    expect(getAndSearchItemFromResourceStub).toHaveBeenCalledOnce();
+    expect(getDriveFolderFromResourceStub).toHaveBeenCalledOnce();
     expect(getAuthDetailsStub).toHaveBeenCalledOnce();
     expect(uploadStub).toHaveBeenCalledOnce();
     expect(createDriveFileStub).toHaveBeenCalledOnce();
   });
 
   it('When the file already exists, then it should upload and replace the file to the folder', async () => {
-    const downloadService = DownloadService.instance;
-    const cryptoService = CryptoService.instance;
-    const authService = AuthService.instance;
-    const trashService = TrashService.instance;
-    const networkFacade = new NetworkFacade(getNetworkMock(), getEnvironmentMock(), downloadService, cryptoService);
-    const webDavFolderService = new WebDavFolderService({
-      driveFolderService: DriveFolderService.instance,
-      configService: ConfigService.instance,
-    });
-    const sut = new PUTRequestHandler({
-      driveFileService: DriveFileService.instance,
-      webDavFolderService,
-      authService: AuthService.instance,
-      trashService: TrashService.instance,
-      networkFacade,
-    });
-
     const requestedFileResource: WebDavRequestedResource = getRequestedFileResource();
     const requestedParentFolderResource: WebDavRequestedResource = getRequestedFolderResource({
       parentFolder: '/',
@@ -195,10 +169,14 @@ describe('PUT request handler', () => {
       .mockResolvedValueOnce(requestedParentFolderResource);
     const getAndSearchItemFromResourceStub = vi
       .spyOn(WebDavUtils, 'getDriveItemFromResource')
-      .mockResolvedValueOnce(folderFixture)
       .mockResolvedValueOnce(fileFixture.toItem());
-    const deleteDriveFileStub = vi.spyOn(trashService, 'trashItems').mockResolvedValue();
-    const getAuthDetailsStub = vi.spyOn(authService, 'getAuthDetails').mockResolvedValue(UserCredentialsFixture);
+    const getDriveFolderFromResourceStub = vi
+      .spyOn(WebDavUtils, 'getDriveFolderFromResource')
+      .mockResolvedValue(folderFixture);
+    const deleteDriveFileStub = vi.spyOn(TrashService.instance, 'trashItems').mockResolvedValue();
+    const getAuthDetailsStub = vi
+      .spyOn(AuthService.instance, 'getAuthDetails')
+      .mockResolvedValue(UserCredentialsFixture);
     const uploadStub = vi.spyOn(networkFacade, 'uploadFile').mockImplementation(
       // @ts-expect-error - We only mock the properties we need
       (_, __, ___, callback: (err: Error | null, res: string | null) => void) => {
@@ -212,7 +190,8 @@ describe('PUT request handler', () => {
     await sut.handle(request, response);
     expect(response.status).toHaveBeenCalledWith(201);
     expect(getRequestedResourceStub).toHaveBeenCalledTimes(2);
-    expect(getAndSearchItemFromResourceStub).toHaveBeenCalledTimes(2);
+    expect(getAndSearchItemFromResourceStub).toHaveBeenCalledOnce();
+    expect(getDriveFolderFromResourceStub).toHaveBeenCalledOnce();
     expect(getAuthDetailsStub).toHaveBeenCalledOnce();
     expect(uploadStub).toHaveBeenCalledOnce();
     expect(createDriveFileStub).toHaveBeenCalledOnce();
@@ -220,22 +199,6 @@ describe('PUT request handler', () => {
   });
 
   it('When file is uploaded, then it should wait 500ms for backend propagation before returning 201', async () => {
-    const downloadService = DownloadService.instance;
-    const cryptoService = CryptoService.instance;
-    const authService = AuthService.instance;
-    const networkFacade = new NetworkFacade(getNetworkMock(), getEnvironmentMock(), downloadService, cryptoService);
-    const webDavFolderService = new WebDavFolderService({
-      driveFolderService: DriveFolderService.instance,
-      configService: ConfigService.instance,
-    });
-    const sut = new PUTRequestHandler({
-      driveFileService: DriveFileService.instance,
-      webDavFolderService,
-      authService: AuthService.instance,
-      trashService: TrashService.instance,
-      networkFacade,
-    });
-
     const requestedFileResource: WebDavRequestedResource = getRequestedFileResource();
     const requestedParentFolderResource: WebDavRequestedResource = getRequestedFolderResource({
       parentFolder: '/',
@@ -259,8 +222,9 @@ describe('PUT request handler', () => {
     vi.spyOn(WebDavUtils, 'getRequestedResource')
       .mockResolvedValueOnce(requestedFileResource)
       .mockResolvedValueOnce(requestedParentFolderResource);
-    vi.spyOn(WebDavUtils, 'getDriveItemFromResource').mockResolvedValueOnce(folderFixture).mockResolvedValue(undefined);
-    vi.spyOn(authService, 'getAuthDetails').mockResolvedValue(UserCredentialsFixture);
+    vi.spyOn(WebDavUtils, 'getDriveItemFromResource').mockResolvedValue(undefined);
+    vi.spyOn(WebDavUtils, 'getDriveFolderFromResource').mockResolvedValue(folderFixture);
+    vi.spyOn(AuthService.instance, 'getAuthDetails').mockResolvedValue(UserCredentialsFixture);
     vi.spyOn(networkFacade, 'uploadFile').mockImplementation(
       // @ts-expect-error - We only mock the properties we need
       (_, __, ___, callback: (err: Error | null, res: string | null) => void) => {

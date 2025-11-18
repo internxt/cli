@@ -54,6 +54,7 @@ export class DriveFolder implements DriveFolderAttributes {
 
   public toItem(): DriveFolderItem {
     return {
+      itemType: 'folder',
       id: this.id,
       name: this.name,
       uuid: this.uuid,
