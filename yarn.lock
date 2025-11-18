@@ -1710,10 +1710,10 @@
     axios "^1.12.2"
     uuid "11.1.0"
 
-"@internxt/sdk@1.11.15":
-  version "1.11.15"
-  resolved "https://registry.yarnpkg.com/@internxt/sdk/-/sdk-1.11.15.tgz#bc968ae7ffe66188d6704c0782123363de0d6aba"
-  integrity sha512-TzR61aohONPZE2nIWUG2XXE9P3PS4m9F/CmQ+DjDQKInEQuqAVkmWD7xb2NSlOm5c4xKseK3FLk16N2zhsJ/gg==
+"@internxt/sdk@1.11.17":
+  version "1.11.17"
+  resolved "https://registry.yarnpkg.com/@internxt/sdk/-/sdk-1.11.17.tgz#2f5bdada5d3cbf5cfc685a21c24b5df3ff51d8c8"
+  integrity sha512-91iEUvZizlwX6KBEFJ3JdFiGrhMBQ9R54sTc3Pei9QtV2FYTU8nTVEPYAg39tLOGzT/kVuplYOtBxfk6wFtSDA==
   dependencies:
     axios "1.13.2"
     uuid "11.1.0"
@@ -3189,7 +3189,7 @@ available-typed-arrays@^1.0.7:
   dependencies:
     possible-typed-array-names "^1.0.0"
 
-axios@1.12.2, axios@^1.12.2:
+axios@1.12.2:
   version "1.12.2"
   resolved "https://registry.yarnpkg.com/axios/-/axios-1.12.2.tgz#6c307390136cf7a2278d09cec63b136dfc6e6da7"
   integrity sha512-vMJzPewAlRyOgxV2dU0Cuz2O8zzzx9VYtbJOaBgXFeLc4IV/Eg50n4LowmehOOR61S8ZMpc2K5Sa7g6A4jfkUw==
@@ -3198,7 +3198,7 @@ axios@1.12.2, axios@^1.12.2:
     form-data "^4.0.4"
     proxy-from-env "^1.1.0"
 
-axios@1.13.2:
+axios@1.13.2, axios@^1.12.2:
   version "1.13.2"
   resolved "https://registry.yarnpkg.com/axios/-/axios-1.13.2.tgz#9ada120b7b5ab24509553ec3e40123521117f687"
   integrity sha512-VPk9ebNqPcy5lRGuSlKx752IlDatOjT9paPlm8A7yOuW2Fbvp4X3JznJtT4f0GzGLLiWE9W8onz51SqLYwzGaA==
