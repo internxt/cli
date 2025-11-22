@@ -2986,6 +2986,11 @@
   resolved "https://registry.yarnpkg.com/@vitest/spy/-/spy-4.0.10.tgz#e40f246bd0e8b5321766afd97230cdac21783157"
   integrity sha512-AsY6sVS8OLb96GV5RoG8B6I35GAbNrC49AO+jNRF9YVGb/g9t+hzNm1H6kD0NDp8tt7VJLs6hb7YMkDXqu03iw==
 
+"@vitest/spy@4.0.13":
+  version "4.0.13"
+  resolved "https://registry.yarnpkg.com/@vitest/spy/-/spy-4.0.13.tgz#a57d9a611a51ce1dc17c3315f4546d37f62c6311"
+  integrity sha512-hSu+m4se0lDV5yVIcNWqjuncrmBgwaXa2utFLIrBkQCQkt+pSwyZTPFQAZiiF/63j8jYa8uAeUZ3RSfcdWaYWw==
+
 "@vitest/utils@4.0.10":
   version "4.0.10"
   resolved "https://registry.yarnpkg.com/@vitest/utils/-/utils-4.0.10.tgz#04e5cb5d5237160477fd364d2b58744c0e5695be"
