@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { ErrorUtils } from '../../src/utils/errors.utils';
+import { ErrorUtils, isAlreadyExistsError } from '../../src/utils/errors.utils';
 import { logger } from '../../src/utils/logger.utils';
 
 vi.mock('../../src/utils/logger.utils', () => ({
@@ -35,5 +35,25 @@ describe('Errors Utils', () => {
     expect(logger.error).toHaveBeenCalledWith(
       `[REPORTED_ERROR]: ${JSON.stringify(error)}\nProperties => ${JSON.stringify(props, null, 2)}\n`,
     );
+  });
+  describe('isAlreadyExistsError', () => {
+    it('should properly detect an error object that has an already exists as message', () => {
+      const error = new Error('File already exists');
+
+      expect(isAlreadyExistsError(error)).toBe(true);
+    });
+
+    it('should properly detect an error object that has 409 as status', () => {
+      const error = { status: 409, message: 'Conflict' };
+
+      expect(isAlreadyExistsError(error)).toBe(true);
+    });
+
+    it('should return false if the passed error is not an object', () => {
+      expect(isAlreadyExistsError('string error')).toBe(false);
+      expect(isAlreadyExistsError(123)).toBe(false);
+      expect(isAlreadyExistsError(null)).toBe(false);
+      expect(isAlreadyExistsError(undefined)).toBe(false);
+    });
   });
 });
