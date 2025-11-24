@@ -29,7 +29,7 @@ export class LocalFilesystemService {
       const stats = await promises.stat(currentPath);
       const relativePath = relative(parentPath, currentPath);
 
-      if (stats.isFile()) {
+      if (stats.isFile() && stats.size > 0) {
         const fileInfo = parse(currentPath);
         files.push({
           type: 'file',

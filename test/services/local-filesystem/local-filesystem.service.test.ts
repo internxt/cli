@@ -134,6 +134,20 @@ describe('Local Filesystem Service', () => {
       expect(folders).toHaveLength(2);
       expect(files).toHaveLength(1);
     });
+    it('should properly skip empty files', async () => {
+      mockStat
+        .mockResolvedValueOnce(createMockStats(false, 0))
+        .mockResolvedValueOnce(createMockStats(true, 0))
+        .mockResolvedValueOnce(createMockStats(true, 200));
+      const folders: FileSystemNode[] = [];
+      const files: FileSystemNode[] = [];
+      mockReaddir.mockResolvedValueOnce([createMockDirent('file1.txt', false), createMockDirent('file2.txt', false)]);
+      const bytes = await service.scanRecursive('/path/folder', '/path', folders, files);
+
+      expect(bytes).toBe(200);
+      expect(folders).toHaveLength(1);
+      expect(files).toHaveLength(1);
+    });
   });
   describe('scanLocalDirectory', () => {
     it('should scan a directory and return complete results', async () => {
