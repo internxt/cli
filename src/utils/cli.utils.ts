@@ -1,9 +1,10 @@
 import { ux, Flags } from '@oclif/core';
 import cliProgress from 'cli-progress';
 import Table, { Header } from 'tty-table';
-import { PromptOptions } from '../types/command.types';
+import { NotValidFolderUuidError, PromptOptions } from '../types/command.types';
 import { InquirerUtils } from './inquirer.utils';
 import { ErrorUtils } from './errors.utils';
+import { ValidationService } from '../services/validation.service';
 
 export class CLIUtils {
   static readonly clearPreviousLine = (jsonFlag?: boolean) => {
@@ -122,6 +123,43 @@ export class CLIUtils {
     } else {
       const maxAttempts = command.maxAttempts ?? 3;
       return await CLIUtils.promptWithAttempts(command.prompt, maxAttempts, validation, reporter);
+    }
+  };
+
+  static readonly getDestinationFolderUuid = async ({
+    destinationFolderUuidFlag,
+    destinationFlagName,
+    nonInteractive,
+    reporter,
+  }: {
+    destinationFolderUuidFlag: string | undefined;
+    destinationFlagName: string;
+    nonInteractive: boolean;
+    reporter: (message: string) => void;
+  }): Promise<string | undefined> => {
+    const destinationFolderUuid = await this.getValueFromFlag(
+      {
+        value: destinationFolderUuidFlag,
+        name: destinationFlagName,
+      },
+      {
+        nonInteractive,
+        prompt: {
+          message: 'What is the destination folder id? (leave empty for the root folder)',
+          options: { type: 'input' },
+        },
+      },
+      {
+        validate: ValidationService.instance.validateUUIDv4,
+        error: new NotValidFolderUuidError(),
+        canBeEmpty: true,
+      },
+      reporter,
+    );
+    if (destinationFolderUuid.trim().length === 0) {
+      return undefined;
+    } else {
+      return destinationFolderUuid;
     }
   };
 

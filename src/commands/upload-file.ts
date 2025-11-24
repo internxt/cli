@@ -11,7 +11,7 @@ import { DriveFileService } from '../services/drive/drive-file.service';
 import { CryptoService } from '../services/crypto.service';
 import { DownloadService } from '../services/network/download.service';
 import { ErrorUtils } from '../utils/errors.utils';
-import { NotValidDirectoryError, NotValidFolderUuidError } from '../types/command.types';
+import { NotValidDirectoryError } from '../types/command.types';
 import { ValidationService } from '../services/validation.service';
 import { EncryptionVersion } from '@internxt/sdk/dist/drive/storage/types';
 import { ThumbnailService } from '../services/thumbnail.service';
@@ -58,11 +58,14 @@ export default class UploadFile extends Command {
     const fileInfo = path.parse(filePath);
     const fileType = fileInfo.ext.replaceAll('.', '');
 
-    let destinationFolderUuid = await this.getDestinationFolderUuid(flags['destination'], nonInteractive);
-    if (destinationFolderUuid.trim().length === 0) {
-      // destinationFolderUuid is empty from flags&prompt, which means we should use RootFolderUuid
-      destinationFolderUuid = user.rootFolderId;
-    }
+    // If destinationFolderUuid is empty from flags&prompt, means we should use RootFolderUuid
+    const destinationFolderUuid =
+      (await CLIUtils.getDestinationFolderUuid({
+        destinationFolderUuidFlag: flags['destination'],
+        destinationFlagName: UploadFile.flags['destination'].name,
+        nonInteractive,
+        reporter: this.log.bind(this),
+      })) ?? user.rootFolderId;
 
     // 1. Prepare the network
     CLIUtils.doing('Preparing Network', flags['json']);
@@ -187,32 +190,6 @@ export default class UploadFile extends Command {
       jsonFlag: flags['json'],
     });
     this.exit(1);
-  };
-
-  private getDestinationFolderUuid = async (
-    destinationFolderUuidFlag: string | undefined,
-    nonInteractive: boolean,
-  ): Promise<string> => {
-    const destinationFolderUuid = await CLIUtils.getValueFromFlag(
-      {
-        value: destinationFolderUuidFlag,
-        name: UploadFile.flags['destination'].name,
-      },
-      {
-        nonInteractive,
-        prompt: {
-          message: 'What is the destination folder id? (leave empty for the root folder)',
-          options: { type: 'input' },
-        },
-      },
-      {
-        validate: ValidationService.instance.validateUUIDv4,
-        error: new NotValidFolderUuidError(),
-        canBeEmpty: true,
-      },
-      this.log.bind(this),
-    );
-    return destinationFolderUuid;
   };
 
   private getFilePath = async (fileFlag: string | undefined, nonInteractive: boolean): Promise<string> => {
