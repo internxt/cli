@@ -1,5 +1,5 @@
-import { promises } from 'fs';
-import { basename, dirname, join, relative, parse } from 'path';
+import { promises } from 'node:fs';
+import { basename, dirname, join, relative, parse } from 'node:path';
 import { FileSystemNode, ScanResult } from './local-filesystem.types';
 import { logger } from '../../utils/logger.utils';
 
