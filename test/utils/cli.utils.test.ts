@@ -3,6 +3,11 @@ import { ux } from '@oclif/core';
 import { CLIUtils } from '../../src/utils/cli.utils';
 import { Direction } from 'node:readline';
 import { Options } from '@oclif/core/lib/ux/action/types';
+import { LoginUserDetails } from '../../src/types/command.types';
+import { SdkManager } from '../../src/services/sdk-manager.service';
+import { ConfigService } from '../../src/services/config.service';
+import { NetworkFacade } from '../../src/services/network/network-facade.service';
+import { Environment } from '@internxt/inxt-js';
 
 vi.mock('ux', () => {
   return {
@@ -15,6 +20,31 @@ vi.mock('ux', () => {
   };
 });
 
+vi.mock('../../src/services/sdk-manager.service', () => ({
+  SdkManager: {
+    instance: {
+      getNetwork: vi.fn(),
+    },
+    getAppDetails: vi.fn(),
+  },
+}));
+
+vi.mock('../../src/services/config.service', () => ({
+  ConfigService: {
+    instance: {
+      get: vi.fn(),
+    },
+  },
+}));
+
+vi.mock('@internxt/inxt-js', () => ({
+  Environment: vi.fn(),
+}));
+
+vi.mock('../../src/services/network/network-facade.service', () => ({
+  NetworkFacade: vi.fn(),
+}));
+
 describe('CliUtils', () => {
   let stdoutWrite: MockInstance<{
     (buffer: Uint8Array | string, cb?: (err?: Error) => void): boolean;
@@ -22,6 +52,17 @@ describe('CliUtils', () => {
   }>;
   let stdoutClear: MockInstance<(dir: Direction, callback?: () => void) => boolean>;
   let reporter: (message: string) => void;
+
+  const BRIDGE_URL = 'https://test.com';
+  let mockNetworkFacade: NetworkFacade;
+  const mockLoginUserDetails = {
+    bridgeUser: 'test-bridge-user',
+    userId: 'test-user-id',
+    mnemonic: 'test-mnemonic',
+  } as LoginUserDetails;
+
+  const mockNetworkModule = {} as ReturnType<typeof SdkManager.instance.getNetwork>;
+  const mockAppDetails = {} as ReturnType<typeof SdkManager.getAppDetails>;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -31,6 +72,17 @@ describe('CliUtils', () => {
     stdoutClear = vi.spyOn(process.stdout, 'clearLine').mockImplementation(() => true);
 
     reporter = vi.fn();
+
+    mockNetworkFacade = {} as NetworkFacade;
+    vi.mocked(NetworkFacade).mockImplementation(function (this: NetworkFacade) {
+      return mockNetworkFacade;
+    });
+    vi.mocked(Environment).mockImplementation(function (this: Environment) {
+      return {} as Environment;
+    });
+    vi.mocked(SdkManager.instance.getNetwork).mockReturnValue(mockNetworkModule);
+    vi.mocked(SdkManager.getAppDetails).mockReturnValue(mockAppDetails);
+    vi.mocked(ConfigService.instance.get).mockReturnValue(BRIDGE_URL);
   });
 
   afterEach(() => {
@@ -143,6 +195,36 @@ describe('CliUtils', () => {
       vi.spyOn(ux.action, 'running', 'get').mockReturnValue(true);
       CLIUtils.failed(true);
       expect(ux.action.stop).not.toHaveBeenCalled();
+    });
+  });
+  describe('prepareNetwork', () => {
+    it('should properly create a networkFacade instance and return it', () => {
+      const result = CLIUtils.prepareNetwork({ loginUserDetails: mockLoginUserDetails });
+
+      expect(result).toBe(mockNetworkFacade);
+      expect(SdkManager.instance.getNetwork).toHaveBeenCalledWith({
+        user: mockLoginUserDetails.bridgeUser,
+        pass: mockLoginUserDetails.userId,
+      });
+      expect(Environment).toHaveBeenCalledWith({
+        bridgeUser: mockLoginUserDetails.bridgeUser,
+        bridgePass: mockLoginUserDetails.userId,
+        bridgeUrl: BRIDGE_URL,
+        encryptionKey: mockLoginUserDetails.mnemonic,
+        appDetails: mockAppDetails,
+      });
+      expect(NetworkFacade).toHaveBeenCalledTimes(1);
+    });
+
+    it('should properly output to the terminal the prepare network step', () => {
+      const jsonFlag = true;
+      const doingSpy = vi.spyOn(CLIUtils, 'doing');
+      const doneSpy = vi.spyOn(CLIUtils, 'done');
+
+      CLIUtils.prepareNetwork({ jsonFlag, loginUserDetails: mockLoginUserDetails });
+
+      expect(doingSpy).toHaveBeenCalledWith('Preparing Network', jsonFlag);
+      expect(doneSpy).toHaveBeenCalledWith(jsonFlag);
     });
   });
 });
