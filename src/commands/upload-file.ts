@@ -65,8 +65,6 @@ export default class UploadFile extends Command {
     // 1. Prepare the network
     const networkFacade = await CLIUtils.prepareNetwork({ loginUserDetails: user, jsonFlag: flags['json'] });
 
-    CLIUtils.done(flags['json']);
-
     // 2. Upload file to the Network
     const readStream = createReadStream(filePath);
     const timer = CLIUtils.timer();
