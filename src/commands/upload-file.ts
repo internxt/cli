@@ -1,15 +1,11 @@
 import { Command, Flags } from '@oclif/core';
 import { stat } from 'node:fs/promises';
 import { createReadStream } from 'node:fs';
-import { NetworkFacade } from '../services/network/network-facade.service';
-import { SdkManager } from '../services/sdk-manager.service';
 import { AuthService } from '../services/auth.service';
 import { CLIUtils } from '../utils/cli.utils';
 import { ConfigService } from '../services/config.service';
 import path from 'node:path';
 import { DriveFileService } from '../services/drive/drive-file.service';
-import { CryptoService } from '../services/crypto.service';
-import { DownloadService } from '../services/network/download.service';
 import { ErrorUtils } from '../utils/errors.utils';
 import { NotValidDirectoryError } from '../types/command.types';
 import { ValidationService } from '../services/validation.service';
@@ -18,7 +14,6 @@ import { ThumbnailService } from '../services/thumbnail.service';
 import { BufferStream } from '../utils/stream.utils';
 import { isFileThumbnailable } from '../utils/thumbnail.utils';
 import { Readable } from 'node:stream';
-import { Environment } from '@internxt/inxt-js';
 
 export default class UploadFile extends Command {
   static readonly args = {};
@@ -68,26 +63,7 @@ export default class UploadFile extends Command {
       })) ?? user.rootFolderId;
 
     // 1. Prepare the network
-    CLIUtils.doing('Preparing Network', flags['json']);
-    const networkModule = SdkManager.instance.getNetwork({
-      user: user.bridgeUser,
-      pass: user.userId,
-    });
-    const environment = new Environment({
-      bridgeUser: user.bridgeUser,
-      bridgePass: user.userId,
-      bridgeUrl: ConfigService.instance.get('NETWORK_URL'),
-      encryptionKey: user.mnemonic,
-      appDetails: SdkManager.getAppDetails(),
-    });
-    const networkFacade = new NetworkFacade(
-      networkModule,
-      environment,
-      DownloadService.instance,
-      CryptoService.instance,
-    );
-
-    CLIUtils.done(flags['json']);
+    const networkFacade = await CLIUtils.prepareNetwork({ loginUserDetails: user, jsonFlag: flags['json'] });
 
     // 2. Upload file to the Network
     const readStream = createReadStream(filePath);
