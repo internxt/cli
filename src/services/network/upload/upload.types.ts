@@ -16,8 +16,6 @@ export interface UploadFolderHandlerParams {
   onProgress: (progress: UploadProgress) => void;
 }
 
-export type UploadFolderHandlerResult = { data: UploadResult; error?: undefined } | { error: Error; data?: undefined };
-
 export interface UploadProgress {
   percentage: number;
   currentFile?: string;
@@ -47,8 +45,10 @@ export interface UploadFilesInBatchesParams {
 
 export interface UploadFileWithRetryParams {
   file: FileSystemNode;
-  folderMap: Map<string, string>;
   network: NetworkFacade;
   bucket: string;
-  destinationFolderUuid: string;
+  parentFolderUuid: string;
 }
+export const MAX_CONCURRENT_UPLOADS = 5;
+export const DELAYS_MS = [500, 1000, 2000];
+export const MAX_RETRIES = 2;

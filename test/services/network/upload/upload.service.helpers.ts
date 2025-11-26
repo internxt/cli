@@ -1,6 +1,6 @@
 import { Readable } from 'stream';
 import { vi } from 'vitest';
-import { FileSystemNode } from '../../../src/services/local-filesystem/local-filesystem.types';
+import { FileSystemNode } from '../../../../src/services/local-filesystem/local-filesystem.types';
 
 export function createFileSystemNodeFixture({
   type,
