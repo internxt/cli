@@ -8,6 +8,7 @@ import { UploadFileService } from '../../../../src/services/network/upload/uploa
 import { NetworkFacade } from '../../../../src/services/network/network-facade.service';
 import { LoginUserDetails } from '../../../../src/types/command.types';
 import { createFileSystemNodeFixture } from './upload.service.helpers';
+import { AsyncUtils } from '../../../../src/utils/async.utils';
 
 vi.mock('../../../../src/utils/cli.utils', () => ({
   CLIUtils: {
@@ -46,6 +47,12 @@ vi.mock('../../../../src/services/network/upload/upload-file.service', () => ({
   },
 }));
 
+vi.mock('../../../../src/utils/async.utils', () => ({
+  AsyncUtils: {
+    sleep: vi.fn().mockResolvedValue(undefined),
+  },
+}));
+
 describe('UploadFacade', () => {
   let sut: UploadFacade;
 
@@ -57,11 +64,27 @@ describe('UploadFacade', () => {
     mnemonic: 'test-mnemonic',
     bucket: 'test-bucket',
   } as LoginUserDetails;
-
+  const folderName = 'test-folder';
+  const folderMap = new Map([[folderName, 'folder-uuid-123']]);
   beforeEach(() => {
     vi.clearAllMocks();
     sut = UploadFacade.instance;
     vi.mocked(CLIUtils.prepareNetwork).mockReturnValue(mockNetworkFacade);
+    vi.mocked(LocalFilesystemService.instance.scanLocalDirectory).mockResolvedValue({
+      folders: [createFileSystemNodeFixture({ type: 'folder', name: folderName, relativePath: folderName })],
+      files: [
+        createFileSystemNodeFixture({
+          type: 'file',
+          name: 'file1.txt',
+          relativePath: `${folderName}/file1.txt`,
+          size: 500,
+        }),
+      ],
+      totalItems: 2,
+      totalBytes: 500,
+    });
+    vi.mocked(UploadFolderService.instance.createFolders).mockResolvedValue(folderMap);
+    vi.mocked(UploadFileService.instance.uploadFilesInChunks).mockResolvedValue(500);
     vi.mocked(CLIUtils.timer).mockReturnValue({
       stop: vi.fn().mockReturnValue(1000),
     });
@@ -93,28 +116,10 @@ describe('UploadFacade', () => {
       expect(result.error).toBeInstanceOf(Error);
       expect(result.error?.message).toBe('Failed to create folders, cannot upload files');
       expect(UploadFolderService.instance.createFolders).toHaveBeenCalled();
+      expect(UploadFileService.instance.uploadFilesInChunks).not.toHaveBeenCalled();
     });
 
     it('should properly handle the upload of folder and the creation of file and return proper result', async () => {
-      const folderName = 'test-folder';
-      vi.mocked(LocalFilesystemService.instance.scanLocalDirectory).mockResolvedValue({
-        folders: [createFileSystemNodeFixture({ type: 'folder', name: folderName, relativePath: folderName })],
-        files: [
-          createFileSystemNodeFixture({
-            type: 'file',
-            name: 'file1.txt',
-            relativePath: `${folderName}/file1.txt`,
-            size: 500,
-          }),
-        ],
-        totalItems: 2,
-        totalBytes: 500,
-      });
-
-      const folderMap = new Map([['test-folder', 'folder-uuid-123']]);
-      vi.mocked(UploadFolderService.instance.createFolders).mockResolvedValue(folderMap);
-      vi.mocked(UploadFileService.instance.uploadFilesInChunks).mockResolvedValue(500);
-
       const result = await sut.uploadFolder({
         localPath,
         destinationFolderUuid,
@@ -134,22 +139,7 @@ describe('UploadFacade', () => {
     });
 
     it('should report progress correctly during upload', async () => {
-      const folderName = 'test-folder';
-      vi.mocked(LocalFilesystemService.instance.scanLocalDirectory).mockResolvedValue({
-        folders: [createFileSystemNodeFixture({ type: 'folder', name: folderName, relativePath: folderName })],
-        files: [
-          createFileSystemNodeFixture({
-            type: 'file',
-            name: 'file1.txt',
-            relativePath: `${folderName}/file1.txt`,
-            size: 400,
-          }),
-        ],
-        totalItems: 2,
-        totalBytes: 400,
-      });
-
-      const folderMap = new Map([['test-folder', 'folder-uuid-123']]);
+      const folderMap = new Map([[folderName, 'folder-uuid-123']]);
 
       vi.mocked(UploadFolderService.instance.createFolders).mockImplementation(
         async ({ currentProgress, emitProgress }) => {
@@ -162,9 +152,9 @@ describe('UploadFacade', () => {
       vi.mocked(UploadFileService.instance.uploadFilesInChunks).mockImplementation(
         async ({ currentProgress, emitProgress }) => {
           currentProgress.itemsUploaded = 2;
-          currentProgress.bytesUploaded = 400;
+          currentProgress.bytesUploaded = 500;
           emitProgress();
-          return 400;
+          return 500;
         },
       );
 
@@ -179,6 +169,31 @@ describe('UploadFacade', () => {
       expect(onProgress).toHaveBeenCalledTimes(2);
       expect(onProgress).toHaveBeenNthCalledWith(1, { percentage: 25 });
       expect(onProgress).toHaveBeenNthCalledWith(2, { percentage: 100 });
+    });
+
+    it('should wait 500ms between folder creation and file upload to prevent backend indexing issues', async () => {
+      vi.useFakeTimers();
+
+      vi.mocked(UploadFolderService.instance.createFolders).mockResolvedValue(folderMap);
+      vi.mocked(UploadFileService.instance.uploadFilesInChunks).mockResolvedValue(100);
+
+      const uploadPromise = sut.uploadFolder({
+        localPath,
+        destinationFolderUuid,
+        loginUserDetails: mockLoginUserDetails,
+        jsonFlag: false,
+        onProgress,
+      });
+
+      await vi.advanceTimersByTimeAsync(500);
+      await uploadPromise;
+
+      expect(AsyncUtils.sleep).toHaveBeenCalledWith(500);
+      expect(AsyncUtils.sleep).toHaveBeenCalledTimes(1);
+      expect(UploadFolderService.instance.createFolders).toHaveBeenCalled();
+      expect(UploadFileService.instance.uploadFilesInChunks).toHaveBeenCalled();
+
+      vi.useRealTimers();
     });
   });
 });

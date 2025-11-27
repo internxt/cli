@@ -1,10 +1,11 @@
-import { basename } from 'path';
+import { basename } from 'node:path';
 import { CLIUtils } from '../../../utils/cli.utils';
 import { logger } from '../../../utils/logger.utils';
 import { LocalFilesystemService } from '../../local-filesystem/local-filesystem.service';
 import { UploadFolderParams } from './upload.types';
 import { UploadFolderService } from './upload-folder.service';
 import { UploadFileService } from './upload-file.service';
+import { AsyncUtils } from '../../../utils/async.utils';
 
 export class UploadFacade {
   static readonly instance = new UploadFacade();
@@ -34,6 +35,8 @@ export class UploadFacade {
     if (folderMap.size === 0) {
       return { error: new Error('Failed to create folders, cannot upload files') };
     }
+    // This aims to prevent this issue: https://inxt.atlassian.net/browse/PB-1446
+    await AsyncUtils.sleep(500);
 
     const totalBytes = await UploadFileService.instance.uploadFilesInChunks({
       network,
