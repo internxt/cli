@@ -37,9 +37,3 @@ export function createMockReadStream() {
   stream.push(null);
   return stream;
 }
-
-export function createMockTimer() {
-  return {
-    stop: vi.fn().mockReturnValue(1000),
-  };
-}
