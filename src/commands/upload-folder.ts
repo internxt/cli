@@ -51,7 +51,7 @@ export default class UploadFolder extends Command {
       flags['json'],
     );
     progressBar?.start(100, 0);
-    const { data, error } = await UploadFacade.instance.uploadFolder({
+    const data = await UploadFacade.instance.uploadFolder({
       localPath: flags['folder'],
       destinationFolderUuid,
       loginUserDetails: user,
@@ -63,10 +63,6 @@ export default class UploadFolder extends Command {
 
     progressBar?.update(100);
     progressBar?.stop();
-
-    if (error) {
-      throw error;
-    }
 
     const driveUrl = ConfigService.instance.get('DRIVE_WEB_URL');
     const folderUrl = `${driveUrl}/folder/${data.rootFolderId}`;

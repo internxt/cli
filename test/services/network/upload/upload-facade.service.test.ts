@@ -95,7 +95,7 @@ describe('UploadFacade', () => {
     const destinationFolderUuid = 'dest-uuid';
     const onProgress = vi.fn();
 
-    it('should properly return an error if createFolders returns an empty map', async () => {
+    it('should throw an error if createFolders returns an empty map', async () => {
       vi.mocked(LocalFilesystemService.instance.scanLocalDirectory).mockResolvedValue({
         folders: [createFileSystemNodeFixture({ type: 'folder', name: 'test', relativePath: 'test' })],
         files: [],
@@ -105,16 +105,16 @@ describe('UploadFacade', () => {
 
       vi.mocked(UploadFolderService.instance.createFolders).mockResolvedValue(new Map());
 
-      const result = await sut.uploadFolder({
-        localPath,
-        destinationFolderUuid,
-        loginUserDetails: mockLoginUserDetails,
-        jsonFlag: false,
-        onProgress,
-      });
+      await expect(
+        sut.uploadFolder({
+          localPath,
+          destinationFolderUuid,
+          loginUserDetails: mockLoginUserDetails,
+          jsonFlag: false,
+          onProgress,
+        }),
+      ).rejects.toThrow('Failed to create folders, cannot upload files');
 
-      expect(result.error).toBeInstanceOf(Error);
-      expect(result.error?.message).toBe('Failed to create folders, cannot upload files');
       expect(UploadFolderService.instance.createFolders).toHaveBeenCalled();
       expect(UploadFileService.instance.uploadFilesInChunks).not.toHaveBeenCalled();
     });
@@ -128,11 +128,10 @@ describe('UploadFacade', () => {
         onProgress,
       });
 
-      expect(result.error).toBeUndefined();
-      expect(result.data).toBeDefined();
-      expect(result.data?.totalBytes).toBe(500);
-      expect(result.data?.rootFolderId).toBe('folder-uuid-123');
-      expect(result.data?.uploadTimeMs).toBe(1000);
+      expect(result).toBeDefined();
+      expect(result.totalBytes).toBe(500);
+      expect(result.rootFolderId).toBe('folder-uuid-123');
+      expect(result.uploadTimeMs).toBe(1000);
       expect(UploadFolderService.instance.createFolders).toHaveBeenCalled();
       expect(UploadFileService.instance.uploadFilesInChunks).toHaveBeenCalled();
       expect(logger.info).toHaveBeenCalledWith(`Scanned folder ${localPath}: found 2 items, total size 500 bytes.`);

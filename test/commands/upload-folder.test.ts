@@ -18,9 +18,7 @@ describe('Upload Folder Command', () => {
   let getAuthDetailsSpy: MockInstance<() => Promise<LoginCredentials>>;
   let validateDirectoryExistsSpy: MockInstance<(path: string) => Promise<boolean>>;
   let getDestinationFolderUuidSpy: MockInstance<() => Promise<string | undefined>>;
-  let UploadFacadeSpy: MockInstance<
-    () => Promise<{ data: UploadResult; error?: undefined } | { error: Error; data?: undefined }>
-  >;
+  let UploadFacadeSpy: MockInstance<() => Promise<UploadResult>>;
   let cliSuccessSpy: MockInstance<() => void>;
   const uploadedResult: UploadResult = {
     totalBytes: 1024,
@@ -37,9 +35,7 @@ describe('Upload Folder Command', () => {
       .spyOn(ValidationService.instance, 'validateDirectoryExists')
       .mockResolvedValue(true);
     getDestinationFolderUuidSpy = vi.spyOn(CLIUtils, 'getDestinationFolderUuid').mockResolvedValue(undefined);
-    UploadFacadeSpy = vi.spyOn(UploadFacade.instance, 'uploadFolder').mockResolvedValue({
-      data: uploadedResult,
-    });
+    UploadFacadeSpy = vi.spyOn(UploadFacade.instance, 'uploadFolder').mockResolvedValue(uploadedResult);
     cliSuccessSpy = vi.spyOn(CLIUtils, 'success').mockImplementation(() => {});
   });
 
@@ -87,25 +83,6 @@ describe('Upload Folder Command', () => {
         destinationFolderUuid: UserFixture.rootFolderId,
       }),
     );
-  });
-
-  it('should rethrow any error returned by UploadFacade.uploadFolder', async () => {
-    const uploadError = new Error('Unhandled upload error');
-    UploadFacadeSpy.mockResolvedValue({
-      error: uploadError,
-    });
-
-    const result = UploadFolder.run(['--folder=/valid/folder/path']);
-
-    await expect(result).rejects.toMatchObject({
-      message: expect.stringContaining('EEXIT: 1'),
-      oclif: { exit: 1 },
-    });
-
-    expect(getAuthDetailsSpy).toHaveBeenCalledOnce();
-    expect(validateDirectoryExistsSpy).toHaveBeenCalledWith('/valid/folder/path');
-    expect(getDestinationFolderUuidSpy).toHaveBeenCalledOnce();
-    expect(UploadFacadeSpy).toHaveBeenCalledOnce();
   });
 
   it('should call CLIUtils.success with proper message when upload succeeds', async () => {
