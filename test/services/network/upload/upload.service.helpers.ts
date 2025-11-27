@@ -1,3 +1,4 @@
+import { Readable } from 'stream';
 import { vi } from 'vitest';
 import { FileSystemNode } from '../../../../src/services/local-filesystem/local-filesystem.types';
 
@@ -21,4 +22,18 @@ export function createProgressFixtures() {
     currentProgress: { itemsUploaded: 0, bytesUploaded: 0 },
     emitProgress: vi.fn(),
   };
+}
+
+export function createMockStats(size: number) {
+  return {
+    size,
+    birthtime: new Date('2024-01-01'),
+    mtime: new Date('2024-01-02'),
+  };
+}
+
+export function createMockReadStream() {
+  const stream = new Readable();
+  stream.push(null);
+  return stream;
 }
