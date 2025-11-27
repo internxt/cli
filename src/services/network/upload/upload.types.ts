@@ -8,7 +8,7 @@ export interface UploadResult {
   uploadTimeMs: number;
 }
 
-export interface UploadFolderHandlerParams {
+export interface UploadFolderParams {
   localPath: string;
   destinationFolderUuid: string;
   loginUserDetails: LoginUserDetails;
