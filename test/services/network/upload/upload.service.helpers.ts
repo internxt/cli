@@ -17,7 +17,6 @@ export function createFileSystemNodeFixture({
 }) {
   return { type, name, relativePath, size, absolutePath } as FileSystemNode;
 }
-
 export function createProgressFixtures() {
   return {
     currentProgress: { itemsUploaded: 0, bytesUploaded: 0 },
