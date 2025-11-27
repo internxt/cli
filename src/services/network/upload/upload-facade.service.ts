@@ -33,7 +33,7 @@ export class UploadFacade {
     });
 
     if (folderMap.size === 0) {
-      return { error: new Error('Failed to create folders, cannot upload files') };
+      throw new Error('Failed to create folders, cannot upload files');
     }
     // This aims to prevent this issue: https://inxt.atlassian.net/browse/PB-1446
     await AsyncUtils.sleep(500);
@@ -51,11 +51,9 @@ export class UploadFacade {
     const rootFolderName = basename(localPath);
     const rootFolderId = folderMap.get(rootFolderName) ?? '';
     return {
-      data: {
-        totalBytes,
-        rootFolderId,
-        uploadTimeMs: timer.stop(),
-      },
+      totalBytes,
+      rootFolderId,
+      uploadTimeMs: timer.stop(),
     };
   }
 }
