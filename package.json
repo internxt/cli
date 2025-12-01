@@ -76,7 +76,7 @@
     "husky": "9.1.7",
     "lint-staged": "16.2.6",
     "nodemon": "3.1.11",
-    "oclif": "4.22.47",
+    "oclif": "4.22.50",
     "prettier": "3.6.2",
     "rimraf": "6.1.2",
     "ts-node": "10.9.2",
