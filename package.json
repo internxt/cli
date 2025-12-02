@@ -77,7 +77,7 @@
     "lint-staged": "16.2.7",
     "nodemon": "3.1.11",
     "oclif": "4.22.50",
-    "prettier": "3.6.2",
+    "prettier": "3.7.3",
     "rimraf": "6.1.2",
     "ts-node": "10.9.2",
     "typescript": "5.9.3",
