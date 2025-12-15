@@ -68,7 +68,7 @@
     "@types/cli-progress": "3.11.6",
     "@types/express": "5.0.5",
     "@types/mime-types": "3.0.1",
-    "@types/node": "22.18.12",
+    "@types/node": "22.19.1",
     "@types/range-parser": "1.2.7",
     "@vitest/coverage-istanbul": "4.0.15",
     "@vitest/spy": "4.0.14",
