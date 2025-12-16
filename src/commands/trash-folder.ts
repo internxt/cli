@@ -30,7 +30,7 @@ export default class TrashFolder extends Command {
 
     const uuid = await this.getFolderUuid(flags['id'], nonInteractive);
 
-    await TrashService.instance.trashItems({ items: [{ uuid, type: 'folder', id: null }] });
+    await TrashService.instance.trashItems({ items: [{ uuid, type: 'folder' }] });
     const message = 'Folder trashed successfully.';
     CLIUtils.success(this.log.bind(this), message);
     return { success: true, message, folder: { uuid } };

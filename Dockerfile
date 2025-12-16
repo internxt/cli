@@ -12,6 +12,7 @@ RUN yarn install
 RUN yarn build
 
 RUN chmod +x /app/docker/entrypoint.sh
+RUN chmod +x /app/docker/health_check.sh
 RUN ln -s '/app/bin/run.js' /usr/local/bin/internxt
 
 ENTRYPOINT ["/app/docker/entrypoint.sh"]

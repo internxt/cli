@@ -5,7 +5,6 @@ import { WebDavMethodHandler } from '../../types/webdav.types';
 import { NotFoundError } from '../../utils/errors.utils';
 import { webdavLogger } from '../../utils/logger.utils';
 import { WebDavUtils } from '../../utils/webdav.utils';
-import { DriveFileItem, DriveFolderItem } from '../../types/drive.types';
 import { WebDavFolderService } from '../services/webdav-folder.service';
 
 export class MOVERequestHandler implements WebDavMethodHandler {
@@ -19,9 +18,9 @@ export class MOVERequestHandler implements WebDavMethodHandler {
 
   handle = async (req: Request, res: Response) => {
     const { driveFolderService, driveFileService, webDavFolderService } = this.dependencies;
-    const resource = await WebDavUtils.getRequestedResource(req);
+    const resource = await WebDavUtils.getRequestedResource(req.url);
 
-    webdavLogger.info(`[MOVE] Request received for ${resource.type} at ${resource.url}`);
+    webdavLogger.info(`[MOVE] Request received for item at ${resource.url}`);
 
     const destinationUrl = req.header('destination');
     if (!destinationUrl) {
@@ -42,49 +41,52 @@ export class MOVERequestHandler implements WebDavMethodHandler {
       throw new NotFoundError(`Resource not found on Internxt Drive at ${resource.url}`);
     }
 
-    const newName = destinationResource.name;
-
     if (destinationResource.path.dir === resource.path.dir) {
       // RENAME (the operation is from the same dir)
       webdavLogger.info(
-        `[MOVE] Renaming ${resource.type} with UUID ${originalDriveItem.uuid} to ${destinationResource.name}`,
+        `[MOVE] Renaming ${originalDriveItem.itemType}
+        with UUID ${originalDriveItem.uuid} to ${destinationResource.name}`,
       );
 
-      if (resource.type === 'folder') {
-        const folder = originalDriveItem as DriveFolderItem;
+      if (originalDriveItem.itemType === 'folder') {
+        const folder = originalDriveItem;
         await driveFolderService.renameFolder({
           folderUuid: folder.uuid,
-          name: newName,
+          name: destinationResource.name,
         });
-      } else if (resource.type === 'file') {
-        const newType = destinationResource.path.ext.replace('.', '');
-        const file = originalDriveItem as DriveFileItem;
+      } else if (originalDriveItem.itemType === 'file') {
+        const file = originalDriveItem;
+        const plainName = destinationResource.path.name;
+        const fileType = destinationResource.path.ext.replace('.', '');
         await driveFileService.renameFile(file.uuid, {
-          plainName: newName,
-          type: newType,
+          plainName: plainName,
+          type: fileType,
         });
       }
     } else {
       // MOVE (the operation is from different dirs)
-      webdavLogger.info(`[MOVE] Moving ${resource.type} with UUID ${originalDriveItem.uuid} to ${destinationPath}`);
+      webdavLogger.info(
+        `[MOVE] Moving ${originalDriveItem.itemType} with UUID ${originalDriveItem.uuid} to ${destinationPath}`,
+      );
 
       const destinationFolderItem =
         (await webDavFolderService.getDriveFolderItemFromPath(destinationResource.parentPath)) ??
         (await webDavFolderService.createParentPathOrThrow(destinationResource.parentPath));
 
-      if (resource.type === 'folder') {
-        const folder = originalDriveItem as DriveFolderItem;
+      if (originalDriveItem.itemType === 'folder') {
+        const folder = originalDriveItem;
         await driveFolderService.moveFolder(folder.uuid, {
           destinationFolder: destinationFolderItem.uuid,
-          name: newName,
+          name: destinationResource.name,
         });
-      } else if (resource.type === 'file') {
-        const file = originalDriveItem as DriveFileItem;
-        const newType = destinationResource.path.ext.replace('.', '');
+      } else if (originalDriveItem.itemType === 'file') {
+        const file = originalDriveItem;
+        const plainName = destinationResource.path.name;
+        const fileType = destinationResource.path.ext.replace('.', '');
         await driveFileService.moveFile(file.uuid, {
           destinationFolder: destinationFolderItem.uuid,
-          name: newName,
-          type: newType,
+          name: plainName,
+          type: fileType,
         });
       }
     }

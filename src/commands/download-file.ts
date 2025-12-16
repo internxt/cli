@@ -1,21 +1,14 @@
 import { Command, Flags } from '@oclif/core';
 import { DriveFileService } from '../services/drive/drive-file.service';
 import { CLIUtils } from '../utils/cli.utils';
-import { NetworkFacade } from '../services/network/network-facade.service';
 import { AuthService } from '../services/auth.service';
-import { CryptoService } from '../services/crypto.service';
-import { DownloadService } from '../services/network/download.service';
-import { SdkManager } from '../services/sdk-manager.service';
 import { createWriteStream } from 'node:fs';
 import { DriveFileItem } from '../types/drive.types';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { StreamUtils } from '../utils/stream.utils';
-import { LoginUserDetails, NotValidDirectoryError, NotValidFileUuidError } from '../types/command.types';
+import { NotValidDirectoryError, NotValidFileUuidError } from '../types/command.types';
 import { ValidationService } from '../services/validation.service';
-import { Environment } from '@internxt/inxt-js';
-import { ConfigService } from '../services/config.service';
-
 export default class DownloadFile extends Command {
   static readonly args = {};
   static readonly description =
@@ -64,7 +57,7 @@ export default class DownloadFile extends Command {
 
     // 2. Prepare the network
     const { user } = await AuthService.instance.getAuthDetails();
-    const networkFacade = await this.prepareNetwork(user, flags['json']);
+    const networkFacade = await CLIUtils.prepareNetwork({ loginUserDetails: user, jsonFlag: flags['json'] });
     // 3. Download the file
     const fileWriteStream = createWriteStream(downloadPath);
 
@@ -202,30 +195,5 @@ export default class DownloadFile extends Command {
     }
 
     return downloadPath;
-  };
-
-  private prepareNetwork = async (user: LoginUserDetails, jsonFlag?: boolean) => {
-    CLIUtils.doing('Preparing Network', jsonFlag);
-
-    const networkModule = SdkManager.instance.getNetwork({
-      user: user.bridgeUser,
-      pass: user.userId,
-    });
-    const environment = new Environment({
-      bridgeUser: user.bridgeUser,
-      bridgePass: user.userId,
-      bridgeUrl: ConfigService.instance.get('NETWORK_URL'),
-      encryptionKey: user.mnemonic,
-      appDetails: SdkManager.getAppDetails(),
-    });
-    const networkFacade = new NetworkFacade(
-      networkModule,
-      environment,
-      DownloadService.instance,
-      CryptoService.instance,
-    );
-    CLIUtils.done(jsonFlag);
-
-    return networkFacade;
   };
 }

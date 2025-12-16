@@ -24,6 +24,7 @@ const getRandomDate = (start = new Date(2000, 0, 1), end = new Date()) => {
 
 export const newFolderItem = (attributes?: Partial<DriveFolderItem>): DriveFolderItem => {
   const folder: DriveFolderItem = {
+    itemType: 'folder',
     id: randomInt(1, 100000),
     uuid: randomUUID(),
     parentId: randomInt(1, 100000),
@@ -40,6 +41,7 @@ export const newFolderItem = (attributes?: Partial<DriveFolderItem>): DriveFolde
 
 export const newFileItem = (attributes?: Partial<DriveFileItem>): DriveFileItem => {
   const file: DriveFileItem = {
+    itemType: 'file',
     id: randomInt(1, 100000),
     uuid: crypto.randomBytes(16).toString('hex'),
     fileId: crypto.randomBytes(16).toString('hex'),

@@ -65,7 +65,7 @@ You can also run the `internxt/webdav` image directly on popular NAS devices lik
 1. Open Container Station.
 2. Click **Create Container** and search for `internxt/webdav`.
 3. Select the latest image and click **Next**.
-4. Set environment variables (`INXT_USER`, `INXT_PASSWORD`, etc.) and port mappings.
+4. Set environment variables (`INXT_USER`, `INXT_PASSWORD`, etc.) and port mappings (e.g., `3005:3005`).
 5. Apply settings and start the container.
 
 

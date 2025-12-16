@@ -5,6 +5,12 @@ export function isError(error: unknown): error is Error {
   return types.isNativeError(error);
 }
 
+export function isAlreadyExistsError(error: unknown): error is Error {
+  return (
+    (isError(error) && error.message.includes('already exists')) ||
+    (typeof error === 'object' && error !== null && 'status' in error && error.status === 409)
+  );
+}
 export class ErrorUtils {
   static report(error: unknown, props: Record<string, unknown> = {}) {
     if (isError(error)) {

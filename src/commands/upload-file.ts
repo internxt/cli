@@ -1,24 +1,19 @@
 import { Command, Flags } from '@oclif/core';
 import { stat } from 'node:fs/promises';
 import { createReadStream } from 'node:fs';
-import { NetworkFacade } from '../services/network/network-facade.service';
-import { SdkManager } from '../services/sdk-manager.service';
 import { AuthService } from '../services/auth.service';
 import { CLIUtils } from '../utils/cli.utils';
 import { ConfigService } from '../services/config.service';
 import path from 'node:path';
 import { DriveFileService } from '../services/drive/drive-file.service';
-import { CryptoService } from '../services/crypto.service';
-import { DownloadService } from '../services/network/download.service';
 import { ErrorUtils } from '../utils/errors.utils';
-import { NotValidDirectoryError, NotValidFolderUuidError } from '../types/command.types';
+import { NotValidDirectoryError } from '../types/command.types';
 import { ValidationService } from '../services/validation.service';
 import { EncryptionVersion } from '@internxt/sdk/dist/drive/storage/types';
 import { ThumbnailService } from '../services/thumbnail.service';
 import { BufferStream } from '../utils/stream.utils';
 import { isFileThumbnailable } from '../utils/thumbnail.utils';
 import { Readable } from 'node:stream';
-import { Environment } from '@internxt/inxt-js';
 
 export default class UploadFile extends Command {
   static readonly args = {};
@@ -58,33 +53,17 @@ export default class UploadFile extends Command {
     const fileInfo = path.parse(filePath);
     const fileType = fileInfo.ext.replaceAll('.', '');
 
-    let destinationFolderUuid = await this.getDestinationFolderUuid(flags['destination'], nonInteractive);
-    if (destinationFolderUuid.trim().length === 0) {
-      // destinationFolderUuid is empty from flags&prompt, which means we should use RootFolderUuid
-      destinationFolderUuid = user.rootFolderId;
-    }
+    // If destinationFolderUuid is empty from flags&prompt, means we should use RootFolderUuid
+    const destinationFolderUuid =
+      (await CLIUtils.getDestinationFolderUuid({
+        destinationFolderUuidFlag: flags['destination'],
+        destinationFlagName: UploadFile.flags['destination'].name,
+        nonInteractive,
+        reporter: this.log.bind(this),
+      })) ?? user.rootFolderId;
 
     // 1. Prepare the network
-    CLIUtils.doing('Preparing Network', flags['json']);
-    const networkModule = SdkManager.instance.getNetwork({
-      user: user.bridgeUser,
-      pass: user.userId,
-    });
-    const environment = new Environment({
-      bridgeUser: user.bridgeUser,
-      bridgePass: user.userId,
-      bridgeUrl: ConfigService.instance.get('NETWORK_URL'),
-      encryptionKey: user.mnemonic,
-      appDetails: SdkManager.getAppDetails(),
-    });
-    const networkFacade = new NetworkFacade(
-      networkModule,
-      environment,
-      DownloadService.instance,
-      CryptoService.instance,
-    );
-
-    CLIUtils.done(flags['json']);
+    const networkFacade = await CLIUtils.prepareNetwork({ loginUserDetails: user, jsonFlag: flags['json'] });
 
     // 2. Upload file to the Network
     const readStream = createReadStream(filePath);
@@ -187,32 +166,6 @@ export default class UploadFile extends Command {
       jsonFlag: flags['json'],
     });
     this.exit(1);
-  };
-
-  private getDestinationFolderUuid = async (
-    destinationFolderUuidFlag: string | undefined,
-    nonInteractive: boolean,
-  ): Promise<string> => {
-    const destinationFolderUuid = await CLIUtils.getValueFromFlag(
-      {
-        value: destinationFolderUuidFlag,
-        name: UploadFile.flags['destination'].name,
-      },
-      {
-        nonInteractive,
-        prompt: {
-          message: 'What is the destination folder id? (leave empty for the root folder)',
-          options: { type: 'input' },
-        },
-      },
-      {
-        validate: ValidationService.instance.validateUUIDv4,
-        error: new NotValidFolderUuidError(),
-        canBeEmpty: true,
-      },
-      this.log.bind(this),
-    );
-    return destinationFolderUuid;
   };
 
   private getFilePath = async (fileFlag: string | undefined, nonInteractive: boolean): Promise<string> => {

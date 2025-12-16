@@ -1,3 +1,10 @@
+import { Readable } from 'node:stream';
+import { NetworkFacade } from '../services/network/network-facade.service';
+import { ThumbnailService } from '../services/thumbnail.service';
+import { ErrorUtils } from './errors.utils';
+import { BufferStream } from './stream.utils';
+import { createReadStream } from 'node:fs';
+
 export const ThumbnailConfig = {
   MaxWidth: 300,
   MaxHeight: 300,
@@ -40,4 +47,48 @@ export const isPDFThumbnailable = (fileType: string) => {
 
 export const isImageThumbnailable = (fileType: string) => {
   return fileType.trim().length > 0 && thumbnailableImageExtension.includes(fileType.trim().toLowerCase());
+};
+
+export const tryUploadThumbnail = async ({
+  bufferStream,
+  fileType,
+  userBucket,
+  fileUuid,
+  networkFacade,
+}: {
+  bufferStream: BufferStream;
+  fileType: string;
+  userBucket: string;
+  fileUuid: string;
+  networkFacade: NetworkFacade;
+}) => {
+  try {
+    const thumbnailBuffer = bufferStream.getBuffer();
+    if (thumbnailBuffer) {
+      await ThumbnailService.instance.uploadThumbnail(thumbnailBuffer, fileType, userBucket, fileUuid, networkFacade);
+    }
+  } catch (error) {
+    ErrorUtils.report(error);
+  }
+};
+
+export const createFileStreamWithBuffer = ({
+  path,
+  fileType,
+}: {
+  path: string;
+  fileType: string;
+}): {
+  bufferStream?: BufferStream;
+  fileStream: Readable;
+} => {
+  const readable: Readable = createReadStream(path);
+  if (isFileThumbnailable(fileType)) {
+    const bufferStream = new BufferStream();
+    return {
+      bufferStream,
+      fileStream: readable.pipe(bufferStream),
+    };
+  }
+  return { fileStream: readable };
 };

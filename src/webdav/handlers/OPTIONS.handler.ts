@@ -5,9 +5,9 @@ import { webdavLogger } from '../../utils/logger.utils';
 
 export class OPTIONSRequestHandler implements WebDavMethodHandler {
   handle = async (req: Request, res: Response) => {
-    const resource = await WebDavUtils.getRequestedResource(req);
+    const resource = await WebDavUtils.getRequestedResource(req.url);
 
-    webdavLogger.info(`[OPTIONS] Request received for ${resource.type} at ${resource.url}`);
+    webdavLogger.info(`[OPTIONS] Request received for item at ${resource.url}`);
 
     if (resource.url === '/' || resource.url === '') {
       // Root Folder
@@ -16,7 +16,7 @@ export class OPTIONSRequestHandler implements WebDavMethodHandler {
       res.header('Allow', 'DELETE, GET, HEAD, MKCOL, MOVE, OPTIONS, PROPFIND, PUT');
       res.header('DAV', '1, 2, ordered-collections');
       res.status(200).send();
-    } else if (resource.type === 'folder') {
+    } else if (resource.url.endsWith('/')) {
       // Children Folder
       const allowedMethods = 'DELETE, HEAD, MKCOL, MOVE, OPTIONS, PROPFIND';
       webdavLogger.info(`[OPTIONS] Returning Allowed Options: ${allowedMethods}`);

@@ -1,9 +1,16 @@
 import { ux, Flags } from '@oclif/core';
 import cliProgress from 'cli-progress';
 import Table, { Header } from 'tty-table';
-import { PromptOptions } from '../types/command.types';
+import { LoginUserDetails, NotValidFolderUuidError, PromptOptions } from '../types/command.types';
 import { InquirerUtils } from './inquirer.utils';
 import { ErrorUtils } from './errors.utils';
+import { ValidationService } from '../services/validation.service';
+import { SdkManager } from '../services/sdk-manager.service';
+import { Environment } from '@internxt/inxt-js';
+import { ConfigService } from '../services/config.service';
+import { NetworkFacade } from '../services/network/network-facade.service';
+import { DownloadService } from '../services/network/download.service';
+import { CryptoService } from '../services/crypto.service';
 
 export class CLIUtils {
   static readonly clearPreviousLine = (jsonFlag?: boolean) => {
@@ -125,6 +132,43 @@ export class CLIUtils {
     }
   };
 
+  static readonly getDestinationFolderUuid = async ({
+    destinationFolderUuidFlag,
+    destinationFlagName,
+    nonInteractive,
+    reporter,
+  }: {
+    destinationFolderUuidFlag: string | undefined;
+    destinationFlagName: string;
+    nonInteractive: boolean;
+    reporter: (message: string) => void;
+  }): Promise<string | undefined> => {
+    const destinationFolderUuid = await this.getValueFromFlag(
+      {
+        value: destinationFolderUuidFlag,
+        name: destinationFlagName,
+      },
+      {
+        nonInteractive,
+        prompt: {
+          message: 'What is the destination folder id? (leave empty for the root folder)',
+          options: { type: 'input' },
+        },
+      },
+      {
+        validate: ValidationService.instance.validateUUIDv4,
+        error: new NotValidFolderUuidError(),
+        canBeEmpty: true,
+      },
+      reporter,
+    );
+    if (destinationFolderUuid.trim().length === 0) {
+      return undefined;
+    } else {
+      return destinationFolderUuid;
+    }
+  };
+
   private static readonly promptWithAttempts = async (
     prompt: { message: string; options: PromptOptions },
     maxAttempts: number,
@@ -200,6 +244,35 @@ export class CLIUtils {
   };
 
   static readonly parseEmpty = async (input: string) => (input.trim().length === 0 ? ' ' : input);
+  static readonly prepareNetwork = ({
+    jsonFlag,
+    loginUserDetails,
+  }: {
+    jsonFlag?: boolean;
+    loginUserDetails: LoginUserDetails;
+  }) => {
+    CLIUtils.doing('Preparing Network', jsonFlag);
+    const networkModule = SdkManager.instance.getNetwork({
+      user: loginUserDetails.bridgeUser,
+      pass: loginUserDetails.userId,
+    });
+    const environment = new Environment({
+      bridgeUser: loginUserDetails.bridgeUser,
+      bridgePass: loginUserDetails.userId,
+      bridgeUrl: ConfigService.instance.get('NETWORK_URL'),
+      encryptionKey: loginUserDetails.mnemonic,
+      appDetails: SdkManager.getAppDetails(),
+    });
+    const networkFacade = new NetworkFacade(
+      networkModule,
+      environment,
+      DownloadService.instance,
+      CryptoService.instance,
+    );
+
+    CLIUtils.done(jsonFlag);
+    return networkFacade;
+  };
 }
 
 export class NoFlagProvidedError extends Error {
