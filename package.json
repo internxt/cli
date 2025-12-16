@@ -68,9 +68,9 @@
     "@types/cli-progress": "3.11.6",
     "@types/express": "5.0.5",
     "@types/mime-types": "3.0.1",
-    "@types/node": "22.18.12",
+    "@types/node": "22.19.1",
     "@types/range-parser": "1.2.7",
-    "@vitest/coverage-istanbul": "4.0.13",
+    "@vitest/coverage-istanbul": "4.0.15",
     "@vitest/spy": "4.0.14",
     "eslint": "9.39.1",
     "husky": "9.1.7",
@@ -81,7 +81,7 @@
     "rimraf": "6.1.2",
     "ts-node": "10.9.2",
     "typescript": "5.9.3",
-    "vitest": "4.0.13",
+    "vitest": "4.0.15",
     "vitest-mock-express": "2.2.0"
   },
   "optionalDependencies": {
