@@ -9,6 +9,7 @@ import { AuthService } from '../../services/auth.service';
 import { NotFoundError } from '../../utils/errors.utils';
 import { webdavLogger } from '../../utils/logger.utils';
 import { NetworkUtils } from '../../utils/network.utils';
+import { NotValidFileIdError } from '../../types/command.types';
 
 export class GETRequestHandler implements WebDavMethodHandler {
   constructor(
@@ -56,29 +57,41 @@ export class GETRequestHandler implements WebDavMethodHandler {
     }
 
     res.header('Content-Type', 'application/octet-stream');
-    res.header('Content-length', contentLength.toString());
 
-    const writable = new WritableStream({
-      write(chunk) {
-        res.write(chunk);
-      },
-      close() {
-        res.end();
-      },
-    });
+    if (contentLength === 0 || driveFile.size === 0) {
+      webdavLogger.info(`[GET] [${driveFile.uuid}] File is empty, replying to client`);
+      res.header('Content-length', '0');
+      res.status(200);
+      res.end();
+    } else {
+      res.header('Content-length', contentLength.toString());
 
-    const [executeDownload] = await networkFacade.downloadToStream(
-      driveFile.bucket,
-      user.mnemonic,
-      driveFile.fileId,
-      contentLength,
-      writable,
-      rangeOptions,
-    );
-    webdavLogger.info(`[GET] [${driveFile.uuid}] Download prepared, executing...`);
-    res.status(200);
+      const writable = new WritableStream({
+        write(chunk) {
+          res.write(chunk);
+        },
+        close() {
+          res.end();
+        },
+      });
 
-    await executeDownload;
+      if (!driveFile.fileId) {
+        throw new NotValidFileIdError();
+      }
+
+      const [executeDownload] = await networkFacade.downloadToStream(
+        driveFile.bucket,
+        user.mnemonic,
+        driveFile.fileId,
+        contentLength,
+        writable,
+        rangeOptions,
+      );
+      webdavLogger.info(`[GET] [${driveFile.uuid}] Download prepared, executing...`);
+      res.status(200);
+
+      await executeDownload;
+    }
 
     webdavLogger.info(`[GET] [${driveFile.uuid}] ✅ Download ready, replying to client`);
   };

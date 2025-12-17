@@ -244,6 +244,7 @@ export class CLIUtils {
   };
 
   static readonly parseEmpty = async (input: string) => (input.trim().length === 0 ? ' ' : input);
+
   static readonly prepareNetwork = ({
     jsonFlag,
     loginUserDetails,
