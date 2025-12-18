@@ -45,12 +45,13 @@ export class GETRequestHandler implements WebDavMethodHandler {
     const { user } = await authService.getAuthDetails();
     webdavLogger.info(`[GET] [${driveFile.uuid}] Network ready for download`);
 
+    const fileSize = driveFile.size ?? 0;
     const range = req.headers['range'];
     const rangeOptions = NetworkUtils.parseRangeHeader({
       range,
-      totalFileSize: driveFile.size,
+      totalFileSize: fileSize,
     });
-    let contentLength = driveFile.size;
+    let contentLength = fileSize;
     if (rangeOptions) {
       webdavLogger.info(`[GET] [${driveFile.uuid}] Range request received:`, { rangeOptions });
       contentLength = rangeOptions.rangeSize;
@@ -58,12 +59,7 @@ export class GETRequestHandler implements WebDavMethodHandler {
 
     res.header('Content-Type', 'application/octet-stream');
 
-    if (contentLength === 0 || driveFile.size === 0) {
-      webdavLogger.info(`[GET] [${driveFile.uuid}] File is empty, replying to client`);
-      res.header('Content-length', '0');
-      res.status(200);
-      res.end();
-    } else {
+    if (fileSize > 0) {
       res.header('Content-length', contentLength.toString());
 
       const writable = new WritableStream({
@@ -88,11 +84,21 @@ export class GETRequestHandler implements WebDavMethodHandler {
         rangeOptions,
       );
       webdavLogger.info(`[GET] [${driveFile.uuid}] Download prepared, executing...`);
+
+      /**
+       * If the client doesn't receive a 200 status code, the download can be aborted.
+       * We need to respond with status 200 while the file is being downloaded via streams
+       * so the client can keep the connection open and receive the file completely.
+       */
       res.status(200);
 
       await executeDownload;
+      webdavLogger.info(`[GET] [${driveFile.uuid}] ✅ Download ready, replying to client`);
+    } else {
+      webdavLogger.info(`[GET] [${driveFile.uuid}] File is empty, replying to client with no content`);
+      res.header('Content-length', '0');
+      res.status(200);
+      res.end();
     }
-
-    webdavLogger.info(`[GET] [${driveFile.uuid}] ✅ Download ready, replying to client`);
   };
 }
