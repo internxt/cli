@@ -62,7 +62,7 @@ describe('GET request handler', () => {
     vi.restoreAllMocks();
   });
 
-  it('When the Drive file is not found, then it should throw a NotFoundError', async () => {
+  it('should throw a NotFoundError when the Drive file is not found', async () => {
     const requestedFileResource: WebDavRequestedResource = getRequestedFileResource();
 
     const request = createWebDavRequestFixture({
@@ -91,7 +91,7 @@ describe('GET request handler', () => {
     expect(getFileMetadataStub).toHaveBeenCalledOnce();
   });
 
-  it('When file is requested, then it should write a response with the content', async () => {
+  it('should write a response with the content when a file is requested', async () => {
     const requestedFileResource: WebDavRequestedResource = getRequestedFileResource();
 
     const request = createWebDavRequestFixture({
@@ -136,7 +136,7 @@ describe('GET request handler', () => {
     );
   });
 
-  it('When file is requested with Range, then it should write a response with the ranged content', async () => {
+  it('should write a response with the ranged content when a file is requested with Range', async () => {
     const requestedFileResource: WebDavRequestedResource = getRequestedFileResource();
 
     const mockSize = randomInt(500, 10000);
@@ -191,5 +191,43 @@ describe('GET request handler', () => {
       expect.any(Object),
       expectedRangeOptions,
     );
+  });
+
+  it('should write a response with no content when an empty file is requested', async () => {
+    const requestedFileResource: WebDavRequestedResource = getRequestedFileResource();
+
+    const request = createWebDavRequestFixture({
+      method: 'GET',
+      url: requestedFileResource.url,
+      headers: {},
+    });
+    const response = createWebDavResponseFixture({
+      status: vi.fn().mockReturnValue({ send: vi.fn() }),
+      header: vi.fn(),
+    });
+
+    const mockFile = newFileItem({ size: 0 });
+    const mockAuthDetails: LoginCredentials = UserCredentialsFixture;
+
+    const getRequestedResourceStub = vi
+      .spyOn(WebDavUtils, 'getRequestedResource')
+      .mockResolvedValue(requestedFileResource);
+    const getFileMetadataStub = vi
+      .spyOn(DriveFileService.instance, 'getFileMetadataByPath')
+      .mockResolvedValue(mockFile);
+    const authDetailsStub = vi.spyOn(AuthService.instance, 'getAuthDetails').mockResolvedValue(mockAuthDetails);
+    const downloadStreamStub = vi
+      .spyOn(networkFacade, 'downloadToStream')
+      .mockResolvedValue([Promise.resolve(), new AbortController()]);
+
+    await sut.handle(request, response);
+
+    expect(response.status).toHaveBeenCalledWith(200);
+    expect(response.header).toHaveBeenCalledWith('Content-length', Number(0).toString());
+    expect(response.header).toHaveBeenCalledWith('Content-Type', 'application/octet-stream');
+    expect(getRequestedResourceStub).toHaveBeenCalledOnce();
+    expect(getFileMetadataStub).toHaveBeenCalledOnce();
+    expect(authDetailsStub).toHaveBeenCalledOnce();
+    expect(downloadStreamStub).not.toHaveBeenCalled();
   });
 });
