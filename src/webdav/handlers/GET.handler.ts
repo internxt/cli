@@ -45,21 +45,21 @@ export class GETRequestHandler implements WebDavMethodHandler {
     const { user } = await authService.getAuthDetails();
     webdavLogger.info(`[GET] [${driveFile.uuid}] Network ready for download`);
 
-    const fileSize = driveFile.size ?? 0;
-    const range = req.headers['range'];
-    const rangeOptions = NetworkUtils.parseRangeHeader({
-      range,
-      totalFileSize: fileSize,
-    });
-    let contentLength = fileSize;
-    if (rangeOptions) {
-      webdavLogger.info(`[GET] [${driveFile.uuid}] Range request received:`, { rangeOptions });
-      contentLength = rangeOptions.rangeSize;
-    }
-
     res.header('Content-Type', 'application/octet-stream');
 
+    const fileSize = driveFile.size ?? 0;
+
     if (fileSize > 0) {
+      const range = req.headers['range'];
+      const rangeOptions = NetworkUtils.parseRangeHeader({
+        range,
+        totalFileSize: fileSize,
+      });
+      let contentLength = fileSize;
+      if (rangeOptions) {
+        webdavLogger.info(`[GET] [${driveFile.uuid}] Range request received:`, { rangeOptions });
+        contentLength = rangeOptions.rangeSize;
+      }
       res.header('Content-length', contentLength.toString());
 
       const writable = new WritableStream({
