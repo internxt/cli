@@ -1,6 +1,6 @@
 import { CryptoProvider } from '@internxt/sdk';
 import { Keys, Password } from '@internxt/sdk/dist/auth';
-import { createCipheriv, createDecipheriv, createHash, Decipher, pbkdf2Sync, randomBytes } from 'node:crypto';
+import { createCipheriv, createDecipheriv, createHash, Decipheriv, pbkdf2Sync, randomBytes } from 'node:crypto';
 import { KeysService } from './keys.service';
 import { ConfigService } from '../services/config.service';
 import { StreamUtils } from '../utils/stream.utils';
@@ -121,7 +121,7 @@ export class CryptoService {
     iv: Buffer,
     startOffsetByte?: number,
   ) => {
-    let decipher: Decipher;
+    let decipher: Decipheriv;
     if (startOffsetByte) {
       const aesBlockSize = 16;
       const startOffset = startOffsetByte % aesBlockSize;
