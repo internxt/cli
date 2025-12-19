@@ -20,8 +20,8 @@ export class NetworkUtils {
     privateKey: path.join(ConfigService.WEBDAV_SSL_CERTS_DIR, 'priv.key'),
   };
 
-  static generateNewSelfsignedCerts(configs: WebdavConfig): SelfsignedCert {
-    const newCerts = this.generateSelfSignedSSLCerts(configs);
+  static async generateNewSelfsignedCerts(configs: WebdavConfig): Promise<SelfsignedCert> {
+    const newCerts = await this.generateSelfSignedSSLCerts(configs);
     this.saveWebdavSSLCerts(newCerts);
     return {
       cert: newCerts.cert,
@@ -45,7 +45,7 @@ export class NetworkUtils {
       const dateValid = new Date(validTo);
 
       if (dateToday > dateValid) {
-        const newCerts = this.generateNewSelfsignedCerts(configs);
+        const newCerts = await this.generateNewSelfsignedCerts(configs);
         selfsignedCert = {
           cert: newCerts.cert,
           key: newCerts.key,
@@ -60,7 +60,7 @@ export class NetworkUtils {
     await writeFile(this.WEBDAV_SSL_CERTS_PATH.privateKey, pems.private, 'utf8');
   }
 
-  static generateSelfSignedSSLCerts(configs: WebdavConfig): selfsigned.GenerateResult {
+  static async generateSelfSignedSSLCerts(configs: WebdavConfig): Promise<selfsigned.GenerateResult> {
     const attrs = [{ name: 'commonName', value: configs.host }];
     const extensions = [
       {
@@ -73,7 +73,9 @@ export class NetworkUtils {
         ],
       },
     ];
-    const pems = selfsigned.generate(attrs, { days: 365, algorithm: 'sha256', keySize: 2048, extensions });
+    const notAfterDate = new Date();
+    notAfterDate.setDate(notAfterDate.getDate() + 365);
+    const pems = await selfsigned.generate(attrs, { notAfterDate, algorithm: 'sha256', keySize: 2048, extensions });
     return pems;
   }
 
