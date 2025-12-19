@@ -170,6 +170,7 @@ describe('UploadFileService', () => {
       expect(emitProgress).toHaveBeenCalledTimes(2);
       uploadFileWithRetrySpy.mockRestore();
     });
+
     it('should skip files when parent folder is not found in folderMap', async () => {
       const bucket = 'test-bucket';
       const destinationFolderUuid = 'dest-uuid';
@@ -208,7 +209,7 @@ describe('UploadFileService', () => {
     const bucket = 'test-bucket';
     const destinationFolderUuid = 'dest-uuid';
 
-    it('should properly create a file and return the created file uuid', async () => {
+    it('should properly create a file and return the created file', async () => {
       const file = createFileSystemNodeFixture({
         type: 'file',
         name: 'test',
@@ -288,7 +289,7 @@ describe('UploadFileService', () => {
       vi.useRealTimers();
     });
 
-    it('should upload empty files and return its uuid', async () => {
+    it('should upload empty files and return the created file', async () => {
       const file = createFileSystemNodeFixture({
         type: 'file',
         name: 'empty',
