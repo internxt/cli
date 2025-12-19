@@ -267,7 +267,7 @@ describe('UploadFileService', () => {
           return { stop: vi.fn() } as unknown as ReturnType<typeof mockNetworkFacade.uploadFile>;
         })
         .mockImplementationOnce((_stream, _size, _bucket, callback) => {
-          callback(null, 'success-file-uuid');
+          callback(null, 'success-file-id');
           return { stop: vi.fn() } as unknown as ReturnType<typeof mockNetworkFacade.uploadFile>;
         });
 
