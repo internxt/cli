@@ -1,12 +1,14 @@
 {
   "compilerOptions": {
     "declaration": true,
-    "module": "NodeNext",
+    "strict": true,
     "outDir": "dist",
     "rootDir": "src",
-    "strict": true,
-    "target": "ES2023",
+    "module": "NodeNext",
     "moduleResolution": "NodeNext",
+    "target": "ESNext",
+    "lib": ["ESNext"],
+    "types": ["node"],
     "composite": true,
     "resolveJsonModule": true,
     "removeComments": true,
@@ -16,9 +18,7 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
-    "allowSyntheticDefaultImports": true,
-    "lib": ["ES2023"],
-    "types": ["node"]
+    "allowSyntheticDefaultImports": true
   },
   "include": ["./src/**/*"],
   "exclude": ["node_modules", "dist", "**/*.spec.ts", "**/*.test.ts"]
