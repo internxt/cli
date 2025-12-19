@@ -38,7 +38,7 @@ We aim to achieve:
 
 You can install the Internxt CLI by using NPM:
 
-Requires Node >= 22.12.0
+Requires Node >= 22.13.0
 
 `npm i -g @internxt/cli`
 

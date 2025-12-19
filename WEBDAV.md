@@ -49,7 +49,7 @@ Find below the methods that are supported in the latest version of the Internxt 
 
 ## Requisites
 
-- Installed Node >= v20.0.0
+- Installed Node >= v22.13.0
 - Internxt CLI is installed on its latest version
 
 ## Usage
