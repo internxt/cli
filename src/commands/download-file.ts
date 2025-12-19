@@ -7,8 +7,9 @@ import { DriveFileItem } from '../types/drive.types';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { StreamUtils } from '../utils/stream.utils';
-import { NotValidDirectoryError, NotValidFileUuidError } from '../types/command.types';
+import { NotValidDirectoryError, NotValidFileIdError, NotValidFileUuidError } from '../types/command.types';
 import { ValidationService } from '../services/validation.service';
+
 export default class DownloadFile extends Command {
   static readonly args = {};
   static readonly description =
@@ -50,16 +51,10 @@ export default class DownloadFile extends Command {
 
     const fileUuid = await this.getFileUuid(flags['id'], nonInteractive);
 
-    // 1. Get file metadata
+    // Get file metadata
     const driveFile = await this.getFileMetadata(fileUuid, flags['json']);
 
     const downloadPath = await this.getDownloadPath(downloadDirectory, driveFile, overwrite);
-
-    // 2. Prepare the network
-    const { user } = await AuthService.instance.getAuthDetails();
-    const networkFacade = await CLIUtils.prepareNetwork({ loginUserDetails: user, jsonFlag: flags['json'] });
-    // 3. Download the file
-    const fileWriteStream = createWriteStream(downloadPath);
 
     const progressBar = CLIUtils.progress(
       {
@@ -70,27 +65,42 @@ export default class DownloadFile extends Command {
     );
 
     progressBar?.start(100, 0);
-    const [executeDownload, abortable] = await networkFacade.downloadToStream(
-      driveFile.bucket,
-      user.mnemonic,
-      driveFile.fileId,
-      driveFile.size,
-      StreamUtils.writeStreamToWritableStream(fileWriteStream),
-      undefined,
-      {
-        abortController: new AbortController(),
-        progressCallback: (progress) => {
-          progressBar?.update(progress * 0.99);
+
+    if (driveFile.size === 0) {
+      await fs.writeFile(downloadPath, '');
+    } else {
+      if (!driveFile.fileId) {
+        throw new NotValidFileIdError();
+      }
+
+      // Prepare the network
+      const { user } = await AuthService.instance.getAuthDetails();
+      const networkFacade = CLIUtils.prepareNetwork({ loginUserDetails: user, jsonFlag: flags['json'] });
+      // Download the file
+      const fileWriteStream = createWriteStream(downloadPath);
+
+      const [executeDownload, abortable] = await networkFacade.downloadToStream(
+        driveFile.bucket,
+        user.mnemonic,
+        driveFile.fileId,
+        driveFile.size,
+        StreamUtils.writeStreamToWritableStream(fileWriteStream),
+        undefined,
+        {
+          abortController: new AbortController(),
+          progressCallback: (progress) => {
+            progressBar?.update(progress * 0.99);
+          },
         },
-      },
-    );
+      );
 
-    process.on('SIGINT', () => {
-      abortable.abort('SIGINT received');
-      process.exit(1);
-    });
+      process.on('SIGINT', () => {
+        abortable.abort('SIGINT received');
+        process.exit(1);
+      });
 
-    await executeDownload;
+      await executeDownload;
+    }
 
     try {
       await fs.utimes(downloadPath, new Date(), driveFile.modificationTime ?? driveFile.updatedAt);

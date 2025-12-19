@@ -9,6 +9,7 @@ import { AuthService } from '../../services/auth.service';
 import { NotFoundError } from '../../utils/errors.utils';
 import { webdavLogger } from '../../utils/logger.utils';
 import { NetworkUtils } from '../../utils/network.utils';
+import { NotValidFileIdError } from '../../types/command.types';
 
 export class GETRequestHandler implements WebDavMethodHandler {
   constructor(
@@ -44,42 +45,60 @@ export class GETRequestHandler implements WebDavMethodHandler {
     const { user } = await authService.getAuthDetails();
     webdavLogger.info(`[GET] [${driveFile.uuid}] Network ready for download`);
 
-    const range = req.headers['range'];
-    const rangeOptions = NetworkUtils.parseRangeHeader({
-      range,
-      totalFileSize: driveFile.size,
-    });
-    let contentLength = driveFile.size;
-    if (rangeOptions) {
-      webdavLogger.info(`[GET] [${driveFile.uuid}] Range request received:`, { rangeOptions });
-      contentLength = rangeOptions.rangeSize;
-    }
-
     res.header('Content-Type', 'application/octet-stream');
-    res.header('Content-length', contentLength.toString());
 
-    const writable = new WritableStream({
-      write(chunk) {
-        res.write(chunk);
-      },
-      close() {
-        res.end();
-      },
-    });
+    const fileSize = driveFile.size ?? 0;
 
-    const [executeDownload] = await networkFacade.downloadToStream(
-      driveFile.bucket,
-      user.mnemonic,
-      driveFile.fileId,
-      contentLength,
-      writable,
-      rangeOptions,
-    );
-    webdavLogger.info(`[GET] [${driveFile.uuid}] Download prepared, executing...`);
-    res.status(200);
+    if (fileSize > 0) {
+      const range = req.headers['range'];
+      const rangeOptions = NetworkUtils.parseRangeHeader({
+        range,
+        totalFileSize: fileSize,
+      });
+      let contentLength = fileSize;
+      if (rangeOptions) {
+        webdavLogger.info(`[GET] [${driveFile.uuid}] Range request received:`, { rangeOptions });
+        contentLength = rangeOptions.rangeSize;
+      }
+      res.header('Content-length', contentLength.toString());
 
-    await executeDownload;
+      const writable = new WritableStream({
+        write(chunk) {
+          res.write(chunk);
+        },
+        close() {
+          res.end();
+        },
+      });
 
-    webdavLogger.info(`[GET] [${driveFile.uuid}] ✅ Download ready, replying to client`);
+      if (!driveFile.fileId) {
+        throw new NotValidFileIdError();
+      }
+
+      const [executeDownload] = await networkFacade.downloadToStream(
+        driveFile.bucket,
+        user.mnemonic,
+        driveFile.fileId,
+        contentLength,
+        writable,
+        rangeOptions,
+      );
+      webdavLogger.info(`[GET] [${driveFile.uuid}] Download prepared, executing...`);
+
+      /**
+       * If the client doesn't receive a 200 status code, the download can be aborted.
+       * We need to respond with status 200 while the file is being downloaded via streams
+       * so the client can keep the connection open and receive the file completely.
+       */
+      res.status(200);
+
+      await executeDownload;
+      webdavLogger.info(`[GET] [${driveFile.uuid}] ✅ Download ready, replying to client`);
+    } else {
+      webdavLogger.info(`[GET] [${driveFile.uuid}] File is empty, replying to client with no content`);
+      res.header('Content-length', '0');
+      res.status(200);
+      res.end();
+    }
   };
 }
