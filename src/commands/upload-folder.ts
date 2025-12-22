@@ -4,6 +4,7 @@ import { AuthService } from '../services/auth.service';
 import { ValidationService } from '../services/validation.service';
 import { ConfigService } from '../services/config.service';
 import { UploadFacade } from '../services/network/upload/upload-facade.service';
+import { NotValidDirectoryError } from '../types/command.types';
 
 export default class UploadFolder extends Command {
   static readonly args = {};
@@ -15,7 +16,7 @@ export default class UploadFolder extends Command {
     folder: Flags.string({
       char: 'f',
       description: 'The path to the folder on your system.',
-      required: true,
+      required: false,
     }),
     destination: Flags.string({
       char: 'i',
@@ -29,10 +30,7 @@ export default class UploadFolder extends Command {
   public run = async () => {
     const { user } = await AuthService.instance.getAuthDetails();
     const { flags } = await this.parse(UploadFolder);
-    const doesDirectoryExist = await ValidationService.instance.validateDirectoryExists(flags['folder']);
-    if (!doesDirectoryExist) {
-      throw new Error(`The provided folder path is not a valid directory: ${flags['folder']}`);
-    }
+    const localPath = await this.getFolderPath(flags['folder'], flags['non-interactive']);
 
     // If destinationFolderUuid is empty from flags&prompt, means we should use RootFolderUuid
     const destinationFolderUuid =
@@ -52,7 +50,7 @@ export default class UploadFolder extends Command {
     );
     progressBar?.start(100, 0);
     const data = await UploadFacade.instance.uploadFolder({
-      localPath: flags['folder'],
+      localPath,
       destinationFolderUuid,
       loginUserDetails: user,
       jsonFlag: flags['json'],
@@ -79,5 +77,26 @@ export default class UploadFolder extends Command {
       jsonFlag: flags['json'],
     });
     this.exit(1);
+  };
+
+  private getFolderPath = async (folderFlag: string | undefined, nonInteractive: boolean): Promise<string> => {
+    return await CLIUtils.getValueFromFlag(
+      {
+        value: folderFlag,
+        name: UploadFolder.flags['folder'].name,
+      },
+      {
+        nonInteractive,
+        prompt: {
+          message: 'What is the path to the folder on your computer?',
+          options: { type: 'input' },
+        },
+      },
+      {
+        validate: ValidationService.instance.validateDirectoryExists,
+        error: new NotValidDirectoryError(),
+      },
+      this.log.bind(this),
+    );
   };
 }
