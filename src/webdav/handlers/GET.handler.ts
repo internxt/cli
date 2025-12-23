@@ -26,8 +26,6 @@ export class GETRequestHandler implements WebDavMethodHandler {
     const { driveFileService, authService, networkFacade } = this.dependencies;
     const resource = await WebDavUtils.getRequestedResource(req.url);
 
-    if (resource.name.startsWith('._')) throw new NotFoundError('File not found');
-
     webdavLogger.info(`[GET] Request received item at ${resource.url}`);
     const driveFile = await WebDavUtils.getDriveFileFromResource({
       url: resource.url,

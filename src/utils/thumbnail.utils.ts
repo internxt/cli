@@ -56,14 +56,14 @@ export const tryUploadThumbnail = async ({
   fileUuid,
   networkFacade,
 }: {
-  bufferStream: BufferStream;
+  bufferStream?: BufferStream;
   fileType: string;
   userBucket: string;
   fileUuid: string;
   networkFacade: NetworkFacade;
 }) => {
   try {
-    const thumbnailBuffer = bufferStream.getBuffer();
+    const thumbnailBuffer = bufferStream?.getBuffer();
     if (thumbnailBuffer) {
       await ThumbnailService.instance.uploadThumbnail(thumbnailBuffer, fileType, userBucket, fileUuid, networkFacade);
     }
