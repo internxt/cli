@@ -1,6 +1,6 @@
 {
   "author": "Internxt <hello@internxt.com>",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "description": "Internxt CLI to manage your encrypted storage",
   "scripts": {
     "build": "yarn clean && tsc",
@@ -39,7 +39,7 @@
     "@inquirer/prompts": "8.1.0",
     "@internxt/inxt-js": "2.2.9",
     "@internxt/lib": "1.4.1",
-    "@internxt/sdk": "1.11.24",
+    "@internxt/sdk": "1.11.25",
     "@oclif/core": "4.8.0",
     "@oclif/plugin-autocomplete": "3.2.39",
     "axios": "1.13.2",

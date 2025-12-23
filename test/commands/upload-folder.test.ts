@@ -4,7 +4,7 @@ import { AuthService } from '../../src/services/auth.service';
 import { LoginCredentials, MissingCredentialsError } from '../../src/types/command.types';
 import { ValidationService } from '../../src/services/validation.service';
 import { UserFixture } from '../fixtures/auth.fixture';
-import { CLIUtils } from '../../src/utils/cli.utils';
+import { CLIUtils, NoFlagProvidedError } from '../../src/utils/cli.utils';
 import { UploadResult } from '../../src/services/network/upload/upload.types';
 import { UploadFacade } from '../../src/services/network/upload/upload-facade.service';
 
@@ -107,7 +107,7 @@ describe('Upload Folder Command', () => {
       .mockResolvedValue(false);
 
     const invalidPath = '/invalid/folder/path.txt';
-    const result = UploadFolder.run([`--folder=${invalidPath}`]);
+    const result = UploadFolder.run([`--folder=${invalidPath}`, '--non-interactive']);
 
     await expect(result).rejects.toMatchObject({
       message: expect.stringContaining('EEXIT: 1'),
@@ -133,5 +133,73 @@ describe('Upload Folder Command', () => {
     expect(getAuthDetailsSpy).toHaveBeenCalledOnce();
     expect(validateDirectoryExistsSpy).not.toHaveBeenCalled();
     expect(UploadFacadeSpy).not.toHaveBeenCalled();
+  });
+
+  describe('Folder path resolution (getFolderPath)', () => {
+    it('should prompt user for folder path in interactive mode when --folder flag is not provided', async () => {
+      const getValueFromFlagSpy = vi.spyOn(CLIUtils, 'getValueFromFlag').mockResolvedValue('/prompted/folder/path');
+
+      await UploadFolder.run([]);
+
+      expect(getValueFromFlagSpy).toHaveBeenCalledWith(
+        { value: undefined, name: 'folder' },
+        expect.objectContaining({
+          prompt: {
+            message: 'What is the path to the folder on your computer?',
+            options: { type: 'input' },
+          },
+        }),
+        expect.objectContaining({
+          validate: ValidationService.instance.validateDirectoryExists,
+        }),
+        expect.any(Function),
+      );
+      expect(UploadFacadeSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          localPath: '/prompted/folder/path',
+        }),
+      );
+    });
+
+    it('should throw NoFlagProvidedError in non-interactive mode when --folder flag is not provided', async () => {
+      const getValueFromFlagSpy = vi
+        .spyOn(CLIUtils, 'getValueFromFlag')
+        .mockRejectedValue(new NoFlagProvidedError('folder'));
+
+      const result = UploadFolder.run(['--non-interactive']);
+
+      await expect(result).rejects.toMatchObject({
+        message: expect.stringContaining('EEXIT: 1'),
+        oclif: { exit: 1 },
+      });
+
+      expect(getValueFromFlagSpy).toHaveBeenCalledWith(
+        { value: undefined, name: 'folder' },
+        {
+          nonInteractive: true,
+          prompt: {
+            message: 'What is the path to the folder on your computer?',
+            options: { type: 'input' },
+          },
+        },
+        {
+          validate: ValidationService.instance.validateDirectoryExists,
+          error: expect.any(Error),
+        },
+        expect.any(Function),
+      );
+      expect(UploadFacadeSpy).not.toHaveBeenCalled();
+    });
+
+    it('should use folder path from --folder flag when provided', async () => {
+      await UploadFolder.run(['--folder=/explicit/folder/path']);
+
+      expect(validateDirectoryExistsSpy).toHaveBeenCalledWith('/explicit/folder/path');
+      expect(UploadFacadeSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          localPath: '/explicit/folder/path',
+        }),
+      );
+    });
   });
 });
