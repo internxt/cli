@@ -128,7 +128,7 @@ export class PUTRequestHandler implements WebDavMethodHandler {
     });
 
     if (contentLength > 0 && isThumbnailable && bufferStream) {
-      await tryUploadThumbnail({
+      void tryUploadThumbnail({
         bufferStream,
         fileType,
         userBucket: user.bucket,

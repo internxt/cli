@@ -113,7 +113,7 @@ export class UploadFileService {
         });
 
         if (thumbnailStream && fileSize > 0) {
-          await tryUploadThumbnail({
+          void tryUploadThumbnail({
             bufferStream: thumbnailStream,
             fileType,
             userBucket: bucket,

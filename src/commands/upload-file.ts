@@ -123,7 +123,7 @@ export default class UploadFile extends Command {
     });
 
     if (fileSize > 0 && isThumbnailable && bufferStream) {
-      await tryUploadThumbnail({
+      void tryUploadThumbnail({
         bufferStream,
         fileType,
         userBucket: user.bucket,
