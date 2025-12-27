@@ -57,7 +57,7 @@
     "otpauth": "9.4.1",
     "pm2": "6.0.14",
     "range-parser": "1.2.1",
-    "selfsigned": "5.2.0",
+    "selfsigned": "5.4.0",
     "tty-table": "5.0.0",
     "winston": "3.19.0"
   },
