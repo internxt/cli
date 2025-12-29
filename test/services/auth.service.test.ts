@@ -236,4 +236,65 @@ describe('Auth service', () => {
     expect(validateMnemonicStub).toHaveBeenCalledWith(UserCredentialsFixture.user.mnemonic);
     expect(refreshTokensStub).toHaveBeenCalledOnce();
   });
+
+  it('should clear user data and throw OldTokenDetectedError when old token is detected during token refresh', async () => {
+    const sut = AuthService.instance;
+
+    const mockToken = {
+      isValid: true,
+      expiration: {
+        expired: false,
+        refreshRequired: true,
+      },
+    };
+
+    const oldTokenError = new Error('Old token version detected');
+
+    vi.spyOn(ConfigService.instance, 'readUser').mockResolvedValue(UserCredentialsFixture);
+    vi.spyOn(ValidationService.instance, 'validateTokenAndCheckExpiration').mockImplementationOnce(() => mockToken);
+    vi.spyOn(ValidationService.instance, 'validateMnemonic').mockReturnValue(true);
+    const refreshTokenStub = vi.spyOn(sut, 'refreshUserToken').mockRejectedValue(oldTokenError);
+    const clearUserStub = vi.spyOn(ConfigService.instance, 'clearUser').mockResolvedValue();
+
+    try {
+      await sut.getAuthDetails();
+      fail('Expected function to throw an error, but it did not.');
+    } catch (error) {
+      expect((error as Error).name).to.be.equal('OldTokenDetectedError');
+      expect((error as Error).message).to.include('Old token detected');
+    }
+
+    expect(refreshTokenStub).toHaveBeenCalledOnce();
+    expect(clearUserStub).toHaveBeenCalledOnce();
+  });
+
+  it('should rethrow error if token refresh fails for reasons other than old token detection', async () => {
+    const sut = AuthService.instance;
+
+    const mockToken = {
+      isValid: true,
+      expiration: {
+        expired: false,
+        refreshRequired: true,
+      },
+    };
+
+    const networkError = new Error('Network timeout');
+
+    vi.spyOn(ConfigService.instance, 'readUser').mockResolvedValue(UserCredentialsFixture);
+    vi.spyOn(ValidationService.instance, 'validateTokenAndCheckExpiration').mockImplementationOnce(() => mockToken);
+    vi.spyOn(ValidationService.instance, 'validateMnemonic').mockReturnValue(true);
+    const refreshTokenStub = vi.spyOn(sut, 'refreshUserToken').mockRejectedValue(networkError);
+    const clearUserStub = vi.spyOn(ConfigService.instance, 'clearUser').mockResolvedValue();
+
+    try {
+      await sut.getAuthDetails();
+      fail('Expected function to throw an error, but it did not.');
+    } catch (error) {
+      expect((error as Error).message).to.be.equal('Network timeout');
+    }
+
+    expect(refreshTokenStub).toHaveBeenCalledOnce();
+    expect(clearUserStub).not.toHaveBeenCalled();
+  });
 });
