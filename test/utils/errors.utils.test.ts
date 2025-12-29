@@ -2,12 +2,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ErrorUtils, isAlreadyExistsError, isOldTokenError, isFileNotFoundError } from '../../src/utils/errors.utils';
 import { logger } from '../../src/utils/logger.utils';
 
-vi.mock('../../src/utils/logger.utils', () => ({
-  logger: {
-    error: vi.fn(),
-  },
-}));
-
 describe('Errors Utils', () => {
   beforeEach(() => {
     vi.clearAllMocks();
