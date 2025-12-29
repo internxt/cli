@@ -237,7 +237,7 @@ describe('Auth service', () => {
     expect(refreshTokensStub).toHaveBeenCalledOnce();
   });
 
-  it('should clear user data and throw OldTokenDetectedError when old token is detected during token refresh', async () => {
+  it('should clear and throw exception when old token is detected during token refresh', async () => {
     const sut = AuthService.instance;
 
     const mockToken = {
