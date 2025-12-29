@@ -5,7 +5,7 @@ import { createWebDavRequestFixture, createWebDavResponseFixture } from '../../f
 
 describe('Request logger middleware', () => {
   beforeEach(() => {
-    vi.restoreAllMocks();
+    vi.clearAllMocks();
   });
 
   it('When a request is received, should log only the specified methods', () => {
