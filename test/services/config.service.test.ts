@@ -91,17 +91,30 @@ describe('Config service', () => {
     expect(credentialsFileContent).to.be.equal('');
   });
 
-  it('When user credentials are cleared and the file is empty, then an error is thrown', async () => {
-    vi.spyOn(fs, 'stat')
+  it('should not throw exception when user credentials are cleared and the file is already empty', async () => {
+    const statStub = vi
+      .spyOn(fs, 'stat')
       // @ts-expect-error - We stub the stat method partially
       .mockResolvedValue({ size: 0 });
+    const writeFileStub = vi.spyOn(fs, 'writeFile').mockResolvedValue();
 
-    try {
-      await ConfigService.instance.clearUser();
-      fail('Expected function to throw an error, but it did not.');
-    } catch (error) {
-      expect((error as Error).message).to.be.equal('Credentials file is already empty');
-    }
+    await ConfigService.instance.clearUser();
+
+    expect(statStub).toHaveBeenCalledWith(ConfigService.CREDENTIALS_FILE);
+    expect(writeFileStub).not.toHaveBeenCalled();
+  });
+
+  it('should not throw exception when user credentials are cleared and the file does not exist', async () => {
+    const fileNotFoundError = new Error('File not found');
+    Object.assign(fileNotFoundError, { code: 'ENOENT' });
+
+    const statStub = vi.spyOn(fs, 'stat').mockRejectedValue(fileNotFoundError);
+    const writeFileStub = vi.spyOn(fs, 'writeFile').mockResolvedValue();
+
+    await ConfigService.instance.clearUser();
+
+    expect(statStub).toHaveBeenCalledWith(ConfigService.CREDENTIALS_FILE);
+    expect(writeFileStub).not.toHaveBeenCalled();
   });
 
   it('When webdav certs directory is required to exist, then it is created', async () => {
