@@ -73,4 +73,142 @@ describe('Validation Service', () => {
     expect(ValidationService.instance.validateStringIsNotEmpty('\t')).to.be.equal(false);
     expect(ValidationService.instance.validateStringIsNotEmpty('\t\n')).to.be.equal(false);
   });
+  describe('parseJwtExpiration', () => {
+    it('When token is undefined, then returns null', () => {
+      expect(ValidationService.instance.validateJwtAndCheckExpiration(undefined)).to.be.equal(null);
+    });
+
+    it('When token is not a string, then returns null', () => {
+      expect(ValidationService.instance.validateJwtAndCheckExpiration('')).to.be.equal(null);
+    });
+
+    it('When token does not have 3 parts, then returns null', () => {
+      expect(ValidationService.instance.validateJwtAndCheckExpiration('invalid')).to.be.equal(null);
+      expect(ValidationService.instance.validateJwtAndCheckExpiration('invalid.token')).to.be.equal(null);
+    });
+
+    it('When token payload is not valid base64, then returns null', () => {
+      const invalidToken = 'header.!!!invalid_base64!!!.signature';
+      expect(ValidationService.instance.validateJwtAndCheckExpiration(invalidToken)).to.be.equal(null);
+    });
+
+    it('When token payload does not contain exp claim, then returns null', () => {
+      const payload = btoa(JSON.stringify({ sub: 'user123' }));
+      const token = `header.${payload}.signature`;
+      expect(ValidationService.instance.validateJwtAndCheckExpiration(token)).to.be.equal(null);
+    });
+
+    it('When token payload exp is not a number, then returns null', () => {
+      const payload = btoa(JSON.stringify({ exp: 'not-a-number' }));
+      const token = `header.${payload}.signature`;
+      expect(ValidationService.instance.validateJwtAndCheckExpiration(token)).to.be.equal(null);
+    });
+
+    it('When token has valid structure with exp claim, then returns expiration timestamp', () => {
+      const expiration = Math.floor(Date.now() / 1000) + 3600; // 1 hour from now
+      const payload = btoa(JSON.stringify({ exp: expiration, sub: 'user123' }));
+      const token = `header.${payload}.signature`;
+      expect(ValidationService.instance.validateJwtAndCheckExpiration(token)).to.be.equal(expiration);
+    });
+  });
+
+  describe('checkTokenExpiration', () => {
+    it('When token expired more than 2 days ago, then expired is true and refreshRequired is false', () => {
+      const threeDaysAgo = Math.floor(Date.now() / 1000) - 3 * 24 * 60 * 60;
+      const result = ValidationService.instance.checkTokenExpiration(threeDaysAgo);
+      expect(result.expired).to.be.equal(true);
+      expect(result.refreshRequired).to.be.equal(false);
+    });
+
+    it('When token expired 1 second ago, then expired is true and refreshRequired is false', () => {
+      const oneSecondAgo = Math.floor(Date.now() / 1000) - 1;
+      const result = ValidationService.instance.checkTokenExpiration(oneSecondAgo);
+      expect(result.expired).to.be.equal(true);
+      expect(result.refreshRequired).to.be.equal(false);
+    });
+
+    it('When token expires in exactly 0 seconds (now), then expired is true', () => {
+      const now = Math.floor(Date.now() / 1000);
+      const result = ValidationService.instance.checkTokenExpiration(now);
+      expect(result.expired).to.be.equal(true);
+      expect(result.refreshRequired).to.be.equal(false);
+    });
+
+    it('When token expires in 1 day, then expired is false and refreshRequired is true', () => {
+      const oneDayFromNow = Math.floor(Date.now() / 1000) + 24 * 60 * 60;
+      const result = ValidationService.instance.checkTokenExpiration(oneDayFromNow);
+      expect(result.expired).to.be.equal(false);
+      expect(result.refreshRequired).to.be.equal(true);
+    });
+
+    it('When token expires in exactly 2 days, then expired is false and refreshRequired is true', () => {
+      const twoDaysFromNow = Math.floor(Date.now() / 1000) + 2 * 24 * 60 * 60;
+      const result = ValidationService.instance.checkTokenExpiration(twoDaysFromNow);
+      expect(result.expired).to.be.equal(false);
+      expect(result.refreshRequired).to.be.equal(true);
+    });
+
+    it('When token expires in 2 days + 1 second, then expired is false and refreshRequired is false', () => {
+      const twoDaysPlusOneSecond = Math.floor(Date.now() / 1000) + 2 * 24 * 60 * 60 + 1;
+      const result = ValidationService.instance.checkTokenExpiration(twoDaysPlusOneSecond);
+      expect(result.expired).to.be.equal(false);
+      expect(result.refreshRequired).to.be.equal(false);
+    });
+
+    it('When token expires in 30 days, then expired is false and refreshRequired is false', () => {
+      const thirtyDaysFromNow = Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60;
+      const result = ValidationService.instance.checkTokenExpiration(thirtyDaysFromNow);
+      expect(result.expired).to.be.equal(false);
+      expect(result.refreshRequired).to.be.equal(false);
+    });
+  });
+
+  describe('validateTokenAndCheckExpiration', () => {
+    it('When token is undefined, then returns invalid with expired true', () => {
+      const result = ValidationService.instance.validateTokenAndCheckExpiration(undefined);
+      expect(result.isValid).to.be.equal(false);
+      expect(result.expiration.expired).to.be.equal(true);
+      expect(result.expiration.refreshRequired).to.be.equal(false);
+    });
+
+    it('When token is malformed, then returns invalid with expired true', () => {
+      const result = ValidationService.instance.validateTokenAndCheckExpiration('invalid.token');
+      expect(result.isValid).to.be.equal(false);
+      expect(result.expiration.expired).to.be.equal(true);
+      expect(result.expiration.refreshRequired).to.be.equal(false);
+    });
+
+    it('When token is valid but expired, then returns valid with expired true', () => {
+      const expiration = Math.floor(Date.now() / 1000) - 3600; // 1 hour ago
+      const payload = btoa(JSON.stringify({ exp: expiration }));
+      const token = `header.${payload}.signature`;
+
+      const result = ValidationService.instance.validateTokenAndCheckExpiration(token);
+      expect(result.isValid).to.be.equal(true);
+      expect(result.expiration.expired).to.be.equal(true);
+      expect(result.expiration.refreshRequired).to.be.equal(false);
+    });
+
+    it('When token is valid and expires in 1 day, then returns valid with refreshRequired true', () => {
+      const expiration = Math.floor(Date.now() / 1000) + 24 * 60 * 60; // 1 day from now
+      const payload = btoa(JSON.stringify({ exp: expiration }));
+      const token = `header.${payload}.signature`;
+
+      const result = ValidationService.instance.validateTokenAndCheckExpiration(token);
+      expect(result.isValid).to.be.equal(true);
+      expect(result.expiration.expired).to.be.equal(false);
+      expect(result.expiration.refreshRequired).to.be.equal(true);
+    });
+
+    it('When token is valid and expires in 30 days, then returns valid with both false', () => {
+      const expiration = Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60; // 30 days from now
+      const payload = btoa(JSON.stringify({ exp: expiration }));
+      const token = `header.${payload}.signature`;
+
+      const result = ValidationService.instance.validateTokenAndCheckExpiration(token);
+      expect(result.isValid).to.be.equal(true);
+      expect(result.expiration.expired).to.be.equal(false);
+      expect(result.expiration.refreshRequired).to.be.equal(false);
+    });
+  });
 });
