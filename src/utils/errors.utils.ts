@@ -11,6 +11,15 @@ export function isAlreadyExistsError(error: unknown): error is Error {
     (typeof error === 'object' && error !== null && 'status' in error && error.status === 409)
   );
 }
+
+export function isOldTokenError(error: unknown): boolean {
+  return isError(error) && error.message.toLowerCase().includes('old token version detected');
+}
+
+export function isFileNotFoundError(error: unknown): error is NodeJS.ErrnoException {
+  return isError(error) && 'code' in error && error.code === 'ENOENT';
+}
+
 export class ErrorUtils {
   static report(error: unknown, props: Record<string, unknown> = {}) {
     if (isError(error)) {
@@ -80,5 +89,13 @@ export class NotImplementedError extends Error {
     super(message);
     this.name = 'NotImplementedError';
     Object.setPrototypeOf(this, NotImplementedError.prototype);
+  }
+}
+
+export class OldTokenDetectedError extends Error {
+  constructor() {
+    super('Old token detected, credentials cleared. Please login again.');
+    this.name = 'OldTokenDetectedError';
+    Object.setPrototypeOf(this, OldTokenDetectedError.prototype);
   }
 }
