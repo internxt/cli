@@ -12,6 +12,7 @@ import { isAlreadyExistsError } from '../../../utils/errors.utils';
 import { stat } from 'node:fs/promises';
 import { EncryptionVersion } from '@internxt/sdk/dist/drive/storage/types';
 import { createFileStreamWithBuffer, tryUploadThumbnail } from '../../../utils/thumbnail.utils';
+import { CLIUtils } from '../../../utils/cli.utils';
 
 export class UploadFileService {
   static readonly instance = new UploadFileService();
@@ -78,6 +79,13 @@ export class UploadFileService {
           fileType,
         });
 
+        const timings = {
+          networkUpload: 0,
+          driveUpload: 0,
+          thumbnailUpload: 0,
+        };
+
+        const uploadTimer = CLIUtils.timer();
         const fileId = await new Promise<string>((resolve, reject) => {
           network.uploadFile(
             fileStream,
@@ -92,7 +100,9 @@ export class UploadFileService {
             () => {},
           );
         });
+        timings.networkUpload = uploadTimer.stop();
 
+        const driveTimer = CLIUtils.timer();
         const createdDriveFile = await DriveFileService.instance.createFile({
           plainName: file.name,
           type: fileType,
@@ -104,7 +114,9 @@ export class UploadFileService {
           creationTime: stats.birthtime?.toISOString(),
           modificationTime: stats.mtime?.toISOString(),
         });
+        timings.driveUpload = driveTimer.stop();
 
+        const thumbnailTimer = CLIUtils.timer();
         if (bufferStream) {
           void tryUploadThumbnail({
             bufferStream,
@@ -114,6 +126,18 @@ export class UploadFileService {
             networkFacade: network,
           });
         }
+        timings.thumbnailUpload = thumbnailTimer.stop();
+
+        const totalTime = Object.values(timings).reduce((sum, time) => sum + time, 0);
+        const throughputMBps = CLIUtils.calculateThroughputMBps(stats.size, timings.networkUpload);
+        logger.info(`Uploaded '${file.name}' (${CLIUtils.formatBytesToString(stats.size)})`);
+        logger.info(
+          `Timing breakdown:\n
+          Network upload: ${CLIUtils.formatDuration(timings.networkUpload)} (${throughputMBps.toFixed(2)} MB/s)\n
+          Drive upload: ${CLIUtils.formatDuration(timings.driveUpload)}\n
+          Thumbnail: ${CLIUtils.formatDuration(timings.thumbnailUpload)}\n
+          Total: ${CLIUtils.formatDuration(totalTime)}\n`,
+        );
 
         return createdDriveFile.fileId;
       } catch (error: unknown) {

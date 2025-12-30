@@ -48,7 +48,15 @@ export class PUTRequestHandler implements WebDavMethodHandler {
       throw new NotFoundError('Folders cannot be created with PUT. Use MKCOL instead.');
     }
     webdavLogger.info(`[PUT] Request received for file at ${resource.url}`);
-    webdavLogger.info(`[PUT] Uploading '${resource.name}' to '${resource.parentPath}'`);
+    webdavLogger.info(
+      `[PUT] Uploading '${resource.name}' (${CLIUtils.formatBytesToString(contentLength)}) to '${resource.parentPath}'`,
+    );
+
+    const timings = {
+      networkUpload: 0,
+      driveUpload: 0,
+      thumbnailUpload: 0,
+    };
 
     const parentDriveFolderItem =
       (await this.dependencies.webDavFolderService.getDriveFolderItemFromPath(resource.parentPath)) ??
@@ -69,8 +77,6 @@ export class PUTRequestHandler implements WebDavMethodHandler {
 
     const fileType = resource.path.ext.replace('.', '');
 
-    const timer = CLIUtils.timer();
-
     let bufferStream: BufferStream | undefined;
     let fileStream: Readable = req;
     const isThumbnailable = isFileThumbnailable(fileType);
@@ -88,6 +94,7 @@ export class PUTRequestHandler implements WebDavMethodHandler {
       }
     };
 
+    const networkUploadTimer = CLIUtils.timer();
     const fileId = await new Promise((resolve: (fileId: string) => void, reject) => {
       const state = this.dependencies.networkFacade.uploadFile(
         fileStream,
@@ -111,9 +118,11 @@ export class PUTRequestHandler implements WebDavMethodHandler {
       });
     });
     uploaded = true;
+    timings.networkUpload = networkUploadTimer.stop();
 
     webdavLogger.info('[PUT] ✅ File uploaded to network');
 
+    const driveTimer = CLIUtils.timer();
     const file = await DriveFileService.instance.createFile({
       plainName: resource.path.name,
       type: fileType,
@@ -123,7 +132,9 @@ export class PUTRequestHandler implements WebDavMethodHandler {
       bucket: user.bucket,
       encryptVersion: EncryptionVersion.Aes03,
     });
+    timings.driveUpload = driveTimer.stop();
 
+    const thumbnailTimer = CLIUtils.timer();
     try {
       if (isThumbnailable && bufferStream) {
         const thumbnailBuffer = bufferStream.getBuffer();
@@ -141,15 +152,25 @@ export class PUTRequestHandler implements WebDavMethodHandler {
     } catch (error) {
       webdavLogger.info(`[PUT] ❌ File thumbnail upload failed ${(error as Error).message}`);
     }
+    timings.thumbnailUpload = thumbnailTimer.stop();
 
-    const uploadTime = timer.stop();
-    webdavLogger.info(`[PUT] ✅ File uploaded in ${uploadTime}ms to Internxt Drive`);
+    const totalTime = Object.values(timings).reduce((sum, time) => sum + time, 0);
+    const throughputMBps = CLIUtils.calculateThroughputMBps(contentLength, timings.networkUpload);
+
+    webdavLogger.info(`[PUT] ✅ File uploaded in ${CLIUtils.formatDuration(totalTime)} to Internxt Drive`);
+
+    webdavLogger.info(
+      `[PUT] Timing breakdown:\n
+      Network upload: ${CLIUtils.formatDuration(timings.networkUpload)} (${throughputMBps.toFixed(2)} MB/s)\n
+      Drive upload: ${CLIUtils.formatDuration(timings.driveUpload)}\n
+      Thumbnail: ${CLIUtils.formatDuration(timings.thumbnailUpload)}\n`,
+    );
 
     // Wait for backend search index to propagate (same as folder creation delay in PB-1446)
     await AsyncUtils.sleep(500);
 
     webdavLogger.info(
-      `[PUT] [RESPONSE-201] ${resource.url} - Returning 201 Created after ${uploadTime}ms (+ 500ms propagation delay)`,
+      `[PUT] [RESPONSE-201] ${resource.url} - Returning 201 Created after ${CLIUtils.formatDuration(totalTime)}`,
     );
 
     res.status(201).send();
