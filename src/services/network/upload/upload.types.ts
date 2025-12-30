@@ -33,7 +33,7 @@ export interface CreateFolderWithRetryParams {
   parentFolderUuid: string;
 }
 
-export interface UploadFilesInBatchesParams {
+export interface UploadFilesConcurrentlyParams {
   network: NetworkFacade;
   filesToUpload: FileSystemNode[];
   folderMap: Map<string, string>;
@@ -49,6 +49,6 @@ export interface UploadFileWithRetryParams {
   bucket: string;
   parentFolderUuid: string;
 }
-export const MAX_CONCURRENT_UPLOADS = 5;
+export const MAX_CONCURRENT_UPLOADS = 10;
 export const DELAYS_MS = [500, 1000, 2000];
 export const MAX_RETRIES = 2;
