@@ -3,7 +3,7 @@ import {
   DELAYS_MS,
   MAX_CONCURRENT_UPLOADS,
   MAX_RETRIES,
-  UploadFilesInBatchesParams,
+  UploadFilesConcurrentlyParams,
   UploadFileWithRetryParams,
 } from './upload.types';
 import { DriveFileService } from '../../drive/drive-file.service';
@@ -16,7 +16,7 @@ import { createFileStreamWithBuffer, tryUploadThumbnail } from '../../../utils/t
 export class UploadFileService {
   static readonly instance = new UploadFileService();
 
-  async uploadFilesInChunks({
+  async uploadFilesConcurrently({
     network,
     filesToUpload,
     folderMap,
@@ -24,14 +24,14 @@ export class UploadFileService {
     destinationFolderUuid,
     currentProgress,
     emitProgress,
-  }: UploadFilesInBatchesParams): Promise<number> {
+  }: UploadFilesConcurrentlyParams): Promise<number> {
     let bytesUploaded = 0;
 
-    const chunks = this.chunkArray(filesToUpload, MAX_CONCURRENT_UPLOADS);
+    const concurrentFiles = this.concurrencyArray(filesToUpload, MAX_CONCURRENT_UPLOADS);
 
-    for (const chunk of chunks) {
+    for (const fileArray of concurrentFiles) {
       await Promise.allSettled(
-        chunk.map(async (file) => {
+        fileArray.map(async (file) => {
           const parentPath = dirname(file.relativePath);
           const parentFolderUuid =
             parentPath === '.' || parentPath === '' ? destinationFolderUuid : folderMap.get(parentPath);
@@ -136,11 +136,11 @@ export class UploadFileService {
     }
     return null;
   }
-  private chunkArray<T>(array: T[], chunkSize: number): T[][] {
-    const chunks: T[][] = [];
-    for (let i = 0; i < array.length; i += chunkSize) {
-      chunks.push(array.slice(i, i + chunkSize));
+  private concurrencyArray<T>(array: T[], arraySize: number): T[][] {
+    const arrays: T[][] = [];
+    for (let i = 0; i < array.length; i += arraySize) {
+      arrays.push(array.slice(i, i + arraySize));
     }
-    return chunks;
+    return arrays;
   }
 }

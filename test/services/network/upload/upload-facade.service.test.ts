@@ -42,7 +42,7 @@ vi.mock('../../../../src/services/network/upload/upload-folder.service', () => (
 vi.mock('../../../../src/services/network/upload/upload-file.service', () => ({
   UploadFileService: {
     instance: {
-      uploadFilesInChunks: vi.fn(),
+      uploadFilesConcurrently: vi.fn(),
     },
   },
 }));
@@ -84,7 +84,7 @@ describe('UploadFacade', () => {
       totalBytes: 500,
     });
     vi.mocked(UploadFolderService.instance.createFolders).mockResolvedValue(folderMap);
-    vi.mocked(UploadFileService.instance.uploadFilesInChunks).mockResolvedValue(500);
+    vi.mocked(UploadFileService.instance.uploadFilesConcurrently).mockResolvedValue(500);
     vi.mocked(CLIUtils.timer).mockReturnValue({
       stop: vi.fn().mockReturnValue(1000),
     });
@@ -116,7 +116,7 @@ describe('UploadFacade', () => {
       ).rejects.toThrow('Failed to create folders, cannot upload files');
 
       expect(UploadFolderService.instance.createFolders).toHaveBeenCalled();
-      expect(UploadFileService.instance.uploadFilesInChunks).not.toHaveBeenCalled();
+      expect(UploadFileService.instance.uploadFilesConcurrently).not.toHaveBeenCalled();
     });
 
     it('should properly handle the upload of folder and the creation of file and return proper result', async () => {
@@ -133,7 +133,7 @@ describe('UploadFacade', () => {
       expect(result.rootFolderId).toBe('folder-uuid-123');
       expect(result.uploadTimeMs).toBe(1000);
       expect(UploadFolderService.instance.createFolders).toHaveBeenCalled();
-      expect(UploadFileService.instance.uploadFilesInChunks).toHaveBeenCalled();
+      expect(UploadFileService.instance.uploadFilesConcurrently).toHaveBeenCalled();
       expect(logger.info).toHaveBeenCalledWith(`Scanned folder ${localPath}: found 2 items, total size 500 bytes.`);
     });
 
@@ -148,7 +148,7 @@ describe('UploadFacade', () => {
         },
       );
 
-      vi.mocked(UploadFileService.instance.uploadFilesInChunks).mockImplementation(
+      vi.mocked(UploadFileService.instance.uploadFilesConcurrently).mockImplementation(
         async ({ currentProgress, emitProgress }) => {
           currentProgress.itemsUploaded = 2;
           currentProgress.bytesUploaded = 500;
@@ -174,7 +174,7 @@ describe('UploadFacade', () => {
       vi.useFakeTimers();
 
       vi.mocked(UploadFolderService.instance.createFolders).mockResolvedValue(folderMap);
-      vi.mocked(UploadFileService.instance.uploadFilesInChunks).mockResolvedValue(100);
+      vi.mocked(UploadFileService.instance.uploadFilesConcurrently).mockResolvedValue(100);
 
       const uploadPromise = sut.uploadFolder({
         localPath,
@@ -190,7 +190,7 @@ describe('UploadFacade', () => {
       expect(AsyncUtils.sleep).toHaveBeenCalledWith(500);
       expect(AsyncUtils.sleep).toHaveBeenCalledTimes(1);
       expect(UploadFolderService.instance.createFolders).toHaveBeenCalled();
-      expect(UploadFileService.instance.uploadFilesInChunks).toHaveBeenCalled();
+      expect(UploadFileService.instance.uploadFilesConcurrently).toHaveBeenCalled();
 
       vi.useRealTimers();
     });
