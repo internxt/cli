@@ -197,6 +197,7 @@ describe('CliUtils', () => {
       expect(ux.action.stop).not.toHaveBeenCalled();
     });
   });
+
   describe('prepareNetwork', () => {
     it('should properly create a networkFacade instance and return it', () => {
       const result = CLIUtils.prepareNetwork({ loginUserDetails: mockLoginUserDetails });
@@ -225,6 +226,156 @@ describe('CliUtils', () => {
 
       expect(doingSpy).toHaveBeenCalledWith('Preparing Network', jsonFlag);
       expect(doneSpy).toHaveBeenCalledWith(jsonFlag);
+    });
+  });
+
+  describe('timer', () => {
+    it('should measure elapsed time correctly', () => {
+      vi.useFakeTimers();
+      const timer = CLIUtils.timer();
+      vi.advanceTimersByTime(1500);
+      const elapsed = timer.stop();
+      expect(elapsed).toBe(1500);
+      vi.useRealTimers();
+    });
+
+    it('should measure zero time when stopped immediately', () => {
+      vi.useFakeTimers();
+      const timer = CLIUtils.timer();
+      const elapsed = timer.stop();
+      expect(elapsed).toBe(0);
+      vi.useRealTimers();
+    });
+
+    it('should handle multiple timers independently', () => {
+      vi.useFakeTimers();
+      const timer1 = CLIUtils.timer();
+      vi.advanceTimersByTime(500);
+      const timer2 = CLIUtils.timer();
+      vi.advanceTimersByTime(500);
+      const elapsed1 = timer1.stop();
+      const elapsed2 = timer2.stop();
+      expect(elapsed1).toBe(1000);
+      expect(elapsed2).toBe(500);
+      vi.useRealTimers();
+    });
+  });
+
+  describe('formatDuration', () => {
+    it('should format seconds correctly', () => {
+      expect(CLIUtils.formatDuration(5000)).toBe('00:00:05.000');
+    });
+
+    it('should format minutes and seconds correctly', () => {
+      expect(CLIUtils.formatDuration(125000)).toBe('00:02:05.000');
+    });
+
+    it('should format hours, minutes, and seconds correctly', () => {
+      expect(CLIUtils.formatDuration(3665000)).toBe('01:01:05.000');
+    });
+
+    it('should format zero milliseconds', () => {
+      expect(CLIUtils.formatDuration(0)).toBe('00:00:00.000');
+    });
+
+    it('should handle milliseconds less than a second', () => {
+      expect(CLIUtils.formatDuration(999)).toBe('00:00:00.999');
+    });
+
+    it('should handle large durations', () => {
+      expect(CLIUtils.formatDuration(86400000)).toBe('24:00:00.000');
+    });
+
+    it('should pad single digits with zeros', () => {
+      expect(CLIUtils.formatDuration(3661000)).toBe('01:01:01.000');
+    });
+
+    it('should handle negative values gracefully', () => {
+      expect(CLIUtils.formatDuration(-5000)).toBe('00:00:00.000');
+    });
+
+    it('should format milliseconds correctly', () => {
+      expect(CLIUtils.formatDuration(1234)).toBe('00:00:01.234');
+    });
+
+    it('should pad milliseconds with zeros', () => {
+      expect(CLIUtils.formatDuration(5001)).toBe('00:00:05.001');
+    });
+  });
+
+  describe('formatBytesToString', () => {
+    it('should format bytes to MB correctly', () => {
+      expect(CLIUtils.formatBytesToString(1048576)).toBe('1.00 MB');
+    });
+
+    it('should handle zero bytes', () => {
+      expect(CLIUtils.formatBytesToString(0)).toBe('0.00 KB');
+    });
+
+    it('should format small byte values in KB', () => {
+      expect(CLIUtils.formatBytesToString(1024)).toBe('1.00 KB');
+    });
+
+    it('should format large byte values in MB', () => {
+      expect(CLIUtils.formatBytesToString(10485760)).toBe('10.00 MB');
+    });
+
+    it('should round to two decimal places for MB', () => {
+      expect(CLIUtils.formatBytesToString(1572864)).toBe('1.50 MB');
+    });
+
+    it('should handle fractional MB values', () => {
+      expect(CLIUtils.formatBytesToString(2621440)).toBe('2.50 MB');
+    });
+
+    it('should handle negative values gracefully', () => {
+      expect(CLIUtils.formatBytesToString(-1048576)).toBe('0.00 KB');
+    });
+
+    it('should format bytes less than 1 KB', () => {
+      expect(CLIUtils.formatBytesToString(512)).toBe('0.50 KB');
+    });
+
+    it('should switch from KB to MB at 1024 KB', () => {
+      expect(CLIUtils.formatBytesToString(1048575)).toBe('1024.00 KB');
+      expect(CLIUtils.formatBytesToString(1048576)).toBe('1.00 MB');
+    });
+  });
+
+  describe('calculateThroughputMBps', () => {
+    it('should calculate throughput in MB/s correctly', () => {
+      const throughput = CLIUtils.calculateThroughputMBps(10485760, 1000);
+      expect(throughput).toBe(10);
+    });
+
+    it('should handle zero bytes', () => {
+      const throughput = CLIUtils.calculateThroughputMBps(0, 1000);
+      expect(throughput).toBe(0);
+    });
+
+    it('should handle fractional throughput', () => {
+      const throughput = CLIUtils.calculateThroughputMBps(5242880, 2000);
+      expect(throughput).toBe(2.5);
+    });
+
+    it('should handle very small time values', () => {
+      const throughput = CLIUtils.calculateThroughputMBps(1048576, 100);
+      expect(throughput).toBe(10);
+    });
+
+    it('should handle large byte values', () => {
+      const throughput = CLIUtils.calculateThroughputMBps(104857600, 10000);
+      expect(throughput).toBe(10);
+    });
+
+    it('should handle negative bytes gracefully', () => {
+      const throughput = CLIUtils.calculateThroughputMBps(-1048576, 1000);
+      expect(throughput).toBe(0);
+    });
+
+    it('should handle negative time gracefully', () => {
+      const throughput = CLIUtils.calculateThroughputMBps(1048576, -1000);
+      expect(throughput).toBe(0);
     });
   });
 });

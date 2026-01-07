@@ -62,12 +62,18 @@ export default class UploadFile extends Command {
         reporter: this.log.bind(this),
       })) ?? user.rootFolderId;
 
+    const timings = {
+      networkUpload: 0,
+      driveUpload: 0,
+      thumbnailUpload: 0,
+    };
+
     // 1. Prepare the network
     const networkFacade = await CLIUtils.prepareNetwork({ loginUserDetails: user, jsonFlag: flags['json'] });
 
     // 2. Upload file to the Network
     const readStream = createReadStream(filePath);
-    const timer = CLIUtils.timer();
+    const networkUploadTimer = CLIUtils.timer();
     const progressBar = CLIUtils.progress(
       {
         format: 'Uploading file [{bar}] {percentage}%',
@@ -107,8 +113,10 @@ export default class UploadFile extends Command {
         process.exit(1);
       });
     });
+    timings.networkUpload = networkUploadTimer.stop();
 
     // 3. Create the file in Drive
+    const driveUploadTimer = CLIUtils.timer();
     const createdDriveFile = await DriveFileService.instance.createFile({
       plainName: fileInfo.name,
       type: fileType,
@@ -120,7 +128,9 @@ export default class UploadFile extends Command {
       creationTime: stats.birthtime?.toISOString(),
       modificationTime: stats.mtime?.toISOString(),
     });
+    timings.driveUpload = driveUploadTimer.stop();
 
+    const thumbnailTimer = CLIUtils.timer();
     try {
       if (isThumbnailable && bufferStream) {
         const thumbnailBuffer = bufferStream.getBuffer();
@@ -138,14 +148,24 @@ export default class UploadFile extends Command {
     } catch (error) {
       ErrorUtils.report(error, { command: this.id });
     }
+    timings.thumbnailUpload = thumbnailTimer.stop();
 
     progressBar?.update(100);
     progressBar?.stop();
 
-    const uploadTime = timer.stop();
+    const totalTime = Object.values(timings).reduce((sum, time) => sum + time, 0);
+    const throughputMBps = CLIUtils.calculateThroughputMBps(stats.size, timings.networkUpload);
+
+    this.log('\n');
+    this.log(
+      `[PUT] Timing breakdown:\n
+      Network upload: ${CLIUtils.formatDuration(timings.networkUpload)} (${throughputMBps.toFixed(2)} MB/s)\n
+      Drive upload: ${CLIUtils.formatDuration(timings.driveUpload)}\n
+      Thumbnail: ${CLIUtils.formatDuration(timings.thumbnailUpload)}\n`,
+    );
     this.log('\n');
     // eslint-disable-next-line max-len
-    const message = `File uploaded in ${uploadTime}ms, view it at ${ConfigService.instance.get('DRIVE_WEB_URL')}/file/${createdDriveFile.uuid}`;
+    const message = `File uploaded successfully in ${CLIUtils.formatDuration(totalTime)}, view it at ${ConfigService.instance.get('DRIVE_WEB_URL')}/file/${createdDriveFile.uuid}`;
     CLIUtils.success(this.log.bind(this), message);
     return {
       success: true,
