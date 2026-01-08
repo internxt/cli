@@ -89,7 +89,7 @@ describe('UploadFileService', () => {
     vi.mocked(DriveFileService.instance.createFile).mockResolvedValue(mockFile);
   });
 
-  describe('uploadFilesInChunks', () => {
+  describe('uploadFilesConcurrently', () => {
     const bucket = 'test-bucket';
     const destinationFolderUuid = 'dest-uuid';
     const folderMap = new Map<string, string>();
@@ -104,7 +104,7 @@ describe('UploadFileService', () => {
 
       const uploadFileWithRetrySpy = vi.spyOn(sut, 'uploadFileWithRetry').mockResolvedValue(mockFile);
 
-      const result = await sut.uploadFilesInChunks({
+      const result = await sut.uploadFilesConcurrently({
         network: mockNetworkFacade,
         filesToUpload: files,
         folderMap,
@@ -119,7 +119,7 @@ describe('UploadFileService', () => {
       uploadFileWithRetrySpy.mockRestore();
     });
 
-    it('should properly upload files in chunks of max 5', async () => {
+    it('should properly upload files in arrays of max 10', async () => {
       const files = Array.from({ length: 12 }, (_, i) =>
         createFileSystemNodeFixture({
           type: 'file',
@@ -131,8 +131,10 @@ describe('UploadFileService', () => {
       const { currentProgress, emitProgress } = createProgressFixtures();
 
       const uploadFileWithRetrySpy = vi.spyOn(sut, 'uploadFileWithRetry').mockResolvedValue(mockFile);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const concurrencyArraySpy = vi.spyOn(sut as any, 'concurrencyArray');
 
-      await sut.uploadFilesInChunks({
+      await sut.uploadFilesConcurrently({
         network: mockNetworkFacade,
         filesToUpload: files,
         folderMap,
@@ -143,7 +145,14 @@ describe('UploadFileService', () => {
       });
 
       expect(uploadFileWithRetrySpy).toHaveBeenCalledTimes(12);
+      expect(concurrencyArraySpy).toHaveBeenCalledWith(files, 10);
+      const batches = concurrencyArraySpy.mock.results[0].value;
+      expect(batches).toHaveLength(2);
+      expect(batches[0]).toHaveLength(10);
+      expect(batches[1]).toHaveLength(2);
+
       uploadFileWithRetrySpy.mockRestore();
+      concurrencyArraySpy.mockRestore();
     });
 
     it('should properly emit progress and update the currentProgress object', async () => {
@@ -155,7 +164,7 @@ describe('UploadFileService', () => {
 
       const uploadFileWithRetrySpy = vi.spyOn(sut, 'uploadFileWithRetry').mockResolvedValue(mockFile);
 
-      await sut.uploadFilesInChunks({
+      await sut.uploadFilesConcurrently({
         network: mockNetworkFacade,
         filesToUpload: files,
         folderMap,
@@ -187,7 +196,7 @@ describe('UploadFileService', () => {
 
       const uploadFileWithRetrySpy = vi.spyOn(sut, 'uploadFileWithRetry');
 
-      const result = await sut.uploadFilesInChunks({
+      const result = await sut.uploadFilesConcurrently({
         network: mockNetworkFacade,
         filesToUpload: files,
         folderMap,
