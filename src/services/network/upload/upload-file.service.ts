@@ -12,6 +12,8 @@ import { isAlreadyExistsError } from '../../../utils/errors.utils';
 import { stat } from 'node:fs/promises';
 import { EncryptionVersion } from '@internxt/sdk/dist/drive/storage/types';
 import { createFileStreamWithBuffer, tryUploadThumbnail } from '../../../utils/thumbnail.utils';
+import { BufferStream } from '../../../utils/stream.utils';
+import { DriveFileItem } from '../../../types/drive.types';
 import { CLIUtils } from '../../../utils/cli.utils';
 
 export class UploadFileService {
@@ -64,20 +66,16 @@ export class UploadFileService {
     network,
     bucket,
     parentFolderUuid,
-  }: UploadFileWithRetryParams): Promise<string | null> {
+  }: UploadFileWithRetryParams): Promise<DriveFileItem | null> {
     for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
       try {
         const stats = await stat(file.absolutePath);
-        if (!stats.size) {
-          logger.warn(`Skipping empty file: ${file.relativePath}`);
-          return null;
-        }
+        const fileSize = stats.size ?? 0;
 
         const fileType = extname(file.absolutePath).replaceAll('.', '');
-        const { fileStream, bufferStream } = createFileStreamWithBuffer({
-          path: file.absolutePath,
-          fileType,
-        });
+
+        let fileId: string | undefined;
+        let thumbnailStream: BufferStream | undefined;
 
         const timings = {
           networkUpload: 0,
@@ -85,28 +83,37 @@ export class UploadFileService {
           thumbnailUpload: 0,
         };
 
-        const uploadTimer = CLIUtils.timer();
-        const fileId = await new Promise<string>((resolve, reject) => {
-          network.uploadFile(
-            fileStream,
-            stats.size,
-            bucket,
-            (err: Error | null, res: string | null) => {
-              if (err) {
-                return reject(err);
-              }
-              resolve(res as string);
-            },
-            () => {},
-          );
-        });
-        timings.networkUpload = uploadTimer.stop();
+        if (fileSize > 0) {
+          const { fileStream, bufferStream } = createFileStreamWithBuffer({
+            path: file.absolutePath,
+            fileType,
+          });
+
+          const uploadTimer = CLIUtils.timer();
+          thumbnailStream = bufferStream;
+
+          fileId = await new Promise<string>((resolve, reject) => {
+            network.uploadFile(
+              fileStream,
+              fileSize,
+              bucket,
+              (err: Error | null, res: string | null) => {
+                if (err) {
+                  return reject(err);
+                }
+                resolve(res as string);
+              },
+              () => {},
+            );
+          });
+          timings.networkUpload = uploadTimer.stop();
+        }
 
         const driveTimer = CLIUtils.timer();
         const createdDriveFile = await DriveFileService.instance.createFile({
           plainName: file.name,
           type: fileType,
-          size: stats.size,
+          size: fileSize,
           folderUuid: parentFolderUuid,
           fileId,
           bucket,
@@ -117,9 +124,9 @@ export class UploadFileService {
         timings.driveUpload = driveTimer.stop();
 
         const thumbnailTimer = CLIUtils.timer();
-        if (bufferStream) {
+        if (thumbnailStream && fileSize > 0) {
           void tryUploadThumbnail({
-            bufferStream,
+            bufferStream: thumbnailStream,
             fileType,
             userBucket: bucket,
             fileUuid: createdDriveFile.uuid,
@@ -139,7 +146,7 @@ export class UploadFileService {
           Total: ${CLIUtils.formatDuration(totalTime)}\n`,
         );
 
-        return createdDriveFile.fileId;
+        return createdDriveFile;
       } catch (error: unknown) {
         if (isAlreadyExistsError(error)) {
           const msg = `File ${file.name} already exists, skipping...`;

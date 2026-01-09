@@ -3,7 +3,7 @@ import { DriveFileService } from '../../services/drive/drive-file.service';
 import { NetworkFacade } from '../../services/network/network-facade.service';
 import { AuthService } from '../../services/auth.service';
 import { WebDavMethodHandler } from '../../types/webdav.types';
-import { NotFoundError, UnsupportedMediaTypeError } from '../../utils/errors.utils';
+import { NotFoundError } from '../../utils/errors.utils';
 import { WebDavUtils } from '../../utils/webdav.utils';
 import { webdavLogger } from '../../utils/logger.utils';
 import { TrashService } from '../../services/drive/trash.service';
@@ -11,8 +11,7 @@ import { EncryptionVersion } from '@internxt/sdk/dist/drive/storage/types';
 import { CLIUtils } from '../../utils/cli.utils';
 import { BufferStream } from '../../utils/stream.utils';
 import { Readable } from 'node:stream';
-import { isFileThumbnailable } from '../../utils/thumbnail.utils';
-import { ThumbnailService } from '../../services/thumbnail.service';
+import { isFileThumbnailable, tryUploadThumbnail } from '../../utils/thumbnail.utils';
 import { WebDavFolderService } from '../services/webdav-folder.service';
 import { AsyncUtils } from '../../utils/async.utils';
 import { DriveFolderService } from '../../services/drive/drive-folder.service';
@@ -30,9 +29,9 @@ export class PUTRequestHandler implements WebDavMethodHandler {
   ) {}
 
   handle = async (req: Request, res: Response) => {
-    const contentLength = Number(req.headers['content-length']);
+    let contentLength = Number(req.headers['content-length']);
     if (!contentLength || isNaN(contentLength) || contentLength <= 0) {
-      throw new UnsupportedMediaTypeError('Empty files are not supported');
+      contentLength = 0;
     }
 
     const resource = await WebDavUtils.getRequestedResource(req.url);
@@ -85,42 +84,46 @@ export class PUTRequestHandler implements WebDavMethodHandler {
       fileStream = req.pipe(bufferStream);
     }
 
-    let uploaded = false,
-      aborted = false;
+    let fileId: string | undefined;
 
-    const progressCallback = (progress: number) => {
-      if (!uploaded && !aborted) {
-        webdavLogger.info(`[PUT] Upload progress for file ${resource.name}: ${(progress * 100).toFixed(2)}%`);
-      }
-    };
+    if (contentLength > 0) {
+      let uploaded = false,
+        aborted = false;
 
-    const networkUploadTimer = CLIUtils.timer();
-    const fileId = await new Promise((resolve: (fileId: string) => void, reject) => {
-      const state = this.dependencies.networkFacade.uploadFile(
-        fileStream,
-        contentLength,
-        user.bucket,
-        (err: Error | null, res: string | null) => {
-          if (err) {
-            aborted = true;
-            return reject(err);
-          }
-          resolve(res as string);
-        },
-        progressCallback,
-      );
-      res.on('close', async () => {
-        aborted = true;
-        if (!uploaded) {
-          webdavLogger.info('[PUT] ❌ HTTP Client has been disconnected, res has been closed.');
-          state.stop();
+      const progressCallback = (progress: number) => {
+        if (!uploaded && !aborted) {
+          webdavLogger.info(`[PUT] Upload progress for file ${resource.name}: ${(progress * 100).toFixed(2)}%`);
         }
-      });
-    });
-    uploaded = true;
-    timings.networkUpload = networkUploadTimer.stop();
+      };
 
-    webdavLogger.info('[PUT] ✅ File uploaded to network');
+      const networkUploadTimer = CLIUtils.timer();
+      fileId = await new Promise((resolve: (fileId: string) => void, reject) => {
+        const state = this.dependencies.networkFacade.uploadFile(
+          fileStream,
+          contentLength,
+          user.bucket,
+          (err: Error | null, res: string | null) => {
+            if (err) {
+              aborted = true;
+              return reject(err);
+            }
+            resolve(res as string);
+          },
+          progressCallback,
+        );
+        res.on('close', async () => {
+          aborted = true;
+          if (!uploaded) {
+            webdavLogger.info('[PUT] ❌ HTTP Client has been disconnected, res has been closed.');
+            state.stop();
+          }
+        });
+      });
+      uploaded = true;
+      timings.networkUpload = networkUploadTimer.stop();
+
+      webdavLogger.info('[PUT] ✅ File uploaded to network');
+    }
 
     const driveTimer = CLIUtils.timer();
     const file = await DriveFileService.instance.createFile({
@@ -135,22 +138,14 @@ export class PUTRequestHandler implements WebDavMethodHandler {
     timings.driveUpload = driveTimer.stop();
 
     const thumbnailTimer = CLIUtils.timer();
-    try {
-      if (isThumbnailable && bufferStream) {
-        const thumbnailBuffer = bufferStream.getBuffer();
-
-        if (thumbnailBuffer) {
-          await ThumbnailService.instance.uploadThumbnail(
-            thumbnailBuffer,
-            fileType,
-            user.bucket,
-            file.uuid,
-            this.dependencies.networkFacade,
-          );
-        }
-      }
-    } catch (error) {
-      webdavLogger.info(`[PUT] ❌ File thumbnail upload failed ${(error as Error).message}`);
+    if (contentLength > 0 && isThumbnailable && bufferStream) {
+      void tryUploadThumbnail({
+        bufferStream,
+        fileType,
+        userBucket: user.bucket,
+        fileUuid: file.uuid,
+        networkFacade: this.dependencies.networkFacade,
+      });
     }
     timings.thumbnailUpload = thumbnailTimer.stop();
 
