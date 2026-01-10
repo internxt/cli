@@ -4,6 +4,7 @@ import fs from 'node:fs/promises';
 import { ConfigKeys } from '../types/config.types';
 import { LoginCredentials, WebdavConfig } from '../types/command.types';
 import { CryptoService } from './crypto.service';
+import { isFileNotFoundError } from '../utils/errors.utils';
 
 export class ConfigService {
   static readonly INTERNXT_CLI_DATA_DIR = path.join(os.homedir(), '.internxt-cli');
@@ -49,12 +50,16 @@ export class ConfigService {
    * @async
    **/
   public clearUser = async (): Promise<void> => {
-    const stat = await fs.stat(ConfigService.CREDENTIALS_FILE);
-
-    if (stat.size === 0) throw new Error('Credentials file is already empty');
-    return fs.writeFile(ConfigService.CREDENTIALS_FILE, '', 'utf8');
+    try {
+      const stat = await fs.stat(ConfigService.CREDENTIALS_FILE);
+      if (stat.size === 0) return;
+      await fs.writeFile(ConfigService.CREDENTIALS_FILE, '', 'utf8');
+    } catch (error) {
+      if (!isFileNotFoundError(error)) {
+        throw error;
+      }
+    }
   };
-
   /**
    * Returns the authenticated user credentials
    * @returns {CLICredentials} The authenticated user credentials
