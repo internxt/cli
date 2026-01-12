@@ -99,8 +99,7 @@ export class ValidationService {
     const expiration = this.validateJwtAndCheckExpiration(token);
     return {
       isValid: expiration !== null,
-      expiration:
-        expiration !== null ? this.checkTokenExpiration(expiration) : { expired: true, refreshRequired: false },
+      expiration: expiration ? this.checkTokenExpiration(expiration) : { expired: true, refreshRequired: false },
     };
   };
 }
