@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { ErrorUtils, isAlreadyExistsError, isOldTokenError, isFileNotFoundError } from '../../src/utils/errors.utils';
+import { ErrorUtils, isAlreadyExistsError, isFileNotFoundError } from '../../src/utils/errors.utils';
 import { logger } from '../../src/utils/logger.utils';
 
 describe('Errors Utils', () => {
@@ -48,34 +48,6 @@ describe('Errors Utils', () => {
       expect(isAlreadyExistsError(123)).toBe(false);
       expect(isAlreadyExistsError(null)).toBe(false);
       expect(isAlreadyExistsError(undefined)).toBe(false);
-    });
-  });
-
-  describe('isOldTokenError', () => {
-    it('should return true when error message contains "old token version detected"', () => {
-      const error = new Error('Something went wrong: old token version detected, please login again');
-
-      expect(isOldTokenError(error)).toBe(true);
-    });
-
-    it('should return true when error message contains "old token version detected" in mixed case', () => {
-      const error = new Error('Old Token Version Detected');
-
-      expect(isOldTokenError(error)).toBe(true);
-    });
-
-    it('it should return false when error message does not contain "old token version detected"', () => {
-      const error = new Error('Invalid token');
-
-      expect(isOldTokenError(error)).toBe(false);
-    });
-
-    it('should return false when error is not an Error object', () => {
-      expect(isOldTokenError('old token version detected')).toBe(false);
-      expect(isOldTokenError({ message: 'old token version detected' })).toBe(false);
-      expect(isOldTokenError(null)).toBe(false);
-      expect(isOldTokenError(undefined)).toBe(false);
-      expect(isOldTokenError(123)).toBe(false);
     });
   });
 

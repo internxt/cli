@@ -9,7 +9,6 @@ import {
   MissingCredentialsError,
 } from '../types/command.types';
 import { ValidationService } from './validation.service';
-import { isOldTokenError, OldTokenDetectedError } from '../utils/errors.utils';
 
 export class AuthService {
   public static readonly instance: AuthService = new AuthService();
@@ -66,7 +65,6 @@ export class AuthService {
    * @throws {MissingCredentialsError} When user credentials are not found
    * @throws {InvalidCredentialsError} When token or mnemonic is invalid
    * @throws {ExpiredCredentialsError} When token has expired
-   * @throws {OldTokenDetectedError} When old token is detected (user is logged out automatically)
    */
   public getAuthDetails = async (): Promise<LoginCredentials> => {
     const loginCreds = await ConfigService.instance.readUser();
@@ -90,10 +88,7 @@ export class AuthService {
     try {
       return await this.refreshUserToken(loginCreds.token, loginCreds.user.mnemonic);
     } catch (error) {
-      if (isOldTokenError(error)) {
-        await ConfigService.instance.clearUser();
-        throw new OldTokenDetectedError();
-      }
+      await ConfigService.instance.clearUser();
       throw error;
     }
   };
