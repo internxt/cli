@@ -62,17 +62,16 @@ export class NetworkUtils {
 
   static async generateSelfSignedSSLCerts(configs: WebdavConfig): Promise<selfsigned.GenerateResult> {
     const attrs = [{ name: 'commonName', value: configs.host }];
-    const extensions = [
-      {
-        name: 'subjectAltName',
-        altNames: [
-          {
-            type: 2,
-            value: configs.host,
-          },
-        ],
-      },
-    ];
+    const extension: selfsigned.SubjectAltNameExtension = {
+      name: 'subjectAltName',
+      altNames: [
+        {
+          type: 2,
+          value: configs.host,
+        },
+      ],
+    };
+    const extensions: selfsigned.CertificateExtension[] = [extension];
     const notAfterDate = new Date();
     notAfterDate.setDate(notAfterDate.getDate() + 365);
     const pems = await selfsigned.generate(attrs, { notAfterDate, algorithm: 'sha256', keySize: 2048, extensions });

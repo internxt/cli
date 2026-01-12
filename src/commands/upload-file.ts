@@ -6,13 +6,11 @@ import { CLIUtils } from '../utils/cli.utils';
 import { ConfigService } from '../services/config.service';
 import path from 'node:path';
 import { DriveFileService } from '../services/drive/drive-file.service';
-import { ErrorUtils } from '../utils/errors.utils';
 import { NotValidDirectoryError } from '../types/command.types';
 import { ValidationService } from '../services/validation.service';
 import { EncryptionVersion } from '@internxt/sdk/dist/drive/storage/types';
-import { ThumbnailService } from '../services/thumbnail.service';
 import { BufferStream } from '../utils/stream.utils';
-import { isFileThumbnailable } from '../utils/thumbnail.utils';
+import { isFileThumbnailable, tryUploadThumbnail } from '../utils/thumbnail.utils';
 import { Readable } from 'node:stream';
 
 export default class UploadFile extends Command {
@@ -46,9 +44,6 @@ export default class UploadFile extends Command {
     const filePath = await this.getFilePath(flags['file'], nonInteractive);
 
     const stats = await stat(filePath);
-    if (!stats.size) {
-      throw new Error('The file is empty. Uploading empty files is not allowed.');
-    }
 
     const fileInfo = path.parse(filePath);
     const fileType = fileInfo.ext.replaceAll('.', '');
@@ -62,12 +57,16 @@ export default class UploadFile extends Command {
         reporter: this.log.bind(this),
       })) ?? user.rootFolderId;
 
-    // 1. Prepare the network
-    const networkFacade = await CLIUtils.prepareNetwork({ loginUserDetails: user, jsonFlag: flags['json'] });
+    const timings = {
+      networkUpload: 0,
+      driveUpload: 0,
+      thumbnailUpload: 0,
+    };
 
-    // 2. Upload file to the Network
-    const readStream = createReadStream(filePath);
-    const timer = CLIUtils.timer();
+    // Prepare the network
+    const networkFacade = CLIUtils.prepareNetwork({ loginUserDetails: user, jsonFlag: flags['json'] });
+
+    const networkUploadTimer = CLIUtils.timer();
     const progressBar = CLIUtils.progress(
       {
         format: 'Uploading file [{bar}] {percentage}%',
@@ -77,42 +76,52 @@ export default class UploadFile extends Command {
     );
     progressBar?.start(100, 0);
 
+    let fileId: string | undefined;
     let bufferStream: BufferStream | undefined;
-    let fileStream: Readable = readStream;
     const isThumbnailable = isFileThumbnailable(fileType);
-    if (isThumbnailable) {
-      bufferStream = new BufferStream();
-      fileStream = readStream.pipe(bufferStream);
-    }
+    const fileSize = stats.size ?? 0;
 
-    const progressCallback = (progress: number) => {
-      progressBar?.update(progress * 100 * 0.99);
-    };
+    if (fileSize > 0) {
+      // Upload file to the Network
+      const readStream = createReadStream(filePath);
+      let fileStream: Readable = readStream;
 
-    const fileId = await new Promise((resolve: (fileId: string) => void, reject) => {
-      const state = networkFacade.uploadFile(
-        fileStream,
-        stats.size,
-        user.bucket,
-        (err: Error | null, res: string | null) => {
-          if (err) {
-            return reject(err);
-          }
-          resolve(res as string);
-        },
-        progressCallback,
-      );
-      process.on('SIGINT', () => {
-        state.stop();
-        process.exit(1);
+      if (isThumbnailable) {
+        bufferStream = new BufferStream();
+        fileStream = readStream.pipe(bufferStream);
+      }
+
+      const progressCallback = (progress: number) => {
+        progressBar?.update(progress * 100 * 0.99);
+      };
+
+      fileId = await new Promise((resolve: (fileId: string) => void, reject) => {
+        const state = networkFacade.uploadFile(
+          fileStream,
+          fileSize,
+          user.bucket,
+          (err: Error | null, res: string | null) => {
+            if (err) {
+              return reject(err);
+            }
+            resolve(res as string);
+          },
+          progressCallback,
+        );
+        process.on('SIGINT', () => {
+          state.stop();
+          process.exit(1);
+        });
       });
-    });
+    }
+    timings.networkUpload = networkUploadTimer.stop();
 
-    // 3. Create the file in Drive
+    // Create the file in Drive
+    const driveUploadTimer = CLIUtils.timer();
     const createdDriveFile = await DriveFileService.instance.createFile({
       plainName: fileInfo.name,
       type: fileType,
-      size: stats.size,
+      size: fileSize,
       folderUuid: destinationFolderUuid,
       fileId: fileId,
       bucket: user.bucket,
@@ -120,39 +129,44 @@ export default class UploadFile extends Command {
       creationTime: stats.birthtime?.toISOString(),
       modificationTime: stats.mtime?.toISOString(),
     });
+    timings.driveUpload = driveUploadTimer.stop();
 
-    try {
-      if (isThumbnailable && bufferStream) {
-        const thumbnailBuffer = bufferStream.getBuffer();
-
-        if (thumbnailBuffer) {
-          await ThumbnailService.instance.uploadThumbnail(
-            thumbnailBuffer,
-            fileType,
-            user.bucket,
-            createdDriveFile.uuid,
-            networkFacade,
-          );
-        }
-      }
-    } catch (error) {
-      ErrorUtils.report(error, { command: this.id });
+    const thumbnailTimer = CLIUtils.timer();
+    if (fileSize > 0 && isThumbnailable && bufferStream) {
+      void tryUploadThumbnail({
+        bufferStream,
+        fileType,
+        userBucket: user.bucket,
+        fileUuid: createdDriveFile.uuid,
+        networkFacade,
+      });
     }
+    timings.thumbnailUpload = thumbnailTimer.stop();
 
     progressBar?.update(100);
     progressBar?.stop();
 
-    const uploadTime = timer.stop();
+    const totalTime = Object.values(timings).reduce((sum, time) => sum + time, 0);
+    const throughputMBps = CLIUtils.calculateThroughputMBps(stats.size, timings.networkUpload);
+
     this.log('\n');
-    // eslint-disable-next-line max-len
-    const message = `File uploaded in ${uploadTime}ms, view it at ${ConfigService.instance.get('DRIVE_WEB_URL')}/file/${createdDriveFile.uuid}`;
+    this.log(
+      `[PUT] Timing breakdown:\n
+      Network upload: ${CLIUtils.formatDuration(timings.networkUpload)} (${throughputMBps.toFixed(2)} MB/s)\n
+      Drive upload: ${CLIUtils.formatDuration(timings.driveUpload)}\n
+      Thumbnail: ${CLIUtils.formatDuration(timings.thumbnailUpload)}\n`,
+    );
+    this.log('\n');
+    const message =
+      `File uploaded successfully in ${CLIUtils.formatDuration(totalTime)}, view it at ` +
+      `${ConfigService.instance.get('DRIVE_WEB_URL')}/file/${createdDriveFile.uuid}`;
     CLIUtils.success(this.log.bind(this), message);
     return {
       success: true,
       message,
       file: {
         ...createdDriveFile,
-        plainName: fileInfo.name,
+        plainName: createdDriveFile.name,
       },
     };
   };

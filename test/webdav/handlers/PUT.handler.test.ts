@@ -10,11 +10,9 @@ import { DriveFolderService } from '../../../src/services/drive/drive-folder.ser
 import { CryptoService } from '../../../src/services/crypto.service';
 import { DownloadService } from '../../../src/services/network/download.service';
 import { AuthService } from '../../../src/services/auth.service';
-import { UnsupportedMediaTypeError } from '../../../src/utils/errors.utils';
 import { SdkManager } from '../../../src/services/sdk-manager.service';
 import { NetworkFacade } from '../../../src/services/network/network-facade.service';
 import { PUTRequestHandler } from '../../../src/webdav/handlers/PUT.handler';
-import { fail } from 'node:assert';
 import { WebDavFolderService } from '../../../src/webdav/services/webdav-folder.service';
 import { TrashService } from '../../../src/services/drive/trash.service';
 import { WebDavRequestedResource } from '../../../src/types/webdav.types';
@@ -67,10 +65,23 @@ describe('PUT request handler', () => {
     });
   });
 
-  it('When the content-length request is 0, then it should throw an UnsupportedMediaTypeError', async () => {
+  it('should upload an empty file when the content-length request is 0', async () => {
+    const requestedFileResource: WebDavRequestedResource = getRequestedFileResource();
+    const requestedParentFolderResource: WebDavRequestedResource = getRequestedFolderResource({
+      parentFolder: '/',
+      folderName: '',
+    });
+    const folderFixture = newFolderItem({ name: requestedParentFolderResource.name });
+    const fileFixture = newDriveFile({
+      folderId: folderFixture.id,
+      folderUuid: folderFixture.uuid,
+      size: 0,
+      fileId: undefined,
+    });
+
     const request = createWebDavRequestFixture({
       method: 'PUT',
-      url: '/file.txt',
+      url: requestedFileResource.url,
       headers: {
         'content-length': '0',
       },
@@ -80,15 +91,35 @@ describe('PUT request handler', () => {
       status: vi.fn().mockReturnValue({ send: vi.fn() }),
     });
 
-    try {
-      await sut.handle(request, response);
-      fail('Expected function to throw an error, but it did not.');
-    } catch (error) {
-      expect(error).to.be.instanceOf(UnsupportedMediaTypeError);
-    }
+    const getRequestedResourceStub = vi
+      .spyOn(WebDavUtils, 'getRequestedResource')
+      .mockResolvedValueOnce(requestedFileResource)
+      .mockResolvedValueOnce(requestedParentFolderResource);
+    const getAndSearchItemFromResourceStub = vi
+      .spyOn(WebDavUtils, 'getDriveItemFromResource')
+      .mockResolvedValue(undefined);
+    const getDriveFolderFromResourceStub = vi
+      .spyOn(WebDavUtils, 'getDriveFolderFromResource')
+      .mockResolvedValue(folderFixture);
+    const getAuthDetailsStub = vi
+      .spyOn(AuthService.instance, 'getAuthDetails')
+      .mockResolvedValue(UserCredentialsFixture);
+    const uploadStub = vi.spyOn(networkFacade, 'uploadFile');
+    const createDriveFileStub = vi
+      .spyOn(DriveFileService.instance, 'createFile')
+      .mockResolvedValue(fileFixture.toItem());
+
+    await sut.handle(request, response);
+    expect(response.status).toHaveBeenCalledWith(201);
+    expect(getRequestedResourceStub).toHaveBeenCalledTimes(2);
+    expect(getAndSearchItemFromResourceStub).toHaveBeenCalledOnce();
+    expect(getDriveFolderFromResourceStub).toHaveBeenCalledOnce();
+    expect(getAuthDetailsStub).toHaveBeenCalledOnce();
+    expect(uploadStub).not.toHaveBeenCalled();
+    expect(createDriveFileStub).toHaveBeenCalledOnce();
   });
 
-  it('When the Drive destination folder is found, then it should upload the file to the folder', async () => {
+  it('should upload the file to the folder when the Drive destination folder is found', async () => {
     const requestedFileResource: WebDavRequestedResource = getRequestedFileResource();
     const requestedParentFolderResource: WebDavRequestedResource = getRequestedFolderResource({
       parentFolder: '/',
@@ -142,7 +173,7 @@ describe('PUT request handler', () => {
     expect(createDriveFileStub).toHaveBeenCalledOnce();
   });
 
-  it('When the file already exists, then it should upload and replace the file to the folder', async () => {
+  it('it should upload and replace the file to the folder when the file already exists', async () => {
     const requestedFileResource: WebDavRequestedResource = getRequestedFileResource();
     const requestedParentFolderResource: WebDavRequestedResource = getRequestedFolderResource({
       parentFolder: '/',
@@ -198,7 +229,7 @@ describe('PUT request handler', () => {
     expect(deleteDriveFileStub).toHaveBeenCalledOnce();
   });
 
-  it('When file is uploaded, then it should wait 500ms for backend propagation before returning 201', async () => {
+  it('should wait 500ms for backend propagation before returning 201 when a file is uploaded', async () => {
     const requestedFileResource: WebDavRequestedResource = getRequestedFileResource();
     const requestedParentFolderResource: WebDavRequestedResource = getRequestedFolderResource({
       parentFolder: '/',

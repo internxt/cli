@@ -17,6 +17,7 @@ import {
   createMockStats,
   createProgressFixtures,
 } from './upload.service.helpers';
+import { newFileItem } from '../../../fixtures/drive.fixture';
 
 vi.mock('fs', () => ({
   createReadStream: vi.fn(),
@@ -64,6 +65,7 @@ vi.mock('../../../../src/utils/errors.utils', async (importOriginal) => {
 
 describe('UploadFileService', () => {
   let sut: UploadFileService;
+  const mockFile = newFileItem();
 
   const mockNetworkFacade = {
     uploadFile: vi.fn((_stream, _size, _bucket, callback) => {
@@ -84,13 +86,10 @@ describe('UploadFileService', () => {
       bufferStream: undefined,
     });
     vi.mocked(tryUploadThumbnail).mockResolvedValue(undefined);
-    vi.mocked(DriveFileService.instance.createFile).mockResolvedValue({
-      uuid: 'mock-file-uuid',
-      fileId: 'mock-file-id',
-    } as Awaited<ReturnType<typeof DriveFileService.instance.createFile>>);
+    vi.mocked(DriveFileService.instance.createFile).mockResolvedValue(mockFile);
   });
 
-  describe('uploadFilesInChunks', () => {
+  describe('uploadFilesConcurrently', () => {
     const bucket = 'test-bucket';
     const destinationFolderUuid = 'dest-uuid';
     const folderMap = new Map<string, string>();
@@ -103,9 +102,9 @@ describe('UploadFileService', () => {
       ];
       const { currentProgress, emitProgress } = createProgressFixtures();
 
-      const uploadFileWithRetrySpy = vi.spyOn(sut, 'uploadFileWithRetry').mockResolvedValue('mock-file-id');
+      const uploadFileWithRetrySpy = vi.spyOn(sut, 'uploadFileWithRetry').mockResolvedValue(mockFile);
 
-      const result = await sut.uploadFilesInChunks({
+      const result = await sut.uploadFilesConcurrently({
         network: mockNetworkFacade,
         filesToUpload: files,
         folderMap,
@@ -120,7 +119,7 @@ describe('UploadFileService', () => {
       uploadFileWithRetrySpy.mockRestore();
     });
 
-    it('should properly upload files in chunks of max 5', async () => {
+    it('should properly upload files in arrays of max 10', async () => {
       const files = Array.from({ length: 12 }, (_, i) =>
         createFileSystemNodeFixture({
           type: 'file',
@@ -131,9 +130,11 @@ describe('UploadFileService', () => {
       );
       const { currentProgress, emitProgress } = createProgressFixtures();
 
-      const uploadFileWithRetrySpy = vi.spyOn(sut, 'uploadFileWithRetry').mockResolvedValue('mock-file-id');
+      const uploadFileWithRetrySpy = vi.spyOn(sut, 'uploadFileWithRetry').mockResolvedValue(mockFile);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const concurrencyArraySpy = vi.spyOn(sut as any, 'concurrencyArray');
 
-      await sut.uploadFilesInChunks({
+      await sut.uploadFilesConcurrently({
         network: mockNetworkFacade,
         filesToUpload: files,
         folderMap,
@@ -144,7 +145,14 @@ describe('UploadFileService', () => {
       });
 
       expect(uploadFileWithRetrySpy).toHaveBeenCalledTimes(12);
+      expect(concurrencyArraySpy).toHaveBeenCalledWith(files, 10);
+      const batches = concurrencyArraySpy.mock.results[0].value;
+      expect(batches).toHaveLength(2);
+      expect(batches[0]).toHaveLength(10);
+      expect(batches[1]).toHaveLength(2);
+
       uploadFileWithRetrySpy.mockRestore();
+      concurrencyArraySpy.mockRestore();
     });
 
     it('should properly emit progress and update the currentProgress object', async () => {
@@ -154,9 +162,9 @@ describe('UploadFileService', () => {
       ];
       const { currentProgress, emitProgress } = createProgressFixtures();
 
-      const uploadFileWithRetrySpy = vi.spyOn(sut, 'uploadFileWithRetry').mockResolvedValue('mock-file-id');
+      const uploadFileWithRetrySpy = vi.spyOn(sut, 'uploadFileWithRetry').mockResolvedValue(mockFile);
 
-      await sut.uploadFilesInChunks({
+      await sut.uploadFilesConcurrently({
         network: mockNetworkFacade,
         filesToUpload: files,
         folderMap,
@@ -171,6 +179,7 @@ describe('UploadFileService', () => {
       expect(emitProgress).toHaveBeenCalledTimes(2);
       uploadFileWithRetrySpy.mockRestore();
     });
+
     it('should skip files when parent folder is not found in folderMap', async () => {
       const bucket = 'test-bucket';
       const destinationFolderUuid = 'dest-uuid';
@@ -187,7 +196,7 @@ describe('UploadFileService', () => {
 
       const uploadFileWithRetrySpy = vi.spyOn(sut, 'uploadFileWithRetry');
 
-      const result = await sut.uploadFilesInChunks({
+      const result = await sut.uploadFilesConcurrently({
         network: mockNetworkFacade,
         filesToUpload: files,
         folderMap,
@@ -204,11 +213,12 @@ describe('UploadFileService', () => {
       uploadFileWithRetrySpy.mockRestore();
     });
   });
+
   describe('uploadFileWithRetry', () => {
     const bucket = 'test-bucket';
     const destinationFolderUuid = 'dest-uuid';
 
-    it('should properly create a file and return the created file id', async () => {
+    it('should properly create a file and return the created file', async () => {
       const file = createFileSystemNodeFixture({
         type: 'file',
         name: 'test',
@@ -224,7 +234,7 @@ describe('UploadFileService', () => {
         parentFolderUuid: destinationFolderUuid,
       });
 
-      expect(result).toBe('mock-file-id');
+      expect(result).toBe(mockFile);
       expect(stat).toHaveBeenCalledWith(file.absolutePath);
       expect(mockNetworkFacade.uploadFile).toHaveBeenCalledWith(
         expect.anything(),
@@ -281,19 +291,20 @@ describe('UploadFileService', () => {
 
       const result = await resultPromise;
 
-      expect(result).toBe('mock-file-id');
+      expect(result).toBe(mockFile);
       expect(mockNetworkFacade.uploadFile).toHaveBeenCalledTimes(3);
       expect(logger.warn).toHaveBeenCalledTimes(2);
 
       vi.useRealTimers();
     });
 
-    it('should skip empty files and return null', async () => {
+    it('should upload empty files and return the created file', async () => {
       const file = createFileSystemNodeFixture({
         type: 'file',
-        name: 'empty.txt',
+        name: 'empty',
         relativePath: 'empty.txt',
         size: 0,
+        absolutePath: '/path/to/empty.txt',
       });
 
       vi.mocked(stat).mockResolvedValue(createMockStats(0) as Awaited<ReturnType<typeof stat>>);
@@ -305,9 +316,20 @@ describe('UploadFileService', () => {
         parentFolderUuid: destinationFolderUuid,
       });
 
-      expect(result).toBeNull();
-      expect(logger.warn).toHaveBeenCalledWith('Skipping empty file: empty.txt');
+      expect(result).toBe(mockFile);
+      expect(stat).toHaveBeenCalledWith(file.absolutePath);
       expect(mockNetworkFacade.uploadFile).not.toHaveBeenCalled();
+      expect(DriveFileService.instance.createFile).toHaveBeenCalledWith(
+        expect.objectContaining({
+          fileId: undefined,
+          plainName: 'empty',
+          type: 'txt',
+          size: 0,
+          folderUuid: destinationFolderUuid,
+          bucket,
+          encryptVersion: '03-aes',
+        }),
+      );
     });
 
     it('should call tryUploadThumbnail when bufferStream is present', async () => {
@@ -335,7 +357,7 @@ describe('UploadFileService', () => {
         bufferStream: mockBufferStream,
         fileType: 'png',
         userBucket: bucket,
-        fileUuid: 'mock-file-uuid',
+        fileUuid: mockFile.uuid,
         networkFacade: mockNetworkFacade,
       });
     });

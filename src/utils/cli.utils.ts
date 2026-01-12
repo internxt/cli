@@ -216,6 +216,43 @@ export class CLIUtils {
     };
   };
 
+  static readonly formatDuration = (milliseconds: number): string => {
+    if (milliseconds <= 0) {
+      return '00:00:00.000';
+    }
+    const totalSeconds = Math.floor(milliseconds / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    const ms = Math.floor(milliseconds % 1000);
+    const hoursFormated = hours.toString().padStart(2, '0');
+    const minutesFormated = minutes.toString().padStart(2, '0');
+    const secondsFormated = seconds.toString().padStart(2, '0');
+    const msFormated = ms.toString().padStart(3, '0');
+    return `${hoursFormated}:${minutesFormated}:${secondsFormated}.${msFormated}`;
+  };
+
+  static readonly formatBytesToString = (bytes: number): string => {
+    if (bytes <= 0) {
+      return '0.00 KB';
+    }
+    const kb = bytes / 1024;
+    if (kb < 1024) {
+      return `${kb.toFixed(2)} KB`;
+    }
+    const mb = kb / 1024;
+    return `${mb.toFixed(2)} MB`;
+  };
+
+  static readonly calculateThroughputMBps = (bytes: number, milliseconds: number): number => {
+    if (bytes <= 0 || milliseconds <= 0) {
+      return 0;
+    }
+    const megabytes = bytes / 1024 / 1024;
+    const seconds = milliseconds / 1000;
+    return megabytes / seconds;
+  };
+
   static readonly catchError = ({
     error,
     logReporter,

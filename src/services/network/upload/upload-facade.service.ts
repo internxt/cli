@@ -38,7 +38,7 @@ export class UploadFacade {
     // This aims to prevent this issue: https://inxt.atlassian.net/browse/PB-1446
     await AsyncUtils.sleep(500);
 
-    const totalBytes = await UploadFileService.instance.uploadFilesInChunks({
+    const totalBytes = await UploadFileService.instance.uploadFilesConcurrently({
       network,
       filesToUpload: scanResult.files,
       folderMap,
