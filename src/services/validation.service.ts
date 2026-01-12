@@ -43,6 +43,50 @@ export class ValidationService {
     return fileStat.isFile();
   };
 
+  /**
+   * Validates JWT token structure and parses the expiration claim.
+   * Does not verify signature or issuer.
+   * @returns Expiration timestamp in seconds, or null if invalid structure
+   */
+  public validateJwtAndCheckExpiration = (token?: string): number | null => {
+    if (!token || typeof token !== 'string' || token.split('.').length !== 3) {
+      return null;
+    }
+
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return typeof payload.exp === 'number' ? payload.exp : null;
+    } catch {
+      return null;
+    }
+  };
+
+  /**
+   * Checks token expiration status.
+   * @param expirationTimestamp - Unix timestamp in seconds
+   * @returns Object indicating if token is expired or needs refresh (within 2 days)
+   */
+  public checkTokenExpiration = (
+    expirationTimestamp: number,
+  ): {
+    expired: boolean;
+    refreshRequired: boolean;
+  } => {
+    const TWO_DAYS_IN_SECONDS = 2 * 24 * 60 * 60;
+    const currentTime = Math.floor(Date.now() / 1000);
+    const remainingSeconds = expirationTimestamp - currentTime;
+
+    return {
+      expired: remainingSeconds <= 0,
+      refreshRequired: remainingSeconds > 0 && remainingSeconds <= TWO_DAYS_IN_SECONDS,
+    };
+  };
+
+  /**
+   * Combined validation and expiration check for convenience.
+   * For the original combined behavior, use this method.
+   * For more granular control, use parseJwtExpiration + checkTokenExpiration separately.
+   */
   public validateTokenAndCheckExpiration = (
     token?: string,
   ): {
@@ -52,31 +96,10 @@ export class ValidationService {
       refreshRequired: boolean;
     };
   } => {
-    if (!token || typeof token !== 'string') {
-      return { isValid: false, expiration: { expired: true, refreshRequired: false } };
-    }
-
-    const parts = token.split('.');
-    if (parts.length !== 3) {
-      return { isValid: false, expiration: { expired: true, refreshRequired: false } };
-    }
-
-    try {
-      const payload = JSON.parse(atob(parts[1]));
-      if (typeof payload.exp !== 'number') {
-        return { isValid: false, expiration: { expired: true, refreshRequired: false } };
-      }
-
-      const currentTime = Math.floor(Date.now() / 1000);
-      const twoDaysInSeconds = 2 * 24 * 60 * 60;
-      const remainingSeconds = payload.exp - currentTime;
-
-      const expired = remainingSeconds <= 0;
-      const refreshRequired = remainingSeconds > 0 && remainingSeconds <= twoDaysInSeconds;
-
-      return { isValid: true, expiration: { expired, refreshRequired } };
-    } catch {
-      return { isValid: false, expiration: { expired: true, refreshRequired: false } };
-    }
+    const expiration = this.validateJwtAndCheckExpiration(token);
+    return {
+      isValid: expiration !== null,
+      expiration: expiration ? this.checkTokenExpiration(expiration) : { expired: true, refreshRequired: false },
+    };
   };
 }

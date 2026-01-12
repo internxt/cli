@@ -1,12 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { ErrorUtils, isAlreadyExistsError } from '../../src/utils/errors.utils';
+import { ErrorUtils, isAlreadyExistsError, isFileNotFoundError } from '../../src/utils/errors.utils';
 import { logger } from '../../src/utils/logger.utils';
-
-vi.mock('../../src/utils/logger.utils', () => ({
-  logger: {
-    error: vi.fn(),
-  },
-}));
 
 describe('Errors Utils', () => {
   beforeEach(() => {
@@ -54,6 +48,47 @@ describe('Errors Utils', () => {
       expect(isAlreadyExistsError(123)).toBe(false);
       expect(isAlreadyExistsError(null)).toBe(false);
       expect(isAlreadyExistsError(undefined)).toBe(false);
+    });
+  });
+
+  describe('isFileNotFoundError', () => {
+    it('should return true when error has code ENOENT', () => {
+      const error = new Error('File not found');
+      Object.assign(error, { code: 'ENOENT' });
+
+      expect(isFileNotFoundError(error)).toBe(true);
+    });
+
+    it('should return true when error is a real ENOENT error from fs operations', () => {
+      const error = Object.assign(new Error('ENOENT: no such file or directory'), {
+        code: 'ENOENT',
+        errno: -2,
+        syscall: 'open',
+        path: '/nonexistent/file.txt',
+      });
+
+      expect(isFileNotFoundError(error)).toBe(true);
+    });
+
+    it('should return false when error has a different error code', () => {
+      const error = new Error('Permission denied');
+      Object.assign(error, { code: 'EACCES' });
+
+      expect(isFileNotFoundError(error)).toBe(false);
+    });
+
+    it('should return false when error has no code property', () => {
+      const error = new Error('Some error');
+
+      expect(isFileNotFoundError(error)).toBe(false);
+    });
+
+    it('should return false when error is not an Error object', () => {
+      expect(isFileNotFoundError({ code: 'ENOENT' })).toBe(false);
+      expect(isFileNotFoundError('ENOENT')).toBe(false);
+      expect(isFileNotFoundError(null)).toBe(false);
+      expect(isFileNotFoundError(undefined)).toBe(false);
+      expect(isFileNotFoundError(123)).toBe(false);
     });
   });
 });

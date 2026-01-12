@@ -236,4 +236,28 @@ describe('Auth service', () => {
     expect(validateMnemonicStub).toHaveBeenCalledWith(UserCredentialsFixture.user.mnemonic);
     expect(refreshTokensStub).toHaveBeenCalledOnce();
   });
+
+  it('should clear and throw exception when exception is thrown while refreshing user token', async () => {
+    const sut = AuthService.instance;
+
+    const mockToken = {
+      isValid: true,
+      expiration: {
+        expired: false,
+        refreshRequired: true,
+      },
+    };
+
+    const oldTokenError = new Error('Old token version detected');
+
+    vi.spyOn(ConfigService.instance, 'readUser').mockResolvedValue(UserCredentialsFixture);
+    vi.spyOn(ValidationService.instance, 'validateTokenAndCheckExpiration').mockImplementationOnce(() => mockToken);
+    vi.spyOn(ValidationService.instance, 'validateMnemonic').mockReturnValue(true);
+    const refreshTokenStub = vi.spyOn(sut, 'refreshUserToken').mockRejectedValue(oldTokenError);
+    const clearUserStub = vi.spyOn(ConfigService.instance, 'clearUser').mockResolvedValue();
+
+    await expect(() => sut.getAuthDetails()).rejects.toThrow(oldTokenError);
+    expect(refreshTokenStub).toHaveBeenCalledOnce();
+    expect(clearUserStub).toHaveBeenCalledOnce();
+  });
 });

@@ -11,6 +11,11 @@ export function isAlreadyExistsError(error: unknown): error is Error {
     (typeof error === 'object' && error !== null && 'status' in error && error.status === 409)
   );
 }
+
+export function isFileNotFoundError(error: unknown): error is NodeJS.ErrnoException {
+  return isError(error) && 'code' in error && error.code === 'ENOENT';
+}
+
 export class ErrorUtils {
   static report(error: unknown, props: Record<string, unknown> = {}) {
     if (isError(error)) {

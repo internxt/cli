@@ -16,6 +16,6 @@ export default defineConfig({
         ...coverageConfigDefaults.exclude
       ],
     },
-    setupFiles: ['dotenv/config']
+    setupFiles: ['dotenv/config', './test/vitest.setup.ts']
   }
 });
