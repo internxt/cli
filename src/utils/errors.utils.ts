@@ -1,8 +1,7 @@
 import { logger } from './logger.utils';
-import { types } from 'node:util';
 
 export function isError(error: unknown): error is Error {
-  return types.isNativeError(error);
+  return Error.isError(error);
 }
 
 export function isAlreadyExistsError(error: unknown): error is Error {
