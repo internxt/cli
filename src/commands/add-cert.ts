@@ -1,9 +1,9 @@
 import { Command } from '@oclif/core';
 import { exec } from 'child_process';
-import { ConfigService } from '../services/config.service';
 import os from 'node:os';
 import path from 'node:path';
 import { CLIUtils } from '../utils/cli.utils';
+import { WEBDAV_SSL_CERTS_DIR } from '../constants/configs';
 
 export default class AddCert extends Command {
   static readonly args = {};
@@ -14,7 +14,7 @@ export default class AddCert extends Command {
   static readonly enableJsonFlag = true;
 
   public run = async () => {
-    const certPath = path.join(ConfigService.WEBDAV_SSL_CERTS_DIR, 'cert.crt');
+    const certPath = path.join(WEBDAV_SSL_CERTS_DIR, 'cert.crt');
     const platform = os.platform();
 
     const scriptBasePath = path.join(__dirname, '../../scripts');
