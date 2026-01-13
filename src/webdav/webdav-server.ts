@@ -1,6 +1,6 @@
 import { Express } from 'express';
-import https from 'https';
-import http from 'http';
+import https from 'node:https';
+import http from 'node:http';
 import { ConfigService } from '../services/config.service';
 import { OPTIONSRequestHandler } from './handlers/OPTIONS.handler';
 import { PROPFINDRequestHandler } from './handlers/PROPFIND.handler';

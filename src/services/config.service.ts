@@ -1,5 +1,5 @@
 import path from 'node:path';
-import os from 'os';
+import os from 'node:os';
 import fs from 'node:fs/promises';
 import { ConfigKeys } from '../types/config.types';
 import { LoginCredentials, WebdavConfig } from '../types/command.types';
