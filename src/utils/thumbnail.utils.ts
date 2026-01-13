@@ -27,26 +27,26 @@ const imageExtensions: FileExtensionMap = {
 const pdfExtensions: FileExtensionMap = {
   pdf: ['pdf'],
 };
-const thumbnailableImageExtension: string[] = [
+const thumbnailableImageExtension: Set<string> = new Set([
   ...imageExtensions['jpg'],
   ...imageExtensions['png'],
   ...imageExtensions['webp'],
   ...imageExtensions['gif'],
   ...imageExtensions['tiff'],
-];
-const thumbnailablePdfExtension: string[] = pdfExtensions['pdf'];
-const thumbnailableExtension: string[] = [...thumbnailableImageExtension];
+]);
+const thumbnailablePdfExtension: Set<string> = new Set([...pdfExtensions['pdf']]);
+const thumbnailableExtension: Set<string> = new Set([...thumbnailableImageExtension]);
 
 export const isFileThumbnailable = (fileType: string) => {
-  return fileType.trim().length > 0 && thumbnailableExtension.includes(fileType.trim().toLowerCase());
+  return fileType.trim().length > 0 && thumbnailableExtension.has(fileType.trim().toLowerCase());
 };
 
 export const isPDFThumbnailable = (fileType: string) => {
-  return fileType.trim().length > 0 && thumbnailablePdfExtension.includes(fileType.trim().toLowerCase());
+  return fileType.trim().length > 0 && thumbnailablePdfExtension.has(fileType.trim().toLowerCase());
 };
 
 export const isImageThumbnailable = (fileType: string) => {
-  return fileType.trim().length > 0 && thumbnailableImageExtension.includes(fileType.trim().toLowerCase());
+  return fileType.trim().length > 0 && thumbnailableImageExtension.has(fileType.trim().toLowerCase());
 };
 
 export const tryUploadThumbnail = async ({
