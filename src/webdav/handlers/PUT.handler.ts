@@ -30,7 +30,7 @@ export class PUTRequestHandler implements WebDavMethodHandler {
 
   handle = async (req: Request, res: Response) => {
     let contentLength = Number(req.headers['content-length']);
-    if (!contentLength || isNaN(contentLength) || contentLength <= 0) {
+    if (!contentLength || Number.isNaN(contentLength) || contentLength <= 0) {
       contentLength = 0;
     }
 

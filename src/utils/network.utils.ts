@@ -88,9 +88,9 @@ export class NetworkUtils {
         throw new Error(`Multi Range-Requests functionality is not implemented. ${JSON.stringify(rangeOptions)}`);
       } else if (parsed.length <= 0) {
         throw new Error(`Empty Range-Request. ${JSON.stringify(rangeOptions)}`);
-      } else if (parsed.type !== 'bytes') {
-        throw new Error(`Unkwnown Range-Request type "${parsed.type}". ${JSON.stringify(rangeOptions)}`);
-      } else {
+      }
+
+      if (parsed.type === 'bytes') {
         const rangeSize = parsed[0].end - parsed[0].start + 1;
         return {
           range: rangeOptions.range,
@@ -98,6 +98,8 @@ export class NetworkUtils {
           totalFileSize: rangeOptions.totalFileSize,
           parsed: parsed[0],
         };
+      } else {
+        throw new Error(`Unkwnown Range-Request type "${parsed.type}". ${JSON.stringify(rangeOptions)}`);
       }
     } else if (parsed === -1) {
       throw new Error(`Malformed Range-Request. ${JSON.stringify(rangeOptions)}`);

@@ -22,7 +22,7 @@ export const ErrorHandlingMiddleware: ErrorRequestHandler = (err, req, res, _) =
   );
 
   let statusCode = 500;
-  if ('statusCode' in err && !isNaN(err.statusCode)) {
+  if ('statusCode' in err && !Number.isNaN(err.statusCode)) {
     statusCode = err.statusCode;
   }
 
