@@ -198,10 +198,10 @@ export class CLIUtils {
       }
     } while (!isValid && currentAttempts < maxAttempts);
 
-    if (!isValid) {
-      throw validation.error;
-    } else {
+    if (isValid) {
       return promptValue;
+    } else {
+      throw validation.error;
     }
   };
 
