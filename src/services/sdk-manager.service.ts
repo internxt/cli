@@ -36,10 +36,8 @@ export class SdkManager {
    * @throws {Error} When throwErrorOnMissingCredentials is setted to true and there is not apiSecurity defined
    * @returns The SDK Manager api security details
    **/
-  public static readonly getApiSecurity = (
-    config = { throwErrorOnMissingCredentials: true },
-  ): SdkManagerApiSecurity => {
-    if (!SdkManager.apiSecurity && config.throwErrorOnMissingCredentials)
+  public static readonly getApiSecurity = ({ throwErrorOnMissingCredentials = true } = {}): SdkManagerApiSecurity => {
+    if (!SdkManager.apiSecurity && throwErrorOnMissingCredentials)
       throw new Error('Api security properties not found in SdkManager');
 
     return SdkManager.apiSecurity as SdkManagerApiSecurity;

@@ -9,7 +9,7 @@ export class XMLUtils {
     return parser.parse(xml);
   }
 
-  static toXML(object: object, options: XmlBuilderOptions = { format: true }) {
+  static toXML(object: object, options: XmlBuilderOptions) {
     const builder = new XMLBuilder(options);
     return builder.build(object);
   }
