@@ -134,7 +134,7 @@ export class AuthService {
   public logout = async (): Promise<void> => {
     try {
       const user = await ConfigService.instance.readUser();
-      if (!user || !user.token) {
+      if (!user?.token) {
         return;
       }
       const authClient = SdkManager.instance.getAuth();
