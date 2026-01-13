@@ -1,5 +1,5 @@
 import winston from 'winston';
-import { ConfigService } from '../services/config.service';
+import { INTERNXT_CLI_LOGS_DIR } from '../constants/configs';
 
 const maxLogSize = 40 * 1024 * 1024;
 const maxLogsFiles = 5;
@@ -12,14 +12,14 @@ export const logger = winston.createLogger({
     new winston.transports.File({
       filename: 'internxt-cli-error.log',
       level: 'error',
-      dirname: ConfigService.INTERNXT_CLI_LOGS_DIR,
+      dirname: INTERNXT_CLI_LOGS_DIR,
       maxsize: maxLogSize,
       maxFiles: maxLogsFiles,
       tailable: true,
     }),
     new winston.transports.File({
       filename: 'internxt-cli-combined.log',
-      dirname: ConfigService.INTERNXT_CLI_LOGS_DIR,
+      dirname: INTERNXT_CLI_LOGS_DIR,
       maxsize: maxLogSize,
       maxFiles: maxLogsFiles,
       tailable: true,
@@ -35,14 +35,14 @@ export const webdavLogger = winston.createLogger({
     new winston.transports.File({
       filename: 'internxt-webdav-error.log',
       level: 'error',
-      dirname: ConfigService.INTERNXT_CLI_LOGS_DIR,
+      dirname: INTERNXT_CLI_LOGS_DIR,
       maxsize: maxLogSize,
       maxFiles: maxLogsFiles,
       tailable: true,
     }),
     new winston.transports.File({
       filename: 'internxt-webdav-combined.log',
-      dirname: ConfigService.INTERNXT_CLI_LOGS_DIR,
+      dirname: INTERNXT_CLI_LOGS_DIR,
       maxsize: maxLogSize,
       maxFiles: maxLogsFiles,
       tailable: true,

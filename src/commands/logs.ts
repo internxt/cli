@@ -1,6 +1,6 @@
 import { Command } from '@oclif/core';
-import { ConfigService } from '../services/config.service';
 import { CLIUtils } from '../utils/cli.utils';
+import { INTERNXT_CLI_LOGS_DIR } from '../constants/configs';
 
 export default class Logs extends Command {
   static readonly args = {};
@@ -11,9 +11,9 @@ export default class Logs extends Command {
   static readonly enableJsonFlag = true;
 
   public run = async () => {
-    const message = `Internxt CLI logs are located at ${ConfigService.INTERNXT_CLI_LOGS_DIR}`;
+    const message = `Internxt CLI logs are located at ${INTERNXT_CLI_LOGS_DIR}`;
     CLIUtils.log(this.log.bind(this), message);
-    return { success: true, message, path: ConfigService.INTERNXT_CLI_LOGS_DIR };
+    return { success: true, message, path: INTERNXT_CLI_LOGS_DIR };
   };
 
   public catch = async (error: Error) => {

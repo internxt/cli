@@ -1,24 +1,22 @@
-import path from 'node:path';
-import os from 'node:os';
 import fs from 'node:fs/promises';
 import { ConfigKeys } from '../types/config.types';
 import { LoginCredentials, WebdavConfig } from '../types/command.types';
 import { CryptoService } from './crypto.service';
 import { isFileNotFoundError } from '../utils/errors.utils';
+import {
+  CREDENTIALS_FILE,
+  INTERNXT_CLI_DATA_DIR,
+  INTERNXT_CLI_LOGS_DIR,
+  WEBDAV_CONFIGS_FILE,
+  WEBDAV_DEFAULT_CREATE_FULL_PATH,
+  WEBDAV_DEFAULT_HOST,
+  WEBDAV_DEFAULT_PORT,
+  WEBDAV_DEFAULT_PROTOCOL,
+  WEBDAV_DEFAULT_TIMEOUT,
+  WEBDAV_SSL_CERTS_DIR,
+} from '../constants/configs';
 
 export class ConfigService {
-  static readonly INTERNXT_CLI_DATA_DIR = path.join(os.homedir(), '.internxt-cli');
-  static readonly INTERNXT_CLI_LOGS_DIR = path.join(this.INTERNXT_CLI_DATA_DIR, 'logs');
-  static readonly INTERNXT_TMP_DIR = os.tmpdir();
-  static readonly CREDENTIALS_FILE = path.join(this.INTERNXT_CLI_DATA_DIR, '.inxtcli');
-  static readonly DRIVE_SQLITE_FILE = path.join(this.INTERNXT_CLI_DATA_DIR, 'internxt-cli-drive.sqlite');
-  static readonly WEBDAV_SSL_CERTS_DIR = path.join(this.INTERNXT_CLI_DATA_DIR, 'certs');
-  static readonly WEBDAV_CONFIGS_FILE = path.join(this.INTERNXT_CLI_DATA_DIR, 'config.webdav.inxt');
-  static readonly WEBDAV_DEFAULT_HOST = '127.0.0.1';
-  static readonly WEBDAV_DEFAULT_PORT = '3005';
-  static readonly WEBDAV_DEFAULT_PROTOCOL = 'https';
-  static readonly WEBDAV_DEFAULT_TIMEOUT = 0;
-  static readonly WEBDAV_DEFAULT_CREATE_FULL_PATH = true;
   public static readonly instance: ConfigService = new ConfigService();
 
   /**
@@ -42,7 +40,7 @@ export class ConfigService {
     await this.ensureInternxtCliDataDirExists();
     const credentialsString = JSON.stringify(loginCredentials);
     const encryptedCredentials = CryptoService.instance.encryptText(credentialsString);
-    await fs.writeFile(ConfigService.CREDENTIALS_FILE, encryptedCredentials, 'utf8');
+    await fs.writeFile(CREDENTIALS_FILE, encryptedCredentials, 'utf8');
   };
 
   /**
@@ -51,9 +49,9 @@ export class ConfigService {
    **/
   public clearUser = async (): Promise<void> => {
     try {
-      const stat = await fs.stat(ConfigService.CREDENTIALS_FILE);
+      const stat = await fs.stat(CREDENTIALS_FILE);
       if (stat.size === 0) return;
-      await fs.writeFile(ConfigService.CREDENTIALS_FILE, '', 'utf8');
+      await fs.writeFile(CREDENTIALS_FILE, '', 'utf8');
     } catch (error) {
       if (!isFileNotFoundError(error)) {
         throw error;
@@ -67,7 +65,7 @@ export class ConfigService {
    **/
   public readUser = async (): Promise<LoginCredentials | undefined> => {
     try {
-      const encryptedCredentials = await fs.readFile(ConfigService.CREDENTIALS_FILE, 'utf8');
+      const encryptedCredentials = await fs.readFile(CREDENTIALS_FILE, 'utf8');
       const credentialsString = CryptoService.instance.decryptText(encryptedCredentials);
       const loginCredentials = JSON.parse(credentialsString) as LoginCredentials;
       return loginCredentials;
@@ -79,52 +77,52 @@ export class ConfigService {
   public saveWebdavConfig = async (webdavConfig: WebdavConfig): Promise<void> => {
     await this.ensureInternxtCliDataDirExists();
     const configs = JSON.stringify(webdavConfig);
-    await fs.writeFile(ConfigService.WEBDAV_CONFIGS_FILE, configs, 'utf8');
+    await fs.writeFile(WEBDAV_CONFIGS_FILE, configs, 'utf8');
   };
 
   public readWebdavConfig = async (): Promise<WebdavConfig> => {
     try {
-      const configsData = await fs.readFile(ConfigService.WEBDAV_CONFIGS_FILE, 'utf8');
+      const configsData = await fs.readFile(WEBDAV_CONFIGS_FILE, 'utf8');
       const configs = JSON.parse(configsData);
       return {
-        host: configs?.host ?? ConfigService.WEBDAV_DEFAULT_HOST,
-        port: configs?.port ?? ConfigService.WEBDAV_DEFAULT_PORT,
-        protocol: configs?.protocol ?? ConfigService.WEBDAV_DEFAULT_PROTOCOL,
-        timeoutMinutes: configs?.timeoutMinutes ?? ConfigService.WEBDAV_DEFAULT_TIMEOUT,
-        createFullPath: configs?.createFullPath ?? ConfigService.WEBDAV_DEFAULT_CREATE_FULL_PATH,
+        host: configs?.host ?? WEBDAV_DEFAULT_HOST,
+        port: configs?.port ?? WEBDAV_DEFAULT_PORT,
+        protocol: configs?.protocol ?? WEBDAV_DEFAULT_PROTOCOL,
+        timeoutMinutes: configs?.timeoutMinutes ?? WEBDAV_DEFAULT_TIMEOUT,
+        createFullPath: configs?.createFullPath ?? WEBDAV_DEFAULT_CREATE_FULL_PATH,
       };
     } catch {
       return {
-        host: ConfigService.WEBDAV_DEFAULT_HOST,
-        port: ConfigService.WEBDAV_DEFAULT_PORT,
-        protocol: ConfigService.WEBDAV_DEFAULT_PROTOCOL,
-        timeoutMinutes: ConfigService.WEBDAV_DEFAULT_TIMEOUT,
-        createFullPath: ConfigService.WEBDAV_DEFAULT_CREATE_FULL_PATH,
+        host: WEBDAV_DEFAULT_HOST,
+        port: WEBDAV_DEFAULT_PORT,
+        protocol: WEBDAV_DEFAULT_PROTOCOL,
+        timeoutMinutes: WEBDAV_DEFAULT_TIMEOUT,
+        createFullPath: WEBDAV_DEFAULT_CREATE_FULL_PATH,
       };
     }
   };
 
   ensureInternxtCliDataDirExists = async () => {
     try {
-      await fs.access(ConfigService.INTERNXT_CLI_DATA_DIR);
+      await fs.access(INTERNXT_CLI_DATA_DIR);
     } catch {
-      await fs.mkdir(ConfigService.INTERNXT_CLI_DATA_DIR);
+      await fs.mkdir(INTERNXT_CLI_DATA_DIR);
     }
   };
 
   ensureWebdavCertsDirExists = async () => {
     try {
-      await fs.access(ConfigService.WEBDAV_SSL_CERTS_DIR);
+      await fs.access(WEBDAV_SSL_CERTS_DIR);
     } catch {
-      await fs.mkdir(ConfigService.WEBDAV_SSL_CERTS_DIR);
+      await fs.mkdir(WEBDAV_SSL_CERTS_DIR);
     }
   };
 
   ensureInternxtLogsDirExists = async () => {
     try {
-      await fs.access(ConfigService.INTERNXT_CLI_LOGS_DIR);
+      await fs.access(INTERNXT_CLI_LOGS_DIR);
     } catch {
-      await fs.mkdir(ConfigService.INTERNXT_CLI_LOGS_DIR);
+      await fs.mkdir(INTERNXT_CLI_LOGS_DIR);
     }
   };
 }

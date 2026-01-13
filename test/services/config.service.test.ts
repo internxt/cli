@@ -6,6 +6,16 @@ import { CryptoService } from '../../src/services/crypto.service';
 import { LoginCredentials, WebdavConfig } from '../../src/types/command.types';
 import { UserCredentialsFixture } from '../fixtures/login.fixture';
 import { fail } from 'node:assert';
+import {
+  CREDENTIALS_FILE,
+  WEBDAV_CONFIGS_FILE,
+  WEBDAV_DEFAULT_CREATE_FULL_PATH,
+  WEBDAV_DEFAULT_HOST,
+  WEBDAV_DEFAULT_PORT,
+  WEBDAV_DEFAULT_PROTOCOL,
+  WEBDAV_DEFAULT_TIMEOUT,
+  WEBDAV_SSL_CERTS_DIR,
+} from '../../src/constants/configs';
 
 const env = Object.assign({}, process.env);
 
@@ -47,7 +57,7 @@ describe('Config service', () => {
 
     await ConfigService.instance.saveUser(userCredentials);
     expect(configServiceStub).toHaveBeenCalledWith(stringCredentials);
-    expect(fsStub).toHaveBeenCalledWith(ConfigService.CREDENTIALS_FILE, encryptedUserCredentials, 'utf8');
+    expect(fsStub).toHaveBeenCalledWith(CREDENTIALS_FILE, encryptedUserCredentials, 'utf8');
   });
 
   it('When user credentials are read, then they are read and decrypted from a file', async () => {
@@ -60,7 +70,7 @@ describe('Config service', () => {
 
     const loginCredentials = await ConfigService.instance.readUser();
     expect(userCredentials).to.be.deep.equal(loginCredentials);
-    expect(fsStub).toHaveBeenCalledWith(ConfigService.CREDENTIALS_FILE, 'utf8');
+    expect(fsStub).toHaveBeenCalledWith(CREDENTIALS_FILE, 'utf8');
     expect(configServiceStub).toHaveBeenCalledWith(encryptedUserCredentials);
   });
 
@@ -70,7 +80,7 @@ describe('Config service', () => {
 
     const loginCredentials = await ConfigService.instance.readUser();
     expect(loginCredentials).to.be.equal(undefined);
-    expect(fsStub).toHaveBeenCalledWith(ConfigService.CREDENTIALS_FILE, 'utf8');
+    expect(fsStub).toHaveBeenCalledWith(CREDENTIALS_FILE, 'utf8');
     expect(configServiceStub).not.toHaveBeenCalled();
   });
 
@@ -83,11 +93,11 @@ describe('Config service', () => {
       .mockResolvedValue({ size: BigInt(crypto.randomInt(1, 100000)) });
 
     await ConfigService.instance.clearUser();
-    const credentialsFileContent = await fs.readFile(ConfigService.CREDENTIALS_FILE, 'utf8');
+    const credentialsFileContent = await fs.readFile(CREDENTIALS_FILE, 'utf8');
 
-    expect(writeFileStub).toHaveBeenCalledWith(ConfigService.CREDENTIALS_FILE, '', 'utf8');
-    expect(readFileStub).toHaveBeenCalledWith(ConfigService.CREDENTIALS_FILE, 'utf8');
-    expect(existFileStub).toHaveBeenCalledWith(ConfigService.CREDENTIALS_FILE);
+    expect(writeFileStub).toHaveBeenCalledWith(CREDENTIALS_FILE, '', 'utf8');
+    expect(readFileStub).toHaveBeenCalledWith(CREDENTIALS_FILE, 'utf8');
+    expect(existFileStub).toHaveBeenCalledWith(CREDENTIALS_FILE);
     expect(credentialsFileContent).to.be.equal('');
   });
 
@@ -100,7 +110,7 @@ describe('Config service', () => {
 
     await ConfigService.instance.clearUser();
 
-    expect(statStub).toHaveBeenCalledWith(ConfigService.CREDENTIALS_FILE);
+    expect(statStub).toHaveBeenCalledWith(CREDENTIALS_FILE);
     expect(writeFileStub).not.toHaveBeenCalled();
   });
 
@@ -113,7 +123,7 @@ describe('Config service', () => {
 
     await ConfigService.instance.clearUser();
 
-    expect(statStub).toHaveBeenCalledWith(ConfigService.CREDENTIALS_FILE);
+    expect(statStub).toHaveBeenCalledWith(CREDENTIALS_FILE);
     expect(writeFileStub).not.toHaveBeenCalled();
   });
 
@@ -124,7 +134,7 @@ describe('Config service', () => {
 
     await ConfigService.instance.ensureWebdavCertsDirExists();
 
-    expect(stubMkdir).toHaveBeenCalledWith(ConfigService.WEBDAV_SSL_CERTS_DIR);
+    expect(stubMkdir).toHaveBeenCalledWith(WEBDAV_SSL_CERTS_DIR);
   });
 
   it('When webdav config options are saved, then they are written to a file', async () => {
@@ -140,7 +150,7 @@ describe('Config service', () => {
     const fsStub = vi.spyOn(fs, 'writeFile').mockResolvedValue();
 
     await ConfigService.instance.saveWebdavConfig(webdavConfig);
-    expect(fsStub).toHaveBeenCalledWith(ConfigService.WEBDAV_CONFIGS_FILE, stringConfig, 'utf8');
+    expect(fsStub).toHaveBeenCalledWith(WEBDAV_CONFIGS_FILE, stringConfig, 'utf8');
   });
 
   it('When webdav config options are read and exist, then they are read from a file', async () => {
@@ -157,39 +167,39 @@ describe('Config service', () => {
 
     const webdavConfigResult = await ConfigService.instance.readWebdavConfig();
     expect(webdavConfigResult).to.be.deep.equal(webdavConfig);
-    expect(fsStub).toHaveBeenCalledWith(ConfigService.WEBDAV_CONFIGS_FILE, 'utf8');
+    expect(fsStub).toHaveBeenCalledWith(WEBDAV_CONFIGS_FILE, 'utf8');
   });
 
   it('When webdav config options are read but not exist, then they are returned from defaults', async () => {
     const defaultWebdavConfig: WebdavConfig = {
-      host: ConfigService.WEBDAV_DEFAULT_HOST,
-      port: ConfigService.WEBDAV_DEFAULT_PORT,
-      protocol: ConfigService.WEBDAV_DEFAULT_PROTOCOL,
-      timeoutMinutes: ConfigService.WEBDAV_DEFAULT_TIMEOUT,
-      createFullPath: ConfigService.WEBDAV_DEFAULT_CREATE_FULL_PATH,
+      host: WEBDAV_DEFAULT_HOST,
+      port: WEBDAV_DEFAULT_PORT,
+      protocol: WEBDAV_DEFAULT_PROTOCOL,
+      timeoutMinutes: WEBDAV_DEFAULT_TIMEOUT,
+      createFullPath: WEBDAV_DEFAULT_CREATE_FULL_PATH,
     };
 
     const fsStub = vi.spyOn(fs, 'readFile').mockResolvedValue('');
 
     const webdavConfigResult = await ConfigService.instance.readWebdavConfig();
     expect(webdavConfigResult).to.be.deep.equal(defaultWebdavConfig);
-    expect(fsStub).toHaveBeenCalledWith(ConfigService.WEBDAV_CONFIGS_FILE, 'utf8');
+    expect(fsStub).toHaveBeenCalledWith(WEBDAV_CONFIGS_FILE, 'utf8');
   });
 
   it('When webdav config options are read but an error is thrown, then they are returned from defaults', async () => {
     const defaultWebdavConfig: WebdavConfig = {
-      host: ConfigService.WEBDAV_DEFAULT_HOST,
-      port: ConfigService.WEBDAV_DEFAULT_PORT,
-      protocol: ConfigService.WEBDAV_DEFAULT_PROTOCOL,
-      timeoutMinutes: ConfigService.WEBDAV_DEFAULT_TIMEOUT,
-      createFullPath: ConfigService.WEBDAV_DEFAULT_CREATE_FULL_PATH,
+      host: WEBDAV_DEFAULT_HOST,
+      port: WEBDAV_DEFAULT_PORT,
+      protocol: WEBDAV_DEFAULT_PROTOCOL,
+      timeoutMinutes: WEBDAV_DEFAULT_TIMEOUT,
+      createFullPath: WEBDAV_DEFAULT_CREATE_FULL_PATH,
     };
 
     const fsStub = vi.spyOn(fs, 'readFile').mockRejectedValue(new Error());
 
     const webdavConfigResult = await ConfigService.instance.readWebdavConfig();
     expect(webdavConfigResult).to.be.deep.equal(defaultWebdavConfig);
-    expect(fsStub).toHaveBeenCalledWith(ConfigService.WEBDAV_CONFIGS_FILE, 'utf8');
+    expect(fsStub).toHaveBeenCalledWith(WEBDAV_CONFIGS_FILE, 'utf8');
   });
 
   it('should default to true when webdav config exists but createFullPath property is missing', async () => {
@@ -207,7 +217,7 @@ describe('Config service', () => {
     expect(webdavConfigResult.createFullPath).to.be.equal(true);
     expect(webdavConfigResult.host).to.be.equal(partialWebdavConfig.host);
     expect(webdavConfigResult.port).to.be.equal(partialWebdavConfig.port);
-    expect(fsStub).toHaveBeenCalledWith(ConfigService.WEBDAV_CONFIGS_FILE, 'utf8');
+    expect(fsStub).toHaveBeenCalledWith(WEBDAV_CONFIGS_FILE, 'utf8');
   });
 
   it('shoud return false when webdav config has createFullPath explicitly set to false', async () => {
@@ -224,7 +234,7 @@ describe('Config service', () => {
 
     const webdavConfigResult = await ConfigService.instance.readWebdavConfig();
     expect(webdavConfigResult.createFullPath).to.be.equal(false);
-    expect(fsStub).toHaveBeenCalledWith(ConfigService.WEBDAV_CONFIGS_FILE, 'utf8');
+    expect(fsStub).toHaveBeenCalledWith(WEBDAV_CONFIGS_FILE, 'utf8');
   });
 
   it('should return true when webdav config has createFullPath explicitly set to true', async () => {
@@ -241,6 +251,6 @@ describe('Config service', () => {
 
     const webdavConfigResult = await ConfigService.instance.readWebdavConfig();
     expect(webdavConfigResult.createFullPath).to.be.equal(true);
-    expect(fsStub).toHaveBeenCalledWith(ConfigService.WEBDAV_CONFIGS_FILE, 'utf8');
+    expect(fsStub).toHaveBeenCalledWith(WEBDAV_CONFIGS_FILE, 'utf8');
   });
 });
