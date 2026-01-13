@@ -34,8 +34,8 @@ const thumbnailableImageExtension: Set<string> = new Set([
   ...imageExtensions['gif'],
   ...imageExtensions['tiff'],
 ]);
-const thumbnailablePdfExtension: Set<string> = new Set([...pdfExtensions['pdf']]);
-const thumbnailableExtension: Set<string> = new Set([...thumbnailableImageExtension]);
+const thumbnailablePdfExtension: Set<string> = new Set(pdfExtensions['pdf']);
+const thumbnailableExtension: Set<string> = new Set(thumbnailableImageExtension);
 
 export const isFileThumbnailable = (fileType: string) => {
   return fileType.trim().length > 0 && thumbnailableExtension.has(fileType.trim().toLowerCase());
