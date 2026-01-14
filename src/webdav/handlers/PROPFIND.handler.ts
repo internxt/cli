@@ -160,7 +160,7 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
     driveFolderItem: DriveFolderItem,
     relativePath: string,
   ): Promise<object> => {
-    const totalUsage = (await UsageService.instance.fetchUsage()).total;
+    const totalUsage = await UsageService.instance.fetchUsage();
     const spaceLimit = await UsageService.instance.fetchSpaceLimit();
 
     const driveFolderXML = {

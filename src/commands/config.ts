@@ -16,7 +16,7 @@ export default class Config extends Command {
   public run = async () => {
     const userCredentials = await ConfigService.instance.readUser();
     if (userCredentials?.user) {
-      const usedSpace = FormatUtils.humanFileSize((await UsageService.instance.fetchUsage()).total);
+      const usedSpace = FormatUtils.humanFileSize(await UsageService.instance.fetchUsage());
       const availableSpace = FormatUtils.formatLimit(await UsageService.instance.fetchSpaceLimit());
 
       const configList = [
