@@ -34,7 +34,7 @@ export default class WorkspacesUse extends Command {
     const userCredentials = await ConfigService.instance.readUser();
     if (!userCredentials) throw new MissingCredentialsError();
 
-    const workspaces = await WorkspaceService.instance.getAvailableWorkspaces();
+    const workspaces = await WorkspaceService.instance.getAvailableWorkspaces(userCredentials.user);
     const availableWorkspaces: string[] = workspaces.map((workspaceData) => {
       const name = workspaceData.workspace.name;
       const id = workspaceData.workspace.id;

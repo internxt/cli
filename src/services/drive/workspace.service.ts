@@ -1,14 +1,19 @@
 import { WorkspaceData } from '@internxt/sdk/dist/workspaces';
 import { SdkManager } from '../sdk-manager.service';
-import { WorkspaceCredentialsDetails } from '../../types/command.types';
+import { LoginCredentials, WorkspaceCredentialsDetails } from '../../types/command.types';
+import { CryptoService } from '../crypto.service';
 
 export class WorkspaceService {
   static readonly instance = new WorkspaceService();
 
-  public getAvailableWorkspaces = async (): Promise<WorkspaceData[]> => {
+  public getAvailableWorkspaces = async (user: LoginCredentials['user']): Promise<WorkspaceData[]> => {
     const workspacesClient = SdkManager.instance.getWorkspaces();
     const workspaces = await workspacesClient.getWorkspaces();
-    return workspaces.availableWorkspaces;
+    const decryptedMnemonicWorkspaces = await CryptoService.instance.decryptWorkspacesMnemonic(
+      workspaces.availableWorkspaces,
+      user,
+    );
+    return decryptedMnemonicWorkspaces;
   };
 
   public getWorkspaceCredentials = async (workspaceId: string): Promise<WorkspaceCredentialsDetails> => {

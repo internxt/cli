@@ -27,7 +27,7 @@ export default class WorkspacesList extends Command {
     const userCredentials = await ConfigService.instance.readUser();
     if (!userCredentials) throw new MissingCredentialsError();
 
-    const workspaces = await WorkspaceService.instance.getAvailableWorkspaces();
+    const workspaces = await WorkspaceService.instance.getAvailableWorkspaces(userCredentials.user);
 
     const allItems: PaginatedWorkspace[] = workspaces.map((workspaceData) => {
       const totalUsedSpace =
