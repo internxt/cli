@@ -36,6 +36,7 @@
     "/oclif.manifest.json"
   ],
   "dependencies": {
+    "@dashlane/pqc-kem-kyber512-node": "1.0.0",
     "@inquirer/prompts": "8.2.0",
     "@internxt/inxt-js": "2.2.9",
     "@internxt/lib": "1.4.1",
@@ -51,6 +52,7 @@
     "express": "5.2.1",
     "express-async-handler": "1.2.0",
     "fast-xml-parser": "5.3.3",
+    "hash-wasm": "4.12.0",
     "mime-types": "3.0.2",
     "open": "11.0.0",
     "openpgp": "6.3.0",
