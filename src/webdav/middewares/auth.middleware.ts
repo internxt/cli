@@ -9,8 +9,8 @@ export const AuthMiddleware = (authService: AuthService): RequestHandler => {
   return (_, res, next) => {
     (async () => {
       try {
-        const { token } = await authService.getAuthDetails();
-        SdkManager.init({ token });
+        const { token, workspace } = await authService.getAuthDetails();
+        SdkManager.init({ token, workspaceToken: workspace?.workspaceCredentials.token });
         next();
       } catch (error) {
         let message = 'Authentication required to access this resource.';

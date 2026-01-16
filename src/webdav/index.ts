@@ -18,8 +18,8 @@ const init = async () => {
   await ConfigService.instance.ensureWebdavCertsDirExists();
   await ConfigService.instance.ensureInternxtLogsDirExists();
 
-  const { token } = await AuthService.instance.getAuthDetails();
-  SdkManager.init({ token });
+  const { token, workspace } = await AuthService.instance.getAuthDetails();
+  SdkManager.init({ token, workspaceToken: workspace?.workspaceCredentials.token });
 
   new WebDavServer(
     express(),
