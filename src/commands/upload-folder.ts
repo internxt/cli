@@ -28,18 +28,19 @@ export default class UploadFolder extends Command {
   static readonly enableJsonFlag = true;
 
   public run = async () => {
-    const { user } = await AuthService.instance.getAuthDetails();
+    const userCredentials = await AuthService.instance.getAuthDetails();
+    const user = userCredentials.user;
+
     const { flags } = await this.parse(UploadFolder);
     const localPath = await this.getFolderPath(flags['folder'], flags['non-interactive']);
 
-    // If destinationFolderUuid is empty from flags&prompt, means we should use RootFolderUuid
-    const destinationFolderUuid =
-      (await CLIUtils.getDestinationFolderUuid({
-        destinationFolderUuidFlag: flags['destination'],
-        destinationFlagName: UploadFolder.flags['destination'].name,
-        nonInteractive: flags['non-interactive'],
-        reporter: this.log.bind(this),
-      })) ?? user.rootFolderId;
+    const destinationFolderUuidFromFlag = await CLIUtils.getDestinationFolderUuid({
+      destinationFolderUuidFlag: flags['destination'],
+      destinationFlagName: UploadFolder.flags['destination'].name,
+      nonInteractive: flags['non-interactive'],
+      reporter: this.log.bind(this),
+    });
+    const destinationFolderUuid = await CLIUtils.getRootFolderIdIfEmpty(destinationFolderUuidFromFlag, userCredentials);
 
     const progressBar = CLIUtils.progress(
       {

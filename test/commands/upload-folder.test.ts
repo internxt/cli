@@ -17,14 +17,16 @@ vi.mock('../../src/utils/async.utils', () => ({
 describe('Upload Folder Command', () => {
   let getAuthDetailsSpy: MockInstance<() => Promise<LoginCredentials>>;
   let validateDirectoryExistsSpy: MockInstance<(path: string) => Promise<boolean>>;
-  let getDestinationFolderUuidSpy: MockInstance<() => Promise<string | undefined>>;
+  let getDestinationFolderUuidSpy: MockInstance<() => Promise<string>>;
   let UploadFacadeSpy: MockInstance<() => Promise<UploadResult>>;
   let cliSuccessSpy: MockInstance<() => void>;
+
   const uploadedResult: UploadResult = {
     totalBytes: 1024,
     rootFolderId: 'root-folder-id',
     uploadTimeMs: 1500,
   };
+
   beforeEach(() => {
     vi.restoreAllMocks();
     getAuthDetailsSpy = vi.spyOn(AuthService.instance, 'getAuthDetails').mockResolvedValue({
@@ -34,7 +36,7 @@ describe('Upload Folder Command', () => {
     validateDirectoryExistsSpy = vi
       .spyOn(ValidationService.instance, 'validateDirectoryExists')
       .mockResolvedValue(true);
-    getDestinationFolderUuidSpy = vi.spyOn(CLIUtils, 'getDestinationFolderUuid').mockResolvedValue(undefined);
+    getDestinationFolderUuidSpy = vi.spyOn(CLIUtils, 'getDestinationFolderUuid').mockResolvedValue('');
     UploadFacadeSpy = vi.spyOn(UploadFacade.instance, 'uploadFolder').mockResolvedValue(uploadedResult);
     cliSuccessSpy = vi.spyOn(CLIUtils, 'success').mockImplementation(() => {});
   });

@@ -36,11 +36,9 @@ export default class CreateFolder extends Command {
     if (!userCredentials) throw new MissingCredentialsError();
 
     const folderName = await this.getFolderName(flags['name'], nonInteractive);
-    let folderUuid = await this.getFolderUuid(flags['id'], nonInteractive);
-    if (folderUuid.trim().length === 0) {
-      // folderId is empty from flags&prompt, which means we should use RootFolderUuid
-      folderUuid = userCredentials.user.rootFolderId;
-    }
+
+    const folderUuidFromFlag = await this.getFolderUuid(flags['id'], nonInteractive);
+    const folderUuid = await CLIUtils.getRootFolderIdIfEmpty(folderUuidFromFlag, userCredentials);
 
     CLIUtils.doing('Creating folder...', flags['json']);
     const [createNewFolder, requestCanceler] = DriveFolderService.instance.createFolder({

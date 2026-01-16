@@ -1,7 +1,7 @@
 import { ux, Flags } from '@oclif/core';
 import cliProgress from 'cli-progress';
 import Table, { Header } from 'tty-table';
-import { LoginUserDetails, NotValidFolderUuidError, PromptOptions } from '../types/command.types';
+import { LoginCredentials, LoginUserDetails, NotValidFolderUuidError, PromptOptions } from '../types/command.types';
 import { InquirerUtils } from './inquirer.utils';
 import { ErrorUtils } from './errors.utils';
 import { ValidationService } from '../services/validation.service';
@@ -11,6 +11,7 @@ import { ConfigService } from '../services/config.service';
 import { NetworkFacade } from '../services/network/network-facade.service';
 import { DownloadService } from '../services/network/download.service';
 import { CryptoService } from '../services/crypto.service';
+import { AuthService } from '../services/auth.service';
 
 export class CLIUtils {
   static readonly clearPreviousLine = (jsonFlag?: boolean) => {
@@ -142,7 +143,7 @@ export class CLIUtils {
     destinationFlagName: string;
     nonInteractive: boolean;
     reporter: (message: string) => void;
-  }): Promise<string | undefined> => {
+  }): Promise<string> => {
     const destinationFolderUuid = await this.getValueFromFlag(
       {
         value: destinationFolderUuidFlag,
@@ -162,11 +163,7 @@ export class CLIUtils {
       },
       reporter,
     );
-    if (destinationFolderUuid.trim().length === 0) {
-      return undefined;
-    } else {
-      return destinationFolderUuid;
-    }
+    return destinationFolderUuid;
   };
 
   private static readonly promptWithAttempts = async (
@@ -310,6 +307,15 @@ export class CLIUtils {
 
     CLIUtils.done(jsonFlag);
     return networkFacade;
+  };
+
+  static readonly getRootFolderIdIfEmpty = async (folderId: string, userCredentials: LoginCredentials) => {
+    if (folderId.trim().length === 0) {
+      const currentWorkspace = await AuthService.instance.getCurrentWorkspace();
+      return currentWorkspace?.workspaceData.workspaceUser.rootFolderId ?? userCredentials.user.rootFolderId;
+    } else {
+      return folderId;
+    }
   };
 }
 

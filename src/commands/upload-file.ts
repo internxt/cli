@@ -39,7 +39,8 @@ export default class UploadFile extends Command {
 
     const nonInteractive = flags['non-interactive'];
 
-    const { user } = await AuthService.instance.getAuthDetails();
+    const userCredentials = await AuthService.instance.getAuthDetails();
+    const user = userCredentials.user;
 
     const filePath = await this.getFilePath(flags['file'], nonInteractive);
 
@@ -48,14 +49,13 @@ export default class UploadFile extends Command {
     const fileInfo = path.parse(filePath);
     const fileType = fileInfo.ext.replaceAll('.', '');
 
-    // If destinationFolderUuid is empty from flags&prompt, means we should use RootFolderUuid
-    const destinationFolderUuid =
-      (await CLIUtils.getDestinationFolderUuid({
-        destinationFolderUuidFlag: flags['destination'],
-        destinationFlagName: UploadFile.flags['destination'].name,
-        nonInteractive,
-        reporter: this.log.bind(this),
-      })) ?? user.rootFolderId;
+    const destinationFolderUuidFromFlag = await CLIUtils.getDestinationFolderUuid({
+      destinationFolderUuidFlag: flags['destination'],
+      destinationFlagName: UploadFile.flags['destination'].name,
+      nonInteractive,
+      reporter: this.log.bind(this),
+    });
+    const destinationFolderUuid = await CLIUtils.getRootFolderIdIfEmpty(destinationFolderUuidFromFlag, userCredentials);
 
     const timings = {
       networkUpload: 0,

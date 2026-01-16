@@ -35,12 +35,14 @@ export default class TrashRestoreFolder extends Command {
     if (!userCredentials) throw new MissingCredentialsError();
 
     const folderUuid = await this.getFolderUuid(flags['id'], nonInteractive);
-    let destinationFolderUuid = await this.getDestinationFolderUuid(flags['destination'], nonInteractive);
 
-    if (destinationFolderUuid.trim().length === 0) {
-      // destinationFolderUuid is empty from flags&prompt, which means we should use RootFolderUuid
-      destinationFolderUuid = userCredentials.user.rootFolderId;
-    }
+    const destinationFolderUuidFromFlag = await CLIUtils.getDestinationFolderUuid({
+      destinationFolderUuidFlag: flags['destination'],
+      destinationFlagName: TrashRestoreFolder.flags['destination'].name,
+      nonInteractive,
+      reporter: this.log.bind(this),
+    });
+    const destinationFolderUuid = await CLIUtils.getRootFolderIdIfEmpty(destinationFolderUuidFromFlag, userCredentials);
 
     const folder = await DriveFolderService.instance.moveFolder(folderUuid, {
       destinationFolder: destinationFolderUuid,
@@ -81,31 +83,5 @@ export default class TrashRestoreFolder extends Command {
       this.log.bind(this),
     );
     return folderUuid;
-  };
-
-  private getDestinationFolderUuid = async (
-    destinationFolderUuidFlag: string | undefined,
-    nonInteractive: boolean,
-  ): Promise<string> => {
-    const destinationFolderUuid = await CLIUtils.getValueFromFlag(
-      {
-        value: destinationFolderUuidFlag,
-        name: TrashRestoreFolder.flags['destination'].name,
-      },
-      {
-        nonInteractive,
-        prompt: {
-          message: 'What is the destination folder id? (leave empty for the root folder)',
-          options: { type: 'input' },
-        },
-      },
-      {
-        validate: ValidationService.instance.validateUUIDv4,
-        error: new NotValidFolderUuidError(),
-        canBeEmpty: true,
-      },
-      this.log.bind(this),
-    );
-    return destinationFolderUuid;
   };
 }
