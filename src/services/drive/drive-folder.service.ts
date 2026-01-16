@@ -1,9 +1,16 @@
-import { FetchPaginatedFile, FetchPaginatedFolder } from '@internxt/sdk/dist/drive/storage/types';
+import {
+  FetchPaginatedFile,
+  FetchPaginatedFilesContent,
+  FetchPaginatedFolder,
+  FetchPaginatedFoldersContent,
+} from '@internxt/sdk/dist/drive/storage/types';
 import { SdkManager } from '../sdk-manager.service';
-import { Storage, StorageTypes } from '@internxt/sdk/dist/drive';
+import { StorageTypes } from '@internxt/sdk/dist/drive';
 import { DriveFolderItem } from '../../types/drive.types';
 import { DriveUtils } from '../../utils/drive.utils';
 import { RequestCanceler } from '@internxt/sdk/dist/shared/http/types';
+import { AuthService } from '../auth.service';
+import { WorkspaceCredentialsDetails } from '../../types/command.types';
 
 export class DriveFolderService {
   static readonly instance = new DriveFolderService();
@@ -21,37 +28,76 @@ export class DriveFolderService {
   };
 
   public getFolderContent = async (folderUuid: string) => {
-    const storageClient = SdkManager.instance.getStorage();
-    const folders = await this.getAllSubfolders(storageClient, folderUuid, 0);
-    const files = await this.getAllSubfiles(storageClient, folderUuid, 0);
+    const currentWorkspace = await AuthService.instance.getCurrentWorkspace();
+    const currentWorkspaceCreds = currentWorkspace?.workspaceCredentials;
+    const folders = await this.getAllSubfolders(currentWorkspaceCreds, folderUuid, 0);
+    const files = await this.getAllSubfiles(currentWorkspaceCreds, folderUuid, 0);
     return { folders, files };
   };
 
   private readonly getAllSubfolders = async (
-    storageClient: Storage,
+    currentWorkspace: WorkspaceCredentialsDetails | undefined,
     folderUuid: string,
     offset: number,
   ): Promise<FetchPaginatedFolder[]> => {
-    const [folderContentPromise] = storageClient.getFolderFoldersByUuid(folderUuid, offset, 50, 'plainName', 'ASC');
-    const { folders } = await folderContentPromise;
+    let folders: FetchPaginatedFolder[];
+
+    if (currentWorkspace) {
+      const workspaceClient = SdkManager.instance.getWorkspaces();
+      const [workspaceContentPromise] = workspaceClient.getFolders(
+        currentWorkspace.id,
+        folderUuid,
+        offset,
+        50,
+        'plainName',
+        'ASC',
+      );
+      folders = (await workspaceContentPromise).result as unknown as FetchPaginatedFoldersContent['folders'];
+    } else {
+      const storageClient = SdkManager.instance.getStorage();
+      const [personalFolderContentPromise] = storageClient.getFolderFoldersByUuid(
+        folderUuid,
+        offset,
+        50,
+        'plainName',
+        'ASC',
+      );
+      folders = (await personalFolderContentPromise).folders;
+    }
 
     if (folders.length > 0) {
-      return folders.concat(await this.getAllSubfolders(storageClient, folderUuid, offset + folders.length));
+      return folders.concat(await this.getAllSubfolders(currentWorkspace, folderUuid, offset + folders.length));
     } else {
       return folders;
     }
   };
 
   private readonly getAllSubfiles = async (
-    storageClient: Storage,
+    currentWorkspace: WorkspaceCredentialsDetails | undefined,
     folderUuid: string,
     offset: number,
   ): Promise<FetchPaginatedFile[]> => {
-    const [folderContentPromise] = storageClient.getFolderFilesByUuid(folderUuid, offset, 50, 'plainName', 'ASC');
-    const { files } = await folderContentPromise;
+    let files: FetchPaginatedFile[];
+
+    if (currentWorkspace) {
+      const workspaceClient = SdkManager.instance.getWorkspaces();
+      const [workspaceContentPromise] = workspaceClient.getFiles(
+        currentWorkspace.id,
+        folderUuid,
+        offset,
+        50,
+        'plainName',
+        'ASC',
+      );
+      files = (await workspaceContentPromise).result as unknown as FetchPaginatedFilesContent['files'];
+    } else {
+      const storageClient = SdkManager.instance.getStorage();
+      const [folderContentPromise] = storageClient.getFolderFilesByUuid(folderUuid, offset, 50, 'plainName', 'ASC');
+      files = (await folderContentPromise).files;
+    }
 
     if (files.length > 0) {
-      return files.concat(await this.getAllSubfiles(storageClient, folderUuid, offset + files.length));
+      return files.concat(await this.getAllSubfiles(currentWorkspace, folderUuid, offset + files.length));
     } else {
       return files;
     }
