@@ -1,3 +1,6 @@
+import { WorkspaceData } from '@internxt/sdk/dist/workspaces';
+import { NetworkCredentials } from './network.types';
+
 export interface LoginUserDetails {
   userId: string;
   uuid: string;
@@ -24,9 +27,23 @@ export interface LoginUserDetails {
   emailVerified: boolean;
 }
 
+export interface WorkspaceCredentialsDetails {
+  id: string;
+  bucket: string;
+  workspaceUserId: string;
+  credentials: NetworkCredentials;
+  token: string;
+}
+
+export interface Workspace {
+  workspaceData: WorkspaceData;
+  workspaceCredentials: WorkspaceCredentialsDetails;
+}
+
 export interface LoginCredentials {
   user: LoginUserDetails;
   token: string;
+  workspace?: Workspace;
 }
 
 export interface WebdavConfig {
@@ -157,6 +174,14 @@ export class NotValidFileError extends Error {
   }
 }
 
+export class NotValidWorkspaceUuidError extends Error {
+  constructor() {
+    super('Workspace UUID is not valid (it must be a valid v4 UUID)');
+
+    Object.setPrototypeOf(this, NotValidWorkspaceUuidError.prototype);
+  }
+}
+
 export interface PaginatedItem {
   name: string;
   type: string;
@@ -166,6 +191,20 @@ export interface PaginatedItem {
 }
 
 export interface PromptOptions {
-  type: 'input' | 'password' | 'mask' | 'confirm';
+  type: 'input' | 'password' | 'mask' | 'confirm' | 'list';
   confirm?: { default: boolean };
+  choices?: {
+    values: string[];
+    default?: number;
+  };
+}
+
+export interface PaginatedWorkspace {
+  name: string;
+  id: string;
+  usedSpace: string;
+  availableSpace: string;
+  owner: string;
+  address: string;
+  created: string;
 }

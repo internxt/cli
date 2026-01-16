@@ -4,6 +4,7 @@ import { ApiSecurity, AppDetails } from '@internxt/sdk/dist/shared';
 import { ConfigService } from './config.service';
 import packageJson from '../../package.json';
 import { NetworkUtils } from '../utils/network.utils';
+import { Workspaces } from '@internxt/sdk/dist/workspaces';
 
 export type SdkManagerApiSecurity = ApiSecurity;
 
@@ -103,6 +104,16 @@ export class SdkManager {
     const appDetails = SdkManager.getAppDetails();
 
     return Drive.Share.client(DRIVE_NEW_API_URL, appDetails, apiSecurity);
+  }
+
+  /** Workspaces SDK */
+  getWorkspaces() {
+    const DRIVE_NEW_API_URL = ConfigService.instance.get('DRIVE_NEW_API_URL');
+
+    const apiSecurity = SdkManager.getApiSecurity();
+    const appDetails = SdkManager.getAppDetails();
+
+    return Workspaces.client(DRIVE_NEW_API_URL, appDetails, apiSecurity);
   }
 
   /** Network SDK */
