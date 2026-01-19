@@ -11,7 +11,6 @@ import { createFileSystemNodeFixture } from './upload.service.helpers';
 import { AsyncUtils } from '../../../../src/utils/async.utils';
 import { UserFixture } from '../../../fixtures/auth.fixture';
 
-
 describe('UploadFacade', () => {
   let sut: UploadFacade;
 

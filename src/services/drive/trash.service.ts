@@ -1,6 +1,8 @@
-import { StorageTypes, Trash } from '@internxt/sdk/dist/drive';
+import { StorageTypes } from '@internxt/sdk/dist/drive';
 import { SdkManager } from '../sdk-manager.service';
 import { FetchPaginatedFile, FetchPaginatedFolder } from '@internxt/sdk/dist/drive/storage/types';
+import { AuthService } from '../auth.service';
+import { WorkspaceCredentialsDetails } from '../../types/command.types';
 
 export class TrashService {
   static readonly instance = new TrashService();
@@ -20,43 +22,69 @@ export class TrashService {
     return storageClient.deleteFolderByUuid(folderId);
   };
 
-  public clearTrash = () => {
-    const storageClient = SdkManager.instance.getTrash();
-    return storageClient.clearTrash();
+  public clearTrash = async () => {
+    const currentWorkspace = await AuthService.instance.getCurrentWorkspace();
+    const currentWorkspaceCreds = currentWorkspace?.workspaceCredentials;
+    if (currentWorkspaceCreds) {
+      const workspaceClient = SdkManager.instance.getWorkspaces();
+      return workspaceClient.emptyPersonalTrash(currentWorkspaceCreds.id);
+    } else {
+      const trashClient = SdkManager.instance.getTrash();
+      return trashClient.clearTrash();
+    }
   };
 
   public getTrashFolderContent = async () => {
-    const storageClient = SdkManager.instance.getTrash();
-    const folders = await this.getAllTrashSubfolders(storageClient, 0);
-    const files = await this.getAllTrashSubfiles(storageClient, 0);
+    const currentWorkspace = await AuthService.instance.getCurrentWorkspace();
+    const currentWorkspaceCreds = currentWorkspace?.workspaceCredentials;
+    const folders = await this.getAllTrashSubfolders(currentWorkspaceCreds, 0);
+    const files = await this.getAllTrashSubfiles(currentWorkspaceCreds, 0);
     return { folders, files };
   };
 
   private readonly getAllTrashSubfolders = async (
-    storageClient: Trash,
+    currentWorkspace: WorkspaceCredentialsDetails | undefined,
     offset: number,
   ): Promise<FetchPaginatedFolder[]> => {
-    const folderContentPromise = storageClient.getTrashedFilesPaginated(50, offset, 'folders', true);
-    const { result: folders } = (await folderContentPromise) as unknown as { result: FetchPaginatedFolder[] };
+    let folders: FetchPaginatedFolder[];
+
+    if (currentWorkspace) {
+      const workspaceClient = SdkManager.instance.getWorkspaces();
+      const promise = workspaceClient.getPersonalTrash(currentWorkspace.id, 'folder', offset, 50);
+      folders = (await promise).result as unknown as FetchPaginatedFolder[];
+    } else {
+      const trashClient = SdkManager.instance.getTrash();
+      const promise = trashClient.getTrashedFilesPaginated(50, offset, 'folders', true);
+      folders = (await promise).result as unknown as FetchPaginatedFolder[];
+    }
 
     if (folders.length > 0) {
-      return folders.concat(await this.getAllTrashSubfolders(storageClient, offset + folders.length));
+      return folders.concat(await this.getAllTrashSubfolders(currentWorkspace, offset + folders.length));
     } else {
       return folders;
     }
   };
 
   private readonly getAllTrashSubfiles = async (
-    storageClient: Trash,
+    currentWorkspace: WorkspaceCredentialsDetails | undefined,
     offset: number,
   ): Promise<FetchPaginatedFile[]> => {
-    const folderContentPromise = storageClient.getTrashedFilesPaginated(50, offset, 'files', true);
-    const { result: folders } = (await folderContentPromise) as unknown as { result: FetchPaginatedFile[] };
+    let files: FetchPaginatedFile[];
 
-    if (folders.length > 0) {
-      return folders.concat(await this.getAllTrashSubfiles(storageClient, offset + folders.length));
+    if (currentWorkspace) {
+      const workspaceClient = SdkManager.instance.getWorkspaces();
+      const promise = workspaceClient.getPersonalTrash(currentWorkspace.id, 'file', offset, 50);
+      files = (await promise).result as unknown as FetchPaginatedFile[];
     } else {
-      return folders;
+      const trashClient = SdkManager.instance.getTrash();
+      const promise = trashClient.getTrashedFilesPaginated(50, offset, 'files', true);
+      files = (await promise).result as unknown as FetchPaginatedFile[];
+    }
+
+    if (files.length > 0) {
+      return files.concat(await this.getAllTrashSubfiles(currentWorkspace, offset + files.length));
+    } else {
+      return files;
     }
   };
 }
