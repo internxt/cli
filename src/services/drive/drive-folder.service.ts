@@ -1,9 +1,4 @@
-import {
-  FetchPaginatedFile,
-  FetchPaginatedFilesContent,
-  FetchPaginatedFolder,
-  FetchPaginatedFoldersContent,
-} from '@internxt/sdk/dist/drive/storage/types';
+import { FetchPaginatedFile, FetchPaginatedFolder } from '@internxt/sdk/dist/drive/storage/types';
 import { SdkManager } from '../sdk-manager.service';
 import { StorageTypes } from '@internxt/sdk/dist/drive';
 import { DriveFolderItem } from '../../types/drive.types';
@@ -52,7 +47,7 @@ export class DriveFolderService {
         'plainName',
         'ASC',
       );
-      folders = (await workspaceContentPromise).result as unknown as FetchPaginatedFoldersContent['folders'];
+      folders = (await workspaceContentPromise).result as unknown as FetchPaginatedFolder[];
     } else {
       const storageClient = SdkManager.instance.getStorage();
       const [personalFolderContentPromise] = storageClient.getFolderFoldersByUuid(
@@ -89,7 +84,7 @@ export class DriveFolderService {
         'plainName',
         'ASC',
       );
-      files = (await workspaceContentPromise).result as unknown as FetchPaginatedFilesContent['files'];
+      files = (await workspaceContentPromise).result as unknown as FetchPaginatedFile[];
     } else {
       const storageClient = SdkManager.instance.getStorage();
       const [folderContentPromise] = storageClient.getFolderFilesByUuid(folderUuid, offset, 50, 'plainName', 'ASC');
@@ -116,12 +111,22 @@ export class DriveFolderService {
    * @param {number} payload.parentFolderId - The ID of the parent folder.
    * @return {[Promise<StorageTypes.CreateFolderResponse>, RequestCanceler]} - A tuple containing a promise that resolves to the response of creating the folder and a request canceler.
    */
-  public createFolder(
+  public createFolder = async (
     payload: StorageTypes.CreateFolderByUuidPayload,
-  ): [Promise<StorageTypes.CreateFolderResponse>, RequestCanceler] {
-    const storageClient = SdkManager.instance.getStorage();
-    return storageClient.createFolderByUuid(payload);
-  }
+  ): Promise<[Promise<StorageTypes.CreateFolderResponse>, RequestCanceler]> => {
+    const currentWorkspace = await AuthService.instance.getCurrentWorkspace();
+    if (currentWorkspace) {
+      const workspaceClient = SdkManager.instance.getWorkspaces();
+      return workspaceClient.createFolder({
+        workspaceId: currentWorkspace.workspaceCredentials.id,
+        parentFolderUuid: payload.parentFolderUuid,
+        plainName: payload.plainName,
+      });
+    } else {
+      const storageClient = SdkManager.instance.getStorage();
+      return storageClient.createFolderByUuid(payload);
+    }
+  };
 
   public renameFolder = (payload: { folderUuid: string; name: string }): Promise<void> => {
     const storageClient = SdkManager.instance.getStorage();

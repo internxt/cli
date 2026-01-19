@@ -41,7 +41,7 @@ export default class CreateFolder extends Command {
     const folderUuid = await CLIUtils.getRootFolderIdIfEmpty(folderUuidFromFlag, userCredentials);
 
     CLIUtils.doing('Creating folder...', flags['json']);
-    const [createNewFolder, requestCanceler] = DriveFolderService.instance.createFolder({
+    const [createNewFolder, requestCanceler] = await DriveFolderService.instance.createFolder({
       plainName: folderName,
       parentFolderUuid: folderUuid,
     });

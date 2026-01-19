@@ -87,7 +87,7 @@ describe('Drive folder Service', () => {
     ]);
     vi.spyOn(SdkManager.instance, 'getStorage').mockReturnValue(Storage.prototype);
 
-    const [createFolder] = sut.createFolder({
+    const [createFolder] = await sut.createFolder({
       plainName: newFolderResponse.plainName,
       parentFolderUuid: newFolderResponse.parentUuid,
     });
