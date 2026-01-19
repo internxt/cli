@@ -64,7 +64,7 @@ export default class UploadFile extends Command {
     };
 
     // Prepare the network
-    const networkFacade = CLIUtils.prepareNetwork({ loginUserDetails: user, jsonFlag: flags['json'] });
+    const networkFacade = await CLIUtils.prepareNetwork({ loginUserDetails: user, jsonFlag: flags['json'] });
 
     const networkUploadTimer = CLIUtils.timer();
     const progressBar = CLIUtils.progress(

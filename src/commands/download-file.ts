@@ -75,7 +75,7 @@ export default class DownloadFile extends Command {
 
       // Prepare the network
       const { user } = await AuthService.instance.getAuthDetails();
-      const networkFacade = CLIUtils.prepareNetwork({ loginUserDetails: user, jsonFlag: flags['json'] });
+      const networkFacade = await CLIUtils.prepareNetwork({ loginUserDetails: user, jsonFlag: flags['json'] });
       // Download the file
       const fileWriteStream = createWriteStream(downloadPath);
 

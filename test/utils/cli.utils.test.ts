@@ -8,6 +8,7 @@ import { SdkManager } from '../../src/services/sdk-manager.service';
 import { ConfigService } from '../../src/services/config.service';
 import { NetworkFacade } from '../../src/services/network/network-facade.service';
 import { Environment } from '@internxt/inxt-js';
+import { UserFixture } from '../fixtures/auth.fixture';
 
 vi.mock('ux', () => {
   return {
@@ -19,23 +20,6 @@ vi.mock('ux', () => {
     colorize: vi.fn((color: string, text: string) => text),
   };
 });
-
-vi.mock('../../src/services/sdk-manager.service', () => ({
-  SdkManager: {
-    instance: {
-      getNetwork: vi.fn(),
-    },
-    getAppDetails: vi.fn(),
-  },
-}));
-
-vi.mock('../../src/services/config.service', () => ({
-  ConfigService: {
-    instance: {
-      get: vi.fn(),
-    },
-  },
-}));
 
 vi.mock('@internxt/inxt-js', () => ({
   Environment: vi.fn(),
@@ -51,15 +35,11 @@ describe('CliUtils', () => {
     (str: Uint8Array | string, encoding?: BufferEncoding, cb?: (err?: Error) => void): boolean;
   }>;
   let stdoutClear: MockInstance<(dir: Direction, callback?: () => void) => boolean>;
-  let reporter: (message: string) => void;
+  const reporter: (message: string) => void = vi.fn();
 
   const BRIDGE_URL = 'https://test.com';
-  let mockNetworkFacade: NetworkFacade;
-  const mockLoginUserDetails = {
-    bridgeUser: 'test-bridge-user',
-    userId: 'test-user-id',
-    mnemonic: 'test-mnemonic',
-  } as LoginUserDetails;
+  const mockNetworkFacade: NetworkFacade = {} as NetworkFacade;
+  const mockLoginUserDetails: LoginUserDetails = UserFixture;
 
   const mockNetworkModule = {} as ReturnType<typeof SdkManager.instance.getNetwork>;
   const mockAppDetails = {} as ReturnType<typeof SdkManager.getAppDetails>;
@@ -71,18 +51,15 @@ describe('CliUtils', () => {
     stdoutWrite = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
     stdoutClear = vi.spyOn(process.stdout, 'clearLine').mockImplementation(() => true);
 
-    reporter = vi.fn();
-
-    mockNetworkFacade = {} as NetworkFacade;
     vi.mocked(NetworkFacade).mockImplementation(function (this: NetworkFacade) {
       return mockNetworkFacade;
     });
     vi.mocked(Environment).mockImplementation(function (this: Environment) {
       return {} as Environment;
     });
-    vi.mocked(SdkManager.instance.getNetwork).mockReturnValue(mockNetworkModule);
-    vi.mocked(SdkManager.getAppDetails).mockReturnValue(mockAppDetails);
-    vi.mocked(ConfigService.instance.get).mockReturnValue(BRIDGE_URL);
+    vi.spyOn(SdkManager.instance, 'getNetwork').mockReturnValue(mockNetworkModule);
+    vi.spyOn(SdkManager, 'getAppDetails').mockReturnValue(mockAppDetails);
+    vi.spyOn(ConfigService.instance, 'get').mockReturnValue(BRIDGE_URL);
   });
 
   afterEach(() => {
@@ -199,8 +176,16 @@ describe('CliUtils', () => {
   });
 
   describe('prepareNetwork', () => {
-    it('should properly create a networkFacade instance and return it', () => {
-      const result = CLIUtils.prepareNetwork({ loginUserDetails: mockLoginUserDetails });
+    it('should properly create a networkFacade instance and return it', async () => {
+      vi.spyOn(CLIUtils, 'getNetworkCreds').mockResolvedValue({
+        bucket: mockLoginUserDetails.bucket,
+        credentials: {
+          user: mockLoginUserDetails.bridgeUser,
+          pass: mockLoginUserDetails.userId,
+        },
+        mnemonic: mockLoginUserDetails.mnemonic,
+      });
+      const result = await CLIUtils.prepareNetwork({ loginUserDetails: mockLoginUserDetails });
 
       expect(result).toBe(mockNetworkFacade);
       expect(SdkManager.instance.getNetwork).toHaveBeenCalledWith({
@@ -217,12 +202,20 @@ describe('CliUtils', () => {
       expect(NetworkFacade).toHaveBeenCalledTimes(1);
     });
 
-    it('should properly output to the terminal the prepare network step', () => {
+    it('should properly output to the terminal the prepare network step', async () => {
+      vi.spyOn(CLIUtils, 'getNetworkCreds').mockResolvedValue({
+        bucket: mockLoginUserDetails.bucket,
+        credentials: {
+          user: mockLoginUserDetails.bridgeUser,
+          pass: mockLoginUserDetails.userId,
+        },
+        mnemonic: mockLoginUserDetails.mnemonic,
+      });
       const jsonFlag = true;
       const doingSpy = vi.spyOn(CLIUtils, 'doing');
       const doneSpy = vi.spyOn(CLIUtils, 'done');
 
-      CLIUtils.prepareNetwork({ jsonFlag, loginUserDetails: mockLoginUserDetails });
+      await CLIUtils.prepareNetwork({ jsonFlag, loginUserDetails: mockLoginUserDetails });
 
       expect(doingSpy).toHaveBeenCalledWith('Preparing Network', jsonFlag);
       expect(doneSpy).toHaveBeenCalledWith(jsonFlag);

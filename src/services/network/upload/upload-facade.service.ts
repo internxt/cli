@@ -11,7 +11,7 @@ export class UploadFacade {
   static readonly instance = new UploadFacade();
   async uploadFolder({ localPath, destinationFolderUuid, loginUserDetails, jsonFlag, onProgress }: UploadFolderParams) {
     const timer = CLIUtils.timer();
-    const network = CLIUtils.prepareNetwork({ jsonFlag, loginUserDetails });
+    const network = await CLIUtils.prepareNetwork({ jsonFlag, loginUserDetails });
     const scanResult = await LocalFilesystemService.instance.scanLocalDirectory(localPath);
     logger.info(
       `Scanned folder ${localPath}: found ${scanResult.totalItems} items, total size ${scanResult.totalBytes} bytes.`,
