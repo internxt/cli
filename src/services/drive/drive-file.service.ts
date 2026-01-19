@@ -2,13 +2,36 @@ import { StorageTypes } from '@internxt/sdk/dist/drive';
 import { SdkManager } from '../sdk-manager.service';
 import { DriveFileItem } from '../../types/drive.types';
 import { DriveUtils } from '../../utils/drive.utils';
+import { AuthService } from '../auth.service';
 
 export class DriveFileService {
   static readonly instance = new DriveFileService();
 
   public createFile = async (payload: StorageTypes.FileEntryByUuid): Promise<DriveFileItem> => {
-    const storageClient = SdkManager.instance.getStorage();
-    const driveFile = await storageClient.createFileEntryByUuid(payload);
+    let driveFile: StorageTypes.DriveFileData;
+
+    const currentWorkspace = await AuthService.instance.getCurrentWorkspace();
+    if (currentWorkspace) {
+      const workspaceClient = SdkManager.instance.getWorkspaces();
+      driveFile = await workspaceClient.createFileEntry(
+        {
+          name: payload.plainName,
+          plainName: payload.plainName,
+          bucket: payload.bucket,
+          fileId: payload.fileId ?? '',
+          encryptVersion: StorageTypes.EncryptionVersion.Aes03,
+          folderUuid: payload.folderUuid,
+          size: payload.size,
+          type: payload.type ?? '',
+          modificationTime: payload.modificationTime ?? new Date().toISOString(),
+          date: payload.date ?? new Date().toISOString(),
+        },
+        currentWorkspace.workspaceCredentials.id,
+      );
+    } else {
+      const storageClient = SdkManager.instance.getStorage();
+      driveFile = await storageClient.createFileEntryByUuid(payload);
+    }
 
     return {
       itemType: 'file',

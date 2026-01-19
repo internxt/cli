@@ -6,7 +6,7 @@ import { CLIUtils } from '../utils/cli.utils';
 import { ConfigService } from '../services/config.service';
 import path from 'node:path';
 import { DriveFileService } from '../services/drive/drive-file.service';
-import { NotValidDirectoryError } from '../types/command.types';
+import { NotValidFileError } from '../types/command.types';
 import { ValidationService } from '../services/validation.service';
 import { EncryptionVersion } from '@internxt/sdk/dist/drive/storage/types';
 import { BufferStream } from '../utils/stream.utils';
@@ -197,7 +197,7 @@ export default class UploadFile extends Command {
       },
       {
         validate: ValidationService.instance.validateFileExists,
-        error: new NotValidDirectoryError(),
+        error: new NotValidFileError(),
       },
       this.log.bind(this),
     );
