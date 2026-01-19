@@ -155,10 +155,10 @@ export class PUTRequestHandler implements WebDavMethodHandler {
     webdavLogger.info(`[PUT] ✅ File uploaded in ${CLIUtils.formatDuration(totalTime)} to Internxt Drive`);
 
     webdavLogger.info(
-      `[PUT] Timing breakdown:\n
-      Network upload: ${CLIUtils.formatDuration(timings.networkUpload)} (${throughputMBps.toFixed(2)} MB/s)\n
-      Drive upload: ${CLIUtils.formatDuration(timings.driveUpload)}\n
-      Thumbnail: ${CLIUtils.formatDuration(timings.thumbnailUpload)}\n`,
+      '[PUT] Timing breakdown:\n' +
+        `Network upload: ${CLIUtils.formatDuration(timings.networkUpload)} (${throughputMBps.toFixed(2)} MB/s)\n` +
+        `Drive upload: ${CLIUtils.formatDuration(timings.driveUpload)}\n` +
+        `Thumbnail: ${CLIUtils.formatDuration(timings.thumbnailUpload)}\n`,
     );
 
     // Wait for backend search index to propagate (same as folder creation delay in PB-1446)

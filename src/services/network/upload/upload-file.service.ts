@@ -139,11 +139,11 @@ export class UploadFileService {
         const throughputMBps = CLIUtils.calculateThroughputMBps(stats.size, timings.networkUpload);
         logger.info(`Uploaded '${file.name}' (${CLIUtils.formatBytesToString(stats.size)})`);
         logger.info(
-          `Timing breakdown:\n
-          Network upload: ${CLIUtils.formatDuration(timings.networkUpload)} (${throughputMBps.toFixed(2)} MB/s)\n
-          Drive upload: ${CLIUtils.formatDuration(timings.driveUpload)}\n
-          Thumbnail: ${CLIUtils.formatDuration(timings.thumbnailUpload)}\n
-          Total: ${CLIUtils.formatDuration(totalTime)}\n`,
+          'Timing breakdown:\n' +
+            `Network upload: ${CLIUtils.formatDuration(timings.networkUpload)} (${throughputMBps.toFixed(2)} MB/s)\n` +
+            `Drive upload: ${CLIUtils.formatDuration(timings.driveUpload)}\n` +
+            `Thumbnail: ${CLIUtils.formatDuration(timings.thumbnailUpload)}\n` +
+            `Total: ${CLIUtils.formatDuration(totalTime)}\n`,
         );
 
         return createdDriveFile;

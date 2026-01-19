@@ -151,10 +151,10 @@ export default class UploadFile extends Command {
 
     this.log('\n');
     this.log(
-      `[PUT] Timing breakdown:\n
-      Network upload: ${CLIUtils.formatDuration(timings.networkUpload)} (${throughputMBps.toFixed(2)} MB/s)\n
-      Drive upload: ${CLIUtils.formatDuration(timings.driveUpload)}\n
-      Thumbnail: ${CLIUtils.formatDuration(timings.thumbnailUpload)}\n`,
+      '[PUT] Timing breakdown:\n' +
+        `Network upload: ${CLIUtils.formatDuration(timings.networkUpload)} (${throughputMBps.toFixed(2)} MB/s)\n` +
+        `Drive upload: ${CLIUtils.formatDuration(timings.driveUpload)}\n` +
+        `Thumbnail: ${CLIUtils.formatDuration(timings.thumbnailUpload)}\n`,
     );
     this.log('\n');
     const message =
