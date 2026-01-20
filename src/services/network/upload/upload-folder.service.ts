@@ -39,7 +39,7 @@ export class UploadFolderService {
   async createFolderWithRetry({ folderName, parentFolderUuid }: CreateFolderWithRetryParams): Promise<string | null> {
     for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
       try {
-        const [createFolderPromise] = DriveFolderService.instance.createFolder({
+        const [createFolderPromise] = await DriveFolderService.instance.createFolder({
           plainName: folderName,
           parentFolderUuid,
         });

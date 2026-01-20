@@ -30,7 +30,7 @@ export class WebDavFolderService {
     folderName: string;
     parentFolderUuid: string;
   }): Promise<DriveFolderItem> => {
-    const [createFolderPromise] = this.dependencies.driveFolderService.createFolder({
+    const [createFolderPromise] = await this.dependencies.driveFolderService.createFolder({
       plainName: folderName,
       parentFolderUuid: parentFolderUuid,
     });
