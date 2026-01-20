@@ -1,16 +1,16 @@
 import { beforeEach, describe, expect, it, MockInstance, vi } from 'vitest';
 import UploadFolder from '../../src/commands/upload-folder';
-import { AuthService } from '../../src/services/auth.service';
-import { LoginCredentials, MissingCredentialsError } from '../../src/types/command.types';
+import { LoginCredentials } from '../../src/types/command.types';
 import { ValidationService } from '../../src/services/validation.service';
 import { UserFixture } from '../fixtures/auth.fixture';
 import { CLIUtils, NoFlagProvidedError } from '../../src/utils/cli.utils';
 import { UploadResult } from '../../src/services/network/upload/upload.types';
 import { UploadFacade } from '../../src/services/network/upload/upload-facade.service';
 import { AsyncUtils } from '../../src/utils/async.utils';
+import { ConfigService } from '../../src/services/config.service';
 
 describe('Upload Folder Command', () => {
-  let getAuthDetailsSpy: MockInstance<() => Promise<LoginCredentials>>;
+  let configReadUserSpy: MockInstance<() => Promise<LoginCredentials>>;
   let validateDirectoryExistsSpy: MockInstance<(path: string) => Promise<boolean>>;
   let getDestinationFolderUuidSpy: MockInstance<() => Promise<string>>;
   let UploadFacadeSpy: MockInstance<() => Promise<UploadResult>>;
@@ -24,7 +24,7 @@ describe('Upload Folder Command', () => {
 
   beforeEach(() => {
     vi.restoreAllMocks();
-    getAuthDetailsSpy = vi.spyOn(AuthService.instance, 'getAuthDetails').mockResolvedValue({
+    configReadUserSpy = vi.spyOn(ConfigService.instance, 'readUser').mockResolvedValue({
       user: UserFixture,
       token: 'mock-token',
     });
@@ -40,7 +40,7 @@ describe('Upload Folder Command', () => {
   it('should call UploadFacade when user uploads a folder with valid path', async () => {
     await UploadFolder.run(['--folder=/valid/folder/path']);
 
-    expect(getAuthDetailsSpy).toHaveBeenCalledOnce();
+    expect(configReadUserSpy).toHaveBeenCalledTimes(2);
     expect(validateDirectoryExistsSpy).toHaveBeenCalledWith('/valid/folder/path');
     expect(getDestinationFolderUuidSpy).toHaveBeenCalledOnce();
     expect(UploadFacadeSpy).toHaveBeenCalledWith(
@@ -62,7 +62,7 @@ describe('Upload Folder Command', () => {
 
     await UploadFolder.run(['--folder=/valid/folder/path', `--destination=${customDestinationId}`]);
 
-    expect(getAuthDetailsSpy).toHaveBeenCalledOnce();
+    expect(configReadUserSpy).toHaveBeenCalledOnce();
     expect(validateDirectoryExistsSpy).toHaveBeenCalledWith('/valid/folder/path');
     expect(getDestinationFolderUuidSpy).toHaveBeenCalledOnce();
     expect(UploadFacadeSpy).toHaveBeenCalledWith(
@@ -112,23 +112,21 @@ describe('Upload Folder Command', () => {
       oclif: { exit: 1 },
     });
 
-    expect(getAuthDetailsSpy).toHaveBeenCalledOnce();
+    expect(configReadUserSpy).toHaveBeenCalledOnce();
     expect(validateDirectoryExistsSpy).toHaveBeenCalledWith(invalidPath);
     expect(UploadFacadeSpy).not.toHaveBeenCalled();
   });
 
   it('should throw an error when user does not have credentials', async () => {
-    const getAuthDetailsSpy = vi
-      .spyOn(AuthService.instance, 'getAuthDetails')
-      .mockRejectedValue(new MissingCredentialsError());
+    const readUserSpy = vi.spyOn(ConfigService.instance, 'readUser').mockResolvedValue(undefined);
 
     const result = UploadFolder.run(['--folder=/some/folder/path']);
+
     await expect(result).rejects.toMatchObject({
       message: expect.stringContaining('EEXIT: 1'),
       oclif: { exit: 1 },
     });
-
-    expect(getAuthDetailsSpy).toHaveBeenCalledOnce();
+    expect(readUserSpy).toHaveBeenCalledOnce();
     expect(validateDirectoryExistsSpy).not.toHaveBeenCalled();
     expect(UploadFacadeSpy).not.toHaveBeenCalled();
   });
