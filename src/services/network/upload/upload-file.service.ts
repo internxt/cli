@@ -11,10 +11,10 @@ import { dirname, extname } from 'node:path';
 import { isAlreadyExistsError } from '../../../utils/errors.utils';
 import { stat } from 'node:fs/promises';
 import { EncryptionVersion } from '@internxt/sdk/dist/drive/storage/types';
-import { createFileStreamWithBuffer, tryUploadThumbnail } from '../../../utils/thumbnail.utils';
 import { BufferStream } from '../../../utils/stream.utils';
 import { DriveFileItem } from '../../../types/drive.types';
 import { CLIUtils } from '../../../utils/cli.utils';
+import { ThumbnailService } from '../../thumbnail.service';
 
 export class UploadFileService {
   static readonly instance = new UploadFileService();
@@ -84,7 +84,7 @@ export class UploadFileService {
         };
 
         if (fileSize > 0) {
-          const { fileStream, bufferStream } = createFileStreamWithBuffer({
+          const { fileStream, bufferStream } = ThumbnailService.instance.createFileStreamWithBuffer({
             path: file.absolutePath,
             fileType,
           });
@@ -125,7 +125,7 @@ export class UploadFileService {
 
         const thumbnailTimer = CLIUtils.timer();
         if (thumbnailStream && fileSize > 0) {
-          void tryUploadThumbnail({
+          void ThumbnailService.instance.tryUploadThumbnail({
             bufferStream: thumbnailStream,
             fileType,
             userBucket: bucket,
@@ -167,6 +167,7 @@ export class UploadFileService {
     }
     return null;
   }
+
   private concurrencyArray<T>(array: T[], arraySize: number): T[][] {
     const arrays: T[][] = [];
     for (let i = 0; i < array.length; i += arraySize) {

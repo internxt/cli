@@ -5,21 +5,6 @@ import { logger } from '../../../../src/utils/logger.utils';
 import { isAlreadyExistsError } from '../../../../src/utils/errors.utils';
 import { createFileSystemNodeFixture, createProgressFixtures } from './upload.service.helpers';
 import { DELAYS_MS } from '../../../../src/services/network/upload/upload.types';
-vi.mock('../../../../src/services/drive/drive-folder.service', () => ({
-  DriveFolderService: {
-    instance: {
-      createFolder: vi.fn(),
-    },
-  },
-}));
-
-vi.mock('../../../../src/utils/logger.utils', () => ({
-  logger: {
-    warn: vi.fn(),
-    info: vi.fn(),
-    error: vi.fn(),
-  },
-}));
 
 vi.mock('../../../../src/utils/errors.utils', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../../../../src/utils/errors.utils')>();
@@ -34,20 +19,22 @@ vi.mock('../../../../src/utils/errors.utils', async (importOriginal) => {
 
 describe('UploadFolderService', () => {
   let sut: UploadFolderService;
+
   beforeEach(() => {
     vi.clearAllMocks();
     sut = UploadFolderService.instance;
-    vi.mocked(DriveFolderService.instance.createFolder).mockReturnValue([
+    vi.spyOn(DriveFolderService.instance, 'createFolder').mockReturnValue([
       Promise.resolve({ uuid: 'mock-folder-uuid' }),
     ] as unknown as ReturnType<typeof DriveFolderService.instance.createFolder>);
     vi.mocked(isAlreadyExistsError).mockReturnValue(false);
   });
+
   describe('createFolders', () => {
     const destinationFolderUuid = 'dest-uuid';
 
     it('should properly return a map of created folders where key is relativePath and value is uuid', async () => {
       const { currentProgress, emitProgress } = createProgressFixtures();
-      vi.mocked(DriveFolderService.instance.createFolder)
+      vi.spyOn(DriveFolderService.instance, 'createFolder')
         .mockReturnValueOnce([Promise.resolve({ uuid: 'root-uuid' })] as unknown as ReturnType<
           typeof DriveFolderService.instance.createFolder
         >)
@@ -122,7 +109,7 @@ describe('UploadFolderService', () => {
     const parentFolderUuid = 'parent-uuid';
 
     it('should properly create a folder and return the created folder uuid', async () => {
-      vi.mocked(DriveFolderService.instance.createFolder).mockReturnValueOnce([
+      vi.spyOn(DriveFolderService.instance, 'createFolder').mockReturnValueOnce([
         Promise.resolve({ uuid: 'created-folder-uuid' }),
       ] as unknown as ReturnType<typeof DriveFolderService.instance.createFolder>);
 
@@ -138,7 +125,7 @@ describe('UploadFolderService', () => {
     it('should properly return null if the folder already exists', async () => {
       const alreadyExistsError = new Error('Folder already exists');
       vi.mocked(isAlreadyExistsError).mockReturnValue(true);
-      vi.mocked(DriveFolderService.instance.createFolder).mockReturnValueOnce([
+      vi.spyOn(DriveFolderService.instance, 'createFolder').mockReturnValueOnce([
         Promise.reject(alreadyExistsError),
       ] as unknown as ReturnType<typeof DriveFolderService.instance.createFolder>);
 
@@ -156,7 +143,7 @@ describe('UploadFolderService', () => {
       const rejection1 = Promise.reject(transientError).catch(() => {});
       const rejection2 = Promise.reject(transientError).catch(() => {});
 
-      vi.mocked(DriveFolderService.instance.createFolder)
+      vi.spyOn(DriveFolderService.instance, 'createFolder')
         .mockReturnValueOnce([rejection1] as unknown as ReturnType<typeof DriveFolderService.instance.createFolder>)
         .mockReturnValueOnce([rejection2] as unknown as ReturnType<typeof DriveFolderService.instance.createFolder>)
         .mockReturnValueOnce([Promise.resolve({ uuid: 'success-uuid' })] as unknown as ReturnType<
@@ -184,7 +171,7 @@ describe('UploadFolderService', () => {
         process.off('unhandledRejection', unhandledRejectionListener);
       });
       vi.useFakeTimers();
-      vi.mocked(DriveFolderService.instance.createFolder).mockImplementation(() => {
+      vi.spyOn(DriveFolderService.instance, 'createFolder').mockImplementation(() => {
         return [Promise.reject(new Error('Persistent network error'))] as unknown as ReturnType<
           typeof DriveFolderService.instance.createFolder
         >;

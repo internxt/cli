@@ -104,11 +104,7 @@ describe('Webdav utils', () => {
         .mockResolvedValue(expectedFolder);
       const findFileStub = vi.spyOn(DriveFileService.instance, 'getFileMetadataByPath').mockRejectedValue(new Error());
 
-      const driveFolderItem = await WebDavUtils.getDriveItemFromResource({
-        resource: requestFolderFixture,
-        driveFolderService: DriveFolderService.instance,
-        driveFileService: DriveFileService.instance,
-      });
+      const driveFolderItem = await WebDavUtils.getDriveItemFromResource(requestFolderFixture);
       expect(driveFolderItem).to.be.deep.equal(expectedFolder);
       expect(findFolderStub).toHaveBeenCalledOnce();
       expect(findFileStub).not.toHaveBeenCalled();
@@ -120,11 +116,7 @@ describe('Webdav utils', () => {
         .mockRejectedValue(new AppError('Folder not found', 404));
       const findFileStub = vi.spyOn(DriveFileService.instance, 'getFileMetadataByPath').mockRejectedValue(new Error());
 
-      const item = await WebDavUtils.getDriveItemFromResource({
-        resource: requestFolderFixture,
-        driveFolderService: DriveFolderService.instance,
-        driveFileService: DriveFileService.instance,
-      });
+      const item = await WebDavUtils.getDriveItemFromResource(requestFolderFixture);
       expect(findFolderStub).toHaveBeenCalledOnce();
       expect(findFileStub).not.toHaveBeenCalled();
       expect(item).toBeUndefined();
@@ -137,11 +129,7 @@ describe('Webdav utils', () => {
         .spyOn(DriveFolderService.instance, 'getFolderMetadataByPath')
         .mockRejectedValue(new Error());
 
-      const driveFileItem = await WebDavUtils.getDriveItemFromResource({
-        resource: requestFileFixture,
-        driveFolderService: DriveFolderService.instance,
-        driveFileService: DriveFileService.instance,
-      });
+      const driveFileItem = await WebDavUtils.getDriveItemFromResource(requestFileFixture);
       expect(driveFileItem).to.be.deep.equal(expectedFile);
       expect(findFileStub).toHaveBeenCalledOnce();
       expect(findFolderStub).not.toHaveBeenCalled();

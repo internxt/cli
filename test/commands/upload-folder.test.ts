@@ -7,12 +7,7 @@ import { UserFixture } from '../fixtures/auth.fixture';
 import { CLIUtils, NoFlagProvidedError } from '../../src/utils/cli.utils';
 import { UploadResult } from '../../src/services/network/upload/upload.types';
 import { UploadFacade } from '../../src/services/network/upload/upload-facade.service';
-
-vi.mock('../../src/utils/async.utils', () => ({
-  AsyncUtils: {
-    sleep: vi.fn().mockResolvedValue(undefined),
-  },
-}));
+import { AsyncUtils } from '../../src/utils/async.utils';
 
 describe('Upload Folder Command', () => {
   let getAuthDetailsSpy: MockInstance<() => Promise<LoginCredentials>>;
@@ -39,6 +34,7 @@ describe('Upload Folder Command', () => {
     getDestinationFolderUuidSpy = vi.spyOn(CLIUtils, 'getDestinationFolderUuid').mockResolvedValue('');
     UploadFacadeSpy = vi.spyOn(UploadFacade.instance, 'uploadFolder').mockResolvedValue(uploadedResult);
     cliSuccessSpy = vi.spyOn(CLIUtils, 'success').mockImplementation(() => {});
+    vi.spyOn(AsyncUtils, 'sleep').mockResolvedValue(undefined);
   });
 
   it('should call UploadFacade when user uploads a folder with valid path', async () => {

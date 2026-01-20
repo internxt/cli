@@ -13,6 +13,7 @@ describe('WebDavFolderService', () => {
   let driveFolderService: DriveFolderService;
   let configService: ConfigService;
   const rootFolderId = 'root-uuid-123';
+
   const mockWebdavConfig = (createFullPath: boolean) => {
     vi.spyOn(configService, 'readWebdavConfig').mockResolvedValue({
       createFullPath,
@@ -34,10 +35,7 @@ describe('WebDavFolderService', () => {
     vi.restoreAllMocks();
     driveFolderService = DriveFolderService.instance;
     configService = ConfigService.instance;
-    sut = new WebDavFolderService({
-      driveFolderService,
-      configService,
-    });
+    sut = WebDavFolderService.instance;
   });
 
   describe('createParentPathOrThrow', () => {
@@ -137,7 +135,7 @@ describe('WebDavFolderService', () => {
         uuid: 'test-uuid',
       });
 
-      vi.spyOn(driveFolderService, 'createFolder').mockReturnValue([
+      vi.spyOn(driveFolderService, 'createFolder').mockResolvedValue([
         Promise.resolve(folderResponse),
         { cancel: () => {} },
       ]);

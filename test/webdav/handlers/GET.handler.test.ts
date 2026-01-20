@@ -3,15 +3,13 @@ import { fail } from 'node:assert';
 import {
   createWebDavRequestFixture,
   createWebDavResponseFixture,
+  getNetworkFacadeMock,
   getRequestedFileResource,
 } from '../../fixtures/webdav.fixture';
 import { GETRequestHandler } from '../../../src/webdav/handlers/GET.handler';
 import { DriveFileService } from '../../../src/services/drive/drive-file.service';
-import { CryptoService } from '../../../src/services/crypto.service';
-import { DownloadService } from '../../../src/services/network/download.service';
 import { AuthService } from '../../../src/services/auth.service';
 import { NotFoundError } from '../../../src/utils/errors.utils';
-import { SdkManager } from '../../../src/services/sdk-manager.service';
 import { NetworkFacade } from '../../../src/services/network/network-facade.service';
 import { WebDavUtils } from '../../../src/utils/webdav.utils';
 import { WebDavRequestedResource } from '../../../src/types/webdav.types';
@@ -20,46 +18,17 @@ import { LoginCredentials } from '../../../src/types/command.types';
 import { UserCredentialsFixture } from '../../fixtures/login.fixture';
 import { randomInt } from 'node:crypto';
 import { NetworkUtils } from '../../../src/utils/network.utils';
-import { Environment } from '@internxt/inxt-js';
-import { ConfigService } from '../../../src/services/config.service';
-import { UserFixture } from '../../fixtures/auth.fixture';
+import { CLIUtils } from '../../../src/utils/cli.utils';
 
 describe('GET request handler', () => {
   let networkFacade: NetworkFacade;
   let sut: GETRequestHandler;
-  const getNetworkMock = () => {
-    return SdkManager.instance.getNetwork({
-      user: 'user',
-      pass: 'pass',
-    });
-  };
-
-  const getEnvironmentMock = () => {
-    return new Environment({
-      bridgeUser: 'user',
-      bridgePass: 'pass',
-      bridgeUrl: ConfigService.instance.get('NETWORK_URL'),
-      encryptionKey: UserFixture.mnemonic,
-      appDetails: SdkManager.getAppDetails(),
-    });
-  };
 
   beforeEach(() => {
-    networkFacade = new NetworkFacade(
-      getNetworkMock(),
-      getEnvironmentMock(),
-      DownloadService.instance,
-      CryptoService.instance,
-    );
-    sut = new GETRequestHandler({
-      driveFileService: DriveFileService.instance,
-      downloadService: DownloadService.instance,
-      authService: AuthService.instance,
-      cryptoService: CryptoService.instance,
-      networkFacade,
-    });
-
     vi.restoreAllMocks();
+    networkFacade = getNetworkFacadeMock();
+    sut = new GETRequestHandler();
+    vi.spyOn(CLIUtils, 'prepareNetwork').mockResolvedValue(networkFacade);
   });
 
   it('should throw a NotFoundError when the Drive file is not found', async () => {

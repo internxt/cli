@@ -2,7 +2,6 @@ import { WebDavMethodHandler, WebDavRequestedResource } from '../../types/webdav
 import { XMLUtils } from '../../utils/xml.utils';
 import { DriveFileItem, DriveFolderItem } from '../../types/drive.types';
 import { DriveFolderService } from '../../services/drive/drive-folder.service';
-import { DriveFileService } from '../../services/drive/drive-file.service';
 import { FormatUtils } from '../../utils/format.utils';
 import { Request, Response } from 'express';
 import { randomUUID } from 'node:crypto';
@@ -12,23 +11,11 @@ import { webdavLogger } from '../../utils/logger.utils';
 import { UsageService } from '../../services/usage.service';
 
 export class PROPFINDRequestHandler implements WebDavMethodHandler {
-  constructor(
-    private readonly dependencies: {
-      driveFolderService: DriveFolderService;
-      driveFileService: DriveFileService;
-    },
-  ) {}
-
   handle = async (req: Request, res: Response) => {
-    const { driveFolderService, driveFileService } = this.dependencies;
     const resource = await WebDavUtils.getRequestedResource(req.url);
     webdavLogger.info(`[PROPFIND] Request received for item at ${resource.url}`);
 
-    const driveItem = await WebDavUtils.getDriveItemFromResource({
-      resource,
-      driveFolderService,
-      driveFileService,
-    });
+    const driveItem = await WebDavUtils.getDriveItemFromResource(resource);
 
     if (!driveItem) {
       res.status(404).send();
@@ -101,9 +88,7 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
   };
 
   private readonly getFolderChildsXMLNode = async (relativePath: string, folderUuid: string) => {
-    const { driveFolderService } = this.dependencies;
-
-    const folderContent = await driveFolderService.getFolderContent(folderUuid);
+    const folderContent = await DriveFolderService.instance.getFolderContent(folderUuid);
 
     const foldersXML = folderContent.folders.map((folder) => {
       const folderRelativePath = WebDavUtils.joinURL(relativePath, folder.plainName, '/');

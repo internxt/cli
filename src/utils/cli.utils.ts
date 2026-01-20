@@ -9,8 +9,6 @@ import { SdkManager } from '../services/sdk-manager.service';
 import { Environment } from '@internxt/inxt-js';
 import { ConfigService } from '../services/config.service';
 import { NetworkFacade } from '../services/network/network-facade.service';
-import { DownloadService } from '../services/network/download.service';
-import { CryptoService } from '../services/crypto.service';
 import { AuthService } from '../services/auth.service';
 import { NetworkCredentials } from '../types/network.types';
 
@@ -280,14 +278,7 @@ export class CLIUtils {
 
   static readonly parseEmpty = async (input: string) => (input.trim().length === 0 ? ' ' : input);
 
-  static readonly prepareNetwork = async ({
-    jsonFlag,
-    loginUserDetails,
-  }: {
-    jsonFlag?: boolean;
-    loginUserDetails: LoginUserDetails;
-  }) => {
-    CLIUtils.doing('Preparing Network', jsonFlag);
+  static readonly prepareNetwork = async (loginUserDetails: LoginUserDetails) => {
     const { credentials, mnemonic } = await this.getNetworkCreds(loginUserDetails);
 
     const networkModule = SdkManager.instance.getNetwork({
@@ -301,14 +292,8 @@ export class CLIUtils {
       bridgeUrl: ConfigService.instance.get('NETWORK_URL'),
       appDetails: SdkManager.getAppDetails(),
     });
-    const networkFacade = new NetworkFacade(
-      networkModule,
-      environment,
-      DownloadService.instance,
-      CryptoService.instance,
-    );
+    const networkFacade = new NetworkFacade(networkModule, environment);
 
-    CLIUtils.done(jsonFlag);
     return networkFacade;
   };
 

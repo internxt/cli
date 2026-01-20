@@ -5,11 +5,11 @@ import { webdavLogger } from '../../utils/logger.utils';
 import { XMLUtils } from '../../utils/xml.utils';
 import { isError } from '../../utils/errors.utils';
 
-export const AuthMiddleware = (authService: AuthService): RequestHandler => {
+export const AuthMiddleware = (): RequestHandler => {
   return (_, res, next) => {
     (async () => {
       try {
-        const { token, workspace } = await authService.getAuthDetails();
+        const { token, workspace } = await AuthService.instance.getAuthDetails();
         SdkManager.init({ token, workspaceToken: workspace?.workspaceCredentials.token });
         next();
       } catch (error) {

@@ -7,17 +7,14 @@ import { isAlreadyExistsError } from '../../../../src/utils/errors.utils';
 import { stat } from 'fs/promises';
 import { createReadStream } from 'fs';
 import {
-  createFileStreamWithBuffer,
-  isFileThumbnailable,
-  tryUploadThumbnail,
-} from '../../../../src/utils/thumbnail.utils';
-import {
   createFileSystemNodeFixture,
   createMockReadStream,
   createMockStats,
   createProgressFixtures,
 } from './upload.service.helpers';
 import { newFileItem } from '../../../fixtures/drive.fixture';
+import { ThumbnailUtils } from '../../../../src/utils/thumbnail.utils';
+import { ThumbnailService } from '../../../../src/services/thumbnail.service';
 
 vi.mock('fs', () => ({
   createReadStream: vi.fn(),
@@ -25,34 +22,6 @@ vi.mock('fs', () => ({
 
 vi.mock('fs/promises', () => ({
   stat: vi.fn(),
-}));
-
-vi.mock('../../../../src/services/drive/drive-file.service', () => ({
-  DriveFileService: {
-    instance: {
-      createFile: vi.fn(),
-    },
-  },
-}));
-
-vi.mock('../../../../src/utils/thumbnail.utils', () => ({
-  isFileThumbnailable: vi.fn(),
-  tryUploadThumbnail: vi.fn(),
-  createFileStreamWithBuffer: vi.fn(),
-}));
-
-vi.mock('../../../../src/utils/stream.utils', () => ({
-  StreamUtils: {
-    createFileStreamWithBuffer: vi.fn(),
-  },
-}));
-
-vi.mock('../../../../src/utils/logger.utils', () => ({
-  logger: {
-    warn: vi.fn(),
-    info: vi.fn(),
-    error: vi.fn(),
-  },
 }));
 
 vi.mock('../../../../src/utils/errors.utils', async (importOriginal) => {
@@ -80,13 +49,13 @@ describe('UploadFileService', () => {
     vi.mocked(isAlreadyExistsError).mockReturnValue(false);
     vi.mocked(stat).mockResolvedValue(createMockStats(1024) as Awaited<ReturnType<typeof stat>>);
     vi.mocked(createReadStream).mockReturnValue(createMockReadStream() as ReturnType<typeof createReadStream>);
-    vi.mocked(isFileThumbnailable).mockReturnValue(false);
-    vi.mocked(createFileStreamWithBuffer).mockReturnValue({
+    vi.spyOn(ThumbnailUtils, 'isFileThumbnailable').mockReturnValue(false);
+    vi.spyOn(ThumbnailService.instance, 'tryUploadThumbnail').mockResolvedValue(undefined);
+    vi.spyOn(ThumbnailService.instance, 'createFileStreamWithBuffer').mockReturnValue({
       fileStream: createMockReadStream() as ReturnType<typeof createReadStream>,
       bufferStream: undefined,
     });
-    vi.mocked(tryUploadThumbnail).mockResolvedValue(undefined);
-    vi.mocked(DriveFileService.instance.createFile).mockResolvedValue(mockFile);
+    vi.spyOn(DriveFileService.instance, 'createFile').mockResolvedValue(mockFile);
   });
 
   describe('uploadFilesConcurrently', () => {
@@ -334,9 +303,11 @@ describe('UploadFileService', () => {
 
     it('should call tryUploadThumbnail when bufferStream is present', async () => {
       const mockBufferStream = { getBuffer: vi.fn() };
-      vi.mocked(createFileStreamWithBuffer).mockReturnValue({
+      vi.spyOn(ThumbnailService.instance, 'createFileStreamWithBuffer').mockReturnValue({
         fileStream: createMockReadStream() as ReturnType<typeof createReadStream>,
-        bufferStream: mockBufferStream as unknown as ReturnType<typeof createFileStreamWithBuffer>['bufferStream'],
+        bufferStream: mockBufferStream as unknown as ReturnType<
+          typeof ThumbnailService.instance.createFileStreamWithBuffer
+        >['bufferStream'],
       });
 
       const file = createFileSystemNodeFixture({
@@ -353,7 +324,7 @@ describe('UploadFileService', () => {
         parentFolderUuid: destinationFolderUuid,
       });
 
-      expect(tryUploadThumbnail).toHaveBeenCalledWith({
+      expect(ThumbnailService.instance.tryUploadThumbnail).toHaveBeenCalledWith({
         bufferStream: mockBufferStream,
         fileType: 'png',
         userBucket: bucket,

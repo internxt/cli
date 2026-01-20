@@ -5,7 +5,7 @@ export class AsyncUtils {
    * @param {number} ms - The number of milliseconds to pause the execution.
    * @return {Promise<void>} A promise that resolves once the specified time has elapsed.
    */
-  static sleep(ms: number): Promise<void> {
+  static readonly sleep = (ms: number): Promise<void> => {
     return new Promise((resolve) => setTimeout(resolve, ms));
-  }
+  };
 }

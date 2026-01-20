@@ -11,14 +11,6 @@ vi.mock('fs', () => ({
   },
 }));
 
-vi.mock('../../../src/utils/logger.utils', () => ({
-  logger: {
-    warn: vi.fn(),
-    error: vi.fn(),
-    info: vi.fn(),
-  },
-}));
-
 describe('Local Filesystem Service', () => {
   let service: LocalFilesystemService;
   const mockStat = vi.mocked(promises.stat);
@@ -40,8 +32,8 @@ describe('Local Filesystem Service', () => {
     }) as unknown as Dirent<string>;
 
   beforeEach(() => {
-    service = LocalFilesystemService.instance;
     vi.clearAllMocks();
+    service = LocalFilesystemService.instance;
     mockReaddir.mockResolvedValue([]);
   });
 

@@ -19,8 +19,6 @@ export class NetworkFacade {
   constructor(
     private readonly network: Network.Network,
     private readonly environment: Environment,
-    private readonly downloadService: DownloadService,
-    private readonly cryptoService: CryptoService,
   ) {
     this.cryptoLib = {
       algorithm: Network.ALGORITHMS.AES256CTR,
@@ -68,7 +66,7 @@ export class NetworkFacade {
       if (rangeOptions) {
         startOffsetByte = rangeOptions.parsed.start;
       }
-      fileStream = this.cryptoService.decryptStream(
+      fileStream = CryptoService.instance.decryptStream(
         encryptedContentStreams,
         Buffer.from(key as ArrayBuffer),
         Buffer.from(iv as ArrayBuffer),
@@ -88,7 +86,7 @@ export class NetworkFacade {
           throw new Error('Download aborted');
         }
 
-        const encryptedContentStream = await this.downloadService.downloadFile(downloadable.url, {
+        const encryptedContentStream = await DownloadService.instance.downloadFile(downloadable.url, {
           progressCallback: onProgress,
           abortController: options?.abortController,
           rangeHeader: rangeOptions?.range,

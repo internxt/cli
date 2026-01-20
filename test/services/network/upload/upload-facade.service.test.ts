@@ -5,16 +5,16 @@ import { logger } from '../../../../src/utils/logger.utils';
 import { LocalFilesystemService } from '../../../../src/services/local-filesystem/local-filesystem.service';
 import { UploadFolderService } from '../../../../src/services/network/upload/upload-folder.service';
 import { UploadFileService } from '../../../../src/services/network/upload/upload-file.service';
-import { NetworkFacade } from '../../../../src/services/network/network-facade.service';
 import { LoginUserDetails } from '../../../../src/types/command.types';
 import { createFileSystemNodeFixture } from './upload.service.helpers';
 import { AsyncUtils } from '../../../../src/utils/async.utils';
 import { UserFixture } from '../../../fixtures/auth.fixture';
+import { getNetworkFacadeMock } from '../../../fixtures/webdav.fixture';
 
 describe('UploadFacade', () => {
   let sut: UploadFacade;
 
-  const mockNetworkFacade = {} as NetworkFacade;
+  const mockNetworkFacade = getNetworkFacadeMock();
 
   const mockLoginUserDetails: LoginUserDetails = UserFixture;
   const folderName = 'test-folder';

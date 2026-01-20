@@ -10,7 +10,6 @@ import {
   getRequestedFolderResource,
 } from '../../fixtures/webdav.fixture';
 import { FormatUtils } from '../../../src/utils/format.utils';
-import { DriveFileService } from '../../../src/services/drive/drive-file.service';
 import { WebDavRequestedResource } from '../../../src/types/webdav.types';
 import { WebDavUtils } from '../../../src/utils/webdav.utils';
 import mime from 'mime-types';
@@ -30,11 +29,9 @@ const randomUUIDStub = vi.mocked(randomUUID);
 
 describe('PROPFIND request handler', () => {
   let sut: PROPFINDRequestHandler;
+
   beforeEach(() => {
-    sut = new PROPFINDRequestHandler({
-      driveFileService: DriveFileService.instance,
-      driveFolderService: DriveFolderService.instance,
-    });
+    sut = new PROPFINDRequestHandler();
     vi.restoreAllMocks();
   });
 

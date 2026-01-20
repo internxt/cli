@@ -8,19 +8,11 @@ import { AuthService } from '../../services/auth.service';
 import { DriveUtils } from '../../utils/drive.utils';
 
 export class WebDavFolderService {
-  constructor(
-    private readonly dependencies: {
-      driveFolderService: DriveFolderService;
-      configService: ConfigService;
-    },
-  ) {}
+  public static readonly instance: WebDavFolderService = new WebDavFolderService();
 
   public getDriveFolderItemFromPath = async (path: string): Promise<DriveFolderItem | undefined> => {
     const { url } = await WebDavUtils.getRequestedResource(path, false);
-    return await WebDavUtils.getDriveFolderFromResource({
-      url,
-      driveFolderService: this.dependencies.driveFolderService,
-    });
+    return await WebDavUtils.getDriveFolderFromResource(url);
   };
 
   public createFolder = async ({
@@ -30,7 +22,7 @@ export class WebDavFolderService {
     folderName: string;
     parentFolderUuid: string;
   }): Promise<DriveFolderItem> => {
-    const [createFolderPromise] = await this.dependencies.driveFolderService.createFolder({
+    const [createFolderPromise] = await DriveFolderService.instance.createFolder({
       plainName: folderName,
       parentFolderUuid: parentFolderUuid,
     });
@@ -44,7 +36,7 @@ export class WebDavFolderService {
   };
 
   public createParentPathOrThrow = async (parentPath: string): Promise<DriveFolderItem> => {
-    const { createFullPath } = await this.dependencies.configService.readWebdavConfig();
+    const { createFullPath } = await ConfigService.instance.readWebdavConfig();
     if (!createFullPath) {
       // WebDAV RFC: https://datatracker.ietf.org/doc/html/rfc4918#section-9.7.1
       // When the PUT operation creates a new resource,

@@ -185,7 +185,7 @@ describe('CliUtils', () => {
         },
         mnemonic: mockLoginUserDetails.mnemonic,
       });
-      const result = await CLIUtils.prepareNetwork({ loginUserDetails: mockLoginUserDetails });
+      const result = await CLIUtils.prepareNetwork(mockLoginUserDetails);
 
       expect(result).toBe(mockNetworkFacade);
       expect(SdkManager.instance.getNetwork).toHaveBeenCalledWith({
@@ -200,25 +200,6 @@ describe('CliUtils', () => {
         appDetails: mockAppDetails,
       });
       expect(NetworkFacade).toHaveBeenCalledTimes(1);
-    });
-
-    it('should properly output to the terminal the prepare network step', async () => {
-      vi.spyOn(CLIUtils, 'getNetworkCreds').mockResolvedValue({
-        bucket: mockLoginUserDetails.bucket,
-        credentials: {
-          user: mockLoginUserDetails.bridgeUser,
-          pass: mockLoginUserDetails.userId,
-        },
-        mnemonic: mockLoginUserDetails.mnemonic,
-      });
-      const jsonFlag = true;
-      const doingSpy = vi.spyOn(CLIUtils, 'doing');
-      const doneSpy = vi.spyOn(CLIUtils, 'done');
-
-      await CLIUtils.prepareNetwork({ jsonFlag, loginUserDetails: mockLoginUserDetails });
-
-      expect(doingSpy).toHaveBeenCalledWith('Preparing Network', jsonFlag);
-      expect(doneSpy).toHaveBeenCalledWith(jsonFlag);
     });
   });
 
