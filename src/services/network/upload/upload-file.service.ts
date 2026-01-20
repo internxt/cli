@@ -128,7 +128,7 @@ export class UploadFileService {
           void ThumbnailService.instance.tryUploadThumbnail({
             bufferStream: thumbnailStream,
             fileType,
-            userBucket: bucket,
+            bucket,
             fileUuid: createdDriveFile.uuid,
             networkFacade: network,
           });

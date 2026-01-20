@@ -319,7 +319,7 @@ describe('UploadFileService', () => {
       expect(ThumbnailService.instance.tryUploadThumbnail).toHaveBeenCalledWith({
         bufferStream: mockBufferStream,
         fileType: 'png',
-        userBucket: bucket,
+        bucket,
         fileUuid: mockFile.uuid,
         networkFacade: mockNetworkFacade,
       });

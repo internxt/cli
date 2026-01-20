@@ -68,7 +68,7 @@ export class PUTRequestHandler implements WebDavMethodHandler {
       fileStream = req.pipe(bufferStream);
     }
 
-    const networkFacade = await CLIUtils.prepareNetwork(user);
+    const { networkFacade, bucket } = await CLIUtils.prepareNetwork(user);
 
     let fileId: string | undefined;
 
@@ -87,7 +87,7 @@ export class PUTRequestHandler implements WebDavMethodHandler {
         const state = networkFacade.uploadFile(
           fileStream,
           contentLength,
-          user.bucket,
+          bucket,
           (err: Error | null, res: string | null) => {
             if (err) {
               aborted = true;
@@ -117,8 +117,8 @@ export class PUTRequestHandler implements WebDavMethodHandler {
       type: fileType,
       size: contentLength,
       folderUuid: parentDriveFolderItem.uuid,
-      fileId: fileId,
-      bucket: user.bucket,
+      fileId,
+      bucket,
       encryptVersion: EncryptionVersion.Aes03,
     });
     timings.driveUpload = driveTimer.stop();
@@ -126,10 +126,10 @@ export class PUTRequestHandler implements WebDavMethodHandler {
     const thumbnailTimer = CLIUtils.timer();
     if (contentLength > 0 && isThumbnailable && bufferStream) {
       void ThumbnailService.instance.tryUploadThumbnail({
+        fileUuid: file.uuid,
         bufferStream,
         fileType,
-        userBucket: user.bucket,
-        fileUuid: file.uuid,
+        bucket,
         networkFacade,
       });
     }

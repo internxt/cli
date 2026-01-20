@@ -9,12 +9,12 @@ import { LoginUserDetails } from '../../../../src/types/command.types';
 import { createFileSystemNodeFixture } from './upload.service.helpers';
 import { AsyncUtils } from '../../../../src/utils/async.utils';
 import { UserFixture } from '../../../fixtures/auth.fixture';
-import { getNetworkFacadeMock } from '../../../fixtures/webdav.fixture';
+import { getNetworkOptionsMock } from '../../../fixtures/webdav.fixture';
 
 describe('UploadFacade', () => {
   let sut: UploadFacade;
 
-  const mockNetworkFacade = getNetworkFacadeMock();
+  const mockNetworkOptions = getNetworkOptionsMock();
 
   const mockLoginUserDetails: LoginUserDetails = UserFixture;
   const folderName = 'test-folder';
@@ -38,7 +38,7 @@ describe('UploadFacade', () => {
     });
     vi.spyOn(UploadFolderService.instance, 'createFolders').mockResolvedValue(folderMap);
     vi.spyOn(UploadFileService.instance, 'uploadFilesConcurrently').mockResolvedValue(500);
-    vi.spyOn(CLIUtils, 'prepareNetwork').mockResolvedValue(mockNetworkFacade);
+    vi.spyOn(CLIUtils, 'prepareNetwork').mockResolvedValue(mockNetworkOptions);
     vi.spyOn(CLIUtils, 'timer').mockReturnValue({
       stop: vi.fn().mockReturnValue(1000),
     });

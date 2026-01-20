@@ -66,7 +66,7 @@ export default class UploadFile extends Command {
 
     // Prepare the network
     CLIUtils.doing('Preparing Network', flags['json']);
-    const networkFacade = await CLIUtils.prepareNetwork(user);
+    const { networkFacade, bucket } = await CLIUtils.prepareNetwork(user);
     CLIUtils.done(flags['json']);
 
     const networkUploadTimer = CLIUtils.timer();
@@ -102,7 +102,7 @@ export default class UploadFile extends Command {
         const state = networkFacade.uploadFile(
           fileStream,
           fileSize,
-          user.bucket,
+          bucket,
           (err: Error | null, res: string | null) => {
             if (err) {
               return reject(err);
@@ -126,8 +126,8 @@ export default class UploadFile extends Command {
       type: fileType,
       size: fileSize,
       folderUuid: destinationFolderUuid,
-      fileId: fileId,
-      bucket: user.bucket,
+      fileId,
+      bucket,
       encryptVersion: EncryptionVersion.Aes03,
       creationTime: stats.birthtime?.toISOString(),
       modificationTime: stats.mtime?.toISOString(),
@@ -139,7 +139,7 @@ export default class UploadFile extends Command {
       void ThumbnailService.instance.tryUploadThumbnail({
         bufferStream,
         fileType,
-        userBucket: user.bucket,
+        bucket,
         fileUuid: createdDriveFile.uuid,
         networkFacade,
       });

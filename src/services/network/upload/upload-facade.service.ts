@@ -19,7 +19,7 @@ export class UploadFacade {
   }: UploadFolderParams) => {
     const timer = CLIUtils.timer();
     CLIUtils.doing('Preparing Network', jsonFlag);
-    const network = await CLIUtils.prepareNetwork(loginUserDetails);
+    const { networkFacade, bucket } = await CLIUtils.prepareNetwork(loginUserDetails);
     CLIUtils.done(jsonFlag);
     const scanResult = await LocalFilesystemService.instance.scanLocalDirectory(localPath);
     logger.info(
@@ -48,10 +48,10 @@ export class UploadFacade {
     await AsyncUtils.sleep(500);
 
     const totalBytes = await UploadFileService.instance.uploadFilesConcurrently({
-      network,
+      network: networkFacade,
       filesToUpload: scanResult.files,
       folderMap,
-      bucket: loginUserDetails.bucket,
+      bucket,
       destinationFolderUuid,
       currentProgress,
       emitProgress,

@@ -7,6 +7,7 @@ import { Environment } from '@internxt/inxt-js';
 import { ConfigService } from '../../src/services/config.service';
 import { UserFixture } from './auth.fixture';
 import { NetworkFacade } from '../../src/services/network/network-facade.service';
+import { NetworkOptions } from '../../src/types/network.types';
 
 export const createWebDavRequestFixture = <T extends object>(request: T): T & Request => {
   return getMockReq({
@@ -81,4 +82,13 @@ export const getEnvironmentMock = () => {
 
 export const getNetworkFacadeMock = () => {
   return new NetworkFacade(getNetworkMock(), getEnvironmentMock());
+};
+
+export const getNetworkOptionsMock = (attributes?: Partial<NetworkOptions>): NetworkOptions => {
+  const options: NetworkOptions = {
+    networkFacade: new NetworkFacade(getNetworkMock(), getEnvironmentMock()),
+    bucket: UserFixture.bucket,
+    mnemonic: UserFixture.mnemonic,
+  };
+  return { ...options, ...attributes };
 };

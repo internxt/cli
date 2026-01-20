@@ -3,6 +3,7 @@ import {
   createWebDavRequestFixture,
   createWebDavResponseFixture,
   getNetworkFacadeMock,
+  getNetworkOptionsMock,
   getRequestedFileResource,
   getRequestedFolderResource,
 } from '../../fixtures/webdav.fixture';
@@ -23,8 +24,9 @@ describe('PUT request handler', () => {
 
   beforeEach(() => {
     vi.restoreAllMocks();
+
     networkFacade = getNetworkFacadeMock();
-    vi.spyOn(CLIUtils, 'prepareNetwork').mockResolvedValue(networkFacade);
+    vi.spyOn(CLIUtils, 'prepareNetwork').mockResolvedValue(getNetworkOptionsMock({ networkFacade }));
 
     sut = new PUTRequestHandler();
   });

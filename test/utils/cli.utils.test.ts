@@ -9,6 +9,8 @@ import { ConfigService } from '../../src/services/config.service';
 import { NetworkFacade } from '../../src/services/network/network-facade.service';
 import { Environment } from '@internxt/inxt-js';
 import { UserFixture } from '../fixtures/auth.fixture';
+import { getNetworkOptionsMock } from '../fixtures/webdav.fixture';
+import { NetworkOptions } from '../../src/types/network.types';
 
 vi.mock('ux', () => {
   return {
@@ -39,6 +41,7 @@ describe('CliUtils', () => {
 
   const BRIDGE_URL = 'https://test.com';
   const mockNetworkFacade: NetworkFacade = {} as NetworkFacade;
+  const mockNetworkOptions: NetworkOptions = getNetworkOptionsMock();
   const mockLoginUserDetails: LoginUserDetails = UserFixture;
 
   const mockNetworkModule = {} as ReturnType<typeof SdkManager.instance.getNetwork>;
@@ -187,7 +190,7 @@ describe('CliUtils', () => {
       });
       const result = await CLIUtils.prepareNetwork(mockLoginUserDetails);
 
-      expect(result).toBe(mockNetworkFacade);
+      expect(result).toEqual(mockNetworkOptions);
       expect(SdkManager.instance.getNetwork).toHaveBeenCalledWith({
         user: mockLoginUserDetails.bridgeUser,
         pass: mockLoginUserDetails.userId,

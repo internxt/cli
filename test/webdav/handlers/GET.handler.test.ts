@@ -4,6 +4,7 @@ import {
   createWebDavRequestFixture,
   createWebDavResponseFixture,
   getNetworkFacadeMock,
+  getNetworkOptionsMock,
   getRequestedFileResource,
 } from '../../fixtures/webdav.fixture';
 import { GETRequestHandler } from '../../../src/webdav/handlers/GET.handler';
@@ -19,16 +20,19 @@ import { UserCredentialsFixture } from '../../fixtures/login.fixture';
 import { randomInt } from 'node:crypto';
 import { NetworkUtils } from '../../../src/utils/network.utils';
 import { CLIUtils } from '../../../src/utils/cli.utils';
+import { NetworkOptions } from '../../../src/types/network.types';
 
 describe('GET request handler', () => {
-  let networkFacade: NetworkFacade;
   let sut: GETRequestHandler;
+  const networkFacade: NetworkFacade = getNetworkFacadeMock();
+  const networkOptions: NetworkOptions = getNetworkOptionsMock({ networkFacade });
 
   beforeEach(() => {
     vi.restoreAllMocks();
-    networkFacade = getNetworkFacadeMock();
+
+    vi.spyOn(CLIUtils, 'prepareNetwork').mockResolvedValue(networkOptions);
+
     sut = new GETRequestHandler();
-    vi.spyOn(CLIUtils, 'prepareNetwork').mockResolvedValue(networkFacade);
   });
 
   it('should throw a NotFoundError when the Drive file is not found', async () => {
@@ -96,7 +100,7 @@ describe('GET request handler', () => {
     expect(getFileMetadataStub).toHaveBeenCalledOnce();
     expect(authDetailsStub).toHaveBeenCalledOnce();
     expect(downloadStreamStub).toHaveBeenCalledWith(
-      mockFile.bucket,
+      networkOptions.bucket,
       mockAuthDetails.user.mnemonic,
       mockFile.fileId,
       mockFile.size,
@@ -153,7 +157,7 @@ describe('GET request handler', () => {
     expect(getFileMetadataStub).toHaveBeenCalledOnce();
     expect(authDetailsStub).toHaveBeenCalledOnce();
     expect(downloadStreamStub).toHaveBeenCalledWith(
-      mockFile.bucket,
+      networkOptions.bucket,
       mockAuthDetails.user.mnemonic,
       mockFile.fileId,
       mockSize - rangeStart,

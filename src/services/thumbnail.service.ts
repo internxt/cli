@@ -85,20 +85,20 @@ export class ThumbnailService {
   public tryUploadThumbnail = async ({
     bufferStream,
     fileType,
-    userBucket,
+    bucket,
     fileUuid,
     networkFacade,
   }: {
     bufferStream?: BufferStream;
     fileType: string;
-    userBucket: string;
+    bucket: string;
     fileUuid: string;
     networkFacade: NetworkFacade;
   }) => {
     try {
       const thumbnailBuffer = bufferStream?.getBuffer();
       if (thumbnailBuffer) {
-        await ThumbnailService.instance.uploadThumbnail(thumbnailBuffer, fileType, userBucket, fileUuid, networkFacade);
+        await ThumbnailService.instance.uploadThumbnail(thumbnailBuffer, fileType, bucket, fileUuid, networkFacade);
       }
     } catch (error) {
       ErrorUtils.report(error);

@@ -77,14 +77,14 @@ export default class DownloadFile extends Command {
       const { user } = await AuthService.instance.getAuthDetails();
 
       CLIUtils.doing('Preparing Network', flags['json']);
-      const networkFacade = await CLIUtils.prepareNetwork(user);
+      const { networkFacade, bucket, mnemonic } = await CLIUtils.prepareNetwork(user);
       CLIUtils.done(flags['json']);
       // Download the file
       const fileWriteStream = createWriteStream(downloadPath);
 
       const [executeDownload, abortable] = await networkFacade.downloadToStream(
-        driveFile.bucket,
-        user.mnemonic,
+        bucket,
+        mnemonic,
         driveFile.fileId,
         driveFile.size,
         StreamUtils.writeStreamToWritableStream(fileWriteStream),

@@ -56,11 +56,11 @@ export class GETRequestHandler implements WebDavMethodHandler {
         throw new NotValidFileIdError();
       }
 
-      const networkFacade = await CLIUtils.prepareNetwork(user);
+      const { networkFacade, bucket, mnemonic } = await CLIUtils.prepareNetwork(user);
 
       const [executeDownload] = await networkFacade.downloadToStream(
-        driveFile.bucket,
-        user.mnemonic,
+        bucket,
+        mnemonic,
         driveFile.fileId,
         contentLength,
         writable,
