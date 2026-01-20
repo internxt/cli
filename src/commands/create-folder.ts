@@ -9,7 +9,7 @@ import { AsyncUtils } from '../utils/async.utils';
 export default class CreateFolder extends Command {
   static readonly args = {};
   static readonly description = 'Create a folder in your Internxt Drive';
-  static readonly aliases = [];
+  static readonly aliases = ['create:folder'];
   static readonly examples = ['<%= config.bin %> <%= command.id %>'];
   static readonly flags = {
     ...CLIUtils.CommonFlags,

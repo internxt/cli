@@ -21,8 +21,10 @@ export default class WorkspacesUse extends Command {
       char: 'i',
       description:
         'The id of the workspace to activate. ' +
-        'Use <%= config.bin %> workspaces list to view your available workspace ids.',
+        'Use <%= config.bin %> workspaces list to view your available workspace ids.' +
+        'If the ID is "personal" the personal drive space will be selected.',
       required: false,
+      exclusive: ['personal'],
     }),
   };
   static readonly enableJsonFlag = true;
@@ -33,6 +35,13 @@ export default class WorkspacesUse extends Command {
 
     const userCredentials = await ConfigService.instance.readUser();
     if (!userCredentials) throw new MissingCredentialsError();
+
+    if (flags['id']?.trim().toLowerCase() === 'personal') {
+      SdkManager.init({ token: userCredentials.token });
+      await ConfigService.instance.saveUser({ ...userCredentials, workspace: undefined });
+      CLIUtils.success(this.log.bind(this), 'Personal drive space selected successfully.');
+      return { success: true, message: 'Personal drive space selected successfully.' };
+    }
 
     const workspaces = await WorkspaceService.instance.getAvailableWorkspaces(userCredentials.user);
     const availableWorkspaces: string[] = workspaces.map((workspaceData) => {

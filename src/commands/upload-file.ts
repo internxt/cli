@@ -1,12 +1,11 @@
 import { Command, Flags } from '@oclif/core';
 import { stat } from 'node:fs/promises';
 import { createReadStream } from 'node:fs';
-import { AuthService } from '../services/auth.service';
 import { CLIUtils } from '../utils/cli.utils';
 import { ConfigService } from '../services/config.service';
 import path from 'node:path';
 import { DriveFileService } from '../services/drive/drive-file.service';
-import { NotValidFileError } from '../types/command.types';
+import { MissingCredentialsError, NotValidFileError } from '../types/command.types';
 import { ValidationService } from '../services/validation.service';
 import { EncryptionVersion } from '@internxt/sdk/dist/drive/storage/types';
 import { BufferStream } from '../utils/stream.utils';
@@ -40,8 +39,8 @@ export default class UploadFile extends Command {
 
     const nonInteractive = flags['non-interactive'];
 
-    const userCredentials = await AuthService.instance.getAuthDetails();
-    const user = userCredentials.user;
+    const userCredentials = await ConfigService.instance.readUser();
+    if (!userCredentials) throw new MissingCredentialsError();
 
     const filePath = await this.getFilePath(flags['file'], nonInteractive);
 
@@ -66,7 +65,7 @@ export default class UploadFile extends Command {
 
     // Prepare the network
     CLIUtils.doing('Preparing Network', flags['json']);
-    const { networkFacade, bucket } = await CLIUtils.prepareNetwork(user);
+    const { networkFacade, bucket } = await CLIUtils.prepareNetwork(userCredentials.user);
     CLIUtils.done(flags['json']);
 
     const networkUploadTimer = CLIUtils.timer();
