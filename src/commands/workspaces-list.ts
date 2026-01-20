@@ -9,7 +9,7 @@ import { FormatUtils } from '../utils/format.utils';
 export default class WorkspacesList extends Command {
   static readonly args = {};
   static readonly description = 'Get the list of workspaces.';
-  static readonly aliases = ['workspaces:list', 'ws-list', 'ws:list'];
+  static readonly aliases = ['workspaces:list'];
   static readonly examples = ['<%= config.bin %> <%= command.id %>'];
   static readonly flags = {
     ...CLIUtils.CommonFlags,

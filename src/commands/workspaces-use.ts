@@ -13,7 +13,7 @@ export default class WorkspacesUse extends Command {
     'Set the active workspace context for the current user session. ' +
     'Once a workspace is selected, all subsequent commands (list, upload, download, etc.) ' +
     'will operate within that workspace until it is changed or unset.';
-  static readonly aliases = ['workspaces:use', 'ws-use', 'ws:use'];
+  static readonly aliases = ['workspaces:use'];
   static readonly examples = ['<%= config.bin %> <%= command.id %>'];
   static readonly flags = {
     ...CLIUtils.CommonFlags,
