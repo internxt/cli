@@ -1,8 +1,11 @@
 import { Readable } from 'node:stream';
+import { createReadStream } from 'node:fs';
 import { DriveFileService } from './drive/drive-file.service';
 import { StorageTypes } from '@internxt/sdk/dist/drive';
 import { NetworkFacade } from './network/network-facade.service';
-import { isImageThumbnailable, ThumbnailConfig } from '../utils/thumbnail.utils';
+import { ThumbnailConfig, ThumbnailUtils } from '../utils/thumbnail.utils';
+import { BufferStream } from '../utils/stream.utils';
+import { ErrorUtils } from '../utils/errors.utils';
 
 let sharpDependency: typeof import('sharp') | null = null;
 
@@ -28,7 +31,7 @@ export class ThumbnailService {
     networkFacade: NetworkFacade,
   ): Promise<StorageTypes.Thumbnail | undefined> => {
     let thumbnailBuffer: Buffer | undefined;
-    if (isImageThumbnailable(fileType)) {
+    if (ThumbnailUtils.isImageThumbnailable(fileType)) {
       thumbnailBuffer = await this.getThumbnailFromImageBuffer(fileContent);
     }
     if (thumbnailBuffer) {
@@ -77,5 +80,49 @@ export class ThumbnailService {
         })
         .toBuffer();
     }
+  };
+
+  public tryUploadThumbnail = async ({
+    bufferStream,
+    fileType,
+    userBucket,
+    fileUuid,
+    networkFacade,
+  }: {
+    bufferStream?: BufferStream;
+    fileType: string;
+    userBucket: string;
+    fileUuid: string;
+    networkFacade: NetworkFacade;
+  }) => {
+    try {
+      const thumbnailBuffer = bufferStream?.getBuffer();
+      if (thumbnailBuffer) {
+        await ThumbnailService.instance.uploadThumbnail(thumbnailBuffer, fileType, userBucket, fileUuid, networkFacade);
+      }
+    } catch (error) {
+      ErrorUtils.report(error);
+    }
+  };
+
+  public createFileStreamWithBuffer = ({
+    path,
+    fileType,
+  }: {
+    path: string;
+    fileType: string;
+  }): {
+    bufferStream?: BufferStream;
+    fileStream: Readable;
+  } => {
+    const readable: Readable = createReadStream(path);
+    if (ThumbnailUtils.isFileThumbnailable(fileType)) {
+      const bufferStream = new BufferStream();
+      return {
+        bufferStream,
+        fileStream: readable.pipe(bufferStream),
+      };
+    }
+    return { fileStream: readable };
   };
 }

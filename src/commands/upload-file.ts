@@ -10,8 +10,9 @@ import { NotValidFileError } from '../types/command.types';
 import { ValidationService } from '../services/validation.service';
 import { EncryptionVersion } from '@internxt/sdk/dist/drive/storage/types';
 import { BufferStream } from '../utils/stream.utils';
-import { isFileThumbnailable, tryUploadThumbnail } from '../utils/thumbnail.utils';
 import { Readable } from 'node:stream';
+import { ThumbnailUtils } from '../utils/thumbnail.utils';
+import { ThumbnailService } from '../services/thumbnail.service';
 
 export default class UploadFile extends Command {
   static readonly args = {};
@@ -78,7 +79,7 @@ export default class UploadFile extends Command {
 
     let fileId: string | undefined;
     let bufferStream: BufferStream | undefined;
-    const isThumbnailable = isFileThumbnailable(fileType);
+    const isThumbnailable = ThumbnailUtils.isFileThumbnailable(fileType);
     const fileSize = stats.size ?? 0;
 
     if (fileSize > 0) {
@@ -133,7 +134,7 @@ export default class UploadFile extends Command {
 
     const thumbnailTimer = CLIUtils.timer();
     if (fileSize > 0 && isThumbnailable && bufferStream) {
-      void tryUploadThumbnail({
+      void ThumbnailService.instance.tryUploadThumbnail({
         bufferStream,
         fileType,
         userBucket: user.bucket,
