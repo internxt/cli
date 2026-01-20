@@ -6,7 +6,7 @@ import { logger } from '../../utils/logger.utils';
 export class LocalFilesystemService {
   static readonly instance = new LocalFilesystemService();
 
-  async scanLocalDirectory(path: string): Promise<ScanResult> {
+  public scanLocalDirectory = async (path: string): Promise<ScanResult> => {
     const folders: FileSystemNode[] = [];
     const files: FileSystemNode[] = [];
 
@@ -18,13 +18,14 @@ export class LocalFilesystemService {
       totalItems: folders.length + files.length,
       totalBytes,
     };
-  }
-  async scanRecursive(
+  };
+
+  public scanRecursive = async (
     currentPath: string,
     parentPath: string,
     folders: FileSystemNode[],
     files: FileSystemNode[],
-  ): Promise<number> {
+  ): Promise<number> => {
     try {
       const stats = await promises.stat(currentPath);
       const relativePath = relative(parentPath, currentPath);
@@ -63,5 +64,5 @@ export class LocalFilesystemService {
       logger.warn(`Error scanning path ${currentPath}: ${(error as Error).message} - skipping...`);
       return 0;
     }
-  }
+  };
 }

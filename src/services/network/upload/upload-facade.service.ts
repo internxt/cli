@@ -10,7 +10,13 @@ import { AsyncUtils } from '../../../utils/async.utils';
 export class UploadFacade {
   static readonly instance = new UploadFacade();
 
-  async uploadFolder({ localPath, destinationFolderUuid, loginUserDetails, jsonFlag, onProgress }: UploadFolderParams) {
+  public uploadFolder = async ({
+    localPath,
+    destinationFolderUuid,
+    loginUserDetails,
+    jsonFlag,
+    onProgress,
+  }: UploadFolderParams) => {
     const timer = CLIUtils.timer();
     CLIUtils.doing('Preparing Network', jsonFlag);
     const network = await CLIUtils.prepareNetwork(loginUserDetails);
@@ -58,5 +64,5 @@ export class UploadFacade {
       rootFolderId,
       uploadTimeMs: timer.stop(),
     };
-  }
+  };
 }

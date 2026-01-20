@@ -6,12 +6,13 @@ import { CreateFoldersParams, CreateFolderWithRetryParams, DELAYS_MS, MAX_RETRIE
 
 export class UploadFolderService {
   static readonly instance = new UploadFolderService();
-  async createFolders({
+
+  public createFolders = async ({
     foldersToCreate,
     destinationFolderUuid,
     currentProgress,
     emitProgress,
-  }: CreateFoldersParams): Promise<Map<string, string>> {
+  }: CreateFoldersParams): Promise<Map<string, string>> => {
     const folderMap = new Map<string, string>();
     for (const folder of foldersToCreate) {
       const parentPath = dirname(folder.relativePath);
@@ -34,9 +35,12 @@ export class UploadFolderService {
       }
     }
     return folderMap;
-  }
+  };
 
-  async createFolderWithRetry({ folderName, parentFolderUuid }: CreateFolderWithRetryParams): Promise<string | null> {
+  public createFolderWithRetry = async ({
+    folderName,
+    parentFolderUuid,
+  }: CreateFolderWithRetryParams): Promise<string | null> => {
     for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
       try {
         const [createFolderPromise] = await DriveFolderService.instance.createFolder({
@@ -65,5 +69,5 @@ export class UploadFolderService {
       }
     }
     return null;
-  }
+  };
 }

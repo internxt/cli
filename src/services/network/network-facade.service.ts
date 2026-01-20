@@ -42,7 +42,7 @@ export class NetworkFacade {
    * @param options The download options
    * @returns A promise to execute the download and an abort controller to cancel the download
    */
-  async downloadToStream(
+  public downloadToStream = async (
     bucketId: string,
     mnemonic: string,
     fileId: string,
@@ -50,7 +50,7 @@ export class NetworkFacade {
     to: WritableStream,
     rangeOptions?: RangeOptions,
     options?: DownloadOptions,
-  ): Promise<[Promise<void>, AbortController]> {
+  ): Promise<[Promise<void>, AbortController]> => {
     const encryptedContentStreams: ReadableStream<Uint8Array>[] = [];
     let fileStream: ReadableStream<Uint8Array>;
     const abortable = options?.abortController ?? new AbortController();
@@ -110,7 +110,7 @@ export class NetworkFacade {
     };
 
     return [downloadOperation(), abortable];
-  }
+  };
 
   /**
    * Performs an upload encrypting the stream content
@@ -120,13 +120,13 @@ export class NetworkFacade {
    * @param from The source ReadStream to upload from
    * @returns A promise to execute the upload and an abort controller to cancel the upload
    */
-  uploadFile(
+  public uploadFile = (
     from: Readable,
     size: number,
     bucketId: string,
     finishedCallback: (err: Error | null, res: string | null) => void,
     progressCallback: (progress: number) => void,
-  ): ActionState {
+  ): ActionState => {
     if (size > TWENTY_GIGABYTES) {
       throw new Error('File is too big (more than 20 GB)');
     }
@@ -148,5 +148,5 @@ export class NetworkFacade {
         progressCallback,
       });
     }
-  }
+  };
 }
