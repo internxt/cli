@@ -2,20 +2,9 @@ import { beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest';
 import { DriveFolderService } from '../../../../src/services/drive/drive-folder.service';
 import { UploadFolderService } from '../../../../src/services/network/upload/upload-folder.service';
 import { logger } from '../../../../src/utils/logger.utils';
-import { isAlreadyExistsError } from '../../../../src/utils/errors.utils';
+import { ErrorUtils } from '../../../../src/utils/errors.utils';
 import { createFileSystemNodeFixture, createProgressFixtures } from './upload.service.helpers';
 import { DELAYS_MS } from '../../../../src/services/network/upload/upload.types';
-
-vi.mock('../../../../src/utils/errors.utils', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('../../../../src/utils/errors.utils')>();
-  return {
-    ...actual,
-    isAlreadyExistsError: vi.fn(),
-    ErrorUtils: {
-      report: vi.fn(),
-    },
-  };
-});
 
 describe('UploadFolderService', () => {
   let sut: UploadFolderService;
@@ -26,7 +15,7 @@ describe('UploadFolderService', () => {
     vi.spyOn(DriveFolderService.instance, 'createFolder').mockReturnValue([
       Promise.resolve({ uuid: 'mock-folder-uuid' }),
     ] as unknown as ReturnType<typeof DriveFolderService.instance.createFolder>);
-    vi.mocked(isAlreadyExistsError).mockReturnValue(false);
+    vi.spyOn(ErrorUtils, 'isAlreadyExistsError').mockReturnValue(false);
   });
 
   describe('createFolders', () => {
@@ -124,7 +113,7 @@ describe('UploadFolderService', () => {
 
     it('should properly return null if the folder already exists', async () => {
       const alreadyExistsError = new Error('Folder already exists');
-      vi.mocked(isAlreadyExistsError).mockReturnValue(true);
+      vi.spyOn(ErrorUtils, 'isAlreadyExistsError').mockReturnValue(true);
       vi.spyOn(DriveFolderService.instance, 'createFolder').mockReturnValueOnce([
         Promise.reject(alreadyExistsError),
       ] as unknown as ReturnType<typeof DriveFolderService.instance.createFolder>);

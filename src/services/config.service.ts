@@ -2,7 +2,7 @@ import fs from 'node:fs/promises';
 import { ConfigKeys } from '../types/config.types';
 import { LoginCredentials, WebdavConfig } from '../types/command.types';
 import { CryptoService } from './crypto.service';
-import { isFileNotFoundError } from '../utils/errors.utils';
+import { ErrorUtils } from '../utils/errors.utils';
 import {
   CREDENTIALS_FILE,
   INTERNXT_CLI_DATA_DIR,
@@ -53,7 +53,7 @@ export class ConfigService {
       if (stat.size === 0) return;
       await fs.writeFile(CREDENTIALS_FILE, '', 'utf8');
     } catch (error) {
-      if (!isFileNotFoundError(error)) {
+      if (!ErrorUtils.isFileNotFoundError(error)) {
         throw error;
       }
     }

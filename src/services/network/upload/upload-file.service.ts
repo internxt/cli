@@ -8,7 +8,7 @@ import {
 } from './upload.types';
 import { DriveFileService } from '../../drive/drive-file.service';
 import { dirname, extname } from 'node:path';
-import { isAlreadyExistsError } from '../../../utils/errors.utils';
+import { ErrorUtils } from '../../../utils/errors.utils';
 import { stat } from 'node:fs/promises';
 import { EncryptionVersion } from '@internxt/sdk/dist/drive/storage/types';
 import { BufferStream } from '../../../utils/stream.utils';
@@ -148,7 +148,7 @@ export class UploadFileService {
 
         return createdDriveFile;
       } catch (error: unknown) {
-        if (isAlreadyExistsError(error)) {
+        if (ErrorUtils.isAlreadyExistsError(error)) {
           const msg = `File ${file.name} already exists, skipping...`;
           logger.info(msg);
           return null;

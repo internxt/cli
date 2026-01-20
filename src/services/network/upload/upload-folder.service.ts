@@ -1,5 +1,5 @@
 import { dirname } from 'node:path';
-import { isAlreadyExistsError } from '../../../utils/errors.utils';
+import { ErrorUtils } from '../../../utils/errors.utils';
 import { logger } from '../../../utils/logger.utils';
 import { DriveFolderService } from '../../drive/drive-folder.service';
 import { CreateFoldersParams, CreateFolderWithRetryParams, DELAYS_MS, MAX_RETRIES } from './upload.types';
@@ -47,7 +47,7 @@ export class UploadFolderService {
         const createdFolder = await createFolderPromise;
         return createdFolder.uuid;
       } catch (error: unknown) {
-        if (isAlreadyExistsError(error)) {
+        if (ErrorUtils.isAlreadyExistsError(error)) {
           logger.info(`Folder ${folderName} already exists, skipping...`);
           return null;
         }

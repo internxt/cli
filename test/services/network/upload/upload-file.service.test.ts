@@ -3,7 +3,7 @@ import { UploadFileService } from '../../../../src/services/network/upload/uploa
 import { NetworkFacade } from '../../../../src/services/network/network-facade.service';
 import { DriveFileService } from '../../../../src/services/drive/drive-file.service';
 import { logger } from '../../../../src/utils/logger.utils';
-import { isAlreadyExistsError } from '../../../../src/utils/errors.utils';
+import { ErrorUtils } from '../../../../src/utils/errors.utils';
 import { stat } from 'fs/promises';
 import { createReadStream } from 'fs';
 import {
@@ -24,14 +24,6 @@ vi.mock('fs/promises', () => ({
   stat: vi.fn(),
 }));
 
-vi.mock('../../../../src/utils/errors.utils', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('../../../../src/utils/errors.utils')>();
-  return {
-    ...actual,
-    isAlreadyExistsError: vi.fn(),
-  };
-});
-
 describe('UploadFileService', () => {
   let sut: UploadFileService;
   const mockFile = newFileItem();
@@ -46,9 +38,9 @@ describe('UploadFileService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     sut = UploadFileService.instance;
-    vi.mocked(isAlreadyExistsError).mockReturnValue(false);
     vi.mocked(stat).mockResolvedValue(createMockStats(1024) as Awaited<ReturnType<typeof stat>>);
     vi.mocked(createReadStream).mockReturnValue(createMockReadStream() as ReturnType<typeof createReadStream>);
+    vi.spyOn(ErrorUtils, 'isAlreadyExistsError').mockReturnValue(false);
     vi.spyOn(ThumbnailUtils, 'isFileThumbnailable').mockReturnValue(false);
     vi.spyOn(ThumbnailService.instance, 'tryUploadThumbnail').mockResolvedValue(undefined);
     vi.spyOn(ThumbnailService.instance, 'createFileStreamWithBuffer').mockReturnValue({
@@ -334,7 +326,7 @@ describe('UploadFileService', () => {
     });
 
     it('should return null when file already exists', async () => {
-      vi.mocked(isAlreadyExistsError).mockReturnValue(true);
+      vi.spyOn(ErrorUtils, 'isAlreadyExistsError').mockReturnValue(true);
       vi.mocked(mockNetworkFacade.uploadFile).mockImplementation((_stream, _size, _bucket, callback) => {
         callback(new Error('File already exists'), null);
         return { stop: vi.fn() } as unknown as ReturnType<typeof mockNetworkFacade.uploadFile>;

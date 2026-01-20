@@ -1,33 +1,33 @@
 import { logger } from './logger.utils';
 
-export function isError(error: unknown): error is Error {
-  return typeof Error.isError === 'function'
-    ? Error.isError(error)
-    : error instanceof Error ||
-        (typeof error === 'object' && error !== null && 'message' in error && ('stack' in error || 'name' in error));
-}
-
-export function isAlreadyExistsError(error: unknown): error is Error {
-  return (
-    (isError(error) && error.message.includes('already exists')) ||
-    (typeof error === 'object' && error !== null && 'status' in error && error.status === 409)
-  );
-}
-
-export function isFileNotFoundError(error: unknown): error is NodeJS.ErrnoException {
-  return isError(error) && 'code' in error && error.code === 'ENOENT';
-}
-
 export class ErrorUtils {
-  static report(error: unknown, props: Record<string, unknown> = {}) {
-    if (isError(error)) {
+  static readonly isError = (error: unknown): error is Error => {
+    return typeof Error.isError === 'function'
+      ? Error.isError(error)
+      : error instanceof Error ||
+          (typeof error === 'object' && error !== null && 'message' in error && ('stack' in error || 'name' in error));
+  };
+
+  static readonly report = (error: unknown, props: Record<string, unknown> = {}) => {
+    if (this.isError(error)) {
       logger.error(
         `[REPORTED_ERROR]: ${error.message}\nProperties => ${JSON.stringify(props, null, 2)}\nStack => ${error.stack}`,
       );
     } else {
       logger.error(`[REPORTED_ERROR]: ${JSON.stringify(error)}\nProperties => ${JSON.stringify(props, null, 2)}\n`);
     }
-  }
+  };
+
+  static readonly isAlreadyExistsError = (error: unknown): error is Error => {
+    return (
+      (this.isError(error) && error.message.includes('already exists')) ||
+      (typeof error === 'object' && error !== null && 'status' in error && error.status === 409)
+    );
+  };
+
+  static readonly isFileNotFoundError = (error: unknown): error is NodeJS.ErrnoException => {
+    return this.isError(error) && 'code' in error && error.code === 'ENOENT';
+  };
 }
 
 export class ConflictError extends Error {
