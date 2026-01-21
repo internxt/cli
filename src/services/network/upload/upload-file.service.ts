@@ -168,7 +168,7 @@ export class UploadFileService {
     return null;
   };
 
-  private concurrencyArray = <T>(array: T[], arraySize: number): T[][] => {
+  private readonly concurrencyArray = <T>(array: T[], arraySize: number): T[][] => {
     const arrays: T[][] = [];
     for (let i = 0; i < array.length; i += arraySize) {
       arrays.push(array.slice(i, i + arraySize));

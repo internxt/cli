@@ -73,7 +73,7 @@ export class KeysService {
 
     if (isHybridMode) {
       if (!privateKyberKeyInBase64) {
-        return Promise.reject(new Error('Attempted to decrypt hybrid ciphertex without Kyber key'));
+        throw new Error('Attempted to decrypt hybrid ciphertex without Kyber key');
       }
       const kem = await kemBuilder();
 
@@ -117,7 +117,7 @@ export class KeysService {
     });
 
     if (!this.comparePrivateKeyCiphertextIDs(privateKey, message)) {
-      return Promise.reject(new Error('The key does not correspond to the ciphertext'));
+      throw new Error('The key does not correspond to the ciphertext');
     }
     const { data: decryptedMessage } = await openpgp.decrypt({
       message,

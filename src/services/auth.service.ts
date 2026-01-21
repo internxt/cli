@@ -139,7 +139,7 @@ export class AuthService {
    * @throws {ExpiredCredentialsError} When the workspace token has expired
    */
   public refreshWorkspaceCredentials = async (loginCreds: LoginCredentials): Promise<Workspace | undefined> => {
-    if (loginCreds.workspace && loginCreds.workspace.workspaceCredentials && loginCreds.workspace.workspaceData) {
+    if (loginCreds.workspace?.workspaceCredentials && loginCreds.workspace?.workspaceData) {
       const workspaceToken = loginCreds.workspace.workspaceCredentials.token;
       const workspaceUuid = loginCreds.workspace.workspaceCredentials.id;
       const workspaceTokenDetails = ValidationService.instance.validateTokenAndCheckExpiration(workspaceToken);

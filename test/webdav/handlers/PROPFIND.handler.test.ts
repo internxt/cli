@@ -52,7 +52,7 @@ describe('PROPFIND request handler', () => {
     });
 
     const folderFixture = newFolderItem({
-      id: parseInt(UserSettingsFixture.rootFolderId),
+      id: Number.parseInt(UserSettingsFixture.rootFolderId),
     });
     const usageFixture = crypto.randomInt(2000000000);
     const spaceLimitFixture = crypto.randomInt(2000000000);
@@ -98,7 +98,7 @@ describe('PROPFIND request handler', () => {
     });
 
     const folderFixture = newFolderItem({
-      id: parseInt(UserSettingsFixture.rootFolderId),
+      id: Number.parseInt(UserSettingsFixture.rootFolderId),
     });
     const paginatedFolder1 = newPaginatedFolder({
       plainName: 'folder_1',
