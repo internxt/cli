@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it, vi, MockedFunction } from 'vitest';
 import { LocalFilesystemService } from '../../../src/services/local-filesystem/local-filesystem.service';
-import { Dirent, promises, Stats } from 'fs';
+import { Dirent, promises, Stats } from 'node:fs';
 import { logger } from '../../../src/utils/logger.utils';
 import { FileSystemNode } from '../../../src/services/local-filesystem/local-filesystem.types';
 
-vi.mock('fs', () => ({
+vi.mock('node:fs', () => ({
   promises: {
     stat: vi.fn(),
     readdir: vi.fn(),

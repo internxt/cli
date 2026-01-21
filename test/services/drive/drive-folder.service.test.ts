@@ -6,12 +6,17 @@ import { SdkManager } from '../../../src/services/sdk-manager.service';
 import { DriveUtils } from '../../../src/utils/drive.utils';
 import { generateSubcontent, newCreateFolderResponse, newFolderMeta } from '../../fixtures/drive.fixture';
 import { CreateFolderResponse, FetchPaginatedFile, FetchPaginatedFolder } from '@internxt/sdk/dist/drive/storage/types';
+import { ConfigService } from '../../../src/services/config.service';
+import { UserCredentialsFixture } from '../../fixtures/login.fixture';
 
 describe('Drive folder Service', () => {
   const sut = DriveFolderService.instance;
 
   beforeEach(() => {
     vi.restoreAllMocks();
+
+    vi.spyOn(ConfigService.instance, 'readUser').mockResolvedValue(UserCredentialsFixture);
+    vi.spyOn(ConfigService.instance, 'saveUser').mockResolvedValue(undefined);
   });
 
   it('When folder metadata is requested by UUID, it is aquired successfully', async () => {

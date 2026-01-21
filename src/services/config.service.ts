@@ -58,6 +58,7 @@ export class ConfigService {
       }
     }
   };
+
   /**
    * Returns the authenticated user credentials
    * @returns {CLICredentials} The authenticated user credentials

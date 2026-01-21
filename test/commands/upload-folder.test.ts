@@ -28,6 +28,7 @@ describe('Upload Folder Command', () => {
       user: UserFixture,
       token: 'mock-token',
     });
+    vi.spyOn(ConfigService.instance, 'saveUser').mockResolvedValue(undefined);
     validateDirectoryExistsSpy = vi
       .spyOn(ValidationService.instance, 'validateDirectoryExists')
       .mockResolvedValue(true);
