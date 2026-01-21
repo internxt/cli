@@ -42,7 +42,10 @@ export default class TrashRestoreFolder extends Command {
       nonInteractive,
       reporter: this.log.bind(this),
     });
-    const destinationFolderUuid = await CLIUtils.getRootFolderIdIfEmpty(destinationFolderUuidFromFlag, userCredentials);
+    const destinationFolderUuid = await CLIUtils.fallbackToRootFolderIdIfEmpty(
+      destinationFolderUuidFromFlag,
+      userCredentials,
+    );
 
     const folder = await DriveFolderService.instance.moveFolder(folderUuid, {
       destinationFolder: destinationFolderUuid,

@@ -36,7 +36,7 @@ export default class List extends Command {
     if (!userCredentials) throw new MissingCredentialsError();
 
     const folderUuidFromFlag = await this.getFolderUuid(flags['id'], nonInteractive);
-    const folderUuid = await CLIUtils.getRootFolderIdIfEmpty(folderUuidFromFlag, userCredentials);
+    const folderUuid = await CLIUtils.fallbackToRootFolderIdIfEmpty(folderUuidFromFlag, userCredentials);
 
     const { folders, files } = await DriveFolderService.instance.getFolderContent(folderUuid);
 

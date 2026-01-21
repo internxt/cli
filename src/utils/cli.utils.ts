@@ -297,7 +297,7 @@ export class CLIUtils {
     return { networkFacade, bucket, mnemonic };
   };
 
-  static readonly getRootFolderIdIfEmpty = async (folderId: string, userCredentials: LoginCredentials) => {
+  static readonly fallbackToRootFolderIdIfEmpty = async (folderId: string, userCredentials: LoginCredentials) => {
     if (folderId.trim().length === 0) {
       const currentWorkspace = await AuthService.instance.getCurrentWorkspace();
       return currentWorkspace?.workspaceData.workspaceUser.rootFolderId ?? userCredentials.user.rootFolderId;

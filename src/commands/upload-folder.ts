@@ -40,7 +40,10 @@ export default class UploadFolder extends Command {
       nonInteractive: flags['non-interactive'],
       reporter: this.log.bind(this),
     });
-    const destinationFolderUuid = await CLIUtils.getRootFolderIdIfEmpty(destinationFolderUuidFromFlag, userCredentials);
+    const destinationFolderUuid = await CLIUtils.fallbackToRootFolderIdIfEmpty(
+      destinationFolderUuidFromFlag,
+      userCredentials,
+    );
 
     const progressBar = CLIUtils.progress(
       {
