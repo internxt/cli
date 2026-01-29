@@ -2,7 +2,6 @@ import { aes } from '@internxt/lib';
 import * as openpgp from 'openpgp';
 import { CryptoUtils } from '../utils/crypto.utils';
 import kemBuilder from '@dashlane/pqc-kem-kyber512-node';
-import { Data } from '@openpgp/web-stream-tools';
 
 const WORDS_HYBRID_MODE_IN_BASE64 = 'SHlicmlkTW9kZQ=='; // 'HybridMode' in BASE64 format
 
@@ -90,16 +89,15 @@ export class KeysService {
       encryptedMessage: atob(eccCiphertextStr),
       privateKeyInBase64,
     });
-    let result = decryptedMessage as string;
 
     if (isHybridMode && kyberSecret) {
-      const bits = result.length * 4;
+      const bits = decryptedMessage.length * 4;
       const secretHex = await CryptoUtils.extendSecret(kyberSecret, bits);
-      const xored = CryptoUtils.XORhex(result, secretHex);
-      result = Buffer.from(xored, 'hex').toString('utf8');
+      const xored = CryptoUtils.XORhex(decryptedMessage, secretHex);
+      return Buffer.from(xored, 'hex').toString('utf8');
     }
 
-    return result;
+    return decryptedMessage;
   };
 
   private readonly decryptMessageWithPrivateKey = async ({
@@ -108,7 +106,7 @@ export class KeysService {
   }: {
     encryptedMessage: string;
     privateKeyInBase64: string;
-  }): Promise<openpgp.MaybeStream<Data> & string> => {
+  }): Promise<string> => {
     const privateKeyArmored = Buffer.from(privateKeyInBase64, 'base64').toString();
     const privateKey = await openpgp.readPrivateKey({ armoredKey: privateKeyArmored });
 
@@ -124,7 +122,7 @@ export class KeysService {
       decryptionKeys: privateKey,
     });
 
-    return decryptedMessage;
+    return decryptedMessage as string;
   };
 
   private readonly comparePrivateKeyCiphertextIDs = (
