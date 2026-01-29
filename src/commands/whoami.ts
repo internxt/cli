@@ -29,7 +29,11 @@ export default class Whoami extends Command {
       } else {
         if (validCreds.refreshRequired) {
           try {
-            await AuthService.instance.refreshUserToken(userCredentials.token, userCredentials.user.mnemonic);
+            const refreshedCreds = await AuthService.instance.refreshUserToken(
+              userCredentials.token,
+              userCredentials.user.mnemonic,
+            );
+            await ConfigService.instance.saveUser(refreshedCreds);
           } catch {
             /* noop */
           }

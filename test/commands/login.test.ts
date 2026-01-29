@@ -6,12 +6,6 @@ import LoginLegacy from '../../src/commands/login-legacy';
 import { AuthService } from '../../src/services/auth.service';
 import { CLIUtils, NoFlagProvidedError } from '../../src/utils/cli.utils';
 
-vi.mock('../../src/utils/logger.utils', () => ({
-  logger: {
-    error: vi.fn(),
-  },
-}));
-
 describe('Login Command', () => {
   beforeEach(() => {
     vi.restoreAllMocks();

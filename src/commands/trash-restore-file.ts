@@ -1,7 +1,7 @@
 import { Command, Flags } from '@oclif/core';
 import { ConfigService } from '../services/config.service';
 import { CLIUtils } from '../utils/cli.utils';
-import { MissingCredentialsError, NotValidFileUuidError, NotValidFolderUuidError } from '../types/command.types';
+import { MissingCredentialsError, NotValidFileUuidError } from '../types/command.types';
 import { ValidationService } from '../services/validation.service';
 import { DriveFileService } from '../services/drive/drive-file.service';
 
@@ -35,12 +35,17 @@ export default class TrashRestoreFile extends Command {
     if (!userCredentials) throw new MissingCredentialsError();
 
     const fileUuid = await this.getFileUuid(flags['id'], nonInteractive);
-    let destinationFolderUuid = await this.getDestinationFolderUuid(flags['destination'], nonInteractive);
 
-    if (destinationFolderUuid.trim().length === 0) {
-      // destinationFolderUuid is empty from flags&prompt, which means we should use RootFolderUuid
-      destinationFolderUuid = userCredentials.user.rootFolderId;
-    }
+    const destinationFolderUuidFromFlag = await CLIUtils.getDestinationFolderUuid({
+      destinationFolderUuidFlag: flags['destination'],
+      destinationFlagName: TrashRestoreFile.flags['destination'].name,
+      nonInteractive,
+      reporter: this.log.bind(this),
+    });
+    const destinationFolderUuid = await CLIUtils.fallbackToRootFolderIdIfEmpty(
+      destinationFolderUuidFromFlag,
+      userCredentials,
+    );
 
     const file = await DriveFileService.instance.moveFile(fileUuid, { destinationFolder: destinationFolderUuid });
     const message = `File restored successfully to: ${destinationFolderUuid}`;
@@ -79,31 +84,5 @@ export default class TrashRestoreFile extends Command {
       this.log.bind(this),
     );
     return fileUuid;
-  };
-
-  private getDestinationFolderUuid = async (
-    destinationFolderUuidFlag: string | undefined,
-    nonInteractive: boolean,
-  ): Promise<string> => {
-    const destinationFolderUuid = await CLIUtils.getValueFromFlag(
-      {
-        value: destinationFolderUuidFlag,
-        name: TrashRestoreFile.flags['destination'].name,
-      },
-      {
-        nonInteractive,
-        prompt: {
-          message: 'What is the destination folder id? (leave empty for the root folder)',
-          options: { type: 'input' },
-        },
-      },
-      {
-        validate: ValidationService.instance.validateUUIDv4,
-        error: new NotValidFolderUuidError(),
-        canBeEmpty: true,
-      },
-      this.log.bind(this),
-    );
-    return destinationFolderUuid;
   };
 }

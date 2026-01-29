@@ -5,12 +5,17 @@ import Storage, { DriveFileData, EncryptionVersion } from '@internxt/sdk/dist/dr
 import { Drive } from '@internxt/sdk';
 import { randomUUID } from 'node:crypto';
 import { CommonFixture } from '../../fixtures/common.fixture';
+import { ConfigService } from '../../../src/services/config.service';
+import { UserCredentialsFixture } from '../../fixtures/login.fixture';
 
 describe('Drive file Service', () => {
   const sut = DriveFileService.instance;
 
   beforeEach(() => {
     vi.restoreAllMocks();
+
+    vi.spyOn(ConfigService.instance, 'readUser').mockResolvedValue(UserCredentialsFixture);
+    vi.spyOn(ConfigService.instance, 'saveUser').mockResolvedValue(undefined);
   });
 
   it('When a file is created, should be created successfully', async () => {

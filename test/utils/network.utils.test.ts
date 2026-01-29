@@ -65,7 +65,7 @@ describe('Network utils', () => {
     mockStat.mockImplementation(async () => {
       return Promise.reject();
     });
-    const selfsignedSpy = vi.spyOn(selfsigned, 'generate').mockImplementation(() => sslSelfSigned);
+    const selfsignedSpy = vi.spyOn(selfsigned, 'generate').mockResolvedValue(sslSelfSigned);
 
     const result = await NetworkUtils.getWebdavSSLCerts(webdavConfig);
 
@@ -155,7 +155,7 @@ describe('Network utils', () => {
       validTo: past.toDateString(),
     }));
 
-    const selfsignedSpy = vi.spyOn(selfsigned, 'generate').mockImplementation(() => sslSelfSigned);
+    const selfsignedSpy = vi.spyOn(selfsigned, 'generate').mockResolvedValue(sslSelfSigned);
 
     const result = await NetworkUtils.getWebdavSSLCerts(webdavConfig);
 

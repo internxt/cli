@@ -2,28 +2,17 @@ import { Request, Response } from 'express';
 import { WebDavMethodHandler } from '../../types/webdav.types';
 import { WebDavUtils } from '../../utils/webdav.utils';
 import { webdavLogger } from '../../utils/logger.utils';
-import { DriveFileService } from '../../services/drive/drive-file.service';
 import { NetworkUtils } from '../../utils/network.utils';
 import { NotFoundError } from '../../utils/errors.utils';
 
 export class HEADRequestHandler implements WebDavMethodHandler {
-  constructor(
-    private readonly dependencies: {
-      driveFileService: DriveFileService;
-    },
-  ) {}
-
   handle = async (req: Request, res: Response) => {
-    const { driveFileService } = this.dependencies;
     const resource = await WebDavUtils.getRequestedResource(req.url);
 
     webdavLogger.info(`[HEAD] Request received for file at ${resource.url}`);
 
     try {
-      const driveFile = await WebDavUtils.getDriveFileFromResource({
-        url: resource.url,
-        driveFileService,
-      });
+      const driveFile = await WebDavUtils.getDriveFileFromResource(resource.url);
 
       if (!driveFile) {
         throw new NotFoundError(`Resource not found on Internxt Drive at ${resource.url}`);

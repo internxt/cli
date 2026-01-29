@@ -1,5 +1,5 @@
 import { PromptOptions } from '../types/command.types';
-import { confirm, input, password } from '@inquirer/prompts';
+import { confirm, input, password, select } from '@inquirer/prompts';
 
 export class InquirerUtils {
   static async prompt(message: string, options: PromptOptions): Promise<string> {
@@ -14,7 +14,15 @@ export class InquirerUtils {
         const confirmation = await confirm({ message, default: options.confirm?.default || false });
         return confirmation ? 'y' : 'n';
       }
-      case 'input': {
+      case 'list':
+        if (!options.choices) throw new Error('Missing choices');
+        return select({
+          message,
+          choices: options.choices.values,
+          default: options.choices.values[options.choices.default ?? 0],
+        });
+      case 'input':
+      default: {
         return input({ message });
       }
     }

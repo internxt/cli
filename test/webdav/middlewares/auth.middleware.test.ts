@@ -22,7 +22,7 @@ describe('Auth middleware', () => {
       .spyOn(AuthService.instance, 'getAuthDetails')
       .mockRejectedValue(new MissingCredentialsError());
 
-    await AuthMiddleware(AuthService.instance)(req, res, next);
+    await AuthMiddleware()(req, res, next);
 
     expect(authServiceStub).toHaveBeenCalledOnce();
     expect(next).not.toHaveBeenCalled();
@@ -44,7 +44,7 @@ describe('Auth middleware', () => {
     const next = vi.fn();
     const authServiceStub = vi.spyOn(AuthService.instance, 'getAuthDetails').mockResolvedValue(UserCredentialsFixture);
 
-    await AuthMiddleware(AuthService.instance)(req, res, next);
+    await AuthMiddleware()(req, res, next);
 
     expect(authServiceStub).toHaveBeenCalledOnce();
     expect(next).toHaveBeenCalledOnce();

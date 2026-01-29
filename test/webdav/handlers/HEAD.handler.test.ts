@@ -15,9 +15,7 @@ import { randomInt } from 'crypto';
 describe('HEAD request handler', () => {
   let sut: HEADRequestHandler;
   beforeEach(() => {
-    sut = new HEADRequestHandler({
-      driveFileService: DriveFileService.instance,
-    });
+    sut = new HEADRequestHandler();
     vi.restoreAllMocks();
   });
 

@@ -4,14 +4,14 @@ import { DownloadProgressCallback } from '../../types/network.types';
 export class DownloadService {
   static readonly instance = new DownloadService();
 
-  async downloadFile(
+  public downloadFile = async (
     url: string,
     options: {
       progressCallback?: DownloadProgressCallback;
       abortController?: AbortController;
       rangeHeader?: string;
     },
-  ): Promise<ReadableStream<Uint8Array>> {
+  ): Promise<ReadableStream<Uint8Array>> => {
     const response = await axios.get(url, {
       responseType: 'stream',
       onDownloadProgress(progressEvent) {
@@ -35,5 +35,5 @@ export class DownloadService {
       },
     });
     return readable;
-  }
+  };
 }

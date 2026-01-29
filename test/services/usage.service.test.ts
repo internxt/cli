@@ -20,7 +20,7 @@ describe('Usage Service', () => {
 
     const result = await UsageService.instance.fetchUsage();
 
-    expect(result).to.be.deep.equal(driveSpaceUsage);
+    expect(result).to.be.deep.equal(driveSpaceUsage.total);
   });
 
   it('When getting user space limit, it should return the total usage', async () => {

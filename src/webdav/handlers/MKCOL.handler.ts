@@ -1,34 +1,22 @@
 import { WebDavMethodHandler } from '../../types/webdav.types';
 import { Request, Response } from 'express';
 import { WebDavUtils } from '../../utils/webdav.utils';
-import { DriveFolderService } from '../../services/drive/drive-folder.service';
 import { webdavLogger } from '../../utils/logger.utils';
 import { XMLUtils } from '../../utils/xml.utils';
 import { WebDavFolderService } from '../services/webdav-folder.service';
 import { MethodNotAllowed } from '../../utils/errors.utils';
 
 export class MKCOLRequestHandler implements WebDavMethodHandler {
-  constructor(
-    private readonly dependencies: {
-      driveFolderService: DriveFolderService;
-      webDavFolderService: WebDavFolderService;
-    },
-  ) {}
-
   handle = async (req: Request, res: Response) => {
-    const { driveFolderService, webDavFolderService } = this.dependencies;
     const resource = await WebDavUtils.getRequestedResource(req.url);
 
     webdavLogger.info(`[MKCOL] Request received for folder at ${resource.url}`);
 
     const parentDriveFolderItem =
-      (await webDavFolderService.getDriveFolderItemFromPath(resource.parentPath)) ??
-      (await webDavFolderService.createParentPathOrThrow(resource.parentPath));
+      (await WebDavFolderService.instance.getDriveFolderItemFromPath(resource.parentPath)) ??
+      (await WebDavFolderService.instance.createParentPathOrThrow(resource.parentPath));
 
-    const driveFolderItem = await WebDavUtils.getDriveFolderFromResource({
-      url: resource.url,
-      driveFolderService,
-    });
+    const driveFolderItem = await WebDavUtils.getDriveFolderFromResource(resource.url);
 
     const folderAlreadyExists = !!driveFolderItem;
 
@@ -37,7 +25,7 @@ export class MKCOLRequestHandler implements WebDavMethodHandler {
       throw new MethodNotAllowed('Folder already exists');
     }
 
-    const newFolder = await webDavFolderService.createFolder({
+    const newFolder = await WebDavFolderService.instance.createFolder({
       folderName: resource.path.base,
       parentFolderUuid: parentDriveFolderItem.uuid,
     });

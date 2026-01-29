@@ -4,6 +4,7 @@ import { ApiSecurity, AppDetails } from '@internxt/sdk/dist/shared';
 import { ConfigService } from './config.service';
 import packageJson from '../../package.json';
 import { NetworkUtils } from '../utils/network.utils';
+import { Workspaces } from '@internxt/sdk/dist/workspaces';
 
 export type SdkManagerApiSecurity = ApiSecurity;
 
@@ -56,57 +57,67 @@ export class SdkManager {
   };
 
   /** Auth SDK */
-  getAuth() {
+  public getAuth = () => {
     const DRIVE_API_URL = ConfigService.instance.get('DRIVE_NEW_API_URL');
 
     const apiSecurity = SdkManager.getApiSecurity({ throwErrorOnMissingCredentials: false });
     const appDetails = SdkManager.getAppDetails();
 
     return Auth.client(DRIVE_API_URL, appDetails, apiSecurity);
-  }
+  };
 
   /** Users SDK */
-  getUsers() {
+  public getUsers = () => {
     const DRIVE_API_URL = ConfigService.instance.get('DRIVE_NEW_API_URL');
 
     const apiSecurity = SdkManager.getApiSecurity({ throwErrorOnMissingCredentials: false });
     const appDetails = SdkManager.getAppDetails();
 
     return Drive.Users.client(DRIVE_API_URL, appDetails, apiSecurity);
-  }
+  };
 
   /** Storage SDK */
-  getStorage() {
+  public getStorage = () => {
     const DRIVE_API_URL = ConfigService.instance.get('DRIVE_NEW_API_URL');
 
     const apiSecurity = SdkManager.getApiSecurity();
     const appDetails = SdkManager.getAppDetails();
 
     return Drive.Storage.client(DRIVE_API_URL, appDetails, apiSecurity);
-  }
+  };
 
   /** Trash SDK */
-  getTrash() {
+  public getTrash = () => {
     const DRIVE_NEW_API_URL = ConfigService.instance.get('DRIVE_NEW_API_URL');
 
     const apiSecurity = SdkManager.getApiSecurity();
     const appDetails = SdkManager.getAppDetails();
 
     return Trash.client(DRIVE_NEW_API_URL, appDetails, apiSecurity);
-  }
+  };
 
   /** Share SDK */
-  getShare() {
+  public getShare = () => {
     const DRIVE_NEW_API_URL = ConfigService.instance.get('DRIVE_NEW_API_URL');
 
     const apiSecurity = SdkManager.getApiSecurity();
     const appDetails = SdkManager.getAppDetails();
 
     return Drive.Share.client(DRIVE_NEW_API_URL, appDetails, apiSecurity);
-  }
+  };
+
+  /** Workspaces SDK */
+  public getWorkspaces = () => {
+    const DRIVE_NEW_API_URL = ConfigService.instance.get('DRIVE_NEW_API_URL');
+
+    const apiSecurity = SdkManager.getApiSecurity();
+    const appDetails = SdkManager.getAppDetails();
+
+    return Workspaces.client(DRIVE_NEW_API_URL, appDetails, apiSecurity);
+  };
 
   /** Network SDK */
-  getNetwork(credentials: { user: string; pass: string }) {
+  public getNetwork = (credentials: { user: string; pass: string }) => {
     const appDetails = SdkManager.getAppDetails();
     const auth = NetworkUtils.getAuthFromCredentials({
       user: credentials.user,
@@ -116,5 +127,5 @@ export class SdkManager {
       bridgeUser: auth.username,
       userId: auth.password,
     });
-  }
+  };
 }

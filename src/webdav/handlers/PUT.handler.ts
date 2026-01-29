@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import { DriveFileService } from '../../services/drive/drive-file.service';
-import { NetworkFacade } from '../../services/network/network-facade.service';
 import { AuthService } from '../../services/auth.service';
 import { WebDavMethodHandler } from '../../types/webdav.types';
 import { NotFoundError } from '../../utils/errors.utils';
@@ -11,23 +10,12 @@ import { EncryptionVersion } from '@internxt/sdk/dist/drive/storage/types';
 import { CLIUtils } from '../../utils/cli.utils';
 import { BufferStream } from '../../utils/stream.utils';
 import { Readable } from 'node:stream';
-import { isFileThumbnailable, tryUploadThumbnail } from '../../utils/thumbnail.utils';
 import { WebDavFolderService } from '../services/webdav-folder.service';
 import { AsyncUtils } from '../../utils/async.utils';
-import { DriveFolderService } from '../../services/drive/drive-folder.service';
+import { ThumbnailUtils } from '../../utils/thumbnail.utils';
+import { ThumbnailService } from '../../services/thumbnail.service';
 
 export class PUTRequestHandler implements WebDavMethodHandler {
-  constructor(
-    private readonly dependencies: {
-      driveFileService: DriveFileService;
-      driveFolderService: DriveFolderService;
-      webDavFolderService: WebDavFolderService;
-      trashService: TrashService;
-      authService: AuthService;
-      networkFacade: NetworkFacade;
-    },
-  ) {}
-
   handle = async (req: Request, res: Response) => {
     let contentLength = Number(req.headers['content-length']);
     if (!contentLength || Number.isNaN(contentLength) || contentLength <= 0) {
@@ -38,11 +26,7 @@ export class PUTRequestHandler implements WebDavMethodHandler {
 
     // If the file already exists, the WebDAV specification states that 'PUT /…/file' should replace it.
     // http://www.webdav.org/specs/rfc4918.html#put-resources
-    const driveFileItem = await WebDavUtils.getDriveItemFromResource({
-      resource: resource,
-      driveFileService: this.dependencies.driveFileService,
-      driveFolderService: this.dependencies.driveFolderService,
-    });
+    const driveFileItem = await WebDavUtils.getDriveItemFromResource(resource);
     if (driveFileItem?.itemType === 'folder') {
       throw new NotFoundError('Folders cannot be created with PUT. Use MKCOL instead.');
     }
@@ -58,13 +42,13 @@ export class PUTRequestHandler implements WebDavMethodHandler {
     };
 
     const parentDriveFolderItem =
-      (await this.dependencies.webDavFolderService.getDriveFolderItemFromPath(resource.parentPath)) ??
-      (await this.dependencies.webDavFolderService.createParentPathOrThrow(resource.parentPath));
+      (await WebDavFolderService.instance.getDriveFolderItemFromPath(resource.parentPath)) ??
+      (await WebDavFolderService.instance.createParentPathOrThrow(resource.parentPath));
 
     try {
       if (driveFileItem && driveFileItem.status === 'EXISTS') {
         webdavLogger.info(`[PUT] File '${resource.name}' already exists in '${resource.path.dir}', trashing it...`);
-        await this.dependencies.trashService.trashItems({
+        await TrashService.instance.trashItems({
           items: [{ type: driveFileItem.itemType, uuid: driveFileItem.uuid }],
         });
       }
@@ -72,17 +56,19 @@ export class PUTRequestHandler implements WebDavMethodHandler {
       //noop
     }
 
-    const { user } = await this.dependencies.authService.getAuthDetails();
+    const { user } = await AuthService.instance.getAuthDetails();
 
     const fileType = resource.path.ext.replace('.', '');
 
     let bufferStream: BufferStream | undefined;
     let fileStream: Readable = req;
-    const isThumbnailable = isFileThumbnailable(fileType);
+    const isThumbnailable = ThumbnailUtils.isFileThumbnailable(fileType);
     if (isThumbnailable) {
       bufferStream = new BufferStream();
       fileStream = req.pipe(bufferStream);
     }
+
+    const { networkFacade, bucket } = await CLIUtils.prepareNetwork(user);
 
     let fileId: string | undefined;
 
@@ -98,10 +84,10 @@ export class PUTRequestHandler implements WebDavMethodHandler {
 
       const networkUploadTimer = CLIUtils.timer();
       fileId = await new Promise((resolve: (fileId: string) => void, reject) => {
-        const state = this.dependencies.networkFacade.uploadFile(
+        const state = networkFacade.uploadFile(
           fileStream,
           contentLength,
-          user.bucket,
+          bucket,
           (err: Error | null, res: string | null) => {
             if (err) {
               aborted = true;
@@ -131,20 +117,20 @@ export class PUTRequestHandler implements WebDavMethodHandler {
       type: fileType,
       size: contentLength,
       folderUuid: parentDriveFolderItem.uuid,
-      fileId: fileId,
-      bucket: user.bucket,
+      fileId,
+      bucket,
       encryptVersion: EncryptionVersion.Aes03,
     });
     timings.driveUpload = driveTimer.stop();
 
     const thumbnailTimer = CLIUtils.timer();
     if (contentLength > 0 && isThumbnailable && bufferStream) {
-      void tryUploadThumbnail({
+      void ThumbnailService.instance.tryUploadThumbnail({
+        fileUuid: file.uuid,
         bufferStream,
         fileType,
-        userBucket: user.bucket,
-        fileUuid: file.uuid,
-        networkFacade: this.dependencies.networkFacade,
+        bucket,
+        networkFacade,
       });
     }
     timings.thumbnailUpload = thumbnailTimer.stop();
@@ -155,10 +141,10 @@ export class PUTRequestHandler implements WebDavMethodHandler {
     webdavLogger.info(`[PUT] ✅ File uploaded in ${CLIUtils.formatDuration(totalTime)} to Internxt Drive`);
 
     webdavLogger.info(
-      `[PUT] Timing breakdown:\n
-      Network upload: ${CLIUtils.formatDuration(timings.networkUpload)} (${throughputMBps.toFixed(2)} MB/s)\n
-      Drive upload: ${CLIUtils.formatDuration(timings.driveUpload)}\n
-      Thumbnail: ${CLIUtils.formatDuration(timings.thumbnailUpload)}\n`,
+      '[PUT] Timing breakdown:\n' +
+        `Network upload: ${CLIUtils.formatDuration(timings.networkUpload)} (${throughputMBps.toFixed(2)} MB/s)\n` +
+        `Drive upload: ${CLIUtils.formatDuration(timings.driveUpload)}\n` +
+        `Thumbnail: ${CLIUtils.formatDuration(timings.thumbnailUpload)}\n`,
     );
 
     // Wait for backend search index to propagate (same as folder creation delay in PB-1446)

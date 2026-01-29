@@ -8,7 +8,7 @@ import { WEBDAV_SSL_CERTS_DIR } from '../constants/configs';
 export default class AddCert extends Command {
   static readonly args = {};
   static readonly description = 'Add a self-signed certificate to the trusted store for macOS, Linux, and Windows.';
-  static readonly aliases = [];
+  static readonly aliases = ['add:cert'];
   static readonly examples = ['<%= config.bin %> <%= command.id %>'];
   static readonly flags = {};
   static readonly enableJsonFlag = true;

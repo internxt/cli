@@ -20,6 +20,9 @@ import { paths } from '@internxt/sdk/dist/schema';
 describe('Auth service', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+
+    vi.spyOn(ConfigService.instance, 'readUser').mockResolvedValue(UserCredentialsFixture);
+    vi.spyOn(ConfigService.instance, 'saveUser').mockResolvedValue(undefined);
   });
 
   it('When user logs in, then login user credentials are generated', async () => {

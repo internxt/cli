@@ -1,7 +1,7 @@
 import { ux, Flags } from '@oclif/core';
 import cliProgress from 'cli-progress';
 import Table, { Header } from 'tty-table';
-import { LoginUserDetails, NotValidFolderUuidError, PromptOptions } from '../types/command.types';
+import { LoginCredentials, LoginUserDetails, NotValidFolderUuidError, PromptOptions } from '../types/command.types';
 import { InquirerUtils } from './inquirer.utils';
 import { ErrorUtils } from './errors.utils';
 import { ValidationService } from '../services/validation.service';
@@ -9,8 +9,8 @@ import { SdkManager } from '../services/sdk-manager.service';
 import { Environment } from '@internxt/inxt-js';
 import { ConfigService } from '../services/config.service';
 import { NetworkFacade } from '../services/network/network-facade.service';
-import { DownloadService } from '../services/network/download.service';
-import { CryptoService } from '../services/crypto.service';
+import { AuthService } from '../services/auth.service';
+import { NetworkCredentials, NetworkOptions } from '../types/network.types';
 
 export class CLIUtils {
   static readonly clearPreviousLine = (jsonFlag?: boolean) => {
@@ -142,7 +142,7 @@ export class CLIUtils {
     destinationFlagName: string;
     nonInteractive: boolean;
     reporter: (message: string) => void;
-  }): Promise<string | undefined> => {
+  }): Promise<string> => {
     const destinationFolderUuid = await this.getValueFromFlag(
       {
         value: destinationFolderUuidFlag,
@@ -162,11 +162,7 @@ export class CLIUtils {
       },
       reporter,
     );
-    if (destinationFolderUuid.trim().length === 0) {
-      return undefined;
-    } else {
-      return destinationFolderUuid;
-    }
+    return destinationFolderUuid;
   };
 
   private static readonly promptWithAttempts = async (
@@ -282,34 +278,62 @@ export class CLIUtils {
 
   static readonly parseEmpty = async (input: string) => (input.trim().length === 0 ? ' ' : input);
 
-  static readonly prepareNetwork = ({
-    jsonFlag,
-    loginUserDetails,
-  }: {
-    jsonFlag?: boolean;
-    loginUserDetails: LoginUserDetails;
-  }) => {
-    CLIUtils.doing('Preparing Network', jsonFlag);
+  static readonly prepareNetwork = async (loginUserDetails: LoginUserDetails): Promise<NetworkOptions> => {
+    const { credentials, mnemonic, bucket } = await this.getNetworkCreds(loginUserDetails);
+
     const networkModule = SdkManager.instance.getNetwork({
-      user: loginUserDetails.bridgeUser,
-      pass: loginUserDetails.userId,
+      user: credentials.user,
+      pass: credentials.pass,
     });
     const environment = new Environment({
-      bridgeUser: loginUserDetails.bridgeUser,
-      bridgePass: loginUserDetails.userId,
+      bridgeUser: credentials.user,
+      bridgePass: credentials.pass,
+      encryptionKey: mnemonic,
       bridgeUrl: ConfigService.instance.get('NETWORK_URL'),
-      encryptionKey: loginUserDetails.mnemonic,
       appDetails: SdkManager.getAppDetails(),
     });
-    const networkFacade = new NetworkFacade(
-      networkModule,
-      environment,
-      DownloadService.instance,
-      CryptoService.instance,
-    );
+    const networkFacade = new NetworkFacade(networkModule, environment);
 
-    CLIUtils.done(jsonFlag);
-    return networkFacade;
+    return { networkFacade, bucket, mnemonic };
+  };
+
+  static readonly fallbackToRootFolderIdIfEmpty = async (folderId: string, userCredentials: LoginCredentials) => {
+    if (folderId.trim().length === 0) {
+      const currentWorkspace = await AuthService.instance.getCurrentWorkspace();
+      return currentWorkspace?.workspaceData.workspaceUser.rootFolderId ?? userCredentials.user.rootFolderId;
+    } else {
+      return folderId;
+    }
+  };
+
+  static readonly getNetworkCreds = async (
+    userCredentials: LoginCredentials['user'],
+  ): Promise<{
+    bucket: string;
+    credentials: NetworkCredentials;
+    mnemonic: string;
+  }> => {
+    const currentWorkspace = await AuthService.instance.getCurrentWorkspace();
+
+    if (currentWorkspace) {
+      return {
+        bucket: currentWorkspace.workspaceCredentials.bucket,
+        credentials: {
+          user: currentWorkspace.workspaceCredentials.credentials.user,
+          pass: currentWorkspace.workspaceCredentials.credentials.pass,
+        },
+        mnemonic: currentWorkspace.workspaceData.workspaceUser.key,
+      };
+    } else {
+      return {
+        bucket: userCredentials.bucket,
+        credentials: {
+          user: userCredentials.bridgeUser,
+          pass: userCredentials.userId,
+        },
+        mnemonic: userCredentials.mnemonic,
+      };
+    }
   };
 }
 

@@ -7,8 +7,10 @@ import {
   InvalidCredentialsError,
   LoginCredentials,
   MissingCredentialsError,
+  Workspace,
 } from '../types/command.types';
 import { ValidationService } from './validation.service';
+import { WorkspaceService } from './drive/workspace.service';
 
 export class AuthService {
   public static readonly instance: AuthService = new AuthService();
@@ -67,7 +69,7 @@ export class AuthService {
    * @throws {ExpiredCredentialsError} When token has expired
    */
   public getAuthDetails = async (): Promise<LoginCredentials> => {
-    const loginCreds = await ConfigService.instance.readUser();
+    let loginCreds = await ConfigService.instance.readUser();
     if (!loginCreds?.token || !loginCreds?.user?.mnemonic) {
       throw new MissingCredentialsError();
     }
@@ -82,19 +84,25 @@ export class AuthService {
       throw new ExpiredCredentialsError();
     }
 
-    if (!tokenDetails.expiration.refreshRequired) {
-      return loginCreds;
+    if (tokenDetails.expiration.refreshRequired) {
+      try {
+        loginCreds = await this.refreshUserToken(loginCreds.token, loginCreds.user.mnemonic);
+      } catch (error) {
+        await ConfigService.instance.clearUser();
+        throw error;
+      }
     }
-    try {
-      return await this.refreshUserToken(loginCreds.token, loginCreds.user.mnemonic);
-    } catch (error) {
-      await ConfigService.instance.clearUser();
-      throw error;
-    }
+
+    const workspaceCreds = await this.refreshWorkspaceCredentials(loginCreds);
+    loginCreds.workspace = workspaceCreds;
+
+    SdkManager.init({ token: loginCreds.token, workspaceToken: workspaceCreds?.workspaceCredentials.token });
+    await ConfigService.instance.saveUser(loginCreds);
+    return loginCreds;
   };
 
   /**
-   * Refreshes the user tokens and stores them in the credentials file
+   * Refreshes the user tokens
    *
    * @returns The user details and the renewed auth token
    * @throws {InvalidCredentialsError} When the mnemonic is invalid
@@ -120,8 +128,49 @@ export class AuthService {
       token: newCreds.newToken,
     };
 
-    await ConfigService.instance.saveUser(newLoginCreds);
     return newLoginCreds;
+  };
+
+  /**
+   * Returns the workspace details and refreshes them if needed
+   *
+   * @returns The workspace details and the renewed auth token
+   * @throws {InvalidCredentialsError} When the workspace token is invalid
+   * @throws {ExpiredCredentialsError} When the workspace token has expired
+   */
+  public refreshWorkspaceCredentials = async (loginCreds: LoginCredentials): Promise<Workspace | undefined> => {
+    if (loginCreds.workspace?.workspaceCredentials && loginCreds.workspace?.workspaceData) {
+      const workspaceToken = loginCreds.workspace.workspaceCredentials.token;
+      const workspaceUuid = loginCreds.workspace.workspaceCredentials.id;
+      const workspaceTokenDetails = ValidationService.instance.validateTokenAndCheckExpiration(workspaceToken);
+
+      if (!workspaceTokenDetails.isValid) {
+        throw new InvalidCredentialsError();
+      }
+      if (workspaceTokenDetails.expiration.expired) {
+        throw new ExpiredCredentialsError();
+      }
+
+      if (workspaceTokenDetails.expiration.refreshRequired) {
+        SdkManager.init({ token: loginCreds.token, workspaceToken: loginCreds.workspace.workspaceCredentials.token });
+        const workspaceCredentials = await WorkspaceService.instance.getWorkspaceCredentials(workspaceUuid);
+        // TODO [PB-5788] Refresh workspace data when workspace token requires refresh
+        return {
+          workspaceCredentials,
+          workspaceData: loginCreds.workspace.workspaceData,
+        };
+      } else {
+        return loginCreds.workspace;
+      }
+    }
+  };
+
+  public getCurrentWorkspace = async (): Promise<Workspace | undefined> => {
+    const loginCreds = await ConfigService.instance.readUser();
+    if (!loginCreds?.token || !loginCreds?.user?.mnemonic) {
+      throw new MissingCredentialsError();
+    }
+    return loginCreds.workspace;
   };
 
   /**

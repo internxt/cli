@@ -19,8 +19,6 @@ export class NetworkFacade {
   constructor(
     private readonly network: Network.Network,
     private readonly environment: Environment,
-    private readonly downloadService: DownloadService,
-    private readonly cryptoService: CryptoService,
   ) {
     this.cryptoLib = {
       algorithm: Network.ALGORITHMS.AES256CTR,
@@ -44,7 +42,7 @@ export class NetworkFacade {
    * @param options The download options
    * @returns A promise to execute the download and an abort controller to cancel the download
    */
-  async downloadToStream(
+  public downloadToStream = async (
     bucketId: string,
     mnemonic: string,
     fileId: string,
@@ -52,7 +50,7 @@ export class NetworkFacade {
     to: WritableStream,
     rangeOptions?: RangeOptions,
     options?: DownloadOptions,
-  ): Promise<[Promise<void>, AbortController]> {
+  ): Promise<[Promise<void>, AbortController]> => {
     const encryptedContentStreams: ReadableStream<Uint8Array>[] = [];
     let fileStream: ReadableStream<Uint8Array>;
     const abortable = options?.abortController ?? new AbortController();
@@ -68,7 +66,7 @@ export class NetworkFacade {
       if (rangeOptions) {
         startOffsetByte = rangeOptions.parsed.start;
       }
-      fileStream = this.cryptoService.decryptStream(
+      fileStream = CryptoService.instance.decryptStream(
         encryptedContentStreams,
         Buffer.from(key as ArrayBuffer),
         Buffer.from(iv as ArrayBuffer),
@@ -88,7 +86,7 @@ export class NetworkFacade {
           throw new Error('Download aborted');
         }
 
-        const encryptedContentStream = await this.downloadService.downloadFile(downloadable.url, {
+        const encryptedContentStream = await DownloadService.instance.downloadFile(downloadable.url, {
           progressCallback: onProgress,
           abortController: options?.abortController,
           rangeHeader: rangeOptions?.range,
@@ -112,7 +110,7 @@ export class NetworkFacade {
     };
 
     return [downloadOperation(), abortable];
-  }
+  };
 
   /**
    * Performs an upload encrypting the stream content
@@ -122,13 +120,13 @@ export class NetworkFacade {
    * @param from The source ReadStream to upload from
    * @returns A promise to execute the upload and an abort controller to cancel the upload
    */
-  uploadFile(
+  public uploadFile = (
     from: Readable,
     size: number,
     bucketId: string,
     finishedCallback: (err: Error | null, res: string | null) => void,
     progressCallback: (progress: number) => void,
-  ): ActionState {
+  ): ActionState => {
     if (size > TWENTY_GIGABYTES) {
       throw new Error('File is too big (more than 20 GB)');
     }
@@ -150,5 +148,5 @@ export class NetworkFacade {
         progressCallback,
       });
     }
-  }
+  };
 }

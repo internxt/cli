@@ -8,16 +8,7 @@ import { WebDavUtils } from '../../utils/webdav.utils';
 import { WebDavFolderService } from '../services/webdav-folder.service';
 
 export class MOVERequestHandler implements WebDavMethodHandler {
-  constructor(
-    private readonly dependencies: {
-      driveFolderService: DriveFolderService;
-      driveFileService: DriveFileService;
-      webDavFolderService: WebDavFolderService;
-    },
-  ) {}
-
   handle = async (req: Request, res: Response) => {
-    const { driveFolderService, driveFileService, webDavFolderService } = this.dependencies;
     const resource = await WebDavUtils.getRequestedResource(req.url);
 
     webdavLogger.info(`[MOVE] Request received for item at ${resource.url}`);
@@ -31,11 +22,7 @@ export class MOVERequestHandler implements WebDavMethodHandler {
 
     webdavLogger.info('[MOVE] Destination resource found', { destinationResource });
 
-    const originalDriveItem = await WebDavUtils.getDriveItemFromResource({
-      resource,
-      driveFolderService,
-      driveFileService,
-    });
+    const originalDriveItem = await WebDavUtils.getDriveItemFromResource(resource);
 
     if (!originalDriveItem) {
       throw new NotFoundError(`Resource not found on Internxt Drive at ${resource.url}`);
@@ -50,7 +37,7 @@ export class MOVERequestHandler implements WebDavMethodHandler {
 
       if (originalDriveItem.itemType === 'folder') {
         const folder = originalDriveItem;
-        await driveFolderService.renameFolder({
+        await DriveFolderService.instance.renameFolder({
           folderUuid: folder.uuid,
           name: destinationResource.name,
         });
@@ -58,7 +45,7 @@ export class MOVERequestHandler implements WebDavMethodHandler {
         const file = originalDriveItem;
         const plainName = destinationResource.path.name;
         const fileType = destinationResource.path.ext.replace('.', '');
-        await driveFileService.renameFile(file.uuid, {
+        await DriveFileService.instance.renameFile(file.uuid, {
           plainName: plainName,
           type: fileType,
         });
@@ -70,12 +57,12 @@ export class MOVERequestHandler implements WebDavMethodHandler {
       );
 
       const destinationFolderItem =
-        (await webDavFolderService.getDriveFolderItemFromPath(destinationResource.parentPath)) ??
-        (await webDavFolderService.createParentPathOrThrow(destinationResource.parentPath));
+        (await WebDavFolderService.instance.getDriveFolderItemFromPath(destinationResource.parentPath)) ??
+        (await WebDavFolderService.instance.createParentPathOrThrow(destinationResource.parentPath));
 
       if (originalDriveItem.itemType === 'folder') {
         const folder = originalDriveItem;
-        await driveFolderService.moveFolder(folder.uuid, {
+        await DriveFolderService.instance.moveFolder(folder.uuid, {
           destinationFolder: destinationFolderItem.uuid,
           name: destinationResource.name,
         });
@@ -83,7 +70,7 @@ export class MOVERequestHandler implements WebDavMethodHandler {
         const file = originalDriveItem;
         const plainName = destinationResource.path.name;
         const fileType = destinationResource.path.ext.replace('.', '');
-        await driveFileService.moveFile(file.uuid, {
+        await DriveFileService.instance.moveFile(file.uuid, {
           destinationFolder: destinationFolderItem.uuid,
           name: plainName,
           type: fileType,

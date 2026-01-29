@@ -9,23 +9,21 @@ import {
 } from '../../fixtures/webdav.fixture';
 import { TrashService } from '../../../src/services/drive/trash.service';
 import { NotFoundError } from '../../../src/utils/errors.utils';
-import { DriveFileService } from '../../../src/services/drive/drive-file.service';
-import { DriveFolderService } from '../../../src/services/drive/drive-folder.service';
 import { WebDavUtils } from '../../../src/utils/webdav.utils';
 import { newFileItem, newFolderItem } from '../../fixtures/drive.fixture';
 import { WebDavRequestedResource } from '../../../src/types/webdav.types';
+import { AuthService } from '../../../src/services/auth.service';
+import { UserCredentialsFixture } from '../../fixtures/login.fixture';
 
 describe('DELETE request handler', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+
+    vi.spyOn(AuthService.instance, 'getAuthDetails').mockResolvedValue(UserCredentialsFixture);
   });
 
   it('When the item does not exist, it should reply with a 404 error', async () => {
-    const requestHandler = new DELETERequestHandler({
-      trashService: TrashService.instance,
-      driveFileService: DriveFileService.instance,
-      driveFolderService: DriveFolderService.instance,
-    });
+    const requestHandler = new DELETERequestHandler();
 
     const requestedFileResource: WebDavRequestedResource = getRequestedFileResource();
 
@@ -56,11 +54,7 @@ describe('DELETE request handler', () => {
 
   it('When the file exists, then it should reply with a 204 response', async () => {
     const trashService = TrashService.instance;
-    const requestHandler = new DELETERequestHandler({
-      trashService,
-      driveFileService: DriveFileService.instance,
-      driveFolderService: DriveFolderService.instance,
-    });
+    const requestHandler = new DELETERequestHandler();
     const requestedFileResource: WebDavRequestedResource = getRequestedFileResource();
     const request = createWebDavRequestFixture({
       method: 'DELETE',
@@ -89,11 +83,7 @@ describe('DELETE request handler', () => {
 
   it('When folder exists, then it should reply with a 204 response', async () => {
     const trashService = TrashService.instance;
-    const requestHandler = new DELETERequestHandler({
-      trashService,
-      driveFileService: DriveFileService.instance,
-      driveFolderService: DriveFolderService.instance,
-    });
+    const requestHandler = new DELETERequestHandler();
     const requestedFolderResource: WebDavRequestedResource = getRequestedFolderResource();
 
     const request = createWebDavRequestFixture({

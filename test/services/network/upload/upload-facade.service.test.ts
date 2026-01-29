@@ -5,72 +5,25 @@ import { logger } from '../../../../src/utils/logger.utils';
 import { LocalFilesystemService } from '../../../../src/services/local-filesystem/local-filesystem.service';
 import { UploadFolderService } from '../../../../src/services/network/upload/upload-folder.service';
 import { UploadFileService } from '../../../../src/services/network/upload/upload-file.service';
-import { NetworkFacade } from '../../../../src/services/network/network-facade.service';
 import { LoginUserDetails } from '../../../../src/types/command.types';
 import { createFileSystemNodeFixture } from './upload.service.helpers';
 import { AsyncUtils } from '../../../../src/utils/async.utils';
-
-vi.mock('../../../../src/utils/cli.utils', () => ({
-  CLIUtils: {
-    timer: vi.fn(),
-    prepareNetwork: vi.fn(),
-  },
-}));
-
-vi.mock('../../../../src/utils/logger.utils', () => ({
-  logger: {
-    info: vi.fn(),
-  },
-}));
-
-vi.mock('../../../../src/services/local-filesystem/local-filesystem.service', () => ({
-  LocalFilesystemService: {
-    instance: {
-      scanLocalDirectory: vi.fn(),
-    },
-  },
-}));
-
-vi.mock('../../../../src/services/network/upload/upload-folder.service', () => ({
-  UploadFolderService: {
-    instance: {
-      createFolders: vi.fn(),
-    },
-  },
-}));
-
-vi.mock('../../../../src/services/network/upload/upload-file.service', () => ({
-  UploadFileService: {
-    instance: {
-      uploadFilesConcurrently: vi.fn(),
-    },
-  },
-}));
-
-vi.mock('../../../../src/utils/async.utils', () => ({
-  AsyncUtils: {
-    sleep: vi.fn().mockResolvedValue(undefined),
-  },
-}));
+import { UserFixture } from '../../../fixtures/auth.fixture';
+import { getNetworkOptionsMock } from '../../../fixtures/webdav.fixture';
 
 describe('UploadFacade', () => {
   let sut: UploadFacade;
 
-  const mockNetworkFacade = {} as NetworkFacade;
+  const mockNetworkOptions = getNetworkOptionsMock();
 
-  const mockLoginUserDetails = {
-    bridgeUser: 'test-bridge-user',
-    userId: 'test-user-id',
-    mnemonic: 'test-mnemonic',
-    bucket: 'test-bucket',
-  } as LoginUserDetails;
+  const mockLoginUserDetails: LoginUserDetails = UserFixture;
   const folderName = 'test-folder';
   const folderMap = new Map([[folderName, 'folder-uuid-123']]);
+
   beforeEach(() => {
     vi.clearAllMocks();
     sut = UploadFacade.instance;
-    vi.mocked(CLIUtils.prepareNetwork).mockReturnValue(mockNetworkFacade);
-    vi.mocked(LocalFilesystemService.instance.scanLocalDirectory).mockResolvedValue({
+    vi.spyOn(LocalFilesystemService.instance, 'scanLocalDirectory').mockResolvedValue({
       folders: [createFileSystemNodeFixture({ type: 'folder', name: folderName, relativePath: folderName })],
       files: [
         createFileSystemNodeFixture({
@@ -83,11 +36,14 @@ describe('UploadFacade', () => {
       totalItems: 2,
       totalBytes: 500,
     });
-    vi.mocked(UploadFolderService.instance.createFolders).mockResolvedValue(folderMap);
-    vi.mocked(UploadFileService.instance.uploadFilesConcurrently).mockResolvedValue(500);
-    vi.mocked(CLIUtils.timer).mockReturnValue({
+    vi.spyOn(UploadFolderService.instance, 'createFolders').mockResolvedValue(folderMap);
+    vi.spyOn(UploadFileService.instance, 'uploadFilesConcurrently').mockResolvedValue(500);
+    vi.spyOn(CLIUtils, 'prepareNetwork').mockResolvedValue(mockNetworkOptions);
+    vi.spyOn(CLIUtils, 'timer').mockReturnValue({
       stop: vi.fn().mockReturnValue(1000),
     });
+    vi.spyOn(AsyncUtils, 'sleep').mockResolvedValue();
+    vi.spyOn(logger, 'info').mockImplementation(vi.fn());
   });
 
   describe('uploadFolder', () => {
@@ -96,14 +52,14 @@ describe('UploadFacade', () => {
     const onProgress = vi.fn();
 
     it('should throw an error if createFolders returns an empty map', async () => {
-      vi.mocked(LocalFilesystemService.instance.scanLocalDirectory).mockResolvedValue({
+      vi.spyOn(LocalFilesystemService.instance, 'scanLocalDirectory').mockResolvedValue({
         folders: [createFileSystemNodeFixture({ type: 'folder', name: 'test', relativePath: 'test' })],
         files: [],
         totalItems: 1,
         totalBytes: 0,
       });
 
-      vi.mocked(UploadFolderService.instance.createFolders).mockResolvedValue(new Map());
+      vi.spyOn(UploadFolderService.instance, 'createFolders').mockResolvedValue(new Map());
 
       await expect(
         sut.uploadFolder({
@@ -140,7 +96,7 @@ describe('UploadFacade', () => {
     it('should report progress correctly during upload', async () => {
       const folderMap = new Map([[folderName, 'folder-uuid-123']]);
 
-      vi.mocked(UploadFolderService.instance.createFolders).mockImplementation(
+      vi.spyOn(UploadFolderService.instance, 'createFolders').mockImplementation(
         async ({ currentProgress, emitProgress }) => {
           currentProgress.itemsUploaded = 1;
           emitProgress();
@@ -148,7 +104,7 @@ describe('UploadFacade', () => {
         },
       );
 
-      vi.mocked(UploadFileService.instance.uploadFilesConcurrently).mockImplementation(
+      vi.spyOn(UploadFileService.instance, 'uploadFilesConcurrently').mockImplementation(
         async ({ currentProgress, emitProgress }) => {
           currentProgress.itemsUploaded = 2;
           currentProgress.bytesUploaded = 500;
@@ -173,8 +129,8 @@ describe('UploadFacade', () => {
     it('should wait 500ms between folder creation and file upload to prevent backend indexing issues', async () => {
       vi.useFakeTimers();
 
-      vi.mocked(UploadFolderService.instance.createFolders).mockResolvedValue(folderMap);
-      vi.mocked(UploadFileService.instance.uploadFilesConcurrently).mockResolvedValue(100);
+      vi.spyOn(UploadFolderService.instance, 'createFolders').mockResolvedValue(folderMap);
+      vi.spyOn(UploadFileService.instance, 'uploadFilesConcurrently').mockResolvedValue(100);
 
       const uploadPromise = sut.uploadFolder({
         localPath,

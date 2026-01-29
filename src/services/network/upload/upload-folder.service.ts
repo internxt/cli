@@ -1,17 +1,18 @@
 import { dirname } from 'node:path';
-import { isAlreadyExistsError } from '../../../utils/errors.utils';
+import { ErrorUtils } from '../../../utils/errors.utils';
 import { logger } from '../../../utils/logger.utils';
 import { DriveFolderService } from '../../drive/drive-folder.service';
 import { CreateFoldersParams, CreateFolderWithRetryParams, DELAYS_MS, MAX_RETRIES } from './upload.types';
 
 export class UploadFolderService {
   static readonly instance = new UploadFolderService();
-  async createFolders({
+
+  public createFolders = async ({
     foldersToCreate,
     destinationFolderUuid,
     currentProgress,
     emitProgress,
-  }: CreateFoldersParams): Promise<Map<string, string>> {
+  }: CreateFoldersParams): Promise<Map<string, string>> => {
     const folderMap = new Map<string, string>();
     for (const folder of foldersToCreate) {
       const parentPath = dirname(folder.relativePath);
@@ -34,12 +35,15 @@ export class UploadFolderService {
       }
     }
     return folderMap;
-  }
+  };
 
-  async createFolderWithRetry({ folderName, parentFolderUuid }: CreateFolderWithRetryParams): Promise<string | null> {
+  public createFolderWithRetry = async ({
+    folderName,
+    parentFolderUuid,
+  }: CreateFolderWithRetryParams): Promise<string | null> => {
     for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
       try {
-        const [createFolderPromise] = DriveFolderService.instance.createFolder({
+        const [createFolderPromise] = await DriveFolderService.instance.createFolder({
           plainName: folderName,
           parentFolderUuid,
         });
@@ -47,7 +51,7 @@ export class UploadFolderService {
         const createdFolder = await createFolderPromise;
         return createdFolder.uuid;
       } catch (error: unknown) {
-        if (isAlreadyExistsError(error)) {
+        if (ErrorUtils.isAlreadyExistsError(error)) {
           logger.info(`Folder ${folderName} already exists, skipping...`);
           return null;
         }
@@ -65,5 +69,5 @@ export class UploadFolderService {
       }
     }
     return null;
-  }
+  };
 }

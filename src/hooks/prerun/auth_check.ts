@@ -18,8 +18,8 @@ const hook: Hook<'prerun'> = async function (opts) {
   if (!CommandsToSkip.map((command) => command.name).includes(Command.name)) {
     CLIUtils.doing('Checking credentials', jsonFlag);
     try {
-      const { token } = await AuthService.instance.getAuthDetails();
-      SdkManager.init({ token });
+      const { token, workspace } = await AuthService.instance.getAuthDetails();
+      SdkManager.init({ token, workspaceToken: workspace?.workspaceCredentials.token });
       CLIUtils.done(jsonFlag);
       CLIUtils.clearPreviousLine(jsonFlag);
     } catch (error) {

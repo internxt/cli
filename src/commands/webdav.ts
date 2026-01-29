@@ -8,14 +8,14 @@ export default class Webdav extends Command {
   static readonly args = {
     action: Args.string({
       required: true,
-      options: ['enable', 'disable', 'restart', 'status'],
+      options: ['enable', 'start', 'disable', 'stop', 'restart', 'status'],
     }),
   };
-  static readonly description = 'Enable, disable, restart or get the status of the Internxt CLI WebDav server';
+  static readonly description = 'Start, stop, restart or get the status of the Internxt CLI WebDAV server';
   static readonly aliases = [];
   static readonly examples = [
-    '<%= config.bin %> <%= command.id %> enable',
-    '<%= config.bin %> <%= command.id %> disable',
+    '<%= config.bin %> <%= command.id %> enable | start',
+    '<%= config.bin %> <%= command.id %> disable | stop',
     '<%= config.bin %> <%= command.id %> restart',
     '<%= config.bin %> <%= command.id %> status',
   ];
@@ -29,12 +29,14 @@ export default class Webdav extends Command {
     let success = true;
     await PM2Utils.connect();
     switch (args.action) {
+      case 'start':
       case 'enable': {
         await AuthService.instance.getAuthDetails();
         message = await this.enableWebDav(flags['json']);
         break;
       }
 
+      case 'stop':
       case 'disable': {
         message = await this.disableWebDav(flags['json']);
         break;
@@ -47,7 +49,6 @@ export default class Webdav extends Command {
       }
 
       case 'status': {
-        await AuthService.instance.getAuthDetails();
         message = await this.webDAVStatus();
         break;
       }
