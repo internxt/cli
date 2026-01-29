@@ -8,30 +8,7 @@ export class DriveFileService {
   static readonly instance = new DriveFileService();
 
   public createFile = async (payload: StorageTypes.FileEntryByUuid): Promise<DriveFileItem> => {
-    let driveFile: StorageTypes.DriveFileData;
-
-    const currentWorkspace = await AuthService.instance.getCurrentWorkspace();
-    if (currentWorkspace) {
-      const workspaceClient = SdkManager.instance.getWorkspaces();
-      driveFile = await workspaceClient.createFileEntry(
-        {
-          name: payload.plainName,
-          plainName: payload.plainName,
-          bucket: payload.bucket,
-          fileId: payload.fileId ?? '',
-          encryptVersion: StorageTypes.EncryptionVersion.Aes03,
-          folderUuid: payload.folderUuid,
-          size: payload.size,
-          type: payload.type ?? '',
-          modificationTime: payload.modificationTime ?? new Date().toISOString(),
-          date: payload.date ?? new Date().toISOString(),
-        },
-        currentWorkspace.workspaceCredentials.id,
-      );
-    } else {
-      const storageClient = SdkManager.instance.getStorage();
-      driveFile = await storageClient.createFileEntryByUuid(payload);
-    }
+    const driveFile = await this.createDriveFileEntry(payload);
 
     return {
       itemType: 'file',
@@ -50,6 +27,32 @@ export class DriveFileService {
       creationTime: new Date(driveFile.creationTime ?? driveFile.createdAt),
       modificationTime: new Date(driveFile.modificationTime ?? driveFile.updatedAt),
     };
+  };
+
+  private createDriveFileEntry = async (payload: StorageTypes.FileEntryByUuid): Promise<StorageTypes.DriveFileData> => {
+    const currentWorkspace = await AuthService.instance.getCurrentWorkspace();
+
+    if (currentWorkspace) {
+      const workspaceClient = SdkManager.instance.getWorkspaces();
+      return workspaceClient.createFileEntry(
+        {
+          name: payload.plainName,
+          plainName: payload.plainName,
+          bucket: payload.bucket,
+          fileId: payload.fileId ?? '',
+          encryptVersion: StorageTypes.EncryptionVersion.Aes03,
+          folderUuid: payload.folderUuid,
+          size: payload.size,
+          type: payload.type ?? '',
+          modificationTime: payload.modificationTime ?? new Date().toISOString(),
+          date: payload.date ?? new Date().toISOString(),
+        },
+        currentWorkspace.workspaceCredentials.id,
+      );
+    }
+
+    const storageClient = SdkManager.instance.getStorage();
+    return storageClient.createFileEntryByUuid(payload);
   };
 
   public getFileMetadata = async (uuid: string): Promise<DriveFileItem> => {
