@@ -1,13 +1,10 @@
 export interface DriveFileAttributes {
-  id: number;
+  uuid: string;
   name: string;
   type?: string;
-  uuid: string;
   fileId: string;
-  folderId: number;
   folderUuid: string;
   bucket: string;
-  relativePath: string;
   createdAt: Date;
   updatedAt: Date;
   size: number;

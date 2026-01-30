@@ -7,7 +7,6 @@ export class DriveUtils {
       itemType: 'file',
       uuid: fileMeta.uuid ?? '',
       status: fileMeta.status,
-      folderId: fileMeta.folderId,
       folderUuid: fileMeta.folderUuid,
       size: Number(fileMeta.size),
       name: fileMeta.plainName ?? fileMeta.name,
@@ -17,7 +16,6 @@ export class DriveUtils {
       creationTime: new Date(fileMeta.creationTime ?? fileMeta.createdAt),
       modificationTime: new Date(fileMeta.modificationTime ?? fileMeta.updatedAt),
       fileId: fileMeta.fileId,
-      id: fileMeta.id,
       type: fileMeta.type,
     };
   }
@@ -26,12 +24,9 @@ export class DriveUtils {
     return {
       itemType: 'folder',
       uuid: folderMeta.uuid,
-      id: folderMeta.id,
       bucket: folderMeta.bucket,
       status: folderMeta.deleted || folderMeta.removed ? 'TRASHED' : 'EXISTS',
       name: folderMeta.plainName ?? folderMeta.name,
-      encryptedName: folderMeta.name,
-      parentId: folderMeta.parentId,
       parentUuid: folderMeta.parentUuid,
       createdAt: new Date(folderMeta.createdAt),
       updatedAt: new Date(folderMeta.updatedAt),
@@ -42,12 +37,9 @@ export class DriveUtils {
     return {
       itemType: 'folder',
       uuid: folderResponse.uuid,
-      id: folderResponse.id,
       bucket: folderResponse.bucket,
       status: folderResponse.deleted || folderResponse.removed ? 'TRASHED' : 'EXISTS',
       name: folderResponse.plainName ?? folderResponse.name,
-      encryptedName: folderResponse.name,
-      parentId: folderResponse.parentId,
       parentUuid: folderResponse.parentUuid,
       createdAt: new Date(folderResponse.createdAt),
       updatedAt: new Date(folderResponse.updatedAt),

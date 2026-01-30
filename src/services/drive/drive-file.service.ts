@@ -36,7 +36,6 @@ export class DriveFileService {
     return {
       itemType: 'file',
       name: payload.plainName,
-      id: driveFile.id,
       uuid: driveFile.uuid,
       size: driveFile.size,
       bucket: driveFile.bucket,
@@ -45,7 +44,6 @@ export class DriveFileService {
       fileId: driveFile.fileId,
       type: driveFile.type,
       status: driveFile.status as DriveFileItem['status'],
-      folderId: driveFile.folderId,
       folderUuid: driveFile.folderUuid,
       creationTime: new Date(driveFile.creationTime ?? driveFile.createdAt),
       modificationTime: new Date(driveFile.modificationTime ?? driveFile.updatedAt),
