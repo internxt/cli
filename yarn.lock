@@ -1731,10 +1731,10 @@
     wordwrap "^1.0.0"
     wrap-ansi "^7.0.0"
 
-"@oclif/plugin-autocomplete@3.2.39":
-  version "3.2.39"
-  resolved "https://registry.yarnpkg.com/@oclif/plugin-autocomplete/-/plugin-autocomplete-3.2.39.tgz#1830ab1388dc48211b925e8f78563135d118c495"
-  integrity sha512-OwAZNnSpuDjKyhAwoOJkFWxGswPFKBB4hpNIMsj6PUtbKwGBPmD+2wGGPgTsDioVwLmUELSb2bZ+1dxHfvXmvg==
+"@oclif/plugin-autocomplete@3.2.40":
+  version "3.2.40"
+  resolved "https://registry.yarnpkg.com/@oclif/plugin-autocomplete/-/plugin-autocomplete-3.2.40.tgz#7c997d7263e23912d24ce0a823f99815d94a9244"
+  integrity sha512-HCfDuUV3l5F5Wz7SKkaoFb+OMQ5vKul8zvsPNgI0QbZcQuGHmn3svk+392wSfXboyA1gq8kzEmKPAoQK6r6UNw==
   dependencies:
     "@oclif/core" "^4"
     ansis "^3.16.0"
