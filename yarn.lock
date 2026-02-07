@@ -1609,10 +1609,10 @@
     axios "^1.12.2"
     uuid "11.1.0"
 
-"@internxt/sdk@1.12.1":
-  version "1.12.1"
-  resolved "https://registry.yarnpkg.com/@internxt/sdk/-/sdk-1.12.1.tgz#fb3659eaf894d3fc21c5e622b41d1901ae2c9e17"
-  integrity sha512-JpPaGLOP3IAppjvLoDa8zQCvkDikFJosPeENzYHoqb66V+tp6zF7J6qdF0uyhFsR1gdr6FJMD2ymZJrWwoySxg==
+"@internxt/sdk@1.12.2":
+  version "1.12.2"
+  resolved "https://registry.yarnpkg.com/@internxt/sdk/-/sdk-1.12.2.tgz#8c6b76d8fd314fc0ec09d7a52d14ab1139db5e53"
+  integrity sha512-7GJQtlg0tmJZa0eJcEznRjUAuoiqZDEtuvCR25/cuSZGrd0mG6MOOfgEMl0vIBzpvPnjrFjCLVSjnmXLkXpHLQ==
   dependencies:
     axios "1.13.2"
     uuid "11.1.0"
