@@ -54,7 +54,7 @@
     "mime-types": "3.0.2",
     "open": "11.0.0",
     "openpgp": "6.3.0",
-    "otpauth": "9.4.1",
+    "otpauth": "9.5.0",
     "pm2": "6.0.14",
     "range-parser": "1.2.1",
     "selfsigned": "5.5.0",
