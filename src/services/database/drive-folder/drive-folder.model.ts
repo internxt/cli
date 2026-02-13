@@ -1,7 +1,7 @@
 import { Column, Entity, PrimaryColumn } from 'typeorm';
 import { DriveFolderAttributes } from './drive-folder.attributes';
 
-@Entity('drive_file')
+@Entity('drive_folder')
 export class DriveFolderModel implements DriveFolderAttributes {
   @PrimaryColumn({ nullable: false, type: 'varchar' })
   declare uuid: string;
