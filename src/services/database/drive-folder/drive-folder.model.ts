@@ -12,7 +12,7 @@ export class DriveFolderModel implements DriveFolderAttributes {
   @Column({ nullable: false, type: 'varchar' })
   declare status: 'EXISTS' | 'TRASHED';
 
-  @Column({ nullable: false, type: 'varchar' })
+  @Column({ nullable: true, type: 'varchar' })
   declare parentUuid: string | null;
 
   @Column({ nullable: false, type: 'varchar' })
