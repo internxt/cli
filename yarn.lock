@@ -1609,13 +1609,13 @@
     axios "^1.12.2"
     uuid "11.1.0"
 
-"@internxt/sdk@1.12.1":
-  version "1.12.1"
-  resolved "https://registry.yarnpkg.com/@internxt/sdk/-/sdk-1.12.1.tgz#fb3659eaf894d3fc21c5e622b41d1901ae2c9e17"
-  integrity sha512-JpPaGLOP3IAppjvLoDa8zQCvkDikFJosPeENzYHoqb66V+tp6zF7J6qdF0uyhFsR1gdr6FJMD2ymZJrWwoySxg==
+"@internxt/sdk@1.13.1":
+  version "1.13.1"
+  resolved "https://registry.yarnpkg.com/@internxt/sdk/-/sdk-1.13.1.tgz#41e76bd2baa1508e47630e0f19fbafbea89678b0"
+  integrity sha512-6MRMdCEzwMPPK0V8jiFGh7FyUFrEP9ZvgitqqRvmtLsmE5oUjivlXrCX9SkQME0m+TweTuA+BAzr6oUgkSf9bw==
   dependencies:
-    axios "1.13.2"
-    uuid "11.1.0"
+    axios "1.13.5"
+    uuid "13.0.0"
 
 "@isaacs/balanced-match@^4.0.1":
   version "4.0.1"
@@ -3190,15 +3190,6 @@ axios@1.12.2:
   version "1.12.2"
   resolved "https://registry.yarnpkg.com/axios/-/axios-1.12.2.tgz#6c307390136cf7a2278d09cec63b136dfc6e6da7"
   integrity sha512-vMJzPewAlRyOgxV2dU0Cuz2O8zzzx9VYtbJOaBgXFeLc4IV/Eg50n4LowmehOOR61S8ZMpc2K5Sa7g6A4jfkUw==
-  dependencies:
-    follow-redirects "^1.15.6"
-    form-data "^4.0.4"
-    proxy-from-env "^1.1.0"
-
-axios@1.13.2:
-  version "1.13.2"
-  resolved "https://registry.yarnpkg.com/axios/-/axios-1.13.2.tgz#9ada120b7b5ab24509553ec3e40123521117f687"
-  integrity sha512-VPk9ebNqPcy5lRGuSlKx752IlDatOjT9paPlm8A7yOuW2Fbvp4X3JznJtT4f0GzGLLiWE9W8onz51SqLYwzGaA==
   dependencies:
     follow-redirects "^1.15.6"
     form-data "^4.0.4"
@@ -7283,6 +7274,11 @@ uuid@11.1.0, uuid@^11.1.0:
   version "11.1.0"
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-11.1.0.tgz#9549028be1753bb934fc96e2bca09bb4105ae912"
   integrity sha512-0/A9rDy9P7cJ+8w1c9WD9V//9Wj15Ce2MPz8Ri6032usz+NfePxx5AcN3bN+r6ZL6jEo066/yNYB3tn4pQEx+A==
+
+uuid@13.0.0:
+  version "13.0.0"
+  resolved "https://registry.yarnpkg.com/uuid/-/uuid-13.0.0.tgz#263dc341b19b4d755eb8fe36b78d95a6b65707e8"
+  integrity sha512-XQegIaBTVUjSHliKqcnFqYypAd4S+WCYt5NIeRs6w/UAry7z8Y9j5ZwRRL4kzq9U3sD6v+85er9FvkEaBpji2w==
 
 v8-compile-cache-lib@^3.0.1:
   version "3.0.1"
