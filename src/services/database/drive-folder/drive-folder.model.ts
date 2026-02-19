@@ -20,6 +20,10 @@ export class DriveFolderModel implements DriveFolderAttributes {
 
   @Column({ nullable: false, type: 'varchar' })
   declare updatedAt: Date;
-}
 
-export default DriveFolderModel;
+  @Column({ nullable: false, type: 'varchar' })
+  declare creationTime: Date;
+
+  @Column({ nullable: false, type: 'varchar' })
+  declare modificationTime: Date;
+}

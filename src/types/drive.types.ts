@@ -14,6 +14,8 @@ export type DriveFolderItem = Pick<FolderMeta, 'uuid' | 'name' | 'bucket'> & {
   itemType: 'folder';
   createdAt: Date;
   updatedAt: Date;
+  creationTime: Date;
+  modificationTime: Date;
   status: 'EXISTS' | 'TRASHED';
   parentUuid: string | null;
 };

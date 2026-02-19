@@ -1,6 +1,6 @@
 import { DataSource } from 'typeorm';
-import DriveFileModel from './drive-file/drive-file.model';
-import DriveFolderModel from './drive-folder/drive-folder.model';
+import { DriveFileModel } from './drive-file/drive-file.model';
+import { DriveFolderModel } from './drive-folder/drive-folder.model';
 import { DRIVE_SQLITE_FILE } from '../../constants/configs';
 
 export class DatabaseService {

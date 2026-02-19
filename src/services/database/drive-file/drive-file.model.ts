@@ -10,7 +10,7 @@ export class DriveFileModel implements DriveFileAttributes {
   declare name: string;
 
   @Column({ nullable: true, type: 'varchar' })
-  declare type: string;
+  declare type?: string;
 
   @Column({ nullable: false, type: 'varchar' })
   declare fileId: string;
@@ -39,5 +39,3 @@ export class DriveFileModel implements DriveFileAttributes {
   @Column({ nullable: false, type: 'varchar' })
   declare modificationTime: Date;
 }
-
-export default DriveFileModel;

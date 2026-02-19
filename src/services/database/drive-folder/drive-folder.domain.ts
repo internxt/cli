@@ -5,17 +5,30 @@ export class DriveFolder implements DriveFolderAttributes {
   name: string;
   uuid: string;
   parentUuid: string | null;
+  status: DriveFolderAttributes['status'];
   createdAt: Date;
   updatedAt: Date;
-  status: DriveFolderAttributes['status'];
+  creationTime: Date;
+  modificationTime: Date;
 
-  constructor({ name, uuid, parentUuid, createdAt, updatedAt, status }: DriveFolderAttributes) {
+  constructor({
+    name,
+    uuid,
+    parentUuid,
+    createdAt,
+    updatedAt,
+    status,
+    creationTime,
+    modificationTime,
+  }: DriveFolderAttributes) {
     this.name = name;
     this.uuid = uuid;
     this.parentUuid = parentUuid;
+    this.status = status;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
-    this.status = status;
+    this.creationTime = creationTime;
+    this.modificationTime = modificationTime;
   }
 
   static build(folder: DriveFolderAttributes): DriveFolder {
@@ -30,6 +43,8 @@ export class DriveFolder implements DriveFolderAttributes {
       parentUuid: this.parentUuid,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
+      creationTime: this.creationTime,
+      modificationTime: this.modificationTime,
     };
   }
 
@@ -42,6 +57,8 @@ export class DriveFolder implements DriveFolderAttributes {
       parentUuid: this.parentUuid,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
+      creationTime: this.creationTime,
+      modificationTime: this.modificationTime,
       bucket: null,
     };
   }

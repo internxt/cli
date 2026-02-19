@@ -30,6 +30,8 @@ export class DriveUtils {
       parentUuid: folderMeta.parentUuid,
       createdAt: new Date(folderMeta.createdAt),
       updatedAt: new Date(folderMeta.updatedAt),
+      creationTime: new Date(folderMeta.creation_time),
+      modificationTime: new Date(folderMeta.creation_time),
     };
   }
 
@@ -43,6 +45,8 @@ export class DriveUtils {
       parentUuid: folderResponse.parentUuid,
       createdAt: new Date(folderResponse.createdAt),
       updatedAt: new Date(folderResponse.updatedAt),
+      creationTime: new Date(folderResponse.creationTime),
+      modificationTime: new Date(folderResponse.modificationTime),
     };
   }
 }

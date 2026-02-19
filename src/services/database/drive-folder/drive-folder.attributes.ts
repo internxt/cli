@@ -5,4 +5,6 @@ export interface DriveFolderAttributes {
   parentUuid: string | null;
   createdAt: Date;
   updatedAt: Date;
+  creationTime: Date;
+  modificationTime: Date;
 }

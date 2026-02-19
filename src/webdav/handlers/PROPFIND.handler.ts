@@ -101,6 +101,8 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
           status: folder.deleted || folder.removed ? 'TRASHED' : 'EXISTS',
           createdAt: new Date(folder.createdAt),
           updatedAt: new Date(folder.updatedAt),
+          creationTime: new Date(folder.creationTime),
+          modificationTime: new Date(folder.modificationTime),
           uuid: folder.uuid,
           parentUuid: folder.parentUuid,
         },

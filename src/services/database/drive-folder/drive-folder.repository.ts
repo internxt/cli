@@ -1,7 +1,7 @@
 import { ErrorUtils } from '../../../utils/errors.utils';
 import { DatabaseService } from '../database.service';
 import { DriveFolder } from './drive-folder.domain';
-import DriveFolderModel from './drive-folder.model';
+import { DriveFolderModel } from './drive-folder.model';
 
 const BATCH_SIZE = 100;
 
