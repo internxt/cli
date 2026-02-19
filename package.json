@@ -83,6 +83,7 @@
     "oclif": "4.22.68",
     "prettier": "3.8.1",
     "rimraf": "6.1.2",
+    "sql.js": "1.14.0",
     "ts-node": "10.9.2",
     "typescript": "5.9.3",
     "vitest": "4.0.17",
