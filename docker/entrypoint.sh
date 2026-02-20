@@ -10,33 +10,33 @@ fi
 
 echo "Logging into your account [$INXT_USER] using legacy authentication..."
 
-LOGIN_CMD="internxt login-legacy -x -e=\"$INXT_USER\" -p=\"$INXT_PASSWORD\""
+LOGIN_ARGS="-x -e=$INXT_USER -p=$INXT_PASSWORD"
 
 if [ -n "$INXT_OTPTOKEN" ]; then
   echo "Using 2FA secret token"
-  LOGIN_CMD="$LOGIN_CMD -t=\"$INXT_OTPTOKEN\""
+  LOGIN_ARGS="$LOGIN_ARGS -t=$INXT_OTPTOKEN"
 elif [ -n "$INXT_TWOFACTORCODE" ]; then
   echo "Using 2FA code"
-  LOGIN_CMD="$LOGIN_CMD -w=\"$INXT_TWOFACTORCODE\""
+  LOGIN_ARGS="$LOGIN_ARGS -w=$INXT_TWOFACTORCODE"
 fi
 
-eval $LOGIN_CMD
+internxt login-legacy $LOGIN_ARGS
 
 
-WEBDAV_CMD="internxt webdav-config -l='0.0.0.0'"
+WEBDAV_ARGS="-l=0.0.0.0"
 
 if [ -n "$WEBDAV_PORT" ]; then
-  WEBDAV_CMD="$WEBDAV_CMD -p=$WEBDAV_PORT"
+  WEBDAV_ARGS="$WEBDAV_ARGS -p=$WEBDAV_PORT"
 fi
 
 proto=$(echo "$WEBDAV_PROTOCOL" | tr '[:upper:]' '[:lower:]')
 if [ "$proto" = "http" ]; then
-  WEBDAV_CMD="$WEBDAV_CMD -h"
+  WEBDAV_ARGS="$WEBDAV_ARGS -h"
 elif [ "$proto" = "https" ]; then
-  WEBDAV_CMD="$WEBDAV_CMD -s"
+  WEBDAV_ARGS="$WEBDAV_ARGS -s"
 fi
 
-eval $WEBDAV_CMD
+internxt webdav-config $WEBDAV_ARGS
 
 internxt webdav enable
 

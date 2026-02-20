@@ -1,7 +1,7 @@
 import { Command } from '@oclif/core';
 import { ConfigService } from '../services/config.service';
 import { CLIUtils } from '../utils/cli.utils';
-import { MissingCredentialsError } from '../types/command.types';
+import { LoginCredentials, MissingCredentialsError } from '../types/command.types';
 import { SdkManager } from '../services/sdk-manager.service';
 
 export default class WorkspacesUnset extends Command {
@@ -23,10 +23,7 @@ export default class WorkspacesUnset extends Command {
     const userCredentials = await ConfigService.instance.readUser();
     if (!userCredentials) throw new MissingCredentialsError();
 
-    SdkManager.init({ token: userCredentials.token });
-    await ConfigService.instance.saveUser({ ...userCredentials, workspace: undefined });
-    CLIUtils.success(this.log.bind(this), 'Personal drive space selected successfully.');
-    return { success: true, message: 'Personal drive space selected successfully.' };
+    return WorkspacesUnset.unsetWorkspace(userCredentials, this.log.bind(this));
   };
 
   public catch = async (error: Error) => {
@@ -38,5 +35,12 @@ export default class WorkspacesUnset extends Command {
       jsonFlag: flags['json'],
     });
     this.exit(1);
+  };
+
+  static readonly unsetWorkspace = async (userCredentials: LoginCredentials, reporter: (message: string) => void) => {
+    SdkManager.init({ token: userCredentials.token });
+    await ConfigService.instance.saveUser({ ...userCredentials, workspace: undefined });
+    CLIUtils.success(reporter, 'Personal drive space selected successfully.');
+    return { success: true, message: 'Personal drive space selected successfully.' };
   };
 }

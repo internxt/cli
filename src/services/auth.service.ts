@@ -154,7 +154,7 @@ export class AuthService {
       if (workspaceTokenDetails.expiration.refreshRequired) {
         SdkManager.init({ token: loginCreds.token, workspaceToken: loginCreds.workspace.workspaceCredentials.token });
         const workspaceCredentials = await WorkspaceService.instance.getWorkspaceCredentials(workspaceUuid);
-        // TODO refresh also workspace data
+        // TODO [PB-5788] Refresh workspace data when workspace token requires refresh
         return {
           workspaceCredentials,
           workspaceData: loginCreds.workspace.workspaceData,

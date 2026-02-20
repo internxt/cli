@@ -6,6 +6,7 @@ import { WorkspaceService } from '../services/drive/workspace.service';
 import { FormatUtils } from '../utils/format.utils';
 import { ValidationService } from '../services/validation.service';
 import { SdkManager } from '../services/sdk-manager.service';
+import WorkspacesUnset from './workspaces-unset';
 
 export default class WorkspacesUse extends Command {
   static readonly args = {};
@@ -21,10 +22,15 @@ export default class WorkspacesUse extends Command {
       char: 'i',
       description:
         'The id of the workspace to activate. ' +
-        'Use <%= config.bin %> workspaces list to view your available workspace ids.' +
-        'If the ID is "personal" the personal drive space will be selected.',
+        'Use <%= config.bin %> workspaces list to view your available workspace ids.',
       required: false,
       exclusive: ['personal'],
+    }),
+    personal: Flags.boolean({
+      char: 'p',
+      description:
+        'Change to the personal drive space. It unsets the active workspace context for the current user session.',
+      required: false,
     }),
   };
   static readonly enableJsonFlag = true;
@@ -36,11 +42,8 @@ export default class WorkspacesUse extends Command {
     const userCredentials = await ConfigService.instance.readUser();
     if (!userCredentials) throw new MissingCredentialsError();
 
-    if (flags['id']?.trim().toLowerCase() === 'personal') {
-      SdkManager.init({ token: userCredentials.token });
-      await ConfigService.instance.saveUser({ ...userCredentials, workspace: undefined });
-      CLIUtils.success(this.log.bind(this), 'Personal drive space selected successfully.');
-      return { success: true, message: 'Personal drive space selected successfully.' };
+    if (flags['personal']) {
+      return WorkspacesUnset.unsetWorkspace(userCredentials, this.log.bind(this));
     }
 
     const workspaces = await WorkspaceService.instance.getAvailableWorkspaces(userCredentials.user);
