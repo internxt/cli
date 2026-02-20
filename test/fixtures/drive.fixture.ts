@@ -25,12 +25,9 @@ const getRandomDate = (start = new Date(2000, 0, 1), end = new Date()) => {
 export const newFolderItem = (attributes?: Partial<DriveFolderItem>): DriveFolderItem => {
   const folder: DriveFolderItem = {
     itemType: 'folder',
-    id: randomInt(1, 100000),
     uuid: randomUUID(),
-    parentId: randomInt(1, 100000),
     bucket: crypto.randomBytes(16).toString('hex'),
     name: wordlist[randomInt(wordlist.length)],
-    encryptedName: crypto.randomBytes(16).toString('hex'),
     createdAt: getRandomDate(),
     updatedAt: getRandomDate(),
     status: 'EXISTS',
@@ -42,10 +39,8 @@ export const newFolderItem = (attributes?: Partial<DriveFolderItem>): DriveFolde
 export const newFileItem = (attributes?: Partial<DriveFileItem>): DriveFileItem => {
   const file: DriveFileItem = {
     itemType: 'file',
-    id: randomInt(1, 100000),
     uuid: crypto.randomBytes(16).toString('hex'),
     fileId: crypto.randomBytes(16).toString('hex'),
-    folderId: randomInt(1, 100000),
     bucket: crypto.randomBytes(16).toString('hex'),
     name: wordlist[randomInt(wordlist.length)],
     createdAt: getRandomDate(),
@@ -171,11 +166,8 @@ export const newPaginatedFile = (attributes?: Partial<FetchPaginatedFile>): Fetc
 
 export const newDriveFolder = (attributes?: Partial<DriveFolderAttributes>): DriveFolder => {
   const folder: DriveFolderAttributes = {
-    id: randomInt(1, 100000),
     name: crypto.randomBytes(16).toString('hex'),
     uuid: crypto.randomBytes(16).toString('hex'),
-    relativePath: crypto.randomBytes(16).toString('hex'),
-    parentId: randomInt(1, 100000),
     parentUuid: crypto.randomBytes(16).toString('hex'),
     createdAt: getRandomDate(),
     updatedAt: getRandomDate(),
@@ -186,15 +178,12 @@ export const newDriveFolder = (attributes?: Partial<DriveFolderAttributes>): Dri
 
 export const newDriveFile = (attributes?: Partial<DriveFileAttributes>): DriveFile => {
   const file: DriveFileAttributes = {
-    id: randomInt(1, 100000),
     name: crypto.randomBytes(16).toString('hex'),
     type: fileTypes[randomInt(fileTypes.length)],
     uuid: crypto.randomBytes(16).toString('hex'),
     fileId: crypto.randomBytes(16).toString('hex'),
-    folderId: randomInt(1, 100000),
     folderUuid: crypto.randomBytes(16).toString('hex'),
     bucket: crypto.randomBytes(16).toString('hex'),
-    relativePath: crypto.randomBytes(16).toString('hex'),
     createdAt: getRandomDate(),
     updatedAt: getRandomDate(),
     size: randomInt(1, 10000),

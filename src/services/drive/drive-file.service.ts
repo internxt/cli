@@ -3,6 +3,7 @@ import { SdkManager } from '../sdk-manager.service';
 import { DriveFileItem } from '../../types/drive.types';
 import { DriveUtils } from '../../utils/drive.utils';
 import { AuthService } from '../auth.service';
+import { FileRepository } from '../database/drive-file/drive-file.repository';
 
 export class DriveFileService {
   static readonly instance = new DriveFileService();
@@ -10,10 +11,9 @@ export class DriveFileService {
   public createFile = async (payload: StorageTypes.FileEntryByUuid): Promise<DriveFileItem> => {
     const driveFile = await this.createDriveFileEntry(payload);
 
-    return {
+    const driveFileItem: DriveFileItem = {
       itemType: 'file',
       name: payload.plainName,
-      id: driveFile.id,
       uuid: driveFile.uuid,
       size: driveFile.size,
       bucket: driveFile.bucket,
@@ -22,11 +22,13 @@ export class DriveFileService {
       fileId: driveFile.fileId,
       type: driveFile.type,
       status: driveFile.status as DriveFileItem['status'],
-      folderId: driveFile.folderId,
       folderUuid: driveFile.folderUuid,
       creationTime: new Date(driveFile.creationTime ?? driveFile.createdAt),
       modificationTime: new Date(driveFile.modificationTime ?? driveFile.updatedAt),
     };
+    FileRepository.instance.createOrUpdate([driveFileItem]);
+
+    return driveFileItem;
   };
 
   private createDriveFileEntry = async (payload: StorageTypes.FileEntryByUuid): Promise<StorageTypes.DriveFileData> => {
@@ -61,17 +63,30 @@ export class DriveFileService {
     const [getFileMetadata] = storageClient.getFile(uuid);
 
     const fileMetadata = await getFileMetadata;
-    return DriveUtils.driveFileMetaToItem(fileMetadata);
+    const driveFileItem = DriveUtils.driveFileMetaToItem(fileMetadata);
+
+    FileRepository.instance.createOrUpdate([driveFileItem]);
+
+    return driveFileItem;
   };
 
-  public moveFile = (uuid: string, payload: StorageTypes.MoveFileUuidPayload): Promise<StorageTypes.FileMeta> => {
+  public moveFile = async (uuid: string, payload: StorageTypes.MoveFileUuidPayload): Promise<StorageTypes.FileMeta> => {
     const storageClient = SdkManager.instance.getStorage();
-    return storageClient.moveFileByUuid(uuid, payload);
+    const fileMeta = await storageClient.moveFileByUuid(uuid, payload);
+
+    const driveFileItem = DriveUtils.driveFileMetaToItem(fileMeta);
+    FileRepository.instance.createOrUpdate([driveFileItem]);
+
+    return fileMeta;
   };
 
-  public renameFile = (fileUuid: string, payload: { plainName?: string; type?: string | null }): Promise<void> => {
+  public renameFile = async (
+    fileUuid: string,
+    payload: { plainName?: string; type?: string | null },
+  ): Promise<void> => {
     const storageClient = SdkManager.instance.getStorage();
-    return storageClient.updateFileMetaByUUID(fileUuid, payload);
+    await storageClient.updateFileMetaByUUID(fileUuid, payload);
+    FileRepository.instance.updateByUuid(fileUuid, { name: payload.plainName, type: payload.type });
   };
 
   public getFileMetadataByPath = async (path: string): Promise<DriveFileItem> => {

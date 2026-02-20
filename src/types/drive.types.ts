@@ -1,17 +1,6 @@
-import { DriveFolderData, FileMeta } from '@internxt/sdk/dist/drive/storage/types';
+import { FileMeta, FolderMeta } from '@internxt/sdk/dist/drive/storage/types';
 
-export type DriveFileItem = Omit<
-  FileMeta,
-  | 'plainName'
-  | 'userId'
-  | 'encryptVersion'
-  | 'size'
-  | 'createdAt'
-  | 'updatedAt'
-  | 'creationTime'
-  | 'modificationTime'
-  | 'type'
-> & {
+export type DriveFileItem = Pick<FileMeta, 'uuid' | 'name' | 'bucket' | 'folderUuid' | 'status'> & {
   itemType: 'file';
   size: number;
   createdAt: Date;
@@ -19,14 +8,15 @@ export type DriveFileItem = Omit<
   creationTime: Date;
   modificationTime: Date;
   type?: string | null;
+  fileId?: string | null;
 };
 
-export type DriveFolderItem = Pick<DriveFolderData, 'name' | 'bucket' | 'id' | 'parentId'> & {
+export type DriveFolderItem = Pick<FolderMeta, 'uuid' | 'name' | 'bucket'> & {
   itemType: 'folder';
-  encryptedName: string;
-  uuid: string;
   createdAt: Date;
   updatedAt: Date;
+  creationTime: Date;
+  modificationTime: Date;
   status: 'EXISTS' | 'TRASHED';
   parentUuid: string | null;
 };

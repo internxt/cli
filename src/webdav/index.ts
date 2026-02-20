@@ -5,6 +5,7 @@ import { ConfigService } from '../services/config.service';
 import { AuthService } from '../services/auth.service';
 import { webdavLogger } from '../utils/logger.utils';
 import { SdkManager } from '../services/sdk-manager.service';
+import { DatabaseService } from '../services/database/database.service';
 
 dotenv.config({ quiet: true });
 
@@ -12,6 +13,9 @@ const init = async () => {
   await ConfigService.instance.ensureInternxtCliDataDirExists();
   await ConfigService.instance.ensureWebdavCertsDirExists();
   await ConfigService.instance.ensureInternxtLogsDirExists();
+
+  await DatabaseService.instance.initialize();
+  await DatabaseService.instance.clear();
 
   const { token, workspace } = await AuthService.instance.getAuthDetails();
   SdkManager.init({ token, workspaceToken: workspace?.workspaceCredentials.token });

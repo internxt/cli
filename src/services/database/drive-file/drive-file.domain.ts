@@ -2,15 +2,12 @@ import { DriveFileItem } from '../../../types/drive.types';
 import { DriveFileAttributes } from './drive-file.attributes';
 
 export class DriveFile implements DriveFileAttributes {
-  id: number;
   name: string;
-  type?: string;
+  type?: string | null;
   uuid: string;
-  fileId: string;
-  folderId: number;
+  fileId?: string | null;
   folderUuid: string;
   bucket: string;
-  relativePath: string;
   createdAt: Date;
   updatedAt: Date;
   size: number;
@@ -19,15 +16,12 @@ export class DriveFile implements DriveFileAttributes {
   modificationTime: Date;
 
   constructor({
-    id,
     name,
     type,
     uuid,
     fileId,
-    folderId,
     folderUuid,
     bucket,
-    relativePath,
     createdAt,
     updatedAt,
     size,
@@ -35,15 +29,12 @@ export class DriveFile implements DriveFileAttributes {
     creationTime,
     modificationTime,
   }: DriveFileAttributes) {
-    this.id = id;
     this.name = name;
     this.type = type;
     this.uuid = uuid;
     this.fileId = fileId;
-    this.folderId = folderId;
     this.folderUuid = folderUuid;
     this.bucket = bucket;
-    this.relativePath = relativePath;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
     this.size = size;
@@ -58,15 +49,12 @@ export class DriveFile implements DriveFileAttributes {
 
   public toJSON(): DriveFileAttributes {
     return {
-      id: this.id,
       name: this.name,
       type: this.type,
       uuid: this.uuid,
       fileId: this.fileId,
-      folderId: this.folderId,
       folderUuid: this.folderUuid,
       bucket: this.bucket,
-      relativePath: this.relativePath,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
       size: this.size,
@@ -79,12 +67,10 @@ export class DriveFile implements DriveFileAttributes {
   public toItem(): DriveFileItem {
     return {
       itemType: 'file',
-      id: this.id,
       name: this.name,
       type: this.type,
       uuid: this.uuid,
       fileId: this.fileId,
-      folderId: this.folderId,
       folderUuid: this.folderUuid,
       bucket: this.bucket,
       createdAt: this.createdAt,

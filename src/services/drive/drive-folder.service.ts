@@ -1,4 +1,4 @@
-import { FetchPaginatedFile, FetchPaginatedFolder } from '@internxt/sdk/dist/drive/storage/types';
+import { FetchPaginatedFile, FetchPaginatedFolder, FileStatus } from '@internxt/sdk/dist/drive/storage/types';
 import { SdkManager } from '../sdk-manager.service';
 import { StorageTypes } from '@internxt/sdk/dist/drive';
 import { DriveFolderItem } from '../../types/drive.types';
@@ -6,6 +6,10 @@ import { DriveUtils } from '../../utils/drive.utils';
 import { RequestCanceler } from '@internxt/sdk/dist/shared/http/types';
 import { AuthService } from '../auth.service';
 import { WorkspaceCredentialsDetails } from '../../types/command.types';
+import { FolderRepository } from '../database/drive-folder/drive-folder.repository';
+import { DriveFolder } from '../database/drive-folder/drive-folder.domain';
+import { FileRepository } from '../database/drive-file/drive-file.repository';
+import { DriveFile } from '../database/drive-file/drive-file.domain';
 
 export class DriveFolderService {
   static readonly instance = new DriveFolderService();
@@ -13,13 +17,17 @@ export class DriveFolderService {
   public getFolderMetaByUuid = async (uuid: string): Promise<DriveFolderItem> => {
     const storageClient = SdkManager.instance.getStorage();
     const folderMeta = await storageClient.getFolderMeta(uuid);
-    return DriveUtils.driveFolderMetaToItem(folderMeta);
+    const folderItem = DriveUtils.driveFolderMetaToItem(folderMeta);
+    FolderRepository.instance.createOrUpdate([folderItem]);
+    return folderItem;
   };
 
   public getFolderMetaById = async (id: number): Promise<DriveFolderItem> => {
     const storageClient = SdkManager.instance.getStorage();
     const folderMeta = await storageClient.getFolderMetaById(id);
-    return DriveUtils.driveFolderMetaToItem(folderMeta);
+    const folderItem = DriveUtils.driveFolderMetaToItem(folderMeta);
+    FolderRepository.instance.createOrUpdate([folderItem]);
+    return folderItem;
   };
 
   public getFolderContent = async (folderUuid: string) => {
@@ -60,6 +68,22 @@ export class DriveFolderService {
       folders = (await personalFolderContentPromise).folders;
     }
 
+    FolderRepository.instance.createOrUpdate(
+      folders.map(
+        (folder) =>
+          new DriveFolder({
+            uuid: folder.uuid,
+            name: folder.plainName,
+            parentUuid: folder.parentUuid,
+            status: FileStatus.EXISTS,
+            createdAt: new Date(folder.createdAt),
+            updatedAt: new Date(folder.updatedAt),
+            creationTime: new Date(folder.creationTime ?? folder.createdAt),
+            modificationTime: new Date(folder.modificationTime ?? folder.updatedAt),
+          }),
+      ),
+    );
+
     if (folders.length > 0) {
       return folders.concat(await this.getAllSubfolders(currentWorkspace, folderUuid, offset + folders.length));
     } else {
@@ -91,6 +115,26 @@ export class DriveFolderService {
       files = (await folderContentPromise).files;
     }
 
+    FileRepository.instance.createOrUpdate(
+      files.map(
+        (file) =>
+          new DriveFile({
+            uuid: file.uuid,
+            name: file.plainName,
+            type: file.type,
+            folderUuid: file.folderUuid,
+            status: FileStatus.EXISTS,
+            bucket: file.bucket,
+            size: Number(file.size ?? 0),
+            fileId: file.fileId,
+            createdAt: new Date(file.createdAt),
+            updatedAt: new Date(file.updatedAt),
+            creationTime: new Date(file.creationTime ?? file.createdAt),
+            modificationTime: new Date(file.modificationTime ?? file.updatedAt),
+          }),
+      ),
+    );
+
     if (files.length > 0) {
       return files.concat(await this.getAllSubfiles(currentWorkspace, folderUuid, offset + files.length));
     } else {
@@ -98,9 +142,15 @@ export class DriveFolderService {
     }
   };
 
-  public moveFolder = (uuid: string, payload: StorageTypes.MoveFolderUuidPayload): Promise<StorageTypes.FolderMeta> => {
+  public moveFolder = async (
+    uuid: string,
+    payload: StorageTypes.MoveFolderUuidPayload,
+  ): Promise<StorageTypes.FolderMeta> => {
     const storageClient = SdkManager.instance.getStorage();
-    return storageClient.moveFolderByUuid(uuid, payload);
+    const folderMeta = await storageClient.moveFolderByUuid(uuid, payload);
+    const folderItem = DriveUtils.driveFolderMetaToItem(folderMeta);
+    FolderRepository.instance.createOrUpdate([folderItem]);
+    return folderMeta;
   };
 
   /**
@@ -128,9 +178,10 @@ export class DriveFolderService {
     }
   };
 
-  public renameFolder = (payload: { folderUuid: string; name: string }): Promise<void> => {
+  public renameFolder = async (payload: { folderUuid: string; name: string }): Promise<void> => {
     const storageClient = SdkManager.instance.getStorage();
-    return storageClient.updateFolderNameWithUUID(payload);
+    await storageClient.updateFolderNameWithUUID(payload);
+    FolderRepository.instance.updateByUuid(payload.folderUuid, { name: payload.name });
   };
 
   public getFolderMetadataByPath = async (path: string): Promise<DriveFolderItem> => {

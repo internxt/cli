@@ -9,6 +9,7 @@ import { SdkManager } from '../../services/sdk-manager.service';
 import { AuthService } from '../../services/auth.service';
 import Webdav from '../../commands/webdav';
 import WebDAVConfig from '../../commands/webdav-config';
+import { DatabaseService } from '../../services/database/database.service';
 
 const CommandsToSkip = [Whoami, Login, LoginLegacy, Logout, Logs, Webdav, WebDAVConfig];
 const hook: Hook<'prerun'> = async function (opts) {
@@ -22,6 +23,7 @@ const hook: Hook<'prerun'> = async function (opts) {
       SdkManager.init({ token, workspaceToken: workspace?.workspaceCredentials.token });
       CLIUtils.done(jsonFlag);
       CLIUtils.clearPreviousLine(jsonFlag);
+      await DatabaseService.instance.initialize();
     } catch (error) {
       const err = error as Error;
       CLIUtils.catchError({
