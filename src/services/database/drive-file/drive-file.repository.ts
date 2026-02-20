@@ -26,6 +26,14 @@ export class FileRepository {
     }
   };
 
+  public updateByUuid = async (uuid: string, update: Partial<DriveFileModel>) => {
+    try {
+      return await this.fileRepository.update({ uuid }, update);
+    } catch (error) {
+      ErrorUtils.report(error, { uuid });
+    }
+  };
+
   public delete = async (uuids: string[]) => {
     try {
       return await this.fileRepository.delete(uuids);
