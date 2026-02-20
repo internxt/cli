@@ -15,6 +15,7 @@ const init = async () => {
   await ConfigService.instance.ensureInternxtLogsDirExists();
 
   await DatabaseService.instance.initialize();
+  await DatabaseService.instance.clear();
 
   const { token, workspace } = await AuthService.instance.getAuthDetails();
   SdkManager.init({ token, workspaceToken: workspace?.workspaceCredentials.token });
