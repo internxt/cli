@@ -122,7 +122,7 @@ export class KeysService {
       decryptionKeys: privateKey,
     });
 
-    return decryptedMessage as string;
+    return decryptedMessage.toString();
   };
 
   private readonly comparePrivateKeyCiphertextIDs = (
