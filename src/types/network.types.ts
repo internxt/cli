@@ -1,6 +1,14 @@
+import { NetworkFacade } from '../services/network/network-facade.service';
+
 export interface NetworkCredentials {
   user: string;
   pass: string;
+}
+
+export interface NetworkOptions {
+  networkFacade: NetworkFacade;
+  bucket: string;
+  mnemonic: string;
 }
 
 export type DownloadProgressCallback = (downloadedBytes: number) => void;

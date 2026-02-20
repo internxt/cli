@@ -2,67 +2,33 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   createWebDavRequestFixture,
   createWebDavResponseFixture,
+  getNetworkFacadeMock,
+  getNetworkOptionsMock,
   getRequestedFileResource,
   getRequestedFolderResource,
 } from '../../fixtures/webdav.fixture';
 import { DriveFileService } from '../../../src/services/drive/drive-file.service';
-import { DriveFolderService } from '../../../src/services/drive/drive-folder.service';
-import { CryptoService } from '../../../src/services/crypto.service';
-import { DownloadService } from '../../../src/services/network/download.service';
 import { AuthService } from '../../../src/services/auth.service';
-import { SdkManager } from '../../../src/services/sdk-manager.service';
 import { NetworkFacade } from '../../../src/services/network/network-facade.service';
 import { PUTRequestHandler } from '../../../src/webdav/handlers/PUT.handler';
-import { WebDavFolderService } from '../../../src/webdav/services/webdav-folder.service';
 import { TrashService } from '../../../src/services/drive/trash.service';
 import { WebDavRequestedResource } from '../../../src/types/webdav.types';
 import { WebDavUtils } from '../../../src/utils/webdav.utils';
 import { newDriveFile, newFolderItem } from '../../fixtures/drive.fixture';
 import { UserCredentialsFixture } from '../../fixtures/login.fixture';
-import { Environment } from '@internxt/inxt-js';
-import { ConfigService } from '../../../src/services/config.service';
-import { UserFixture } from '../../fixtures/auth.fixture';
+import { CLIUtils } from '../../../src/utils/cli.utils';
 
 describe('PUT request handler', () => {
   let networkFacade: NetworkFacade;
   let sut: PUTRequestHandler;
-  const getNetworkMock = () => {
-    return SdkManager.instance.getNetwork({
-      user: 'user',
-      pass: 'pass',
-    });
-  };
-
-  const getEnvironmentMock = () => {
-    return new Environment({
-      bridgeUser: 'user',
-      bridgePass: 'pass',
-      bridgeUrl: ConfigService.instance.get('NETWORK_URL'),
-      encryptionKey: UserFixture.mnemonic,
-      appDetails: SdkManager.getAppDetails(),
-    });
-  };
 
   beforeEach(() => {
     vi.restoreAllMocks();
-    networkFacade = new NetworkFacade(
-      getNetworkMock(),
-      getEnvironmentMock(),
-      DownloadService.instance,
-      CryptoService.instance,
-    );
-    const webDavFolderService = new WebDavFolderService({
-      driveFolderService: DriveFolderService.instance,
-      configService: ConfigService.instance,
-    });
-    sut = new PUTRequestHandler({
-      driveFileService: DriveFileService.instance,
-      driveFolderService: DriveFolderService.instance,
-      webDavFolderService,
-      authService: AuthService.instance,
-      trashService: TrashService.instance,
-      networkFacade,
-    });
+
+    networkFacade = getNetworkFacadeMock();
+    vi.spyOn(CLIUtils, 'prepareNetwork').mockResolvedValue(getNetworkOptionsMock({ networkFacade }));
+
+    sut = new PUTRequestHandler();
   });
 
   it('should upload an empty file when the content-length request is 0', async () => {

@@ -1,10 +1,9 @@
 import { Command, Flags } from '@oclif/core';
 import { CLIUtils } from '../utils/cli.utils';
-import { AuthService } from '../services/auth.service';
 import { ValidationService } from '../services/validation.service';
 import { ConfigService } from '../services/config.service';
 import { UploadFacade } from '../services/network/upload/upload-facade.service';
-import { NotValidDirectoryError } from '../types/command.types';
+import { MissingCredentialsError, NotValidDirectoryError } from '../types/command.types';
 
 export default class UploadFolder extends Command {
   static readonly args = {};
@@ -28,18 +27,23 @@ export default class UploadFolder extends Command {
   static readonly enableJsonFlag = true;
 
   public run = async () => {
-    const { user } = await AuthService.instance.getAuthDetails();
     const { flags } = await this.parse(UploadFolder);
+
+    const userCredentials = await ConfigService.instance.readUser();
+    if (!userCredentials) throw new MissingCredentialsError();
+
     const localPath = await this.getFolderPath(flags['folder'], flags['non-interactive']);
 
-    // If destinationFolderUuid is empty from flags&prompt, means we should use RootFolderUuid
-    const destinationFolderUuid =
-      (await CLIUtils.getDestinationFolderUuid({
-        destinationFolderUuidFlag: flags['destination'],
-        destinationFlagName: UploadFolder.flags['destination'].name,
-        nonInteractive: flags['non-interactive'],
-        reporter: this.log.bind(this),
-      })) ?? user.rootFolderId;
+    const destinationFolderUuidFromFlag = await CLIUtils.getDestinationFolderUuid({
+      destinationFolderUuidFlag: flags['destination'],
+      destinationFlagName: UploadFolder.flags['destination'].name,
+      nonInteractive: flags['non-interactive'],
+      reporter: this.log.bind(this),
+    });
+    const destinationFolderUuid = await CLIUtils.fallbackToRootFolderIdIfEmpty(
+      destinationFolderUuidFromFlag,
+      userCredentials,
+    );
 
     const progressBar = CLIUtils.progress(
       {
@@ -52,7 +56,7 @@ export default class UploadFolder extends Command {
     const data = await UploadFacade.instance.uploadFolder({
       localPath,
       destinationFolderUuid,
-      loginUserDetails: user,
+      loginUserDetails: userCredentials.user,
       jsonFlag: flags['json'],
       onProgress: (progress) => {
         progressBar?.update(progress.percentage);

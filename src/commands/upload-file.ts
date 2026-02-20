@@ -1,17 +1,17 @@
 import { Command, Flags } from '@oclif/core';
 import { stat } from 'node:fs/promises';
 import { createReadStream } from 'node:fs';
-import { AuthService } from '../services/auth.service';
 import { CLIUtils } from '../utils/cli.utils';
 import { ConfigService } from '../services/config.service';
 import path from 'node:path';
 import { DriveFileService } from '../services/drive/drive-file.service';
-import { NotValidDirectoryError } from '../types/command.types';
+import { MissingCredentialsError, NotValidFileError } from '../types/command.types';
 import { ValidationService } from '../services/validation.service';
 import { EncryptionVersion } from '@internxt/sdk/dist/drive/storage/types';
 import { BufferStream } from '../utils/stream.utils';
-import { isFileThumbnailable, tryUploadThumbnail } from '../utils/thumbnail.utils';
 import { Readable } from 'node:stream';
+import { ThumbnailUtils } from '../utils/thumbnail.utils';
+import { ThumbnailService } from '../services/thumbnail.service';
 
 export default class UploadFile extends Command {
   static readonly args = {};
@@ -39,7 +39,8 @@ export default class UploadFile extends Command {
 
     const nonInteractive = flags['non-interactive'];
 
-    const { user } = await AuthService.instance.getAuthDetails();
+    const userCredentials = await ConfigService.instance.readUser();
+    if (!userCredentials) throw new MissingCredentialsError();
 
     const filePath = await this.getFilePath(flags['file'], nonInteractive);
 
@@ -48,14 +49,16 @@ export default class UploadFile extends Command {
     const fileInfo = path.parse(filePath);
     const fileType = fileInfo.ext.replaceAll('.', '');
 
-    // If destinationFolderUuid is empty from flags&prompt, means we should use RootFolderUuid
-    const destinationFolderUuid =
-      (await CLIUtils.getDestinationFolderUuid({
-        destinationFolderUuidFlag: flags['destination'],
-        destinationFlagName: UploadFile.flags['destination'].name,
-        nonInteractive,
-        reporter: this.log.bind(this),
-      })) ?? user.rootFolderId;
+    const destinationFolderUuidFromFlag = await CLIUtils.getDestinationFolderUuid({
+      destinationFolderUuidFlag: flags['destination'],
+      destinationFlagName: UploadFile.flags['destination'].name,
+      nonInteractive,
+      reporter: this.log.bind(this),
+    });
+    const destinationFolderUuid = await CLIUtils.fallbackToRootFolderIdIfEmpty(
+      destinationFolderUuidFromFlag,
+      userCredentials,
+    );
 
     const timings = {
       networkUpload: 0,
@@ -64,7 +67,9 @@ export default class UploadFile extends Command {
     };
 
     // Prepare the network
-    const networkFacade = CLIUtils.prepareNetwork({ loginUserDetails: user, jsonFlag: flags['json'] });
+    CLIUtils.doing('Preparing Network', flags['json']);
+    const { networkFacade, bucket } = await CLIUtils.prepareNetwork(userCredentials.user);
+    CLIUtils.done(flags['json']);
 
     const networkUploadTimer = CLIUtils.timer();
     const progressBar = CLIUtils.progress(
@@ -78,7 +83,7 @@ export default class UploadFile extends Command {
 
     let fileId: string | undefined;
     let bufferStream: BufferStream | undefined;
-    const isThumbnailable = isFileThumbnailable(fileType);
+    const isThumbnailable = ThumbnailUtils.isFileThumbnailable(fileType);
     const fileSize = stats.size ?? 0;
 
     if (fileSize > 0) {
@@ -99,7 +104,7 @@ export default class UploadFile extends Command {
         const state = networkFacade.uploadFile(
           fileStream,
           fileSize,
-          user.bucket,
+          bucket,
           (err: Error | null, res: string | null) => {
             if (err) {
               return reject(err);
@@ -123,8 +128,8 @@ export default class UploadFile extends Command {
       type: fileType,
       size: fileSize,
       folderUuid: destinationFolderUuid,
-      fileId: fileId,
-      bucket: user.bucket,
+      fileId,
+      bucket,
       encryptVersion: EncryptionVersion.Aes03,
       creationTime: stats.birthtime?.toISOString(),
       modificationTime: stats.mtime?.toISOString(),
@@ -133,10 +138,10 @@ export default class UploadFile extends Command {
 
     const thumbnailTimer = CLIUtils.timer();
     if (fileSize > 0 && isThumbnailable && bufferStream) {
-      void tryUploadThumbnail({
+      void ThumbnailService.instance.tryUploadThumbnail({
         bufferStream,
         fileType,
-        userBucket: user.bucket,
+        bucket,
         fileUuid: createdDriveFile.uuid,
         networkFacade,
       });
@@ -151,10 +156,10 @@ export default class UploadFile extends Command {
 
     this.log('\n');
     this.log(
-      `[PUT] Timing breakdown:\n
-      Network upload: ${CLIUtils.formatDuration(timings.networkUpload)} (${throughputMBps.toFixed(2)} MB/s)\n
-      Drive upload: ${CLIUtils.formatDuration(timings.driveUpload)}\n
-      Thumbnail: ${CLIUtils.formatDuration(timings.thumbnailUpload)}\n`,
+      '[PUT] Timing breakdown:\n' +
+        `Network upload: ${CLIUtils.formatDuration(timings.networkUpload)} (${throughputMBps.toFixed(2)} MB/s)\n` +
+        `Drive upload: ${CLIUtils.formatDuration(timings.driveUpload)}\n` +
+        `Thumbnail: ${CLIUtils.formatDuration(timings.thumbnailUpload)}\n`,
     );
     this.log('\n');
     const message =
@@ -197,7 +202,7 @@ export default class UploadFile extends Command {
       },
       {
         validate: ValidationService.instance.validateFileExists,
-        error: new NotValidDirectoryError(),
+        error: new NotValidFileError(),
       },
       this.log.bind(this),
     );

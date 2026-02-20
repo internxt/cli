@@ -3,7 +3,6 @@ import { NetworkFacade } from '../../../src/services/network/network-facade.serv
 import { SdkManager } from '../../../src/services/sdk-manager.service';
 import path from 'node:path';
 import { createReadStream } from 'node:fs';
-import { CryptoService } from '../../../src/services/crypto.service';
 import { DownloadService } from '../../../src/services/network/download.service';
 import { Readable } from 'node:stream';
 import axios from 'axios';
@@ -43,8 +42,6 @@ describe('Network Facade Service', () => {
       getNetworkMock(),
       // @ts-expect-error - We only mock the properties we need
       mockEnvironment,
-      DownloadService.instance,
-      CryptoService.instance,
     );
     const file = path.join(process.cwd(), 'test/fixtures/test-content.fixture.txt');
     const readStream = createReadStream(file);
@@ -68,8 +65,6 @@ describe('Network Facade Service', () => {
       getNetworkMock(),
       // @ts-expect-error - We only mock the properties we need
       mockEnvironment,
-      DownloadService.instance,
-      CryptoService.instance,
     );
     const file = path.join(process.cwd(), 'test/fixtures/test-content.fixture.txt');
     const readStream = createReadStream(file);
@@ -109,9 +104,8 @@ describe('Network Facade Service', () => {
       ],
       version: 2,
     });
-    const downloadServiceStub = DownloadService.instance;
-    vi.spyOn(downloadServiceStub, 'downloadFile').mockResolvedValue(readableContent);
-    const sut = new NetworkFacade(networkMock, getEnvironmentMock(), downloadServiceStub, CryptoService.instance);
+    vi.spyOn(DownloadService.instance, 'downloadFile').mockResolvedValue(readableContent);
+    const sut = new NetworkFacade(networkMock, getEnvironmentMock());
 
     const chunks: Uint8Array[] = [];
 
@@ -162,9 +156,8 @@ describe('Network Facade Service', () => {
       ],
       version: 2,
     });
-    const downloadServiceStub = DownloadService.instance;
-    vi.spyOn(downloadServiceStub, 'downloadFile').mockResolvedValue(readableContent);
-    const sut = new NetworkFacade(networkMock, getEnvironmentMock(), downloadServiceStub, CryptoService.instance);
+    vi.spyOn(DownloadService.instance, 'downloadFile').mockResolvedValue(readableContent);
+    const sut = new NetworkFacade(networkMock, getEnvironmentMock());
 
     const writable = new WritableStream<Uint8Array>();
 
@@ -213,9 +206,8 @@ describe('Network Facade Service', () => {
       ],
       version: 2,
     });
-    const downloadServiceStub = DownloadService.instance;
 
-    const sut = new NetworkFacade(networkMock, getEnvironmentMock(), downloadServiceStub, CryptoService.instance);
+    const sut = new NetworkFacade(networkMock, getEnvironmentMock());
 
     const writable = new WritableStream<Uint8Array>();
 

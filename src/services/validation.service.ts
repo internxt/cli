@@ -34,13 +34,21 @@ export class ValidationService {
   };
 
   public validateDirectoryExists = async (path: string): Promise<boolean> => {
-    const directoryStat = await fs.stat(path);
-    return directoryStat.isDirectory();
+    try {
+      const directoryStat = await fs.stat(path);
+      return directoryStat.isDirectory();
+    } catch {
+      return false;
+    }
   };
 
   public validateFileExists = async (path: string): Promise<boolean> => {
-    const fileStat = await fs.stat(path);
-    return fileStat.isFile();
+    try {
+      const fileStat = await fs.stat(path);
+      return fileStat.isFile();
+    } catch {
+      return false;
+    }
   };
 
   /**

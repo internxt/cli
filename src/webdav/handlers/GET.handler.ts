@@ -1,36 +1,19 @@
 import { WebDavMethodHandler } from '../../types/webdav.types';
 import { Request, Response } from 'express';
 import { WebDavUtils } from '../../utils/webdav.utils';
-import { DriveFileService } from '../../services/drive/drive-file.service';
-import { NetworkFacade } from '../../services/network/network-facade.service';
-import { DownloadService } from '../../services/network/download.service';
-import { CryptoService } from '../../services/crypto.service';
 import { AuthService } from '../../services/auth.service';
 import { NotFoundError } from '../../utils/errors.utils';
 import { webdavLogger } from '../../utils/logger.utils';
 import { NetworkUtils } from '../../utils/network.utils';
 import { NotValidFileIdError } from '../../types/command.types';
+import { CLIUtils } from '../../utils/cli.utils';
 
 export class GETRequestHandler implements WebDavMethodHandler {
-  constructor(
-    private readonly dependencies: {
-      driveFileService: DriveFileService;
-      downloadService: DownloadService;
-      cryptoService: CryptoService;
-      authService: AuthService;
-      networkFacade: NetworkFacade;
-    },
-  ) {}
-
   handle = async (req: Request, res: Response) => {
-    const { driveFileService, authService, networkFacade } = this.dependencies;
     const resource = await WebDavUtils.getRequestedResource(req.url);
 
     webdavLogger.info(`[GET] Request received item at ${resource.url}`);
-    const driveFile = await WebDavUtils.getDriveFileFromResource({
-      url: resource.url,
-      driveFileService,
-    });
+    const driveFile = await WebDavUtils.getDriveFileFromResource(resource.url);
 
     if (!driveFile) {
       throw new NotFoundError(
@@ -40,7 +23,7 @@ export class GETRequestHandler implements WebDavMethodHandler {
 
     webdavLogger.info(`[GET] [${driveFile.uuid}] Found Drive File`);
 
-    const { user } = await authService.getAuthDetails();
+    const { user } = await AuthService.instance.getAuthDetails();
     webdavLogger.info(`[GET] [${driveFile.uuid}] Network ready for download`);
 
     res.header('Content-Type', 'application/octet-stream');
@@ -73,9 +56,11 @@ export class GETRequestHandler implements WebDavMethodHandler {
         throw new NotValidFileIdError();
       }
 
+      const { networkFacade, bucket, mnemonic } = await CLIUtils.prepareNetwork(user);
+
       const [executeDownload] = await networkFacade.downloadToStream(
-        driveFile.bucket,
-        user.mnemonic,
+        bucket,
+        mnemonic,
         driveFile.fileId,
         contentLength,
         writable,

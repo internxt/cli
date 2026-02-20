@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { ErrorUtils, isAlreadyExistsError, isFileNotFoundError } from '../../src/utils/errors.utils';
+import { ErrorUtils } from '../../src/utils/errors.utils';
 import { logger } from '../../src/utils/logger.utils';
 
 describe('Errors Utils', () => {
@@ -34,20 +34,20 @@ describe('Errors Utils', () => {
     it('should properly detect an error object that has an already exists as message', () => {
       const error = new Error('File already exists');
 
-      expect(isAlreadyExistsError(error)).toBe(true);
+      expect(ErrorUtils.isAlreadyExistsError(error)).toBe(true);
     });
 
     it('should properly detect an error object that has 409 as status', () => {
       const error = { status: 409, message: 'Conflict' };
 
-      expect(isAlreadyExistsError(error)).toBe(true);
+      expect(ErrorUtils.isAlreadyExistsError(error)).toBe(true);
     });
 
     it('should return false if the passed error is not an object', () => {
-      expect(isAlreadyExistsError('string error')).toBe(false);
-      expect(isAlreadyExistsError(123)).toBe(false);
-      expect(isAlreadyExistsError(null)).toBe(false);
-      expect(isAlreadyExistsError(undefined)).toBe(false);
+      expect(ErrorUtils.isAlreadyExistsError('string error')).toBe(false);
+      expect(ErrorUtils.isAlreadyExistsError(123)).toBe(false);
+      expect(ErrorUtils.isAlreadyExistsError(null)).toBe(false);
+      expect(ErrorUtils.isAlreadyExistsError(undefined)).toBe(false);
     });
   });
 
@@ -56,7 +56,7 @@ describe('Errors Utils', () => {
       const error = new Error('File not found');
       Object.assign(error, { code: 'ENOENT' });
 
-      expect(isFileNotFoundError(error)).toBe(true);
+      expect(ErrorUtils.isFileNotFoundError(error)).toBe(true);
     });
 
     it('should return true when error is a real ENOENT error from fs operations', () => {
@@ -67,28 +67,28 @@ describe('Errors Utils', () => {
         path: '/nonexistent/file.txt',
       });
 
-      expect(isFileNotFoundError(error)).toBe(true);
+      expect(ErrorUtils.isFileNotFoundError(error)).toBe(true);
     });
 
     it('should return false when error has a different error code', () => {
       const error = new Error('Permission denied');
       Object.assign(error, { code: 'EACCES' });
 
-      expect(isFileNotFoundError(error)).toBe(false);
+      expect(ErrorUtils.isFileNotFoundError(error)).toBe(false);
     });
 
     it('should return false when error has no code property', () => {
       const error = new Error('Some error');
 
-      expect(isFileNotFoundError(error)).toBe(false);
+      expect(ErrorUtils.isFileNotFoundError(error)).toBe(false);
     });
 
     it('should return false when error is not an Error object', () => {
-      expect(isFileNotFoundError({ code: 'ENOENT' })).toBe(false);
-      expect(isFileNotFoundError('ENOENT')).toBe(false);
-      expect(isFileNotFoundError(null)).toBe(false);
-      expect(isFileNotFoundError(undefined)).toBe(false);
-      expect(isFileNotFoundError(123)).toBe(false);
+      expect(ErrorUtils.isFileNotFoundError({ code: 'ENOENT' })).toBe(false);
+      expect(ErrorUtils.isFileNotFoundError('ENOENT')).toBe(false);
+      expect(ErrorUtils.isFileNotFoundError(null)).toBe(false);
+      expect(ErrorUtils.isFileNotFoundError(undefined)).toBe(false);
+      expect(ErrorUtils.isFileNotFoundError(123)).toBe(false);
     });
   });
 });

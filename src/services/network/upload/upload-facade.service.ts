@@ -9,9 +9,18 @@ import { AsyncUtils } from '../../../utils/async.utils';
 
 export class UploadFacade {
   static readonly instance = new UploadFacade();
-  async uploadFolder({ localPath, destinationFolderUuid, loginUserDetails, jsonFlag, onProgress }: UploadFolderParams) {
+
+  public uploadFolder = async ({
+    localPath,
+    destinationFolderUuid,
+    loginUserDetails,
+    jsonFlag,
+    onProgress,
+  }: UploadFolderParams) => {
     const timer = CLIUtils.timer();
-    const network = CLIUtils.prepareNetwork({ jsonFlag, loginUserDetails });
+    CLIUtils.doing('Preparing Network', jsonFlag);
+    const { networkFacade, bucket } = await CLIUtils.prepareNetwork(loginUserDetails);
+    CLIUtils.done(jsonFlag);
     const scanResult = await LocalFilesystemService.instance.scanLocalDirectory(localPath);
     logger.info(
       `Scanned folder ${localPath}: found ${scanResult.totalItems} items, total size ${scanResult.totalBytes} bytes.`,
@@ -39,10 +48,10 @@ export class UploadFacade {
     await AsyncUtils.sleep(500);
 
     const totalBytes = await UploadFileService.instance.uploadFilesConcurrently({
-      network,
+      network: networkFacade,
       filesToUpload: scanResult.files,
       folderMap,
-      bucket: loginUserDetails.bucket,
+      bucket,
       destinationFolderUuid,
       currentProgress,
       emitProgress,
@@ -55,5 +64,5 @@ export class UploadFacade {
       rootFolderId,
       uploadTimeMs: timer.stop(),
     };
-  }
+  };
 }

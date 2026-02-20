@@ -9,7 +9,7 @@ import { AsyncUtils } from '../utils/async.utils';
 export default class CreateFolder extends Command {
   static readonly args = {};
   static readonly description = 'Create a folder in your Internxt Drive';
-  static readonly aliases = [];
+  static readonly aliases = ['create:folder'];
   static readonly examples = ['<%= config.bin %> <%= command.id %>'];
   static readonly flags = {
     ...CLIUtils.CommonFlags,
@@ -36,14 +36,12 @@ export default class CreateFolder extends Command {
     if (!userCredentials) throw new MissingCredentialsError();
 
     const folderName = await this.getFolderName(flags['name'], nonInteractive);
-    let folderUuid = await this.getFolderUuid(flags['id'], nonInteractive);
-    if (folderUuid.trim().length === 0) {
-      // folderId is empty from flags&prompt, which means we should use RootFolderUuid
-      folderUuid = userCredentials.user.rootFolderId;
-    }
+
+    const folderUuidFromFlag = await this.getFolderUuid(flags['id'], nonInteractive);
+    const folderUuid = await CLIUtils.fallbackToRootFolderIdIfEmpty(folderUuidFromFlag, userCredentials);
 
     CLIUtils.doing('Creating folder...', flags['json']);
-    const [createNewFolder, requestCanceler] = DriveFolderService.instance.createFolder({
+    const [createNewFolder, requestCanceler] = await DriveFolderService.instance.createFolder({
       plainName: folderName,
       parentFolderUuid: folderUuid,
     });

@@ -2,6 +2,12 @@ import { getMockReq, getMockRes } from 'vitest-mock-express';
 import { Request, Response } from 'express';
 import { WebDavRequestedResource } from '../../src/types/webdav.types';
 import path from 'node:path';
+import { SdkManager } from '../../src/services/sdk-manager.service';
+import { Environment } from '@internxt/inxt-js';
+import { ConfigService } from '../../src/services/config.service';
+import { UserFixture } from './auth.fixture';
+import { NetworkFacade } from '../../src/services/network/network-facade.service';
+import { NetworkOptions } from '../../src/types/network.types';
 
 export const createWebDavRequestFixture = <T extends object>(request: T): T & Request => {
   return getMockReq({
@@ -55,4 +61,34 @@ export const getRequestedFolderResource = ({
     path: path.parse(completeURL),
     url: completeURL,
   };
+};
+
+export const getNetworkMock = () => {
+  return SdkManager.instance.getNetwork({
+    user: 'user',
+    pass: 'pass',
+  });
+};
+
+export const getEnvironmentMock = () => {
+  return new Environment({
+    bridgeUser: 'user',
+    bridgePass: 'pass',
+    bridgeUrl: ConfigService.instance.get('NETWORK_URL'),
+    encryptionKey: UserFixture.mnemonic,
+    appDetails: SdkManager.getAppDetails(),
+  });
+};
+
+export const getNetworkFacadeMock = () => {
+  return new NetworkFacade(getNetworkMock(), getEnvironmentMock());
+};
+
+export const getNetworkOptionsMock = (attributes?: Partial<NetworkOptions>): NetworkOptions => {
+  const options: NetworkOptions = {
+    networkFacade: new NetworkFacade(getNetworkMock(), getEnvironmentMock()),
+    bucket: UserFixture.bucket,
+    mnemonic: UserFixture.mnemonic,
+  };
+  return { ...options, ...attributes };
 };
