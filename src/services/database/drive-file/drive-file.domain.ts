@@ -3,9 +3,9 @@ import { DriveFileAttributes } from './drive-file.attributes';
 
 export class DriveFile implements DriveFileAttributes {
   name: string;
-  type?: string;
+  type?: string | null;
   uuid: string;
-  fileId: string;
+  fileId?: string | null;
   folderUuid: string;
   bucket: string;
   createdAt: Date;
