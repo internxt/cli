@@ -9,14 +9,29 @@ import { CLIUtils } from '../utils/cli.utils';
 export class UniversalLinkService {
   public static readonly instance: UniversalLinkService = new UniversalLinkService();
 
-  public getUserCredentials = async (userSession: { mnemonic: string; token: string }): Promise<LoginCredentials> => {
+  public getUserCredentials = async (userSession: {
+    mnemonic: string;
+    token: string;
+    privateKey: string;
+  }): Promise<LoginCredentials> => {
     const clearMnemonic = Buffer.from(userSession.mnemonic, 'base64').toString('utf-8');
     const clearToken = Buffer.from(userSession.token, 'base64').toString('utf-8');
+    const clearPrivateKey = Buffer.from(userSession.privateKey, 'base64').toString('utf-8');
     const loginCredentials = await AuthService.instance.refreshUserToken(clearToken, clearMnemonic);
     return {
       user: {
         ...loginCredentials.user,
         mnemonic: clearMnemonic,
+        keys: {
+          ecc: {
+            privateKey: clearPrivateKey,
+            publicKey: loginCredentials.user.keys.ecc.publicKey,
+          },
+          kyber: {
+            privateKey: loginCredentials.user.keys.kyber.privateKey,
+            publicKey: loginCredentials.user.keys.kyber.publicKey,
+          },
+        },
       },
       token: clearToken,
     };
@@ -47,11 +62,12 @@ export class UniversalLinkService {
         try {
           const mnemonic = parsedUrl.searchParams.get('mnemonic');
           const token = parsedUrl.searchParams.get('newToken');
-          if (!mnemonic || !token) {
+          const privateKey = parsedUrl.searchParams.get('privateKey');
+          if (!mnemonic || !token || !privateKey) {
             throw new Error('Login has failed, please try again');
           }
 
-          const loginCredentials = await this.getUserCredentials({ mnemonic, token });
+          const loginCredentials = await this.getUserCredentials({ mnemonic, token, privateKey });
 
           res.writeHead(302, {
             Location: `${driveUrl}/auth-link-ok`,
