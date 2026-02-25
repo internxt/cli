@@ -41,4 +41,12 @@ export class FileRepository {
       ErrorUtils.report(error, { delete: uuids });
     }
   };
+
+  public deleteByParentUuid = async (parentUuid: string) => {
+    try {
+      return await this.fileRepository.delete({ folderUuid: parentUuid });
+    } catch (error) {
+      ErrorUtils.report(error, { deleteByParentUuid: parentUuid });
+    }
+  };
 }

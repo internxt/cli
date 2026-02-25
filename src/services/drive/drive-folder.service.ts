@@ -115,6 +115,7 @@ export class DriveFolderService {
       files = (await folderContentPromise).files;
     }
 
+    FileRepository.instance.deleteByParentUuid(folderUuid);
     FileRepository.instance.createOrUpdate(
       files.map(
         (file) =>
