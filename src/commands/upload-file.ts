@@ -55,10 +55,7 @@ export default class UploadFile extends Command {
       nonInteractive,
       reporter: this.log.bind(this),
     });
-    const destinationFolderUuid = await CLIUtils.fallbackToRootFolderIdIfEmpty(
-      destinationFolderUuidFromFlag,
-      userCredentials,
-    );
+    const destinationFolderUuid = await CLIUtils.fallbackToRootFolderIdIfEmpty(destinationFolderUuidFromFlag);
 
     const timings = {
       networkUpload: 0,

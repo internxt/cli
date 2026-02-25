@@ -173,6 +173,14 @@ export class AuthService {
     return loginCreds.workspace;
   };
 
+  public getCurrentRootFolder = async (): Promise<string> => {
+    const loginCreds = await ConfigService.instance.readUser();
+    if (!loginCreds?.token || !loginCreds?.user?.mnemonic) {
+      throw new MissingCredentialsError();
+    }
+    return loginCreds.workspace?.workspaceData?.workspaceUser?.rootFolderId ?? loginCreds.user.rootFolderId;
+  };
+
   /**
    * Logs the user out of the application by invoking the logout method
    * from the authentication client. This will terminate the user's session
