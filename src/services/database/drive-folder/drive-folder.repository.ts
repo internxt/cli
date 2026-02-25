@@ -10,6 +10,30 @@ export class FolderRepository {
 
   private folderRepository = DatabaseService.instance.dataSource.getRepository(DriveFolderModel);
 
+  public getByUuid = async (uuid: string): Promise<DriveFolder | undefined> => {
+    try {
+      const folder = await this.folderRepository.findOneBy({ uuid });
+      if (!folder) {
+        return;
+      }
+      return DriveFolder.build(folder);
+    } catch (error) {
+      ErrorUtils.report(error, { getByUuid: uuid });
+    }
+  };
+
+  public getAllByParentUuid = async (parentUuid?: string): Promise<DriveFolder[] | undefined> => {
+    try {
+      const folders = await this.folderRepository.findBy({ parentUuid });
+      if (!folders) {
+        return;
+      }
+      return folders.map((folder) => DriveFolder.build(folder));
+    } catch (error) {
+      ErrorUtils.report(error, { getAllByParentUuid: parentUuid });
+    }
+  };
+
   public createOrUpdate = async (files: DriveFolderModel[]) => {
     if (files.length === 0) return;
 
@@ -22,7 +46,7 @@ export class FolderRepository {
 
       return files.map((file) => DriveFolder.build(file));
     } catch (error) {
-      ErrorUtils.report(error, { files });
+      ErrorUtils.report(error, { createOrUpdate: files });
     }
   };
 
@@ -30,7 +54,7 @@ export class FolderRepository {
     try {
       return await this.folderRepository.update({ uuid }, update);
     } catch (error) {
-      ErrorUtils.report(error, { uuid });
+      ErrorUtils.report(error, { updateByUuid: uuid });
     }
   };
 
@@ -38,7 +62,7 @@ export class FolderRepository {
     try {
       return await this.folderRepository.delete(uuids);
     } catch (error) {
-      ErrorUtils.report(error, { uuids });
+      ErrorUtils.report(error, { delete: uuids });
     }
   };
 }
