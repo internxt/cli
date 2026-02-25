@@ -10,6 +10,9 @@ import { FolderRepository } from '../database/drive-folder/drive-folder.reposito
 import { DriveFolder } from '../database/drive-folder/drive-folder.domain';
 import { FileRepository } from '../database/drive-file/drive-file.repository';
 import { DriveFile } from '../database/drive-file/drive-file.domain';
+import { NotFoundError } from '../../utils/errors.utils';
+import { DriveFolderUtils } from '../database/drive-folder/drive-folder.utils';
+import { logger } from '../../utils/logger.utils';
 
 export class DriveFolderService {
   static readonly instance = new DriveFolderService();
@@ -185,16 +188,56 @@ export class DriveFolderService {
     FolderRepository.instance.updateByUuid(payload.folderUuid, { name: payload.name });
   };
 
-  public getFolderMetadataByPath = async (path: string): Promise<DriveFolderItem> => {
-    const storageClient = SdkManager.instance.getStorage();
-    const folderMeta = await storageClient.getFolderByPath(encodeURIComponent(path));
-    return DriveUtils.driveFolderMetaToItem({
-      ...folderMeta,
-      createdAt: folderMeta.createdAt ?? folderMeta.created_at,
-      updatedAt: folderMeta.updatedAt ?? folderMeta.updated_at,
-      plainName: folderMeta.plainName ?? folderMeta.plain_name,
-      parentId: folderMeta.parentId ?? folderMeta.parent_id,
-      parentUuid: folderMeta.parentUuid ?? folderMeta.parent_uuid,
+  public getByParentUuidAndName = async (parentUuid: string, name: string): Promise<DriveFolderItem> => {
+    const { folders } = await this.getFolderContent(parentUuid);
+    const folderMeta = folders.find((folder) => folder.plainName === name || folder.name === name);
+    if (!folderMeta) {
+      throw new Error('Folder not found');
+    }
+
+    return {
+      itemType: 'folder',
+      name: folderMeta.plainName,
+      uuid: folderMeta.uuid,
+      parentUuid: folderMeta.parentUuid,
+      status: FileStatus.EXISTS,
+      createdAt: new Date(folderMeta.createdAt),
+      updatedAt: new Date(folderMeta.updatedAt),
+      creationTime: new Date(folderMeta.creationTime),
+      modificationTime: new Date(folderMeta.modificationTime),
+      bucket: folderMeta.bucket,
+    };
+  };
+
+  public getByPath = async (path: string, parentUuid: string): Promise<DriveFolderItem> => {
+    const onFound = async (uuid: string) => {
+      const folder = await this.getFolderMetaByUuid(uuid);
+      return folder;
+    };
+
+    const folder = await DriveFolderUtils.getByPathGeneric({
+      path,
+      parentUuid,
+      onFound,
+      getByParentAndName: this.getByParentUuidAndName.bind(this),
     });
+    if (!folder) {
+      throw new NotFoundError('Folder not found');
+    }
+    return folder;
+  };
+
+  public getFolderMetadataByPath = async (path: string): Promise<DriveFolderItem> => {
+    const rootFolderUuid = await AuthService.instance.getCurrentRootFolder();
+    const localFolderDB = await FolderRepository.instance.getByPath(path, rootFolderUuid);
+
+    if (localFolderDB) {
+      try {
+        return this.getFolderMetaByUuid(localFolderDB.uuid);
+      } catch {
+        logger.error('Folder not found when getting folder by path on local DB', { path, rootFolderUuid });
+      }
+    }
+    return this.getByPath(path, rootFolderUuid);
   };
 }

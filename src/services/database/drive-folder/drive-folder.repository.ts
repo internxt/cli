@@ -2,6 +2,7 @@ import { ErrorUtils } from '../../../utils/errors.utils';
 import { DatabaseService } from '../database.service';
 import { DriveFolder } from './drive-folder.domain';
 import { DriveFolderModel } from './drive-folder.model';
+import { DriveFolderUtils } from './drive-folder.utils';
 
 const BATCH_SIZE = 100;
 
@@ -34,7 +35,7 @@ export class FolderRepository {
     }
   };
 
-  public getByParentuuidAndName = async (parentUuid: string, name: string): Promise<DriveFolder | undefined> => {
+  public getByParentUuidAndName = async (parentUuid: string, name: string): Promise<DriveFolder | undefined> => {
     try {
       const folder = await this.folderRepository.findOneBy({ parentUuid, name });
       if (!folder) {
@@ -48,33 +49,20 @@ export class FolderRepository {
 
   public getByPath = async (path: string, parentUuid: string): Promise<DriveFolder | undefined> => {
     try {
-      // Remove leading/trailing slashes
-      path = path.replace(/^\/+|\/+$/g, '');
-
-      // Base case: If the path is empty, return the current folder's data
-      if (path.trim().length === 0) {
-        const folder = await this.folderRepository.findOneBy({ uuid: parentUuid });
-        if (folder) {
-          return DriveFolder.build(folder);
-        } else {
+      const onFound = async (uuid: string) => {
+        const folder = await this.folderRepository.findOneBy({ uuid });
+        if (!folder) {
           return;
         }
-      }
+        return DriveFolder.build(folder);
+      };
 
-      // Get the next folder name and the remaining path
-      const slashIndex = path.indexOf('/');
-      const currentFolder = slashIndex === -1 ? path : path.substring(0, slashIndex);
-      const nextPath = slashIndex === -1 ? '' : path.substring(slashIndex + 1);
-
-      const folder = await this.getByParentuuidAndName(parentUuid, currentFolder);
-
-      // If no folder is found, return undefined (folder not found in path)
-      if (!folder) {
-        return;
-      }
-
-      // Recursive call: Process the remaining path
-      return await this.getByPath(nextPath, folder.uuid);
+      return DriveFolderUtils.getByPathGeneric({
+        path,
+        parentUuid,
+        onFound,
+        getByParentAndName: this.getByParentUuidAndName.bind(this),
+      });
     } catch (error) {
       ErrorUtils.report(error, { getByPath: path });
     }
