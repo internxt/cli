@@ -22,7 +22,7 @@ export class FileRepository {
 
       return files.map((file) => DriveFile.build(file));
     } catch (error) {
-      ErrorUtils.report(error, { files });
+      ErrorUtils.report(error, { createOrUpdate: files });
     }
   };
 
@@ -30,7 +30,7 @@ export class FileRepository {
     try {
       return await this.fileRepository.update({ uuid }, update);
     } catch (error) {
-      ErrorUtils.report(error, { uuid });
+      ErrorUtils.report(error, { updateByUuid: uuid });
     }
   };
 
@@ -38,7 +38,7 @@ export class FileRepository {
     try {
       return await this.fileRepository.delete(uuids);
     } catch (error) {
-      ErrorUtils.report(error, { uuids });
+      ErrorUtils.report(error, { delete: uuids });
     }
   };
 }
