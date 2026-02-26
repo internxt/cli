@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { WebDavUtils } from '../../src/utils/webdav.utils';
 import { WebDavRequestedResource } from '../../src/types/webdav.types';
 import { newFileItem, newFolderItem } from '../fixtures/drive.fixture';
@@ -7,10 +7,6 @@ import { DriveFileService } from '../../src/services/drive/drive-file.service';
 import AppError from '@internxt/sdk/dist/shared/types/errors';
 
 describe('Webdav utils', () => {
-  beforeEach(() => {
-    vi.restoreAllMocks();
-  });
-
   describe('joinURL', () => {
     it('When a list of path components are given, then it should generate a correct href', () => {
       const href = WebDavUtils.joinURL('/path', 'to', 'file');

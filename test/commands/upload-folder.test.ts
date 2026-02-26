@@ -23,7 +23,6 @@ describe('Upload Folder Command', () => {
   };
 
   beforeEach(() => {
-    vi.restoreAllMocks();
     configReadUserSpy = vi.spyOn(ConfigService.instance, 'readUser').mockResolvedValue({
       user: UserFixture,
       token: 'mock-token',

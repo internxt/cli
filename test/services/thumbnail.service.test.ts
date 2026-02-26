@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { BufferStream } from '../../src/utils/stream.utils';
 import { ThumbnailService } from '../../src/services/thumbnail.service';
 import path from 'node:path';
@@ -6,10 +6,6 @@ import { Readable } from 'node:stream';
 
 describe('Thumbnail Service tests', () => {
   const testFilePath = path.join(process.cwd(), 'test/fixtures/test-content.fixture.txt');
-
-  beforeEach(() => {
-    vi.restoreAllMocks();
-  });
 
   describe('createFileStreamWithBuffer', () => {
     it('should create BufferStream and pipe stream when file type is thumbnailable', () => {

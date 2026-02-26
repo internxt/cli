@@ -1,14 +1,10 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { auth } from '@internxt/lib';
 import { randomInt, randomUUID } from 'node:crypto';
 import { UserFixture } from '../fixtures/auth.fixture';
 import { ValidationService } from '../../src/services/validation.service';
 
 describe('Validation Service', () => {
-  beforeEach(() => {
-    vi.restoreAllMocks();
-  });
-
   it('When email is not valid, then validation service validates it as expected', () => {
     vi.spyOn(auth, 'isValidEmail').mockReturnValue(false);
     const isValidEmail = ValidationService.instance.validateEmail(UserFixture.email);

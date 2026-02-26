@@ -16,6 +16,7 @@ export default defineConfig({
         ...coverageConfigDefaults.exclude
       ],
     },
+    restoreMocks: true,
     setupFiles: ['dotenv/config', './test/vitest.setup.ts']
   }
 });

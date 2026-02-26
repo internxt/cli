@@ -1,11 +1,7 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { ThumbnailUtils } from '../../src/utils/thumbnail.utils';
 
 describe('Thumbnail Utils tests', () => {
-  beforeEach(() => {
-    vi.restoreAllMocks();
-  });
-
   describe('isFileThumbnailable', () => {
     it('should return true for valid image extensions', () => {
       expect(ThumbnailUtils.isFileThumbnailable('jpg')).toBe(true);

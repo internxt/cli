@@ -17,8 +17,6 @@ import { UserCredentialsFixture } from '../../fixtures/login.fixture';
 
 describe('DELETE request handler', () => {
   beforeEach(() => {
-    vi.restoreAllMocks();
-
     vi.spyOn(AuthService.instance, 'getAuthDetails').mockResolvedValue(UserCredentialsFixture);
   });
 
