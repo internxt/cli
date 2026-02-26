@@ -34,11 +34,23 @@ export class DriveFolderService {
   };
 
   public getFolderContent = async (folderUuid: string) => {
+    const folders = await this.getFolderSubfolders(folderUuid);
+    const files = await this.getFolderSubfiles(folderUuid);
+    return { folders, files };
+  };
+
+  public getFolderSubfolders = async (folderUuid: string): Promise<FetchPaginatedFolder[]> => {
     const currentWorkspace = await AuthService.instance.getCurrentWorkspace();
     const currentWorkspaceCreds = currentWorkspace?.workspaceCredentials;
     const folders = await this.getAllSubfolders(currentWorkspaceCreds, folderUuid, 0);
+    return folders;
+  };
+
+  public getFolderSubfiles = async (folderUuid: string): Promise<FetchPaginatedFile[]> => {
+    const currentWorkspace = await AuthService.instance.getCurrentWorkspace();
+    const currentWorkspaceCreds = currentWorkspace?.workspaceCredentials;
     const files = await this.getAllSubfiles(currentWorkspaceCreds, folderUuid, 0);
-    return { folders, files };
+    return files;
   };
 
   private readonly getAllSubfolders = async (
@@ -189,10 +201,10 @@ export class DriveFolderService {
   };
 
   public getByParentUuidAndName = async (parentUuid: string, name: string): Promise<DriveFolderItem> => {
-    const { folders } = await this.getFolderContent(parentUuid);
-    const folderMeta = folders.find((folder) => folder.plainName === name || folder.name === name);
+    const subFolders = await this.getFolderSubfolders(parentUuid);
+    const folderMeta = subFolders.find((folder) => folder.plainName === name || folder.name === name);
     if (!folderMeta) {
-      throw new Error('Folder not found');
+      throw new NotFoundError('Folder not found');
     }
 
     return {
