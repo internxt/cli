@@ -10,8 +10,6 @@ export class FileRepository {
   private fileRepository = DatabaseService.instance.dataSource.getRepository(DriveFileModel);
 
   public createOrUpdate = async (files: DriveFileModel[]) => {
-    if (files.length === 0) return;
-
     try {
       for (let i = 0; i < files.length; i += DatabaseUtils.CREATE_BATCH_SIZE) {
         const chunk = files.slice(i, i + DatabaseUtils.CREATE_BATCH_SIZE);
