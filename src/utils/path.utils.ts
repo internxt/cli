@@ -1,4 +1,4 @@
-import path from 'path';
+import path from 'node:path';
 
 export class PathUtils {
   static getPathFileData(filePath: string): { folderPath: string; fileName: string; fileType: string | null } {

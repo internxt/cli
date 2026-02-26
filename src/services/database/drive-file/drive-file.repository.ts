@@ -8,7 +8,7 @@ import { DriveFileModel } from './drive-file.model';
 export class FileRepository {
   public static readonly instance = new FileRepository();
 
-  private fileRepository = DatabaseService.instance.dataSource.getRepository(DriveFileModel);
+  private readonly fileRepository = DatabaseService.instance.dataSource.getRepository(DriveFileModel);
 
   public createOrUpdate = async (files: DriveFileModel[]): Promise<DriveFile[] | undefined> => {
     try {

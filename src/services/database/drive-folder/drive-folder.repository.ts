@@ -7,7 +7,7 @@ import { DatabaseUtils } from '../../../utils/database.utils';
 export class FolderRepository {
   public static readonly instance = new FolderRepository();
 
-  private folderRepository = DatabaseService.instance.dataSource.getRepository(DriveFolderModel);
+  private readonly folderRepository = DatabaseService.instance.dataSource.getRepository(DriveFolderModel);
 
   public getByUuid = async (uuid: string): Promise<DriveFolder | undefined> => {
     try {
