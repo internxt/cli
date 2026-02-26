@@ -16,7 +16,7 @@ describe('DatabaseService', () => {
       expect(service.dataSource.options.type).toBe('sqljs');
       expect(service.dataSource.options.synchronize).toBe(true);
       expect(service.dataSource.options.entities).toEqual([DriveFileModel, DriveFolderModel]);
-      expect(configServiceInstancespyOn).toHaveBeenCalledWith('NODE_ENV');
+      expect(configServiceInstancespyOn).toHaveBeenCalledWith('NODE_ENV', false);
     });
 
     it('should configure better-sqlite3 when NODE_ENV is not test', () => {
@@ -29,7 +29,7 @@ describe('DatabaseService', () => {
       expect(service.dataSource.options.database).toBe(DRIVE_SQLITE_FILE);
       expect(service.dataSource.options.synchronize).toBe(true);
       expect(service.dataSource.options.entities).toEqual([DriveFileModel, DriveFolderModel]);
-      expect(configServiceInstancespyOn).toHaveBeenCalledWith('NODE_ENV');
+      expect(configServiceInstancespyOn).toHaveBeenCalledWith('NODE_ENV', false);
     });
   });
 
