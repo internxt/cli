@@ -10,10 +10,10 @@ export class DriveFileModel implements DriveFileAttributes {
   declare name: string;
 
   @Column({ nullable: true, type: 'varchar' })
-  declare type?: string | null;
+  declare type: string | null;
 
   @Column({ nullable: true, type: 'varchar' })
-  declare fileId?: string | null;
+  declare fileId: string | null;
 
   @Column({ nullable: false, type: 'varchar' })
   declare folderUuid: string;
