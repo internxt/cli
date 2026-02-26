@@ -196,7 +196,7 @@ export class CryptoService {
     const privateKeyInBase64 = user.keys?.ecc?.privateKey;
     const privateKyberKeyInBase64 = user.keys?.kyber?.privateKey;
 
-    if (!privateKeyInBase64 || !privateKyberKeyInBase64) {
+    if (!privateKeyInBase64) {
       return user.mnemonic;
     }
 
