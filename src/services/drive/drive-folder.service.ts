@@ -11,7 +11,7 @@ import { DriveFolder } from '../database/drive-folder/drive-folder.domain';
 import { FileRepository } from '../database/drive-file/drive-file.repository';
 import { DriveFile } from '../database/drive-file/drive-file.domain';
 import { NotFoundError } from '../../utils/errors.utils';
-import { DriveFolderUtils } from '../database/drive-folder/drive-folder.utils';
+import { DatabaseUtils } from '../../utils/database.utils';
 import { logger } from '../../utils/logger.utils';
 
 export class DriveFolderService {
@@ -215,7 +215,7 @@ export class DriveFolderService {
       return folder;
     };
 
-    const folder = await DriveFolderUtils.getByPathGeneric({
+    const folder = await DatabaseUtils.getFolderByPathGeneric({
       path,
       parentUuid,
       onFound,

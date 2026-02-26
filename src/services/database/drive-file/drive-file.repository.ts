@@ -1,9 +1,8 @@
+import { DatabaseUtils } from '../../../utils/database.utils';
 import { ErrorUtils } from '../../../utils/errors.utils';
 import { DatabaseService } from '../database.service';
 import { DriveFile } from './drive-file.domain';
 import { DriveFileModel } from './drive-file.model';
-
-const BATCH_SIZE = 100;
 
 export class FileRepository {
   public static readonly instance = new FileRepository();
@@ -14,8 +13,8 @@ export class FileRepository {
     if (files.length === 0) return;
 
     try {
-      for (let i = 0; i < files.length; i += BATCH_SIZE) {
-        const chunk = files.slice(i, i + BATCH_SIZE);
+      for (let i = 0; i < files.length; i += DatabaseUtils.CREATE_BATCH_SIZE) {
+        const chunk = files.slice(i, i + DatabaseUtils.CREATE_BATCH_SIZE);
 
         await this.fileRepository.upsert(chunk, { conflictPaths: ['uuid'] });
       }

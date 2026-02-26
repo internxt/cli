@@ -1,5 +1,7 @@
-export class DriveFolderUtils {
-  public static readonly getByPathGeneric = async <T>({
+export class DatabaseUtils {
+  public static readonly CREATE_BATCH_SIZE = 100;
+
+  public static readonly getFolderByPathGeneric = async <T>({
     path,
     parentUuid,
     onFound,
@@ -30,7 +32,7 @@ export class DriveFolderUtils {
       return;
     }
 
-    return this.getByPathGeneric({
+    return this.getFolderByPathGeneric({
       path: nextPath,
       parentUuid: folder.uuid,
       onFound,

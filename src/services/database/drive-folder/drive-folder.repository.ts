@@ -2,9 +2,7 @@ import { ErrorUtils } from '../../../utils/errors.utils';
 import { DatabaseService } from '../database.service';
 import { DriveFolder } from './drive-folder.domain';
 import { DriveFolderModel } from './drive-folder.model';
-import { DriveFolderUtils } from './drive-folder.utils';
-
-const BATCH_SIZE = 100;
+import { DatabaseUtils } from '../../../utils/database.utils';
 
 export class FolderRepository {
   public static readonly instance = new FolderRepository();
@@ -57,7 +55,7 @@ export class FolderRepository {
         return DriveFolder.build(folder);
       };
 
-      return DriveFolderUtils.getByPathGeneric({
+      return DatabaseUtils.getFolderByPathGeneric({
         path,
         parentUuid,
         onFound,
@@ -72,8 +70,8 @@ export class FolderRepository {
     if (files.length === 0) return;
 
     try {
-      for (let i = 0; i < files.length; i += BATCH_SIZE) {
-        const chunk = files.slice(i, i + BATCH_SIZE);
+      for (let i = 0; i < files.length; i += DatabaseUtils.CREATE_BATCH_SIZE) {
+        const chunk = files.slice(i, i + DatabaseUtils.CREATE_BATCH_SIZE);
 
         await this.folderRepository.upsert(chunk, { conflictPaths: ['uuid'] });
       }
