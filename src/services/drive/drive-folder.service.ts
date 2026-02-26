@@ -233,7 +233,10 @@ export class DriveFolderService {
 
     if (localFolderDB) {
       try {
-        return this.getFolderMetaByUuid(localFolderDB.uuid);
+        const folder = await this.getFolderMetaByUuid(localFolderDB.uuid);
+        if (folder) {
+          return folder;
+        }
       } catch {
         logger.error('Folder not found when getting folder by path on local DB', { path, rootFolderUuid });
       }
