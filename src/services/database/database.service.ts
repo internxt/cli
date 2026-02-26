@@ -8,7 +8,7 @@ export class DatabaseService {
   public static readonly instance = new DatabaseService();
 
   public dataSource = new DataSource(
-    ConfigService.instance.get('NODE_ENV') === 'test'
+    ConfigService.instance.get('NODE_ENV', false) === 'test'
       ? {
           type: 'sqljs',
           autoSave: false,
