@@ -13,7 +13,7 @@ export class DatabaseUtils {
     getByParentAndName: (parentUuid: string, name: string) => Promise<{ uuid: string } | null | undefined>;
   }): Promise<T | undefined> => {
     // Remove leading/trailing slashes
-    path = path.replace(/^\/+|\/+$/g, '');
+    path = path.replace(/^\//, '').replace(/\/$/, '');
 
     // Base case: If the path is empty, return the folder's found uuid
     if (path.trim().length === 0) {
