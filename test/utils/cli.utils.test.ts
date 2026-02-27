@@ -48,7 +48,6 @@ describe('CliUtils', () => {
   const mockAppDetails = {} as ReturnType<typeof SdkManager.getAppDetails>;
 
   beforeEach(() => {
-    vi.clearAllMocks();
     process.stdout.write = vi.fn();
     process.stdout.clearLine = vi.fn();
     stdoutWrite = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);

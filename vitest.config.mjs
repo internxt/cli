@@ -17,6 +17,7 @@ export default defineConfig({
       ],
     },
     restoreMocks: true,
+    clearMocks: true,
     setupFiles: ['dotenv/config', './test/vitest.setup.ts']
   }
 });
