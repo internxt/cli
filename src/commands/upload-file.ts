@@ -135,7 +135,7 @@ export default class UploadFile extends Command {
 
     const thumbnailTimer = CLIUtils.timer();
     if (fileSize > 0 && isThumbnailable && bufferStream) {
-      void ThumbnailService.instance.tryUploadThumbnail({
+      await ThumbnailService.instance.tryUploadThumbnail({
         bufferStream,
         fileType,
         bucket,
