@@ -23,8 +23,6 @@ describe('PUT request handler', () => {
   let sut: PUTRequestHandler;
 
   beforeEach(() => {
-    vi.restoreAllMocks();
-
     networkFacade = getNetworkFacadeMock();
     vi.spyOn(CLIUtils, 'prepareNetwork').mockResolvedValue(getNetworkOptionsMock({ networkFacade }));
 
@@ -39,7 +37,6 @@ describe('PUT request handler', () => {
     });
     const folderFixture = newFolderItem({ name: requestedParentFolderResource.name });
     const fileFixture = newDriveFile({
-      folderId: folderFixture.id,
       folderUuid: folderFixture.uuid,
       size: 0,
       fileId: undefined,
@@ -92,7 +89,7 @@ describe('PUT request handler', () => {
       folderName: '',
     });
     const folderFixture = newFolderItem({ name: requestedParentFolderResource.name });
-    const fileFixture = newDriveFile({ folderId: folderFixture.id, folderUuid: folderFixture.uuid });
+    const fileFixture = newDriveFile({ folderUuid: folderFixture.uuid });
 
     const request = createWebDavRequestFixture({
       method: 'PUT',
@@ -146,7 +143,7 @@ describe('PUT request handler', () => {
       folderName: '',
     });
     const folderFixture = newFolderItem({ name: requestedParentFolderResource.name });
-    const fileFixture = newDriveFile({ folderId: folderFixture.id, folderUuid: folderFixture.uuid });
+    const fileFixture = newDriveFile({ folderUuid: folderFixture.uuid });
 
     const request = createWebDavRequestFixture({
       method: 'PUT',
@@ -202,7 +199,7 @@ describe('PUT request handler', () => {
       folderName: '',
     });
     const folderFixture = newFolderItem({ name: requestedParentFolderResource.name });
-    const fileFixture = newDriveFile({ folderId: folderFixture.id, folderUuid: folderFixture.uuid });
+    const fileFixture = newDriveFile({ folderUuid: folderFixture.uuid });
 
     const request = createWebDavRequestFixture({
       method: 'PUT',

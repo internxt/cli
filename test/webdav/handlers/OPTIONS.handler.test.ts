@@ -1,13 +1,9 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { OPTIONSRequestHandler } from '../../../src/webdav/handlers/OPTIONS.handler';
 import { UserSettingsFixture } from '../../fixtures/auth.fixture';
 import { createWebDavRequestFixture, createWebDavResponseFixture } from '../../fixtures/webdav.fixture';
 
 describe('OPTIONS request handler', () => {
-  beforeEach(() => {
-    vi.restoreAllMocks();
-  });
-
   it('When the root folder is requested, it should return all of the server allowed methods', async () => {
     const requestHandler = new OPTIONSRequestHandler();
 

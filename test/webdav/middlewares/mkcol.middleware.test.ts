@@ -1,14 +1,10 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { createWebDavRequestFixture, createWebDavResponseFixture } from '../../fixtures/webdav.fixture';
 import { MkcolMiddleware } from '../../../src/webdav/middewares/mkcol.middleware';
 import { fail } from 'node:assert';
 import { UnsupportedMediaTypeError } from '../../../src/utils/errors.utils';
 
 describe('MKCOL middleware', () => {
-  beforeEach(() => {
-    vi.restoreAllMocks();
-  });
-
   it('When MKCOL content is application/xml, then it should call next', () => {
     const req = createWebDavRequestFixture({
       method: 'MKCOL',

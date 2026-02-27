@@ -1,14 +1,10 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { DownloadService } from '../../../src/services/network/download.service';
 import { Readable } from 'node:stream';
 import axios from 'axios';
 
 describe('Download Service', () => {
   const sut = DownloadService.instance;
-
-  beforeEach(() => {
-    vi.restoreAllMocks();
-  });
 
   it('When a file is downloaded, should return a ReadableStream', async () => {
     const fileContent = Buffer.from('file-content');

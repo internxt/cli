@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import crypto from 'node:crypto';
 import { ConfigService } from '../../src/services/config.service';
 import { CryptoService } from '../../src/services/crypto.service';
@@ -7,10 +7,6 @@ import { Keys } from '@internxt/sdk';
 import { KeysService } from '../../src/services/keys.service';
 
 describe('Crypto service', () => {
-  beforeEach(() => {
-    vi.restoreAllMocks();
-  });
-
   it('When text is encrypted using crypto secret env, then it can be decrypted back', () => {
     const envEndpoint: { key: keyof ConfigKeys; value: string } = {
       key: 'APP_CRYPTO_SECRET',

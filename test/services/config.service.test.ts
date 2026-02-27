@@ -22,7 +22,6 @@ const env = Object.assign({}, process.env);
 describe('Config service', () => {
   beforeEach(() => {
     process.env = env;
-    vi.restoreAllMocks();
   });
 
   it('When an env property is requested, then the get method return its value', async () => {

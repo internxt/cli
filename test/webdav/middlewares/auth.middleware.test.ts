@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { AuthMiddleware } from '../../../src/webdav/middewares/auth.middleware';
 import { createWebDavRequestFixture, createWebDavResponseFixture } from '../../fixtures/webdav.fixture';
 import { UserCredentialsFixture } from '../../fixtures/login.fixture';
@@ -7,10 +7,6 @@ import { MissingCredentialsError } from '../../../src/types/command.types';
 import { XMLUtils } from '../../../src/utils/xml.utils';
 
 describe('Auth middleware', () => {
-  beforeEach(() => {
-    vi.restoreAllMocks();
-  });
-
   it('When the user is not authenticated, then it should return 401', async () => {
     const req = createWebDavRequestFixture({});
     const res = createWebDavResponseFixture({

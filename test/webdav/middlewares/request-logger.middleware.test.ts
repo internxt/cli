@@ -1,13 +1,9 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { webdavLogger } from '../../../src/utils/logger.utils';
 import { RequestLoggerMiddleware } from '../../../src/webdav/middewares/request-logger.middleware';
 import { createWebDavRequestFixture, createWebDavResponseFixture } from '../../fixtures/webdav.fixture';
 
 describe('Request logger middleware', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('When a request is received, should log only the specified methods', () => {
     const req = createWebDavRequestFixture({
       method: 'PROPFIND',

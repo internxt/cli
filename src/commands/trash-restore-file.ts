@@ -42,10 +42,7 @@ export default class TrashRestoreFile extends Command {
       nonInteractive,
       reporter: this.log.bind(this),
     });
-    const destinationFolderUuid = await CLIUtils.fallbackToRootFolderIdIfEmpty(
-      destinationFolderUuidFromFlag,
-      userCredentials,
-    );
+    const destinationFolderUuid = await CLIUtils.fallbackToRootFolderIdIfEmpty(destinationFolderUuidFromFlag);
 
     const file = await DriveFileService.instance.moveFile(fileUuid, { destinationFolder: destinationFolderUuid });
     const message = `File restored successfully to: ${destinationFolderUuid}`;

@@ -8,7 +8,7 @@ export default class WorkspacesUnset extends Command {
   static readonly args = {};
   static readonly description =
     'Unset the active workspace context for the current user session. ' +
-    'Once a workspace is unset, all subsequent commands (list, upload, download, etc.) ' +
+    'Once a workspace is unset, WebDAV and all of the subsequent CLI commands ' +
     'will operate within the personal drive space until it is changed or set again.';
   static readonly aliases = ['workspaces:unset'];
   static readonly examples = ['<%= config.bin %> <%= command.id %>'];

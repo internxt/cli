@@ -1,14 +1,10 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { StreamUtils } from '../../src/utils/stream.utils';
 import { createReadStream, readFileSync, WriteStream } from 'node:fs';
 import path from 'node:path';
 
 describe('Stream utils', () => {
   const fileWithContent = path.join(process.cwd(), 'test/fixtures/test-content.fixture.txt');
-
-  beforeEach(() => {
-    vi.restoreAllMocks();
-  });
 
   it('When a ReadStream is given, should return a ReadableStream', async () => {
     const content = readFileSync(fileWithContent, 'utf-8');

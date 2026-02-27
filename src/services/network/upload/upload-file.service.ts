@@ -125,7 +125,7 @@ export class UploadFileService {
 
         const thumbnailTimer = CLIUtils.timer();
         if (thumbnailStream && fileSize > 0) {
-          void ThumbnailService.instance.tryUploadThumbnail({
+          await ThumbnailService.instance.tryUploadThumbnail({
             bufferStream: thumbnailStream,
             fileType,
             bucket,

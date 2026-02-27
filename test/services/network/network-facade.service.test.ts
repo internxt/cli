@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { NetworkFacade } from '../../../src/services/network/network-facade.service';
 import { SdkManager } from '../../../src/services/sdk-manager.service';
 import path from 'node:path';
@@ -12,10 +12,6 @@ import { ConfigService } from '../../../src/services/config.service';
 import { UserFixture } from '../../fixtures/auth.fixture';
 
 describe('Network Facade Service', () => {
-  beforeEach(() => {
-    vi.restoreAllMocks();
-  });
-
   const getNetworkMock = () => {
     return SdkManager.instance.getNetwork({
       user: 'user',

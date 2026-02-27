@@ -36,7 +36,6 @@ describe('UploadFileService', () => {
   } as unknown as NetworkFacade;
 
   beforeEach(() => {
-    vi.clearAllMocks();
     sut = UploadFileService.instance;
     vi.mocked(stat).mockResolvedValue(createMockStats(1024) as Awaited<ReturnType<typeof stat>>);
     vi.mocked(createReadStream).mockReturnValue(createMockReadStream() as ReturnType<typeof createReadStream>);

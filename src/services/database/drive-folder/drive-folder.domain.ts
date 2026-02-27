@@ -2,36 +2,33 @@ import { DriveFolderItem } from '../../../types/drive.types';
 import { DriveFolderAttributes } from './drive-folder.attributes';
 
 export class DriveFolder implements DriveFolderAttributes {
-  id: number;
   name: string;
   uuid: string;
-  relativePath: string;
-  parentId: number | null;
   parentUuid: string | null;
+  status: DriveFolderAttributes['status'];
   createdAt: Date;
   updatedAt: Date;
-  status: DriveFolderAttributes['status'];
+  creationTime: Date;
+  modificationTime: Date;
 
   constructor({
-    id,
     name,
     uuid,
-    relativePath,
-    parentId,
     parentUuid,
     createdAt,
     updatedAt,
     status,
+    creationTime,
+    modificationTime,
   }: DriveFolderAttributes) {
-    this.id = id;
     this.name = name;
     this.uuid = uuid;
-    this.relativePath = relativePath;
-    this.parentId = parentId;
     this.parentUuid = parentUuid;
+    this.status = status;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
-    this.status = status;
+    this.creationTime = creationTime;
+    this.modificationTime = modificationTime;
   }
 
   static build(folder: DriveFolderAttributes): DriveFolder {
@@ -40,30 +37,28 @@ export class DriveFolder implements DriveFolderAttributes {
 
   public toJSON(): DriveFolderAttributes {
     return {
-      id: this.id,
       name: this.name,
       uuid: this.uuid,
       status: this.status,
-      relativePath: this.relativePath,
-      parentId: this.parentId,
       parentUuid: this.parentUuid,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
+      creationTime: this.creationTime,
+      modificationTime: this.modificationTime,
     };
   }
 
   public toItem(): DriveFolderItem {
     return {
       itemType: 'folder',
-      id: this.id,
       name: this.name,
       uuid: this.uuid,
       status: this.status,
-      parentId: this.parentId,
       parentUuid: this.parentUuid,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
-      encryptedName: '',
+      creationTime: this.creationTime,
+      modificationTime: this.modificationTime,
       bucket: null,
     };
   }

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { randomBytes, randomInt, X509Certificate } from 'node:crypto';
 import selfsigned, { GenerateResult } from 'selfsigned';
 import { readFile, stat, writeFile } from 'node:fs/promises';
@@ -30,10 +30,6 @@ vi.mock('node:crypto', async () => {
 const mock509Certificate = vi.mocked(X509Certificate);
 
 describe('Network utils', () => {
-  beforeEach(() => {
-    vi.restoreAllMocks();
-  });
-
   it('When obtaining auth credentials, should return the password as a SHA256 hash', async () => {
     const result = NetworkUtils.getAuthFromCredentials({
       user: 'test',

@@ -1,14 +1,10 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { ErrorHandlingMiddleware } from '../../../src/webdav/middewares/errors.middleware';
 import { createWebDavRequestFixture, createWebDavResponseFixture } from '../../fixtures/webdav.fixture';
 import { BadRequestError, NotFoundError, NotImplementedError } from '../../../src/utils/errors.utils';
 import { XMLUtils } from '../../../src/utils/xml.utils';
 
 describe('Error handling middleware', () => {
-  beforeEach(() => {
-    vi.restoreAllMocks();
-  });
-
   it('When a not found error is received, should respond with a 404', () => {
     const errorMessage = 'Item not found';
     const error = new NotFoundError('Item not found');

@@ -12,8 +12,6 @@ describe('Drive file Service', () => {
   const sut = DriveFileService.instance;
 
   beforeEach(() => {
-    vi.restoreAllMocks();
-
     vi.spyOn(ConfigService.instance, 'readUser').mockResolvedValue(UserCredentialsFixture);
     vi.spyOn(ConfigService.instance, 'saveUser').mockResolvedValue(undefined);
   });

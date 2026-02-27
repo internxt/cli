@@ -17,7 +17,6 @@ describe('MKCOL request handler', () => {
   let sut: MKCOLRequestHandler;
 
   beforeEach(() => {
-    vi.restoreAllMocks();
     sut = new MKCOLRequestHandler();
 
     vi.spyOn(AuthService.instance, 'getAuthDetails').mockResolvedValue(UserCredentialsFixture);

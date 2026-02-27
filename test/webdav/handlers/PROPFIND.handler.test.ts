@@ -32,7 +32,6 @@ describe('PROPFIND request handler', () => {
 
   beforeEach(() => {
     sut = new PROPFINDRequestHandler();
-    vi.restoreAllMocks();
   });
 
   it('When the root folder exists and there is no content, then it should return the correct XML', async () => {
@@ -52,7 +51,7 @@ describe('PROPFIND request handler', () => {
     });
 
     const folderFixture = newFolderItem({
-      id: Number.parseInt(UserSettingsFixture.rootFolderId),
+      uuid: UserSettingsFixture.rootFolderId,
     });
     const usageFixture = crypto.randomInt(2000000000);
     const spaceLimitFixture = crypto.randomInt(2000000000);
@@ -98,7 +97,7 @@ describe('PROPFIND request handler', () => {
     });
 
     const folderFixture = newFolderItem({
-      id: Number.parseInt(UserSettingsFixture.rootFolderId),
+      uuid: UserSettingsFixture.rootFolderId,
     });
     const paginatedFolder1 = newPaginatedFolder({
       plainName: 'folder_1',

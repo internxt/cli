@@ -10,7 +10,6 @@ describe('UploadFolderService', () => {
   let sut: UploadFolderService;
 
   beforeEach(() => {
-    vi.clearAllMocks();
     sut = UploadFolderService.instance;
     vi.spyOn(DriveFolderService.instance, 'createFolder').mockReturnValue([
       Promise.resolve({ uuid: 'mock-folder-uuid' }),
