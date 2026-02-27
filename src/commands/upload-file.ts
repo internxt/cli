@@ -12,6 +12,7 @@ import { BufferStream } from '../utils/stream.utils';
 import { Readable } from 'node:stream';
 import { ThumbnailUtils } from '../utils/thumbnail.utils';
 import { ThumbnailService } from '../services/thumbnail.service';
+import { AuthService } from '../services/auth.service';
 
 export default class UploadFile extends Command {
   static readonly args = {};
@@ -163,9 +164,13 @@ export default class UploadFile extends Command {
           `Thumbnail: ${CLIUtils.formatDuration(timings.thumbnailUpload)}\n`,
       );
     }
+    const workspace = await AuthService.instance.getCurrentWorkspace();
+    const workspaceId = workspace?.workspaceData.workspace.id;
+
     const message =
       `File uploaded successfully in ${CLIUtils.formatDuration(totalTime)}, view it at ` +
-      `${ConfigService.instance.get('DRIVE_WEB_URL')}/file/${createdDriveFile.uuid}`;
+      `${ConfigService.instance.get('DRIVE_WEB_URL')}/file/${createdDriveFile.uuid}` +
+      `${workspaceId ? `?workspaceid=${workspaceId}` : ''}`;
     CLIUtils.success(reporter, message);
     return {
       success: true,
