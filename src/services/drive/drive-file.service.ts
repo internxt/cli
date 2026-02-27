@@ -30,7 +30,7 @@ export class DriveFileService {
       creationTime: new Date(driveFile.creationTime ?? driveFile.createdAt),
       modificationTime: new Date(driveFile.modificationTime ?? driveFile.updatedAt),
     };
-    FileRepository.instance.createOrUpdate([driveFileItem]);
+    await FileRepository.instance.createOrUpdate([driveFileItem]);
 
     return driveFileItem;
   };
@@ -69,7 +69,7 @@ export class DriveFileService {
     const fileMetadata = await getFileMetadata;
     const driveFileItem = DriveUtils.driveFileMetaToItem(fileMetadata);
 
-    FileRepository.instance.createOrUpdate([driveFileItem]);
+    await FileRepository.instance.createOrUpdate([driveFileItem]);
 
     return driveFileItem;
   };
@@ -79,7 +79,7 @@ export class DriveFileService {
     const fileMeta = await storageClient.moveFileByUuid(uuid, payload);
 
     const driveFileItem = DriveUtils.driveFileMetaToItem(fileMeta);
-    FileRepository.instance.createOrUpdate([driveFileItem]);
+    await FileRepository.instance.createOrUpdate([driveFileItem]);
 
     return fileMeta;
   };
@@ -90,7 +90,7 @@ export class DriveFileService {
   ): Promise<void> => {
     const storageClient = SdkManager.instance.getStorage();
     await storageClient.updateFileMetaByUUID(fileUuid, payload);
-    FileRepository.instance.updateByUuid(fileUuid, { name: payload.plainName, type: payload.type });
+    await FileRepository.instance.updateByUuid(fileUuid, { name: payload.plainName, type: payload.type });
   };
 
   public getByParentUuidAndName = async (
