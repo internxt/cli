@@ -21,11 +21,14 @@ import { PROPPATCHRequestHandler } from './handlers/PROPPATCH.handler';
 import { MOVERequestHandler } from './handlers/MOVE.handler';
 import { COPYRequestHandler } from './handlers/COPY.handler';
 import { MkcolMiddleware } from './middewares/mkcol.middleware';
+import { WebdavConfig } from '../types/command.types';
+import { WebDAVAuthMiddleware } from './middewares/webdav-auth.middleware';
 
 export class WebDavServer {
   constructor(private readonly app: Express) {}
 
-  private readonly registerStartMiddlewares = () => {
+  private readonly registerStartMiddlewares = (configs: WebdavConfig) => {
+    this.app.use(WebDAVAuthMiddleware(configs));
     this.app.use(AuthMiddleware());
     this.app.use(
       RequestLoggerMiddleware({
@@ -59,7 +62,7 @@ export class WebDavServer {
   start = async () => {
     const configs = await ConfigService.instance.readWebdavConfig();
     this.app.disable('x-powered-by');
-    this.registerStartMiddlewares();
+    this.registerStartMiddlewares(configs);
     await this.registerHandlers();
     this.registerEndMiddleWares();
 

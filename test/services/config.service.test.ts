@@ -9,11 +9,14 @@ import { fail } from 'node:assert';
 import {
   CREDENTIALS_FILE,
   WEBDAV_CONFIGS_FILE,
+  WEBDAV_DEFAULT_AUTH_PASSWORD,
+  WEBDAV_DEFAULT_AUTH_USERNAME,
   WEBDAV_DEFAULT_CREATE_FULL_PATH,
   WEBDAV_DEFAULT_HOST,
   WEBDAV_DEFAULT_PORT,
   WEBDAV_DEFAULT_PROTOCOL,
   WEBDAV_DEFAULT_TIMEOUT,
+  WEBDAV_DEFAULT_USE_AUTH,
   WEBDAV_SSL_CERTS_DIR,
 } from '../../src/constants/configs';
 
@@ -143,6 +146,9 @@ describe('Config service', () => {
       protocol: 'https',
       timeoutMinutes: crypto.randomInt(100),
       createFullPath: false,
+      useAuth: WEBDAV_DEFAULT_USE_AUTH,
+      username: WEBDAV_DEFAULT_AUTH_USERNAME,
+      password: WEBDAV_DEFAULT_AUTH_PASSWORD,
     };
     const stringConfig = JSON.stringify(webdavConfig);
 
@@ -159,6 +165,9 @@ describe('Config service', () => {
       protocol: 'http',
       timeoutMinutes: crypto.randomInt(100),
       createFullPath: false,
+      useAuth: WEBDAV_DEFAULT_USE_AUTH,
+      username: WEBDAV_DEFAULT_AUTH_USERNAME,
+      password: WEBDAV_DEFAULT_AUTH_PASSWORD,
     };
     const stringConfig = JSON.stringify(webdavConfig);
 
@@ -176,6 +185,9 @@ describe('Config service', () => {
       protocol: WEBDAV_DEFAULT_PROTOCOL,
       timeoutMinutes: WEBDAV_DEFAULT_TIMEOUT,
       createFullPath: WEBDAV_DEFAULT_CREATE_FULL_PATH,
+      useAuth: WEBDAV_DEFAULT_USE_AUTH,
+      username: WEBDAV_DEFAULT_AUTH_USERNAME,
+      password: WEBDAV_DEFAULT_AUTH_PASSWORD,
     };
 
     const fsStub = vi.spyOn(fs, 'readFile').mockResolvedValue('');
@@ -192,6 +204,9 @@ describe('Config service', () => {
       protocol: WEBDAV_DEFAULT_PROTOCOL,
       timeoutMinutes: WEBDAV_DEFAULT_TIMEOUT,
       createFullPath: WEBDAV_DEFAULT_CREATE_FULL_PATH,
+      useAuth: WEBDAV_DEFAULT_USE_AUTH,
+      username: WEBDAV_DEFAULT_AUTH_USERNAME,
+      password: WEBDAV_DEFAULT_AUTH_PASSWORD,
     };
 
     const fsStub = vi.spyOn(fs, 'readFile').mockRejectedValue(new Error());

@@ -8,11 +8,14 @@ import {
   INTERNXT_CLI_DATA_DIR,
   INTERNXT_CLI_LOGS_DIR,
   WEBDAV_CONFIGS_FILE,
+  WEBDAV_DEFAULT_AUTH_PASSWORD,
+  WEBDAV_DEFAULT_AUTH_USERNAME,
   WEBDAV_DEFAULT_CREATE_FULL_PATH,
   WEBDAV_DEFAULT_HOST,
   WEBDAV_DEFAULT_PORT,
   WEBDAV_DEFAULT_PROTOCOL,
   WEBDAV_DEFAULT_TIMEOUT,
+  WEBDAV_DEFAULT_USE_AUTH,
   WEBDAV_SSL_CERTS_DIR,
 } from '../constants/configs';
 
@@ -92,6 +95,9 @@ export class ConfigService {
         protocol: configs?.protocol ?? WEBDAV_DEFAULT_PROTOCOL,
         timeoutMinutes: configs?.timeoutMinutes ?? WEBDAV_DEFAULT_TIMEOUT,
         createFullPath: configs?.createFullPath ?? WEBDAV_DEFAULT_CREATE_FULL_PATH,
+        useAuth: configs?.useAuth ?? WEBDAV_DEFAULT_USE_AUTH,
+        username: configs?.username ?? WEBDAV_DEFAULT_AUTH_USERNAME,
+        password: configs?.password ?? WEBDAV_DEFAULT_AUTH_PASSWORD,
       };
     } catch {
       return {
@@ -100,6 +106,9 @@ export class ConfigService {
         protocol: WEBDAV_DEFAULT_PROTOCOL,
         timeoutMinutes: WEBDAV_DEFAULT_TIMEOUT,
         createFullPath: WEBDAV_DEFAULT_CREATE_FULL_PATH,
+        useAuth: WEBDAV_DEFAULT_USE_AUTH,
+        username: WEBDAV_DEFAULT_AUTH_USERNAME,
+        password: WEBDAV_DEFAULT_AUTH_PASSWORD,
       };
     }
   };

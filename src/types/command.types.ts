@@ -52,6 +52,9 @@ export interface WebdavConfig {
   protocol: 'http' | 'https';
   timeoutMinutes: number;
   createFullPath: boolean;
+  useAuth: boolean;
+  username: string;
+  password: string;
 }
 
 export class NotValidEmailError extends Error {
