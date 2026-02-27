@@ -13,8 +13,6 @@ describe('Drive folder Service', () => {
   const sut = DriveFolderService.instance;
 
   beforeEach(() => {
-    vi.restoreAllMocks();
-
     vi.spyOn(ConfigService.instance, 'readUser').mockResolvedValue(UserCredentialsFixture);
     vi.spyOn(ConfigService.instance, 'saveUser').mockResolvedValue(undefined);
   });

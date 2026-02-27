@@ -1,12 +1,8 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { ErrorUtils } from '../../src/utils/errors.utils';
 import { logger } from '../../src/utils/logger.utils';
 
 describe('Errors Utils', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('When reporting an error, should log with the expected message and properties', () => {
     const error = new Error('Test Error');
     const props = { key: 'value' };

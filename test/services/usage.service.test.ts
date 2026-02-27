@@ -1,14 +1,10 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { randomInt, randomUUID } from 'node:crypto';
 import { Storage } from '@internxt/sdk/dist/drive';
 import { UsageService } from '../../src/services/usage.service';
 import { SdkManager } from '../../src/services/sdk-manager.service';
 
 describe('Usage Service', () => {
-  beforeEach(() => {
-    vi.restoreAllMocks();
-  });
-
   it('When getting user usage, it should return the total usage', async () => {
     const drive = randomInt(2000000000);
     const backups = randomInt(2000000000);

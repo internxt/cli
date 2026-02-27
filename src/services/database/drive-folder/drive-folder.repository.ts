@@ -2,13 +2,12 @@ import { ErrorUtils } from '../../../utils/errors.utils';
 import { DatabaseService } from '../database.service';
 import { DriveFolder } from './drive-folder.domain';
 import { DriveFolderModel } from './drive-folder.model';
-
-const BATCH_SIZE = 100;
+import { DatabaseUtils } from '../../../utils/database.utils';
 
 export class FolderRepository {
   public static readonly instance = new FolderRepository();
 
-  private folderRepository = DatabaseService.instance.dataSource.getRepository(DriveFolderModel);
+  private readonly folderRepository = DatabaseService.instance.dataSource.getRepository(DriveFolderModel);
 
   public getByUuid = async (uuid: string): Promise<DriveFolder | undefined> => {
     try {
@@ -34,12 +33,45 @@ export class FolderRepository {
     }
   };
 
+  public getByParentUuidAndName = async (parentUuid: string, name: string): Promise<DriveFolder | undefined> => {
+    try {
+      const folder = await this.folderRepository.findOneBy({ parentUuid, name });
+      if (!folder) {
+        return;
+      }
+      return DriveFolder.build(folder);
+    } catch (error) {
+      ErrorUtils.report(error, { getByParentuuidAndName: { parentUuid, name } });
+    }
+  };
+
+  public getByPath = async (path: string, parentUuid: string): Promise<DriveFolder | undefined> => {
+    try {
+      const onFound = async (uuid: string) => {
+        const folder = await this.folderRepository.findOneBy({ uuid });
+        if (!folder) {
+          return;
+        }
+        return DriveFolder.build(folder);
+      };
+
+      return DatabaseUtils.getFolderByPathGeneric({
+        path,
+        parentUuid,
+        onFound,
+        getByParentAndName: this.getByParentUuidAndName.bind(this),
+      });
+    } catch (error) {
+      ErrorUtils.report(error, { getByPath: path });
+    }
+  };
+
   public createOrUpdate = async (files: DriveFolderModel[]) => {
     if (files.length === 0) return;
 
     try {
-      for (let i = 0; i < files.length; i += BATCH_SIZE) {
-        const chunk = files.slice(i, i + BATCH_SIZE);
+      for (let i = 0; i < files.length; i += DatabaseUtils.CREATE_BATCH_SIZE) {
+        const chunk = files.slice(i, i + DatabaseUtils.CREATE_BATCH_SIZE);
 
         await this.folderRepository.upsert(chunk, { conflictPaths: ['uuid'] });
       }

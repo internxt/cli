@@ -32,6 +32,8 @@ export const newFolderItem = (attributes?: Partial<DriveFolderItem>): DriveFolde
     updatedAt: getRandomDate(),
     status: 'EXISTS',
     parentUuid: randomUUID(),
+    creationTime: getRandomDate(),
+    modificationTime: getRandomDate(),
   };
   return { ...folder, ...attributes };
 };
@@ -172,6 +174,8 @@ export const newDriveFolder = (attributes?: Partial<DriveFolderAttributes>): Dri
     createdAt: getRandomDate(),
     updatedAt: getRandomDate(),
     status: FileStatus.EXISTS,
+    creationTime: getRandomDate(),
+    modificationTime: getRandomDate(),
   };
   return new DriveFolder({ ...folder, ...attributes });
 };

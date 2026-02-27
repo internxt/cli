@@ -1,31 +1,22 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import express from 'express';
 import { randomBytes, randomInt } from 'node:crypto';
 import http from 'http';
 import https from 'https';
 import { ConfigService } from '../../src/services/config.service';
-import { DriveFolderService } from '../../src/services/drive/drive-folder.service';
 import { WebDavServer } from '../../src/webdav/webdav-server';
-import { DriveFileService } from '../../src/services/drive/drive-file.service';
-import { DownloadService } from '../../src/services/network/download.service';
-import { AuthService } from '../../src/services/auth.service';
-import { CryptoService } from '../../src/services/crypto.service';
 import { NetworkUtils } from '../../src/utils/network.utils';
-import { TrashService } from '../../src/services/drive/trash.service';
 import { WebdavConfig } from '../../src/types/command.types';
 import { UserCredentialsFixture } from '../fixtures/login.fixture';
 
 describe('WebDav server', () => {
-  beforeEach(() => {
-    vi.restoreAllMocks();
-  });
-
   it('When the WebDav server is started with https, it should generate self-signed certificates', async () => {
     const webdavConfig: WebdavConfig = {
       host: '127.0.0.1',
       port: randomInt(65535).toString(),
       protocol: 'https',
       timeoutMinutes: randomInt(900),
+      createFullPath: true,
     };
     const sslSelfSigned = {
       private: randomBytes(8).toString('hex'),
@@ -50,16 +41,7 @@ describe('WebDav server', () => {
     });
 
     const app = express();
-    const server = new WebDavServer(
-      app,
-      ConfigService.instance,
-      DriveFileService.instance,
-      DriveFolderService.instance,
-      DownloadService.instance,
-      AuthService.instance,
-      CryptoService.instance,
-      TrashService.instance,
-    );
+    const server = new WebDavServer(app);
     await server.start();
 
     expect(createHTTPSServerStub).toHaveBeenCalledOnce();
@@ -73,6 +55,7 @@ describe('WebDav server', () => {
       port: randomInt(65535).toString(),
       protocol: 'http',
       timeoutMinutes: randomInt(900),
+      createFullPath: true,
     };
 
     vi.spyOn(ConfigService.instance, 'readWebdavConfig').mockResolvedValue(webdavConfig);
@@ -87,16 +70,7 @@ describe('WebDav server', () => {
     });
 
     const app = express();
-    const server = new WebDavServer(
-      app,
-      ConfigService.instance,
-      DriveFileService.instance,
-      DriveFolderService.instance,
-      DownloadService.instance,
-      AuthService.instance,
-      CryptoService.instance,
-      TrashService.instance,
-    );
+    const server = new WebDavServer(app);
     await server.start();
 
     expect(createHTTPServerStub).toHaveBeenCalledOnce();

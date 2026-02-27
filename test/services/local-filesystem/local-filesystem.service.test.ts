@@ -32,7 +32,6 @@ describe('Local Filesystem Service', () => {
     }) as unknown as Dirent<string>;
 
   beforeEach(() => {
-    vi.clearAllMocks();
     service = LocalFilesystemService.instance;
     mockReaddir.mockResolvedValue([]);
   });

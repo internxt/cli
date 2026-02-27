@@ -22,13 +22,14 @@ export class ConfigService {
   /**
    * Gets the value from an environment key
    * @param key The environment key to retrieve
-   * @throws {Error} If key is not found in process.env
+   * @param throwIfNotFound If true, throws an error if the key is not found
+   * @throws {Error} If key is not found in process.env and throwIfNotFound is true
    * @returns The value from the environment variable
    **/
-  public get = (key: keyof ConfigKeys): string => {
+  public get = (key: keyof ConfigKeys, throwIfNotFound = true): string => {
     const value = process.env[key];
-    if (!value) throw new Error(`Config key ${key} was not found in process.env`);
-    return value;
+    if (!value && throwIfNotFound) throw new Error(`Config key ${key} was not found in process.env`);
+    return value ?? '';
   };
 
   /**

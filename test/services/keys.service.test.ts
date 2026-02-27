@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import crypto from 'node:crypto';
 import * as openpgp from 'openpgp';
 import { KeysService } from '../../src/services/keys.service';
@@ -12,10 +12,6 @@ describe('Keys service', () => {
     iv: crypto.randomBytes(16).toString('hex'),
     salt: crypto.randomBytes(64).toString('hex'),
   };
-
-  beforeEach(() => {
-    vi.restoreAllMocks();
-  });
 
   it('When message is encrypted with private key & password, then it can be decrypted using same data', async () => {
     const plainPrivateKey = crypto.randomBytes(16).toString('hex');

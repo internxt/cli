@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { ConfigService } from '../../src/services/config.service';
 import { UserCredentialsFixture, UserLoginFixture } from '../fixtures/login.fixture';
 import { fail } from 'node:assert';
@@ -7,10 +7,6 @@ import { AuthService } from '../../src/services/auth.service';
 import { CLIUtils, NoFlagProvidedError } from '../../src/utils/cli.utils';
 
 describe('Login Command', () => {
-  beforeEach(() => {
-    vi.restoreAllMocks();
-  });
-
   it('When user logs in with non-interactive and no email, then it throws error', async () => {
     const getValueFromFlagsSpy = vi
       .spyOn(CLIUtils, 'getValueFromFlag')

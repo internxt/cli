@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import crypto from 'node:crypto';
 import { Auth, Drive, Network } from '@internxt/sdk';
 import { Trash } from '@internxt/sdk/dist/drive';
@@ -15,10 +15,6 @@ describe('SDKManager service', () => {
     clientName: crypto.randomBytes(16).toString('hex'),
     clientVersion: crypto.randomBytes(16).toString('hex'),
   };
-
-  beforeEach(() => {
-    vi.restoreAllMocks();
-  });
 
   it('When SDKManager ApiSecurityFixture is requested, then it is returned from static property', () => {
     const ApiSecurityFixture: SdkManagerApiSecurity = {

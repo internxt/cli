@@ -8,6 +8,8 @@ import { Workspaces } from '@internxt/sdk/dist/workspaces';
 
 export type SdkManagerApiSecurity = ApiSecurity;
 
+const MAX_RETRIES = 3;
+
 /**
  * Manages all the sdk submodules initialization
  * based on the current apiSecurity details
@@ -21,6 +23,9 @@ export class SdkManager {
    * @param apiSecurity Security properties to be setted
    **/
   public static readonly init = (apiSecurity: SdkManagerApiSecurity) => {
+    apiSecurity.retryOptions = {
+      maxRetries: MAX_RETRIES,
+    };
     SdkManager.apiSecurity = apiSecurity;
   };
 

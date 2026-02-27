@@ -28,8 +28,6 @@ describe('GET request handler', () => {
   const networkOptions: NetworkOptions = getNetworkOptionsMock({ networkFacade });
 
   beforeEach(() => {
-    vi.restoreAllMocks();
-
     vi.spyOn(CLIUtils, 'prepareNetwork').mockResolvedValue(networkOptions);
 
     sut = new GETRequestHandler();

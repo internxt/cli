@@ -14,9 +14,9 @@ import { randomInt } from 'crypto';
 
 describe('HEAD request handler', () => {
   let sut: HEADRequestHandler;
+
   beforeEach(() => {
     sut = new HEADRequestHandler();
-    vi.restoreAllMocks();
   });
 
   it('When a folder is requested, it should reply with a 200', async () => {

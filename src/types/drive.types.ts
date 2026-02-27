@@ -7,8 +7,8 @@ export type DriveFileItem = Pick<FileMeta, 'uuid' | 'name' | 'bucket' | 'folderU
   updatedAt: Date;
   creationTime: Date;
   modificationTime: Date;
-  type?: string | null;
-  fileId?: string | null;
+  type: string | null;
+  fileId: string | null;
 };
 
 export type DriveFolderItem = Pick<FolderMeta, 'uuid' | 'name' | 'bucket'> & {

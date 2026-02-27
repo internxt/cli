@@ -1,13 +1,9 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import pm2 from 'pm2';
 import { PM2Utils } from '../../src/utils/pm2.utils';
 import { fail } from 'node:assert';
 
 describe('PM2 utils', () => {
-  beforeEach(() => {
-    vi.restoreAllMocks();
-  });
-
   it('When connecting, should connect to PM2 daemon', async () => {
     // @ts-expect-error - The error callback does not include an error
     const connectStub = vi.spyOn(pm2, 'connect').mockImplementation((callback) => callback());

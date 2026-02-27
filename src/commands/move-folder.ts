@@ -41,10 +41,7 @@ export default class MoveFolder extends Command {
       nonInteractive,
       reporter: this.log.bind(this),
     });
-    const destinationFolderUuid = await CLIUtils.fallbackToRootFolderIdIfEmpty(
-      destinationFolderUuidFromFlag,
-      userCredentials,
-    );
+    const destinationFolderUuid = await CLIUtils.fallbackToRootFolderIdIfEmpty(destinationFolderUuidFromFlag);
 
     const newFolder = await DriveFolderService.instance.moveFolder(folderUuid, {
       destinationFolder: destinationFolderUuid,

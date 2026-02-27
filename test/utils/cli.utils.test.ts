@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach, MockInstance } from 'vitest';
+import { describe, it, expect, vi, beforeEach, MockInstance } from 'vitest';
 import { ux } from '@oclif/core';
 import { CLIUtils } from '../../src/utils/cli.utils';
 import { Direction } from 'node:readline';
@@ -48,7 +48,6 @@ describe('CliUtils', () => {
   const mockAppDetails = {} as ReturnType<typeof SdkManager.getAppDetails>;
 
   beforeEach(() => {
-    vi.clearAllMocks();
     process.stdout.write = vi.fn();
     process.stdout.clearLine = vi.fn();
     stdoutWrite = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
@@ -63,10 +62,6 @@ describe('CliUtils', () => {
     vi.spyOn(SdkManager.instance, 'getNetwork').mockReturnValue(mockNetworkModule);
     vi.spyOn(SdkManager, 'getAppDetails').mockReturnValue(mockAppDetails);
     vi.spyOn(ConfigService.instance, 'get').mockReturnValue(BRIDGE_URL);
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
   });
 
   describe('clearPreviousLine', () => {

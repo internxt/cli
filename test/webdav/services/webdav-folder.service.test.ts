@@ -32,7 +32,6 @@ describe('WebDavFolderService', () => {
   };
 
   beforeEach(() => {
-    vi.restoreAllMocks();
     driveFolderService = DriveFolderService.instance;
     configService = ConfigService.instance;
     sut = WebDavFolderService.instance;

@@ -21,7 +21,6 @@ describe('UploadFacade', () => {
   const folderMap = new Map([[folderName, 'folder-uuid-123']]);
 
   beforeEach(() => {
-    vi.clearAllMocks();
     sut = UploadFacade.instance;
     vi.spyOn(LocalFilesystemService.instance, 'scanLocalDirectory').mockResolvedValue({
       folders: [createFileSystemNodeFixture({ type: 'folder', name: folderName, relativePath: folderName })],

@@ -12,7 +12,7 @@ export default class WorkspacesUse extends Command {
   static readonly args = {};
   static readonly description =
     'Set the active workspace context for the current user session. ' +
-    'Once a workspace is selected, all subsequent commands (list, upload, download, etc.) ' +
+    'Once a workspace is selected, WebDAV and all of the subsequent CLI commands ' +
     'will operate within that workspace until it is changed or unset.';
   static readonly aliases = ['workspaces:use'];
   static readonly examples = ['<%= config.bin %> <%= command.id %>'];
@@ -75,7 +75,7 @@ export default class WorkspacesUse extends Command {
     });
 
     const message =
-      `Workspace ${workspaceUuid} selected successfully. Now all drive commands (list, upload, download, etc.) ` +
+      `Workspace ${workspaceUuid} selected successfully. Now WebDAV and all of the CLI commands ` +
       'will operate within this workspace until it is changed or unset.';
     CLIUtils.success(this.log.bind(this), message);
 

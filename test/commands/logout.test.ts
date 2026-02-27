@@ -1,14 +1,10 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { ConfigService } from '../../src/services/config.service';
 import { UserCredentialsFixture } from '../fixtures/login.fixture';
 import Logout from '../../src/commands/logout';
 import { AuthService } from '../../src/services/auth.service';
 
 describe('Logout Command', () => {
-  beforeEach(() => {
-    vi.restoreAllMocks();
-  });
-
   it('When user is logged out, then it returns false', async () => {
     const readUserSpy = vi.spyOn(ConfigService.instance, 'readUser').mockResolvedValue(undefined);
     const networkLogout = vi.spyOn(AuthService.instance, 'logout').mockRejectedValue(new Error());
