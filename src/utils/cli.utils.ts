@@ -12,6 +12,8 @@ import { NetworkFacade } from '../services/network/network-facade.service';
 import { AuthService } from '../services/auth.service';
 import { NetworkCredentials, NetworkOptions } from '../types/network.types';
 
+export type LogReporter = (message: string) => void;
+
 export class CLIUtils {
   static readonly clearPreviousLine = (jsonFlag?: boolean) => {
     if (!jsonFlag) {
@@ -20,19 +22,19 @@ export class CLIUtils {
     }
   };
 
-  static readonly warning = (reporter: (message: string) => void, message: string) => {
+  static readonly warning = (reporter: LogReporter, message: string) => {
     reporter(ux.colorize('#a67805', `⚠ Warning: ${message}`));
   };
 
-  static readonly error = (reporter: (message: string) => void, message: string) => {
+  static readonly error = (reporter: LogReporter, message: string) => {
     reporter(ux.colorize('red', `⚠ Error: ${message}`));
   };
 
-  static readonly success = (reporter: (message: string) => void, message: string) => {
+  static readonly success = (reporter: LogReporter, message: string) => {
     reporter(ux.colorize('green', `✓ ${message}`));
   };
 
-  static readonly log = (reporter: (message: string) => void, message: string) => {
+  static readonly log = (reporter: LogReporter, message: string) => {
     reporter(`${message}`);
   };
 
@@ -68,7 +70,7 @@ export class CLIUtils {
     }
   };
 
-  static readonly table = (reporter: (message: string) => void, header: Header[], rows: object[]) => {
+  static readonly table = (reporter: LogReporter, header: Header[], rows: object[]) => {
     const table = Table(header, rows);
     reporter(table.render());
   };
@@ -90,6 +92,13 @@ export class CLIUtils {
         'Prevents the CLI from being interactive. When enabled, the CLI will not request input through the console and will throw errors directly.',
       required: false,
     }),
+    debug: Flags.boolean({
+      char: 'd',
+      env: 'INXT_DEBUG',
+      helpGroup: 'helper',
+      description: 'Enables debug mode. When enabled, the CLI will print debug messages to the console.',
+      required: false,
+    }),
   };
 
   static readonly getValueFromFlag = async (
@@ -107,7 +116,7 @@ export class CLIUtils {
       error: Error;
       canBeEmpty?: boolean;
     },
-    reporter: (message: string) => void,
+    reporter: LogReporter,
   ): Promise<string> => {
     // It returns the value passed from the flag if it is valid. If it is not valid, it will throw an error when nonInteractive mode is active and a warning otherwise
     // It throws an error if nonInteractive mode is active and no flag value is aquired
@@ -141,7 +150,7 @@ export class CLIUtils {
     destinationFolderUuidFlag: string | undefined;
     destinationFlagName: string;
     nonInteractive: boolean;
-    reporter: (message: string) => void;
+    reporter: LogReporter;
   }): Promise<string> => {
     const destinationFolderUuid = await this.getValueFromFlag(
       {
@@ -173,7 +182,7 @@ export class CLIUtils {
       error: Error;
       canBeEmpty?: boolean;
     },
-    reporter: (message: string) => void,
+    reporter: LogReporter,
   ): Promise<string> => {
     let isValid = false;
     let currentAttempts = 0;
@@ -257,7 +266,7 @@ export class CLIUtils {
   }: {
     error: Error;
     command?: string;
-    logReporter: (message: string) => void;
+    logReporter: LogReporter;
     jsonFlag?: boolean;
   }) => {
     let message;

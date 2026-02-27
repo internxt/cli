@@ -49,11 +49,13 @@ export default class UploadFile extends Command {
     const fileInfo = path.parse(filePath);
     const fileType = fileInfo.ext.replaceAll('.', '');
 
+    const reporter = this.log.bind(this);
+
     const destinationFolderUuidFromFlag = await CLIUtils.getDestinationFolderUuid({
       destinationFolderUuidFlag: flags['destination'],
       destinationFlagName: UploadFile.flags['destination'].name,
       nonInteractive,
-      reporter: this.log.bind(this),
+      reporter,
     });
     const destinationFolderUuid = await CLIUtils.fallbackToRootFolderIdIfEmpty(destinationFolderUuidFromFlag);
 
@@ -151,18 +153,19 @@ export default class UploadFile extends Command {
     const totalTime = Object.values(timings).reduce((sum, time) => sum + time, 0);
     const throughputMBps = CLIUtils.calculateThroughputMBps(stats.size, timings.networkUpload);
 
-    this.log('\n');
-    this.log(
-      '[PUT] Timing breakdown:\n' +
-        `Network upload: ${CLIUtils.formatDuration(timings.networkUpload)} (${throughputMBps.toFixed(2)} MB/s)\n` +
-        `Drive upload: ${CLIUtils.formatDuration(timings.driveUpload)}\n` +
-        `Thumbnail: ${CLIUtils.formatDuration(timings.thumbnailUpload)}\n`,
-    );
-    this.log('\n');
+    if (flags['debug']) {
+      CLIUtils.log(
+        reporter,
+        '[PUT] Timing breakdown:\n' +
+          `Network upload: ${CLIUtils.formatDuration(timings.networkUpload)} (${throughputMBps.toFixed(2)} MB/s)\n` +
+          `Drive upload: ${CLIUtils.formatDuration(timings.driveUpload)}\n` +
+          `Thumbnail: ${CLIUtils.formatDuration(timings.thumbnailUpload)}\n`,
+      );
+    }
     const message =
       `File uploaded successfully in ${CLIUtils.formatDuration(totalTime)}, view it at ` +
       `${ConfigService.instance.get('DRIVE_WEB_URL')}/file/${createdDriveFile.uuid}`;
-    CLIUtils.success(this.log.bind(this), message);
+    CLIUtils.success(reporter, message);
     return {
       success: true,
       message,

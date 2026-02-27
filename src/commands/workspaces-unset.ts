@@ -1,6 +1,6 @@
 import { Command } from '@oclif/core';
 import { ConfigService } from '../services/config.service';
-import { CLIUtils } from '../utils/cli.utils';
+import { CLIUtils, LogReporter } from '../utils/cli.utils';
 import { LoginCredentials, MissingCredentialsError } from '../types/command.types';
 import { SdkManager } from '../services/sdk-manager.service';
 
@@ -37,7 +37,7 @@ export default class WorkspacesUnset extends Command {
     this.exit(1);
   };
 
-  static readonly unsetWorkspace = async (userCredentials: LoginCredentials, reporter: (message: string) => void) => {
+  static readonly unsetWorkspace = async (userCredentials: LoginCredentials, reporter: LogReporter) => {
     SdkManager.init({ token: userCredentials.token });
     await ConfigService.instance.saveUser({ ...userCredentials, workspace: undefined });
     CLIUtils.success(reporter, 'Personal drive space selected successfully.');

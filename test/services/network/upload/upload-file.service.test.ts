@@ -72,6 +72,8 @@ describe('UploadFileService', () => {
         destinationFolderUuid,
         currentProgress,
         emitProgress,
+        debugMode: false,
+        reporter: vi.fn(),
       });
 
       expect(result).toBe(600);
@@ -102,6 +104,8 @@ describe('UploadFileService', () => {
         destinationFolderUuid,
         currentProgress,
         emitProgress,
+        debugMode: false,
+        reporter: vi.fn(),
       });
 
       expect(uploadFileWithRetrySpy).toHaveBeenCalledTimes(12);
@@ -132,6 +136,8 @@ describe('UploadFileService', () => {
         destinationFolderUuid,
         currentProgress,
         emitProgress,
+        debugMode: false,
+        reporter: vi.fn(),
       });
 
       expect(currentProgress.itemsUploaded).toBe(2);
@@ -156,6 +162,8 @@ describe('UploadFileService', () => {
 
       const uploadFileWithRetrySpy = vi.spyOn(sut, 'uploadFileWithRetry');
 
+      const reporter = vi.fn();
+
       const result = await sut.uploadFilesConcurrently({
         network: mockNetworkFacade,
         filesToUpload: files,
@@ -164,10 +172,14 @@ describe('UploadFileService', () => {
         destinationFolderUuid,
         currentProgress,
         emitProgress,
+        debugMode: true,
+        reporter,
       });
 
       expect(result).toBe(0);
-      expect(logger.warn).toHaveBeenCalledWith('Parent folder not found for subfolder/nested.txt, skipping...');
+      expect(reporter).toHaveBeenLastCalledWith(
+        expect.stringContaining('Parent folder not found for subfolder/nested.txt, skipping...'),
+      );
       expect(uploadFileWithRetrySpy).not.toHaveBeenCalled();
 
       uploadFileWithRetrySpy.mockRestore();
@@ -192,6 +204,8 @@ describe('UploadFileService', () => {
         network: mockNetworkFacade,
         bucket,
         parentFolderUuid: destinationFolderUuid,
+        debugMode: false,
+        reporter: vi.fn(),
       });
 
       expect(result).toBe(mockFile);
@@ -240,11 +254,15 @@ describe('UploadFileService', () => {
           return { stop: vi.fn() } as unknown as ReturnType<typeof mockNetworkFacade.uploadFile>;
         });
 
+      const reporter = vi.fn();
+
       const resultPromise = sut.uploadFileWithRetry({
         file,
         network: mockNetworkFacade,
         bucket,
         parentFolderUuid: destinationFolderUuid,
+        debugMode: true,
+        reporter,
       });
 
       await vi.runAllTimersAsync();
@@ -253,7 +271,7 @@ describe('UploadFileService', () => {
 
       expect(result).toBe(mockFile);
       expect(mockNetworkFacade.uploadFile).toHaveBeenCalledTimes(3);
-      expect(logger.warn).toHaveBeenCalledTimes(2);
+      expect(reporter).toHaveBeenCalledTimes(4);
 
       vi.useRealTimers();
     });
@@ -274,6 +292,8 @@ describe('UploadFileService', () => {
         network: mockNetworkFacade,
         bucket,
         parentFolderUuid: destinationFolderUuid,
+        debugMode: false,
+        reporter: vi.fn(),
       });
 
       expect(result).toBe(mockFile);
@@ -313,6 +333,8 @@ describe('UploadFileService', () => {
         network: mockNetworkFacade,
         bucket,
         parentFolderUuid: destinationFolderUuid,
+        debugMode: false,
+        reporter: vi.fn(),
       });
 
       expect(ThumbnailService.instance.tryUploadThumbnail).toHaveBeenCalledWith({
@@ -343,6 +365,8 @@ describe('UploadFileService', () => {
         network: mockNetworkFacade,
         bucket,
         parentFolderUuid: destinationFolderUuid,
+        debugMode: false,
+        reporter: vi.fn(),
       });
 
       expect(result).toBeNull();
@@ -364,11 +388,15 @@ describe('UploadFileService', () => {
         return { stop: vi.fn() } as unknown as ReturnType<typeof mockNetworkFacade.uploadFile>;
       });
 
+      const reporter = vi.fn();
+
       const resultPromise = sut.uploadFileWithRetry({
         file,
         network: mockNetworkFacade,
         bucket,
         parentFolderUuid: destinationFolderUuid,
+        debugMode: true,
+        reporter,
       });
 
       await vi.runAllTimersAsync();
@@ -376,7 +404,10 @@ describe('UploadFileService', () => {
       const result = await resultPromise;
 
       expect(result).toBeNull();
-      expect(logger.error).toHaveBeenCalledWith('Failed to upload file fail.txt after 3 attempts');
+      expect(reporter).toHaveBeenCalledTimes(3);
+      expect(reporter).toHaveBeenLastCalledWith(
+        expect.stringContaining(`Error: Failed to upload file '${file.name}' after 3 attempts`),
+      );
       expect(mockNetworkFacade.uploadFile).toHaveBeenCalledTimes(3);
 
       vi.useRealTimers();
