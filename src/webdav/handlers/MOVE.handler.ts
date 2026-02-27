@@ -5,7 +5,7 @@ import { WebDavMethodHandler } from '../../types/webdav.types';
 import { NotFoundError } from '../../utils/errors.utils';
 import { webdavLogger } from '../../utils/logger.utils';
 import { WebDavUtils } from '../../utils/webdav.utils';
-import { WebDavFolderService } from '../services/webdav-folder.service';
+import { WebDavFolderService } from '../../services/webdav/webdav-folder.service';
 
 export class MOVERequestHandler implements WebDavMethodHandler {
   handle = async (req: Request, res: Response) => {

@@ -10,7 +10,7 @@ import { EncryptionVersion } from '@internxt/sdk/dist/drive/storage/types';
 import { CLIUtils } from '../../utils/cli.utils';
 import { BufferStream } from '../../utils/stream.utils';
 import { Readable } from 'node:stream';
-import { WebDavFolderService } from '../services/webdav-folder.service';
+import { WebDavFolderService } from '../../services/webdav/webdav-folder.service';
 import { AsyncUtils } from '../../utils/async.utils';
 import { ThumbnailUtils } from '../../utils/thumbnail.utils';
 import { ThumbnailService } from '../../services/thumbnail.service';

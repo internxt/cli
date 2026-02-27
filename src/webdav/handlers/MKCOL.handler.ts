@@ -3,7 +3,7 @@ import { Request, Response } from 'express';
 import { WebDavUtils } from '../../utils/webdav.utils';
 import { webdavLogger } from '../../utils/logger.utils';
 import { XMLUtils } from '../../utils/xml.utils';
-import { WebDavFolderService } from '../services/webdav-folder.service';
+import { WebDavFolderService } from '../../services/webdav/webdav-folder.service';
 import { MethodNotAllowed } from '../../utils/errors.utils';
 
 export class MKCOLRequestHandler implements WebDavMethodHandler {

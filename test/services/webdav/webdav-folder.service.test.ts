@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fail } from 'node:assert';
-import { WebDavFolderService } from '../../../src/webdav/services/webdav-folder.service';
+import { WebDavFolderService } from '../../../src/services/webdav/webdav-folder.service';
 import { DriveFolderService } from '../../../src/services/drive/drive-folder.service';
 import { ConfigService } from '../../../src/services/config.service';
 import { AuthService } from '../../../src/services/auth.service';
