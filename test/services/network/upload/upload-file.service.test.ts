@@ -343,6 +343,7 @@ describe('UploadFileService', () => {
         bucket,
         fileUuid: mockFile.uuid,
         networkFacade: mockNetworkFacade,
+        size: file.size,
       });
     });
 

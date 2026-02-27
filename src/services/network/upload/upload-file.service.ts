@@ -139,6 +139,7 @@ export class UploadFileService {
             bucket,
             fileUuid: createdDriveFile.uuid,
             networkFacade: network,
+            size: fileSize,
           });
         }
         timings.thumbnailUpload = thumbnailTimer.stop();

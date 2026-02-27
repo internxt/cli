@@ -143,6 +143,7 @@ export default class UploadFile extends Command {
         bucket,
         fileUuid: createdDriveFile.uuid,
         networkFacade,
+        size: fileSize,
       });
     }
     timings.thumbnailUpload = thumbnailTimer.stop();

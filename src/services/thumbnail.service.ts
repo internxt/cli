@@ -30,9 +30,10 @@ export class ThumbnailService {
     userBucket: string,
     file_id: string,
     networkFacade: NetworkFacade,
+    fileSize: number,
   ): Promise<StorageTypes.Thumbnail | undefined> => {
     let thumbnailBuffer: Buffer | undefined;
-    if (ThumbnailUtils.isImageThumbnailable(fileType)) {
+    if (ThumbnailUtils.isImageThumbnailable(fileType, fileSize)) {
       thumbnailBuffer = await this.getThumbnailFromImageBuffer(fileContent);
     }
     if (thumbnailBuffer) {
@@ -89,12 +90,14 @@ export class ThumbnailService {
     bucket,
     fileUuid,
     networkFacade,
+    size,
   }: {
     bufferStream?: BufferStream;
     fileType: string;
     bucket: string;
     fileUuid: string;
     networkFacade: NetworkFacade;
+    size: number;
   }) => {
     try {
       const thumbnailBuffer = bufferStream?.getBuffer();
@@ -107,7 +110,7 @@ export class ThumbnailService {
         });
 
         await Promise.race([
-          ThumbnailService.instance.uploadThumbnail(thumbnailBuffer, fileType, bucket, fileUuid, networkFacade),
+          ThumbnailService.instance.uploadThumbnail(thumbnailBuffer, fileType, bucket, fileUuid, networkFacade, size),
           timeoutPromise,
         ]).finally(() => {
           clearTimeout(timeoutId);
