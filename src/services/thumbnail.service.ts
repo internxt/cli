@@ -22,6 +22,7 @@ const getSharp = async () => {
 
 export class ThumbnailService {
   public static readonly instance: ThumbnailService = new ThumbnailService();
+  private static readonly MAX_THUMBNAIL_TIMEOUT = 30000;
 
   public uploadThumbnail = async (
     fileContent: Buffer,
@@ -98,7 +99,19 @@ export class ThumbnailService {
     try {
       const thumbnailBuffer = bufferStream?.getBuffer();
       if (thumbnailBuffer) {
-        await ThumbnailService.instance.uploadThumbnail(thumbnailBuffer, fileType, bucket, fileUuid, networkFacade);
+        let timeoutId: NodeJS.Timeout;
+        const timeoutPromise = new Promise<never>((_, reject) => {
+          timeoutId = setTimeout(() => {
+            reject(new Error('Thumbnail upload timeout'));
+          }, ThumbnailService.MAX_THUMBNAIL_TIMEOUT);
+        });
+
+        await Promise.race([
+          ThumbnailService.instance.uploadThumbnail(thumbnailBuffer, fileType, bucket, fileUuid, networkFacade),
+          timeoutPromise,
+        ]).finally(() => {
+          clearTimeout(timeoutId);
+        });
       }
     } catch (error) {
       ErrorUtils.report(error);
