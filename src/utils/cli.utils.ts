@@ -93,7 +93,6 @@ export class CLIUtils {
       required: false,
     }),
     debug: Flags.boolean({
-      char: 'd',
       env: 'INXT_DEBUG',
       helpGroup: 'helper',
       description: 'Enables debug mode. When enabled, the CLI will print debug messages to the console.',
