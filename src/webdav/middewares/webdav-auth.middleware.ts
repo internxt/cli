@@ -1,5 +1,4 @@
 import { RequestHandler, Response } from 'express';
-import { webdavLogger } from '../../utils/logger.utils';
 import { XMLUtils } from '../../utils/xml.utils';
 import { WebdavConfig } from '../../types/command.types';
 
@@ -32,7 +31,6 @@ export const WebDAVAuthMiddleware = (configs: WebdavConfig): RequestHandler => {
         if (username !== configs.username || password !== configs.password) {
           return sendUnauthorizedError(res, 'Authentication failed. Please check your WebDAV custom credentials.');
         } else {
-          webdavLogger.info(`User authenticated successfully: ${username}`);
           next();
           return;
         }
