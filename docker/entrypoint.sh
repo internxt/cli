@@ -22,6 +22,11 @@ fi
 
 internxt login-legacy $LOGIN_ARGS
 
+if [ -n "$INXT_WORKSPACE_ID" ]; then
+  echo "Switching to workspace: $INXT_WORKSPACE_ID"
+  internxt workspaces use -i="$INXT_WORKSPACE_ID"
+fi
+
 
 WEBDAV_ARGS="-l=0.0.0.0"
 
