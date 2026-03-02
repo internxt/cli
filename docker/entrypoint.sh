@@ -37,7 +37,7 @@ elif [ "$proto" = "https" ]; then
 fi
 
 customAuth=$(echo "$WEBDAV_CUSTOM_AUTH" | tr '[:upper:]' '[:lower:]')
-if [ "$customAuth" = "true" ] || [ "$customAuth" = "1" ]; then
+if [ "$customAuth" = "true" ] || [ "$customAuth" = "1" ] || [ "$customAuth" = "yes" ] || [ "$customAuth" = "y" ]; then
   if [ -z "$WEBDAV_USERNAME" ] || [ -z "$WEBDAV_PASSWORD" ]; then
     echo "Error: WEBDAV_USERNAME and WEBDAV_PASSWORD must be set when WEBDAV_CUSTOM_AUTH is enabled."
     exit 1
