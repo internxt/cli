@@ -1396,8 +1396,8 @@ Edit the configuration of the Internxt CLI WebDav server as the port or the prot
 
 ```
 USAGE
-  $ internxt webdav-config [--json] [-x] [--debug] [-l <value>] [-p <value>] [-s | -h] [-t <value>] [-c] [-u
-    <value> -a] [-w <value> ]
+  $ internxt webdav-config [--json] [-x] [--debug] [-l <value>] [-p <value>] [-s | -h] [-t <value>] [-c] [-a] [-u
+    <value>] [-w <value>]
 
 FLAGS
   -a, --[no-]customAuth      Configures the WebDAV server to use custom authentication.

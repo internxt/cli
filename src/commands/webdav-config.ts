@@ -61,13 +61,11 @@ export default class WebDAVConfig extends Command {
       char: 'u',
       description: 'Configures the WebDAV server to use this username for custom authentication.',
       required: false,
-      dependsOn: ['customAuth'],
     }),
     password: Flags.string({
       char: 'w',
       description: 'Configures the WebDAV server to use this password for custom authentication.',
       required: false,
-      dependsOn: ['customAuth'],
     }),
   };
   static readonly enableJsonFlag = true;
@@ -108,20 +106,16 @@ export default class WebDAVConfig extends Command {
     }
 
     if (customAuth !== undefined) {
-      if (customAuth === true) {
-        webdavConfig['customAuth'] = true;
-
-        if (!username && !password && nonInteractive) {
-          throw new MissingCredentialsWhenUsingAuthError();
-        }
-
-        webdavConfig['username'] = await this.getUsername(username, nonInteractive);
-        webdavConfig['password'] = await this.getPassword(password, nonInteractive);
-      } else {
-        webdavConfig['customAuth'] = false;
-        webdavConfig['username'] = '';
-        webdavConfig['password'] = '';
-      }
+      webdavConfig['customAuth'] = customAuth;
+    }
+    if (username) {
+      webdavConfig['username'] = await this.getUsername(username, nonInteractive);
+    }
+    if (password) {
+      webdavConfig['password'] = await this.getPassword(password, nonInteractive);
+    }
+    if (webdavConfig['customAuth'] && (!webdavConfig['username'] || !webdavConfig['password'])) {
+      throw new MissingCredentialsWhenUsingAuthError();
     }
 
     await ConfigService.instance.saveWebdavConfig(webdavConfig);
