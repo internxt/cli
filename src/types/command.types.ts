@@ -153,6 +153,22 @@ export class EmptyFolderNameError extends Error {
   }
 }
 
+export class EmptyCustomAuthUsernameError extends Error {
+  constructor() {
+    super('Custom auth username can not be empty');
+
+    Object.setPrototypeOf(this, EmptyCustomAuthUsernameError.prototype);
+  }
+}
+
+export class EmptyCustomAuthPasswordError extends Error {
+  constructor() {
+    super('Custom auth password can not be empty');
+
+    Object.setPrototypeOf(this, EmptyCustomAuthPasswordError.prototype);
+  }
+}
+
 export class NotValidPortError extends Error {
   constructor() {
     super('Port should be a number between 1 and 65535');
