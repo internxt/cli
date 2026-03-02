@@ -36,6 +36,16 @@ elif [ "$proto" = "https" ]; then
   WEBDAV_ARGS="$WEBDAV_ARGS -s"
 fi
 
+customAuth=$(echo "$WEBDAV_CUSTOM_AUTH" | tr '[:upper:]' '[:lower:]')
+if [ "$customAuth" = "true" ] || [ "$customAuth" = "1" ]; then
+  if [ -z "$WEBDAV_USERNAME" ] || [ -z "$WEBDAV_PASSWORD" ]; then
+    echo "Error: WEBDAV_USERNAME and WEBDAV_PASSWORD must be set when WEBDAV_CUSTOM_AUTH is enabled."
+    exit 1
+  fi
+  echo "Enabling custom WebDAV authentication for user: $WEBDAV_USERNAME"
+  WEBDAV_ARGS="$WEBDAV_ARGS --customAuth -u=$WEBDAV_USERNAME -w=$WEBDAV_PASSWORD"
+fi
+
 internxt webdav-config $WEBDAV_ARGS
 
 internxt webdav enable

@@ -1,7 +1,7 @@
 import { Command, Flags } from '@oclif/core';
 import { ConfigService } from '../services/config.service';
 import { CLIUtils } from '../utils/cli.utils';
-import { NotValidPortError } from '../types/command.types';
+import { MissingCredentialsWhenUsingAuthError, NotValidPortError } from '../types/command.types';
 import { ValidationService } from '../services/validation.service';
 
 export default class WebDAVConfig extends Command {
@@ -44,12 +44,31 @@ export default class WebDAVConfig extends Command {
       required: false,
       allowNo: true,
     }),
+    customAuth: Flags.boolean({
+      char: 'a',
+      description: 'Configures the WebDAV server to use custom authentication.',
+      required: false,
+      default: undefined,
+      allowNo: true,
+    }),
+    username: Flags.string({
+      char: 'u',
+      description: 'Configures the WebDAV server to use this username for custom authentication.',
+      required: false,
+      dependsOn: ['customAuth'],
+    }),
+    password: Flags.string({
+      char: 'w',
+      description: 'Configures the WebDAV server to use this password for custom authentication.',
+      required: false,
+      dependsOn: ['customAuth'],
+    }),
   };
   static readonly enableJsonFlag = true;
 
   public run = async () => {
     const {
-      flags: { host, port, http, https, timeout, createFullPath },
+      flags: { host, port, http, https, timeout, createFullPath, customAuth, username, password },
     } = await this.parse(WebDAVConfig);
     const webdavConfig = await ConfigService.instance.readWebdavConfig();
 
@@ -81,7 +100,28 @@ export default class WebDAVConfig extends Command {
       webdavConfig['createFullPath'] = createFullPath;
     }
 
+    if (customAuth !== undefined) {
+      if (customAuth === true) {
+        webdavConfig['customAuth'] = true;
+        if (!username || !password) {
+          throw new MissingCredentialsWhenUsingAuthError();
+        } else {
+          webdavConfig['username'] = username;
+          webdavConfig['password'] = password;
+        }
+      } else {
+        webdavConfig['customAuth'] = false;
+        webdavConfig['username'] = '';
+        webdavConfig['password'] = '';
+      }
+    }
+
     await ConfigService.instance.saveWebdavConfig(webdavConfig);
+
+    if (webdavConfig['password']) {
+      webdavConfig['password'] = '********';
+    }
+
     const message = `On the next start, the WebDAV server will use the next config: ${JSON.stringify(webdavConfig)}`;
     CLIUtils.success(this.log.bind(this), message);
     return { success: true, message, config: webdavConfig };

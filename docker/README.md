@@ -22,6 +22,9 @@ services:
       INXT_OTPTOKEN: ""       # (Optional) OTP secret for auto-generating 2FA codes
       WEBDAV_PORT: ""         # (Optional) WebDAV port. Defaults to 3005 if empty
       WEBDAV_PROTOCOL: ""     # (Optional) WebDAV protocol. Accepts 'http' or 'https'. Defaults to 'https' if empty
+      WEBDAV_CUSTOM_AUTH: ""  # (Optional) Enable custom authentication. Set to 'true' to enable
+      WEBDAV_USERNAME: ""     # (Optional) Custom username for WebDAV authentication
+      WEBDAV_PASSWORD: ""     # (Optional) Custom password for WebDAV authentication
     ports:
       - "127.0.0.1:3005:3005" # Map container port to host. Change if WEBDAV_PORT is customized
 ```
@@ -44,6 +47,9 @@ docker run -d \
   -e INXT_OTPTOKEN="" \
   -e WEBDAV_PORT="" \
   -e WEBDAV_PROTOCOL="" \
+  -e WEBDAV_CUSTOM_AUTH="false" \
+  -e WEBDAV_USERNAME="" \
+  -e WEBDAV_PASSWORD="" \
   -p 127.0.0.1:3005:3005 \
   internxt/webdav:latest
 ```
@@ -79,9 +85,24 @@ You can also run the `internxt/webdav` image directly on popular NAS devices lik
 | `INXT_OTPTOKEN`      | ❌ No    | OTP secret key (base32). Used to auto-generate fresh codes at runtime.                         |
 | `WEBDAV_PORT`        | ❌ No    | Port for the WebDAV server. Defaults to `3005` if left empty.                                  |
 | `WEBDAV_PROTOCOL`    | ❌ No    | Protocol for the WebDAV server. Accepts `http` or `https`. Defaults to `https` if left empty.  |
+| `WEBDAV_CUSTOM_AUTH` | ❌ No    | Enable custom Basic Authentication for WebDAV. Set to `true` to enable.                        |
+| `WEBDAV_USERNAME`    | ❌ No    | Username for custom WebDAV authentication. Required if `WEBDAV_CUSTOM_AUTH` is enabled.        |
+| `WEBDAV_PASSWORD`    | ❌ No    | Password for custom WebDAV authentication. Required if `WEBDAV_CUSTOM_AUTH` is enabled.        |
 
 
 ---
+
+### Custom WebDAV Authentication
+
+By default, the WebDAV server starts with anonymous authentication enabled, meaning anyone with access to the server URL can connect without credentials. Under the hood, the server uses your Internxt credentials to access your files, but clients don't need to authenticate. If you want to restrict access to your WebDAV server or simply enhance its security, you can enable custom authentication with `WEBDAV_CUSTOM_AUTH`.
+
+**Security recommendations:**
+- 🚨 **We strongly recommend NOT exposing your WebDAV server to the internet.** Keep it on your secure local network whenever possible.
+- ⚠️ **Do NOT use your Internxt username and password** for `WEBDAV_USERNAME` and `WEBDAV_PASSWORD`
+- Create unique, strong credentials specifically for WebDAV access
+- Try to always use HTTPS (`WEBDAV_PROTOCOL=https`) when enabling custom authentication
+
+**Important:** When connecting to your WebDAV server with custom authentication enabled, you must use the credentials defined in `WEBDAV_USERNAME` and `WEBDAV_PASSWORD`, not your Internxt account credentials.
 
 ### 🔄 2FA Options Explained
 

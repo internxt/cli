@@ -52,7 +52,7 @@ export interface WebdavConfig {
   protocol: 'http' | 'https';
   timeoutMinutes: number;
   createFullPath: boolean;
-  useAuth: boolean;
+  customAuth: boolean;
   username: string;
   password: string;
 }
@@ -182,6 +182,14 @@ export class NotValidWorkspaceUuidError extends Error {
     super('Workspace UUID is not valid (it must be a valid v4 UUID)');
 
     Object.setPrototypeOf(this, NotValidWorkspaceUuidError.prototype);
+  }
+}
+
+export class MissingCredentialsWhenUsingAuthError extends Error {
+  constructor() {
+    super('When using custom WebDAV authentication, both username and password must be provided');
+
+    Object.setPrototypeOf(this, MissingCredentialsWhenUsingAuthError.prototype);
   }
 }
 

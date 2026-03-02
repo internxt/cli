@@ -81,7 +81,8 @@ export class WebDavServer {
     server.listen(Number(configs.port), configs.host, undefined, () => {
       webdavLogger.info(
         `Internxt ${SdkManager.getAppDetails().clientVersion} WebDav server ` +
-          `listening at ${configs.protocol}://${configs.host}:${configs.port}`,
+          `listening at ${configs.protocol}://${configs.host}:${configs.port}` +
+          `${configs.customAuth ? ' (with custom authentication)' : ''}`,
       );
     });
   };

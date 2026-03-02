@@ -16,7 +16,7 @@ import {
   WEBDAV_DEFAULT_PORT,
   WEBDAV_DEFAULT_PROTOCOL,
   WEBDAV_DEFAULT_TIMEOUT,
-  WEBDAV_DEFAULT_USE_AUTH,
+  WEBDAV_DEFAULT_CUSTOM_AUTH,
   WEBDAV_SSL_CERTS_DIR,
 } from '../../src/constants/configs';
 
@@ -146,7 +146,7 @@ describe('Config service', () => {
       protocol: 'https',
       timeoutMinutes: crypto.randomInt(100),
       createFullPath: false,
-      useAuth: WEBDAV_DEFAULT_USE_AUTH,
+      customAuth: WEBDAV_DEFAULT_CUSTOM_AUTH,
       username: WEBDAV_DEFAULT_AUTH_USERNAME,
       password: WEBDAV_DEFAULT_AUTH_PASSWORD,
     };
@@ -165,7 +165,7 @@ describe('Config service', () => {
       protocol: 'http',
       timeoutMinutes: crypto.randomInt(100),
       createFullPath: false,
-      useAuth: WEBDAV_DEFAULT_USE_AUTH,
+      customAuth: WEBDAV_DEFAULT_CUSTOM_AUTH,
       username: WEBDAV_DEFAULT_AUTH_USERNAME,
       password: WEBDAV_DEFAULT_AUTH_PASSWORD,
     };
@@ -185,7 +185,7 @@ describe('Config service', () => {
       protocol: WEBDAV_DEFAULT_PROTOCOL,
       timeoutMinutes: WEBDAV_DEFAULT_TIMEOUT,
       createFullPath: WEBDAV_DEFAULT_CREATE_FULL_PATH,
-      useAuth: WEBDAV_DEFAULT_USE_AUTH,
+      customAuth: WEBDAV_DEFAULT_CUSTOM_AUTH,
       username: WEBDAV_DEFAULT_AUTH_USERNAME,
       password: WEBDAV_DEFAULT_AUTH_PASSWORD,
     };
@@ -204,7 +204,7 @@ describe('Config service', () => {
       protocol: WEBDAV_DEFAULT_PROTOCOL,
       timeoutMinutes: WEBDAV_DEFAULT_TIMEOUT,
       createFullPath: WEBDAV_DEFAULT_CREATE_FULL_PATH,
-      useAuth: WEBDAV_DEFAULT_USE_AUTH,
+      customAuth: WEBDAV_DEFAULT_CUSTOM_AUTH,
       username: WEBDAV_DEFAULT_AUTH_USERNAME,
       password: WEBDAV_DEFAULT_AUTH_PASSWORD,
     };

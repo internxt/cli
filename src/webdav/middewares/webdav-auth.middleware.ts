@@ -6,7 +6,7 @@ import { WebdavConfig } from '../../types/command.types';
 export const WebDAVAuthMiddleware = (configs: WebdavConfig): RequestHandler => {
   return (req, res, next) => {
     (async () => {
-      if (configs.useAuth) {
+      if (configs.customAuth) {
         const authHeader = req.headers.authorization;
 
         if (!authHeader) {
