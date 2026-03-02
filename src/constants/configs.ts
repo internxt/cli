@@ -13,5 +13,3 @@ export const WEBDAV_DEFAULT_PROTOCOL = 'https';
 export const WEBDAV_DEFAULT_TIMEOUT = 0;
 export const WEBDAV_DEFAULT_CREATE_FULL_PATH = true;
 export const WEBDAV_DEFAULT_CUSTOM_AUTH = false;
-export const WEBDAV_DEFAULT_AUTH_USERNAME = '';
-export const WEBDAV_DEFAULT_AUTH_PASSWORD = '';

@@ -6,6 +6,7 @@ import { NetworkUtils } from '../../src/utils/network.utils';
 import { Stats } from 'node:fs';
 import { fail } from 'node:assert';
 import { WebdavConfig } from '../../src/types/command.types';
+import { WEBDAV_DEFAULT_CUSTOM_AUTH } from '../../src/constants/configs';
 
 vi.mock('node:fs/promises', async () => {
   const actual = await vi.importActual<typeof import('node:fs/promises')>('node:fs/promises');
@@ -46,6 +47,9 @@ describe('Network utils', () => {
       protocol: 'https',
       timeoutMinutes: randomInt(900),
       createFullPath: true,
+      customAuth: WEBDAV_DEFAULT_CUSTOM_AUTH,
+      username: '',
+      password: '',
     };
     const sslSelfSigned: GenerateResult = {
       private: randomBytes(8).toString('hex'),
@@ -79,6 +83,9 @@ describe('Network utils', () => {
       protocol: 'https',
       timeoutMinutes: randomInt(900),
       createFullPath: true,
+      customAuth: WEBDAV_DEFAULT_CUSTOM_AUTH,
+      username: '',
+      password: '',
     };
     const sslMock = {
       private: randomBytes(8).toString('hex'),
@@ -121,6 +128,9 @@ describe('Network utils', () => {
       protocol: 'https',
       timeoutMinutes: randomInt(900),
       createFullPath: true,
+      customAuth: WEBDAV_DEFAULT_CUSTOM_AUTH,
+      username: '',
+      password: '',
     };
     const sslSelfSigned: GenerateResult = {
       private: randomBytes(8).toString('hex'),
