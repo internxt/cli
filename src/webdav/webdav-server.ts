@@ -43,7 +43,7 @@ export class WebDavServer {
     this.app.use(ErrorHandlingMiddleware);
   };
 
-  private readonly registerHandlers = async () => {
+  private readonly registerHandlers = () => {
     const serverListenPath = /(.*)/;
     this.app.head(serverListenPath, asyncHandler(new HEADRequestHandler().handle));
     this.app.get(serverListenPath, asyncHandler(new GETRequestHandler().handle));
@@ -63,7 +63,7 @@ export class WebDavServer {
     const configs = await ConfigService.instance.readWebdavConfig();
     this.app.disable('x-powered-by');
     this.registerStartMiddlewares(configs);
-    await this.registerHandlers();
+    this.registerHandlers();
     this.registerEndMiddleWares();
 
     const plainHttp = configs.protocol === 'http';
