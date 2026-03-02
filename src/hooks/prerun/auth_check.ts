@@ -11,12 +11,20 @@ import Webdav from '../../commands/webdav';
 import WebDAVConfig from '../../commands/webdav-config';
 import { DatabaseService } from '../../services/database/database.service';
 
-const CommandsToSkip = [Whoami, Login, LoginLegacy, Logout, Logs, Webdav, WebDAVConfig];
+const Autocomplete = {
+  name: 'autocomplete',
+  id: 'autocomplete',
+};
+
+const CommandsToSkip = [Whoami, Login, LoginLegacy, Logout, Logs, Webdav, WebDAVConfig, Autocomplete];
 const hook: Hook<'prerun'> = async function (opts) {
   const { Command, argv } = opts;
   const jsonFlag = argv.includes('--json');
 
-  if (!CommandsToSkip.map((command) => command.name).includes(Command.name)) {
+  if (
+    !CommandsToSkip.map((command) => command.name.toLowerCase()).includes(Command.name.toLowerCase()) &&
+    !CommandsToSkip.map((command) => command.id.toLowerCase()).includes(Command.id.toLowerCase())
+  ) {
     CLIUtils.doing('Checking credentials', jsonFlag);
     try {
       const { token, workspace } = await AuthService.instance.getAuthDetails();
