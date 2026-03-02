@@ -34,11 +34,13 @@ export default class UploadFolder extends Command {
 
     const localPath = await this.getFolderPath(flags['folder'], flags['non-interactive']);
 
+    const reporter = this.log.bind(this);
+
     const destinationFolderUuidFromFlag = await CLIUtils.getDestinationFolderUuid({
       destinationFolderUuidFlag: flags['destination'],
       destinationFlagName: UploadFolder.flags['destination'].name,
       nonInteractive: flags['non-interactive'],
-      reporter: this.log.bind(this),
+      reporter,
     });
     const destinationFolderUuid = await CLIUtils.fallbackToRootFolderIdIfEmpty(destinationFolderUuidFromFlag);
 
@@ -58,6 +60,8 @@ export default class UploadFolder extends Command {
       onProgress: (progress) => {
         progressBar?.update(progress.percentage);
       },
+      debugMode: flags['debug'],
+      reporter,
     });
 
     progressBar?.update(100);

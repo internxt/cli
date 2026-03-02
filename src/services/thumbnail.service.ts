@@ -22,6 +22,7 @@ const getSharp = async () => {
 
 export class ThumbnailService {
   public static readonly instance: ThumbnailService = new ThumbnailService();
+  private static readonly MAX_THUMBNAIL_TIMEOUT = 30000;
 
   public uploadThumbnail = async (
     fileContent: Buffer,
@@ -29,9 +30,10 @@ export class ThumbnailService {
     userBucket: string,
     file_id: string,
     networkFacade: NetworkFacade,
+    fileSize: number,
   ): Promise<StorageTypes.Thumbnail | undefined> => {
     let thumbnailBuffer: Buffer | undefined;
-    if (ThumbnailUtils.isImageThumbnailable(fileType)) {
+    if (ThumbnailUtils.isImageThumbnailable(fileType, fileSize)) {
       thumbnailBuffer = await this.getThumbnailFromImageBuffer(fileContent);
     }
     if (thumbnailBuffer) {
@@ -88,17 +90,31 @@ export class ThumbnailService {
     bucket,
     fileUuid,
     networkFacade,
+    size,
   }: {
     bufferStream?: BufferStream;
     fileType: string;
     bucket: string;
     fileUuid: string;
     networkFacade: NetworkFacade;
+    size: number;
   }) => {
     try {
       const thumbnailBuffer = bufferStream?.getBuffer();
       if (thumbnailBuffer) {
-        await ThumbnailService.instance.uploadThumbnail(thumbnailBuffer, fileType, bucket, fileUuid, networkFacade);
+        let timeoutId: NodeJS.Timeout;
+        const timeoutPromise = new Promise<never>((_, reject) => {
+          timeoutId = setTimeout(() => {
+            reject(new Error('Thumbnail upload timeout'));
+          }, ThumbnailService.MAX_THUMBNAIL_TIMEOUT);
+        });
+
+        await Promise.race([
+          ThumbnailService.instance.uploadThumbnail(thumbnailBuffer, fileType, bucket, fileUuid, networkFacade, size),
+          timeoutPromise,
+        ]).finally(() => {
+          clearTimeout(timeoutId);
+        });
       }
     } catch (error) {
       ErrorUtils.report(error);

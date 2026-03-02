@@ -131,6 +131,7 @@ export class PUTRequestHandler implements WebDavMethodHandler {
         fileType,
         bucket,
         networkFacade,
+        size: contentLength,
       });
     }
     timings.thumbnailUpload = thumbnailTimer.stop();

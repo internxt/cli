@@ -1,6 +1,5 @@
 import { basename } from 'node:path';
 import { CLIUtils } from '../../../utils/cli.utils';
-import { logger } from '../../../utils/logger.utils';
 import { LocalFilesystemService } from '../../local-filesystem/local-filesystem.service';
 import { UploadFolderParams } from './upload.types';
 import { UploadFolderService } from './upload-folder.service';
@@ -15,16 +14,21 @@ export class UploadFacade {
     destinationFolderUuid,
     loginUserDetails,
     jsonFlag,
+    debugMode,
     onProgress,
+    reporter,
   }: UploadFolderParams) => {
     const timer = CLIUtils.timer();
     CLIUtils.doing('Preparing Network', jsonFlag);
     const { networkFacade, bucket } = await CLIUtils.prepareNetwork(loginUserDetails);
     CLIUtils.done(jsonFlag);
     const scanResult = await LocalFilesystemService.instance.scanLocalDirectory(localPath);
-    logger.info(
-      `Scanned folder ${localPath}: found ${scanResult.totalItems} items, total size ${scanResult.totalBytes} bytes.`,
-    );
+    if (debugMode) {
+      CLIUtils.success(
+        reporter,
+        `Scanned folder ${localPath}: found ${scanResult.totalItems} items, total size ${scanResult.totalBytes} bytes.`,
+      );
+    }
 
     const currentProgress = { itemsUploaded: 0, bytesUploaded: 0 };
     const emitProgress = () => {
@@ -39,6 +43,8 @@ export class UploadFacade {
       destinationFolderUuid,
       currentProgress,
       emitProgress,
+      reporter,
+      debugMode,
     });
 
     if (folderMap.size === 0) {
@@ -55,6 +61,8 @@ export class UploadFacade {
       destinationFolderUuid,
       currentProgress,
       emitProgress,
+      debugMode,
+      reporter,
     });
 
     const rootFolderName = basename(localPath);
