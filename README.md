@@ -52,7 +52,7 @@ $ npm install -g @internxt/cli
 $ internxt COMMAND
 running command...
 $ internxt (--version)
-@internxt/cli/1.6.2 win32-x64 node-v24.3.0
+@internxt/cli/1.6.3 win32-x64 node-v24.3.0
 $ internxt --help [COMMAND]
 USAGE
   $ internxt COMMAND
@@ -68,9 +68,11 @@ USAGE
 
 <!-- commands -->
 * [`internxt add-cert`](#internxt-add-cert)
+* [`internxt add cert`](#internxt-add-cert)
 * [`internxt autocomplete [SHELL]`](#internxt-autocomplete-shell)
 * [`internxt config`](#internxt-config)
 * [`internxt create-folder`](#internxt-create-folder)
+* [`internxt create folder`](#internxt-create-folder)
 * [`internxt delete-permanently-file`](#internxt-delete-permanently-file)
 * [`internxt delete-permanently-folder`](#internxt-delete-permanently-folder)
 * [`internxt delete permanently file`](#internxt-delete-permanently-file)
@@ -109,6 +111,12 @@ USAGE
 * [`internxt webdav ACTION`](#internxt-webdav-action)
 * [`internxt webdav-config`](#internxt-webdav-config)
 * [`internxt whoami`](#internxt-whoami)
+* [`internxt workspaces-list`](#internxt-workspaces-list)
+* [`internxt workspaces-unset`](#internxt-workspaces-unset)
+* [`internxt workspaces-use`](#internxt-workspaces-use)
+* [`internxt workspaces list`](#internxt-workspaces-list)
+* [`internxt workspaces unset`](#internxt-workspaces-unset)
+* [`internxt workspaces use`](#internxt-workspaces-use)
 
 ## `internxt add-cert`
 
@@ -124,11 +132,35 @@ GLOBAL FLAGS
 DESCRIPTION
   Add a self-signed certificate to the trusted store for macOS, Linux, and Windows.
 
+ALIASES
+  $ internxt add cert
+
 EXAMPLES
   $ internxt add-cert
 ```
 
-_See code: [src/commands/add-cert.ts](https://github.com/internxt/cli/blob/v1.6.2/src/commands/add-cert.ts)_
+_See code: [src/commands/add-cert.ts](https://github.com/internxt/cli/blob/v1.6.3/src/commands/add-cert.ts)_
+
+## `internxt add cert`
+
+Add a self-signed certificate to the trusted store for macOS, Linux, and Windows.
+
+```
+USAGE
+  $ internxt add cert [--json]
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Add a self-signed certificate to the trusted store for macOS, Linux, and Windows.
+
+ALIASES
+  $ internxt add cert
+
+EXAMPLES
+  $ internxt add cert
+```
 
 ## `internxt autocomplete [SHELL]`
 
@@ -159,7 +191,7 @@ EXAMPLES
   $ internxt autocomplete --refresh-cache
 ```
 
-_See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v3.2.39/src/commands/autocomplete/index.ts)_
+_See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v3.2.40/src/commands/autocomplete/index.ts)_
 
 ## `internxt config`
 
@@ -167,7 +199,16 @@ Display useful information from the user logged into the Internxt CLI.
 
 ```
 USAGE
-  $ internxt config [--json]
+  $ internxt config [--json] [-x] [--debug] [-e]
+
+FLAGS
+  -e, --extended  Displays additional information in the list.
+
+HELPER FLAGS
+  -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
+                         not request input through the console and will throw errors directly.
+      --debug            [env: INXT_DEBUG] Enables debug mode. When enabled, the CLI will print debug messages to the
+                         console.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -179,7 +220,7 @@ EXAMPLES
   $ internxt config
 ```
 
-_See code: [src/commands/config.ts](https://github.com/internxt/cli/blob/v1.6.2/src/commands/config.ts)_
+_See code: [src/commands/config.ts](https://github.com/internxt/cli/blob/v1.6.3/src/commands/config.ts)_
 
 ## `internxt create-folder`
 
@@ -187,7 +228,7 @@ Create a folder in your Internxt Drive
 
 ```
 USAGE
-  $ internxt create-folder [--json] [-x] [-n <value>] [-i <value>]
+  $ internxt create-folder [--json] [-x] [--debug] [-n <value>] [-i <value>]
 
 FLAGS
   -i, --id=<value>    The ID of the folder where the new folder will be created. Defaults to your root folder if not
@@ -197,6 +238,8 @@ FLAGS
 HELPER FLAGS
   -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
                          not request input through the console and will throw errors directly.
+      --debug            [env: INXT_DEBUG] Enables debug mode. When enabled, the CLI will print debug messages to the
+                         console.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -204,11 +247,46 @@ GLOBAL FLAGS
 DESCRIPTION
   Create a folder in your Internxt Drive
 
+ALIASES
+  $ internxt create folder
+
 EXAMPLES
   $ internxt create-folder
 ```
 
-_See code: [src/commands/create-folder.ts](https://github.com/internxt/cli/blob/v1.6.2/src/commands/create-folder.ts)_
+_See code: [src/commands/create-folder.ts](https://github.com/internxt/cli/blob/v1.6.3/src/commands/create-folder.ts)_
+
+## `internxt create folder`
+
+Create a folder in your Internxt Drive
+
+```
+USAGE
+  $ internxt create folder [--json] [-x] [--debug] [-n <value>] [-i <value>]
+
+FLAGS
+  -i, --id=<value>    The ID of the folder where the new folder will be created. Defaults to your root folder if not
+                      specified.
+  -n, --name=<value>  The new name for the folder
+
+HELPER FLAGS
+  -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
+                         not request input through the console and will throw errors directly.
+      --debug            [env: INXT_DEBUG] Enables debug mode. When enabled, the CLI will print debug messages to the
+                         console.
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Create a folder in your Internxt Drive
+
+ALIASES
+  $ internxt create folder
+
+EXAMPLES
+  $ internxt create folder
+```
 
 ## `internxt delete-permanently-file`
 
@@ -216,7 +294,7 @@ Deletes permanently a file. This action cannot be undone.
 
 ```
 USAGE
-  $ internxt delete-permanently-file [--json] [-x] [-i <value>]
+  $ internxt delete-permanently-file [--json] [-x] [--debug] [-i <value>]
 
 FLAGS
   -i, --id=<value>  The file id to be permanently deleted.
@@ -224,6 +302,8 @@ FLAGS
 HELPER FLAGS
   -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
                          not request input through the console and will throw errors directly.
+      --debug            [env: INXT_DEBUG] Enables debug mode. When enabled, the CLI will print debug messages to the
+                         console.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -238,7 +318,7 @@ EXAMPLES
   $ internxt delete-permanently-file
 ```
 
-_See code: [src/commands/delete-permanently-file.ts](https://github.com/internxt/cli/blob/v1.6.2/src/commands/delete-permanently-file.ts)_
+_See code: [src/commands/delete-permanently-file.ts](https://github.com/internxt/cli/blob/v1.6.3/src/commands/delete-permanently-file.ts)_
 
 ## `internxt delete-permanently-folder`
 
@@ -246,7 +326,7 @@ Deletes permanently a folder. This action cannot be undone.
 
 ```
 USAGE
-  $ internxt delete-permanently-folder [--json] [-x] [-i <value>]
+  $ internxt delete-permanently-folder [--json] [-x] [--debug] [-i <value>]
 
 FLAGS
   -i, --id=<value>  The folder id to be permanently deleted.
@@ -254,6 +334,8 @@ FLAGS
 HELPER FLAGS
   -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
                          not request input through the console and will throw errors directly.
+      --debug            [env: INXT_DEBUG] Enables debug mode. When enabled, the CLI will print debug messages to the
+                         console.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -268,7 +350,7 @@ EXAMPLES
   $ internxt delete-permanently-folder
 ```
 
-_See code: [src/commands/delete-permanently-folder.ts](https://github.com/internxt/cli/blob/v1.6.2/src/commands/delete-permanently-folder.ts)_
+_See code: [src/commands/delete-permanently-folder.ts](https://github.com/internxt/cli/blob/v1.6.3/src/commands/delete-permanently-folder.ts)_
 
 ## `internxt delete permanently file`
 
@@ -276,7 +358,7 @@ Deletes permanently a file. This action cannot be undone.
 
 ```
 USAGE
-  $ internxt delete permanently file [--json] [-x] [-i <value>]
+  $ internxt delete permanently file [--json] [-x] [--debug] [-i <value>]
 
 FLAGS
   -i, --id=<value>  The file id to be permanently deleted.
@@ -284,6 +366,8 @@ FLAGS
 HELPER FLAGS
   -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
                          not request input through the console and will throw errors directly.
+      --debug            [env: INXT_DEBUG] Enables debug mode. When enabled, the CLI will print debug messages to the
+                         console.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -304,7 +388,7 @@ Deletes permanently a folder. This action cannot be undone.
 
 ```
 USAGE
-  $ internxt delete permanently folder [--json] [-x] [-i <value>]
+  $ internxt delete permanently folder [--json] [-x] [--debug] [-i <value>]
 
 FLAGS
   -i, --id=<value>  The folder id to be permanently deleted.
@@ -312,6 +396,8 @@ FLAGS
 HELPER FLAGS
   -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
                          not request input through the console and will throw errors directly.
+      --debug            [env: INXT_DEBUG] Enables debug mode. When enabled, the CLI will print debug messages to the
+                         console.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -332,7 +418,7 @@ Download and decrypts a file from Internxt Drive to a directory. The file name w
 
 ```
 USAGE
-  $ internxt download-file [--json] [-x] [-i <value>] [-d <value>] [-o]
+  $ internxt download-file [--json] [-x] [--debug] [-i <value>] [-d <value>] [-o]
 
 FLAGS
   -d, --directory=<value>  The directory to download the file to. Leave empty for the current folder.
@@ -342,6 +428,8 @@ FLAGS
 HELPER FLAGS
   -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
                          not request input through the console and will throw errors directly.
+      --debug            [env: INXT_DEBUG] Enables debug mode. When enabled, the CLI will print debug messages to the
+                         console.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -357,7 +445,7 @@ EXAMPLES
   $ internxt download-file
 ```
 
-_See code: [src/commands/download-file.ts](https://github.com/internxt/cli/blob/v1.6.2/src/commands/download-file.ts)_
+_See code: [src/commands/download-file.ts](https://github.com/internxt/cli/blob/v1.6.3/src/commands/download-file.ts)_
 
 ## `internxt download file`
 
@@ -365,7 +453,7 @@ Download and decrypts a file from Internxt Drive to a directory. The file name w
 
 ```
 USAGE
-  $ internxt download file [--json] [-x] [-i <value>] [-d <value>] [-o]
+  $ internxt download file [--json] [-x] [--debug] [-i <value>] [-d <value>] [-o]
 
 FLAGS
   -d, --directory=<value>  The directory to download the file to. Leave empty for the current folder.
@@ -375,6 +463,8 @@ FLAGS
 HELPER FLAGS
   -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
                          not request input through the console and will throw errors directly.
+      --debug            [env: INXT_DEBUG] Enables debug mode. When enabled, the CLI will print debug messages to the
+                         console.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -396,7 +486,7 @@ Lists the content of a folder id.
 
 ```
 USAGE
-  $ internxt list [--json] [-x] [-i <value>] [-e]
+  $ internxt list [--json] [-x] [--debug] [-i <value>] [-e]
 
 FLAGS
   -e, --extended    Displays additional information in the list.
@@ -405,6 +495,8 @@ FLAGS
 HELPER FLAGS
   -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
                          not request input through the console and will throw errors directly.
+      --debug            [env: INXT_DEBUG] Enables debug mode. When enabled, the CLI will print debug messages to the
+                         console.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -416,7 +508,7 @@ EXAMPLES
   $ internxt list
 ```
 
-_See code: [src/commands/list.ts](https://github.com/internxt/cli/blob/v1.6.2/src/commands/list.ts)_
+_See code: [src/commands/list.ts](https://github.com/internxt/cli/blob/v1.6.3/src/commands/list.ts)_
 
 ## `internxt login`
 
@@ -444,7 +536,7 @@ EXAMPLES
   $ internxt login
 ```
 
-_See code: [src/commands/login.ts](https://github.com/internxt/cli/blob/v1.6.2/src/commands/login.ts)_
+_See code: [src/commands/login.ts](https://github.com/internxt/cli/blob/v1.6.3/src/commands/login.ts)_
 
 ## `internxt login-legacy`
 
@@ -452,7 +544,7 @@ _See code: [src/commands/login.ts](https://github.com/internxt/cli/blob/v1.6.2/s
 
 ```
 USAGE
-  $ internxt login-legacy [--json] [-x] [-e <value>] [-p <value>] [-w 123456] [-t token]
+  $ internxt login-legacy [--json] [-x] [--debug] [-e <value>] [-p <value>] [-w 123456] [-t token]
 
 FLAGS
   -e, --email=<value>         [env: INXT_USER] The email to log in
@@ -464,6 +556,8 @@ FLAGS
 HELPER FLAGS
   -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
                          not request input through the console and will throw errors directly.
+      --debug            [env: INXT_DEBUG] Enables debug mode. When enabled, the CLI will print debug messages to the
+                         console.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -476,7 +570,7 @@ EXAMPLES
   $ internxt login-legacy
 ```
 
-_See code: [src/commands/login-legacy.ts](https://github.com/internxt/cli/blob/v1.6.2/src/commands/login-legacy.ts)_
+_See code: [src/commands/login-legacy.ts](https://github.com/internxt/cli/blob/v1.6.3/src/commands/login-legacy.ts)_
 
 ## `internxt logout`
 
@@ -496,7 +590,7 @@ EXAMPLES
   $ internxt logout
 ```
 
-_See code: [src/commands/logout.ts](https://github.com/internxt/cli/blob/v1.6.2/src/commands/logout.ts)_
+_See code: [src/commands/logout.ts](https://github.com/internxt/cli/blob/v1.6.3/src/commands/logout.ts)_
 
 ## `internxt logs`
 
@@ -516,7 +610,7 @@ EXAMPLES
   $ internxt logs
 ```
 
-_See code: [src/commands/logs.ts](https://github.com/internxt/cli/blob/v1.6.2/src/commands/logs.ts)_
+_See code: [src/commands/logs.ts](https://github.com/internxt/cli/blob/v1.6.3/src/commands/logs.ts)_
 
 ## `internxt move-file`
 
@@ -524,7 +618,7 @@ Move a file into a destination folder.
 
 ```
 USAGE
-  $ internxt move-file [--json] [-x] [-i <value>] [-d <value>]
+  $ internxt move-file [--json] [-x] [--debug] [-i <value>] [-d <value>]
 
 FLAGS
   -d, --destination=<value>  The destination folder id where the file is going to be moved. Leave empty for the root
@@ -534,6 +628,8 @@ FLAGS
 HELPER FLAGS
   -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
                          not request input through the console and will throw errors directly.
+      --debug            [env: INXT_DEBUG] Enables debug mode. When enabled, the CLI will print debug messages to the
+                         console.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -548,7 +644,7 @@ EXAMPLES
   $ internxt move-file
 ```
 
-_See code: [src/commands/move-file.ts](https://github.com/internxt/cli/blob/v1.6.2/src/commands/move-file.ts)_
+_See code: [src/commands/move-file.ts](https://github.com/internxt/cli/blob/v1.6.3/src/commands/move-file.ts)_
 
 ## `internxt move-folder`
 
@@ -556,7 +652,7 @@ Move a folder into a destination folder.
 
 ```
 USAGE
-  $ internxt move-folder [--json] [-x] [-i <value>] [-d <value>]
+  $ internxt move-folder [--json] [-x] [--debug] [-i <value>] [-d <value>]
 
 FLAGS
   -d, --destination=<value>  The destination folder id where the folder is going to be moved. Leave empty for the root
@@ -566,6 +662,8 @@ FLAGS
 HELPER FLAGS
   -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
                          not request input through the console and will throw errors directly.
+      --debug            [env: INXT_DEBUG] Enables debug mode. When enabled, the CLI will print debug messages to the
+                         console.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -580,7 +678,7 @@ EXAMPLES
   $ internxt move-folder
 ```
 
-_See code: [src/commands/move-folder.ts](https://github.com/internxt/cli/blob/v1.6.2/src/commands/move-folder.ts)_
+_See code: [src/commands/move-folder.ts](https://github.com/internxt/cli/blob/v1.6.3/src/commands/move-folder.ts)_
 
 ## `internxt move file`
 
@@ -588,7 +686,7 @@ Move a file into a destination folder.
 
 ```
 USAGE
-  $ internxt move file [--json] [-x] [-i <value>] [-d <value>]
+  $ internxt move file [--json] [-x] [--debug] [-i <value>] [-d <value>]
 
 FLAGS
   -d, --destination=<value>  The destination folder id where the file is going to be moved. Leave empty for the root
@@ -598,6 +696,8 @@ FLAGS
 HELPER FLAGS
   -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
                          not request input through the console and will throw errors directly.
+      --debug            [env: INXT_DEBUG] Enables debug mode. When enabled, the CLI will print debug messages to the
+                         console.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -618,7 +718,7 @@ Move a folder into a destination folder.
 
 ```
 USAGE
-  $ internxt move folder [--json] [-x] [-i <value>] [-d <value>]
+  $ internxt move folder [--json] [-x] [--debug] [-i <value>] [-d <value>]
 
 FLAGS
   -d, --destination=<value>  The destination folder id where the folder is going to be moved. Leave empty for the root
@@ -628,6 +728,8 @@ FLAGS
 HELPER FLAGS
   -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
                          not request input through the console and will throw errors directly.
+      --debug            [env: INXT_DEBUG] Enables debug mode. When enabled, the CLI will print debug messages to the
+                         console.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -648,7 +750,7 @@ Rename a file.
 
 ```
 USAGE
-  $ internxt rename-file [--json] [-x] [-i <value>] [-n <value>]
+  $ internxt rename-file [--json] [-x] [--debug] [-i <value>] [-n <value>]
 
 FLAGS
   -i, --id=<value>    The ID of the file to be renamed.
@@ -657,6 +759,8 @@ FLAGS
 HELPER FLAGS
   -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
                          not request input through the console and will throw errors directly.
+      --debug            [env: INXT_DEBUG] Enables debug mode. When enabled, the CLI will print debug messages to the
+                         console.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -671,7 +775,7 @@ EXAMPLES
   $ internxt rename-file
 ```
 
-_See code: [src/commands/rename-file.ts](https://github.com/internxt/cli/blob/v1.6.2/src/commands/rename-file.ts)_
+_See code: [src/commands/rename-file.ts](https://github.com/internxt/cli/blob/v1.6.3/src/commands/rename-file.ts)_
 
 ## `internxt rename-folder`
 
@@ -679,7 +783,7 @@ Rename a folder.
 
 ```
 USAGE
-  $ internxt rename-folder [--json] [-x] [-i <value>] [-n <value>]
+  $ internxt rename-folder [--json] [-x] [--debug] [-i <value>] [-n <value>]
 
 FLAGS
   -i, --id=<value>    The ID of the folder to be renamed.
@@ -688,6 +792,8 @@ FLAGS
 HELPER FLAGS
   -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
                          not request input through the console and will throw errors directly.
+      --debug            [env: INXT_DEBUG] Enables debug mode. When enabled, the CLI will print debug messages to the
+                         console.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -702,7 +808,7 @@ EXAMPLES
   $ internxt rename-folder
 ```
 
-_See code: [src/commands/rename-folder.ts](https://github.com/internxt/cli/blob/v1.6.2/src/commands/rename-folder.ts)_
+_See code: [src/commands/rename-folder.ts](https://github.com/internxt/cli/blob/v1.6.3/src/commands/rename-folder.ts)_
 
 ## `internxt rename file`
 
@@ -710,7 +816,7 @@ Rename a file.
 
 ```
 USAGE
-  $ internxt rename file [--json] [-x] [-i <value>] [-n <value>]
+  $ internxt rename file [--json] [-x] [--debug] [-i <value>] [-n <value>]
 
 FLAGS
   -i, --id=<value>    The ID of the file to be renamed.
@@ -719,6 +825,8 @@ FLAGS
 HELPER FLAGS
   -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
                          not request input through the console and will throw errors directly.
+      --debug            [env: INXT_DEBUG] Enables debug mode. When enabled, the CLI will print debug messages to the
+                         console.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -739,7 +847,7 @@ Rename a folder.
 
 ```
 USAGE
-  $ internxt rename folder [--json] [-x] [-i <value>] [-n <value>]
+  $ internxt rename folder [--json] [-x] [--debug] [-i <value>] [-n <value>]
 
 FLAGS
   -i, --id=<value>    The ID of the folder to be renamed.
@@ -748,6 +856,8 @@ FLAGS
 HELPER FLAGS
   -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
                          not request input through the console and will throw errors directly.
+      --debug            [env: INXT_DEBUG] Enables debug mode. When enabled, the CLI will print debug messages to the
+                         console.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -768,7 +878,7 @@ Deletes permanently all the content of the trash. This action cannot be undone.
 
 ```
 USAGE
-  $ internxt trash-clear [--json] [-x] [-f]
+  $ internxt trash-clear [--json] [-x] [--debug] [-f]
 
 FLAGS
   -f, --force  It forces the trash to be emptied without confirmation.
@@ -776,6 +886,8 @@ FLAGS
 HELPER FLAGS
   -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
                          not request input through the console and will throw errors directly.
+      --debug            [env: INXT_DEBUG] Enables debug mode. When enabled, the CLI will print debug messages to the
+                         console.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -790,7 +902,7 @@ EXAMPLES
   $ internxt trash-clear
 ```
 
-_See code: [src/commands/trash-clear.ts](https://github.com/internxt/cli/blob/v1.6.2/src/commands/trash-clear.ts)_
+_See code: [src/commands/trash-clear.ts](https://github.com/internxt/cli/blob/v1.6.3/src/commands/trash-clear.ts)_
 
 ## `internxt trash-file`
 
@@ -798,7 +910,7 @@ Moves a given file to the trash.
 
 ```
 USAGE
-  $ internxt trash-file [--json] [-x] [-i <value>]
+  $ internxt trash-file [--json] [-x] [--debug] [-i <value>]
 
 FLAGS
   -i, --id=<value>  The file id to be trashed.
@@ -806,6 +918,8 @@ FLAGS
 HELPER FLAGS
   -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
                          not request input through the console and will throw errors directly.
+      --debug            [env: INXT_DEBUG] Enables debug mode. When enabled, the CLI will print debug messages to the
+                         console.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -820,7 +934,7 @@ EXAMPLES
   $ internxt trash-file
 ```
 
-_See code: [src/commands/trash-file.ts](https://github.com/internxt/cli/blob/v1.6.2/src/commands/trash-file.ts)_
+_See code: [src/commands/trash-file.ts](https://github.com/internxt/cli/blob/v1.6.3/src/commands/trash-file.ts)_
 
 ## `internxt trash-folder`
 
@@ -828,7 +942,7 @@ Moves a given folder to the trash.
 
 ```
 USAGE
-  $ internxt trash-folder [--json] [-x] [-i <value>]
+  $ internxt trash-folder [--json] [-x] [--debug] [-i <value>]
 
 FLAGS
   -i, --id=<value>  The folder id to be trashed.
@@ -836,6 +950,8 @@ FLAGS
 HELPER FLAGS
   -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
                          not request input through the console and will throw errors directly.
+      --debug            [env: INXT_DEBUG] Enables debug mode. When enabled, the CLI will print debug messages to the
+                         console.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -850,7 +966,7 @@ EXAMPLES
   $ internxt trash-folder
 ```
 
-_See code: [src/commands/trash-folder.ts](https://github.com/internxt/cli/blob/v1.6.2/src/commands/trash-folder.ts)_
+_See code: [src/commands/trash-folder.ts](https://github.com/internxt/cli/blob/v1.6.3/src/commands/trash-folder.ts)_
 
 ## `internxt trash-list`
 
@@ -876,7 +992,7 @@ EXAMPLES
   $ internxt trash-list
 ```
 
-_See code: [src/commands/trash-list.ts](https://github.com/internxt/cli/blob/v1.6.2/src/commands/trash-list.ts)_
+_See code: [src/commands/trash-list.ts](https://github.com/internxt/cli/blob/v1.6.3/src/commands/trash-list.ts)_
 
 ## `internxt trash-restore-file`
 
@@ -884,7 +1000,7 @@ Restore a trashed file into a destination folder.
 
 ```
 USAGE
-  $ internxt trash-restore-file [--json] [-x] [-i <value>] [-d <value>]
+  $ internxt trash-restore-file [--json] [-x] [--debug] [-i <value>] [-d <value>]
 
 FLAGS
   -d, --destination=<value>  The folder id where the file is going to be restored. Leave empty for the root folder.
@@ -893,6 +1009,8 @@ FLAGS
 HELPER FLAGS
   -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
                          not request input through the console and will throw errors directly.
+      --debug            [env: INXT_DEBUG] Enables debug mode. When enabled, the CLI will print debug messages to the
+                         console.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -907,7 +1025,7 @@ EXAMPLES
   $ internxt trash-restore-file
 ```
 
-_See code: [src/commands/trash-restore-file.ts](https://github.com/internxt/cli/blob/v1.6.2/src/commands/trash-restore-file.ts)_
+_See code: [src/commands/trash-restore-file.ts](https://github.com/internxt/cli/blob/v1.6.3/src/commands/trash-restore-file.ts)_
 
 ## `internxt trash-restore-folder`
 
@@ -915,7 +1033,7 @@ Restore a trashed folder into a destination folder.
 
 ```
 USAGE
-  $ internxt trash-restore-folder [--json] [-x] [-i <value>] [-d <value>]
+  $ internxt trash-restore-folder [--json] [-x] [--debug] [-i <value>] [-d <value>]
 
 FLAGS
   -d, --destination=<value>  The folder id where the folder is going to be restored. Leave empty for the root folder.
@@ -924,6 +1042,8 @@ FLAGS
 HELPER FLAGS
   -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
                          not request input through the console and will throw errors directly.
+      --debug            [env: INXT_DEBUG] Enables debug mode. When enabled, the CLI will print debug messages to the
+                         console.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -938,7 +1058,7 @@ EXAMPLES
   $ internxt trash-restore-folder
 ```
 
-_See code: [src/commands/trash-restore-folder.ts](https://github.com/internxt/cli/blob/v1.6.2/src/commands/trash-restore-folder.ts)_
+_See code: [src/commands/trash-restore-folder.ts](https://github.com/internxt/cli/blob/v1.6.3/src/commands/trash-restore-folder.ts)_
 
 ## `internxt trash clear`
 
@@ -946,7 +1066,7 @@ Deletes permanently all the content of the trash. This action cannot be undone.
 
 ```
 USAGE
-  $ internxt trash clear [--json] [-x] [-f]
+  $ internxt trash clear [--json] [-x] [--debug] [-f]
 
 FLAGS
   -f, --force  It forces the trash to be emptied without confirmation.
@@ -954,6 +1074,8 @@ FLAGS
 HELPER FLAGS
   -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
                          not request input through the console and will throw errors directly.
+      --debug            [env: INXT_DEBUG] Enables debug mode. When enabled, the CLI will print debug messages to the
+                         console.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -974,7 +1096,7 @@ Moves a given file to the trash.
 
 ```
 USAGE
-  $ internxt trash file [--json] [-x] [-i <value>]
+  $ internxt trash file [--json] [-x] [--debug] [-i <value>]
 
 FLAGS
   -i, --id=<value>  The file id to be trashed.
@@ -982,6 +1104,8 @@ FLAGS
 HELPER FLAGS
   -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
                          not request input through the console and will throw errors directly.
+      --debug            [env: INXT_DEBUG] Enables debug mode. When enabled, the CLI will print debug messages to the
+                         console.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -1002,7 +1126,7 @@ Moves a given folder to the trash.
 
 ```
 USAGE
-  $ internxt trash folder [--json] [-x] [-i <value>]
+  $ internxt trash folder [--json] [-x] [--debug] [-i <value>]
 
 FLAGS
   -i, --id=<value>  The folder id to be trashed.
@@ -1010,6 +1134,8 @@ FLAGS
 HELPER FLAGS
   -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
                          not request input through the console and will throw errors directly.
+      --debug            [env: INXT_DEBUG] Enables debug mode. When enabled, the CLI will print debug messages to the
+                         console.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -1054,7 +1180,7 @@ Restore a trashed file into a destination folder.
 
 ```
 USAGE
-  $ internxt trash restore file [--json] [-x] [-i <value>] [-d <value>]
+  $ internxt trash restore file [--json] [-x] [--debug] [-i <value>] [-d <value>]
 
 FLAGS
   -d, --destination=<value>  The folder id where the file is going to be restored. Leave empty for the root folder.
@@ -1063,6 +1189,8 @@ FLAGS
 HELPER FLAGS
   -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
                          not request input through the console and will throw errors directly.
+      --debug            [env: INXT_DEBUG] Enables debug mode. When enabled, the CLI will print debug messages to the
+                         console.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -1083,7 +1211,7 @@ Restore a trashed folder into a destination folder.
 
 ```
 USAGE
-  $ internxt trash restore folder [--json] [-x] [-i <value>] [-d <value>]
+  $ internxt trash restore folder [--json] [-x] [--debug] [-i <value>] [-d <value>]
 
 FLAGS
   -d, --destination=<value>  The folder id where the folder is going to be restored. Leave empty for the root folder.
@@ -1092,6 +1220,8 @@ FLAGS
 HELPER FLAGS
   -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
                          not request input through the console and will throw errors directly.
+      --debug            [env: INXT_DEBUG] Enables debug mode. When enabled, the CLI will print debug messages to the
+                         console.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -1112,7 +1242,7 @@ Upload a file to Internxt Drive
 
 ```
 USAGE
-  $ internxt upload-file [--json] [-x] [-f <value>] [-i <value>]
+  $ internxt upload-file [--json] [-x] [--debug] [-f <value>] [-i <value>]
 
 FLAGS
   -f, --file=<value>         The path to the file on your system.
@@ -1121,6 +1251,8 @@ FLAGS
 HELPER FLAGS
   -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
                          not request input through the console and will throw errors directly.
+      --debug            [env: INXT_DEBUG] Enables debug mode. When enabled, the CLI will print debug messages to the
+                         console.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -1135,7 +1267,7 @@ EXAMPLES
   $ internxt upload-file
 ```
 
-_See code: [src/commands/upload-file.ts](https://github.com/internxt/cli/blob/v1.6.2/src/commands/upload-file.ts)_
+_See code: [src/commands/upload-file.ts](https://github.com/internxt/cli/blob/v1.6.3/src/commands/upload-file.ts)_
 
 ## `internxt upload-folder`
 
@@ -1143,7 +1275,7 @@ Upload a folder to Internxt Drive
 
 ```
 USAGE
-  $ internxt upload-folder [--json] [-x] [-f <value>] [-i <value>]
+  $ internxt upload-folder [--json] [-x] [--debug] [-f <value>] [-i <value>]
 
 FLAGS
   -f, --folder=<value>       The path to the folder on your system.
@@ -1152,6 +1284,8 @@ FLAGS
 HELPER FLAGS
   -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
                          not request input through the console and will throw errors directly.
+      --debug            [env: INXT_DEBUG] Enables debug mode. When enabled, the CLI will print debug messages to the
+                         console.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -1166,7 +1300,7 @@ EXAMPLES
   $ internxt upload-folder
 ```
 
-_See code: [src/commands/upload-folder.ts](https://github.com/internxt/cli/blob/v1.6.2/src/commands/upload-folder.ts)_
+_See code: [src/commands/upload-folder.ts](https://github.com/internxt/cli/blob/v1.6.3/src/commands/upload-folder.ts)_
 
 ## `internxt upload file`
 
@@ -1174,7 +1308,7 @@ Upload a file to Internxt Drive
 
 ```
 USAGE
-  $ internxt upload file [--json] [-x] [-f <value>] [-i <value>]
+  $ internxt upload file [--json] [-x] [--debug] [-f <value>] [-i <value>]
 
 FLAGS
   -f, --file=<value>         The path to the file on your system.
@@ -1183,6 +1317,8 @@ FLAGS
 HELPER FLAGS
   -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
                          not request input through the console and will throw errors directly.
+      --debug            [env: INXT_DEBUG] Enables debug mode. When enabled, the CLI will print debug messages to the
+                         console.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -1203,7 +1339,7 @@ Upload a folder to Internxt Drive
 
 ```
 USAGE
-  $ internxt upload folder [--json] [-x] [-f <value>] [-i <value>]
+  $ internxt upload folder [--json] [-x] [--debug] [-f <value>] [-i <value>]
 
 FLAGS
   -f, --folder=<value>       The path to the folder on your system.
@@ -1212,6 +1348,8 @@ FLAGS
 HELPER FLAGS
   -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
                          not request input through the console and will throw errors directly.
+      --debug            [env: INXT_DEBUG] Enables debug mode. When enabled, the CLI will print debug messages to the
+                         console.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -1228,7 +1366,7 @@ EXAMPLES
 
 ## `internxt webdav ACTION`
 
-Enable, disable, restart or get the status of the Internxt CLI WebDav server
+Start, stop, restart or get the status of the Internxt CLI WebDAV server
 
 ```
 USAGE
@@ -1238,19 +1376,19 @@ GLOBAL FLAGS
   --json  Format output as json.
 
 DESCRIPTION
-  Enable, disable, restart or get the status of the Internxt CLI WebDav server
+  Start, stop, restart or get the status of the Internxt CLI WebDAV server
 
 EXAMPLES
-  $ internxt webdav enable
+  $ internxt webdav enable | start
 
-  $ internxt webdav disable
+  $ internxt webdav disable | stop
 
   $ internxt webdav restart
 
   $ internxt webdav status
 ```
 
-_See code: [src/commands/webdav.ts](https://github.com/internxt/cli/blob/v1.6.2/src/commands/webdav.ts)_
+_See code: [src/commands/webdav.ts](https://github.com/internxt/cli/blob/v1.6.3/src/commands/webdav.ts)_
 
 ## `internxt webdav-config`
 
@@ -1278,7 +1416,7 @@ EXAMPLES
   $ internxt webdav-config
 ```
 
-_See code: [src/commands/webdav-config.ts](https://github.com/internxt/cli/blob/v1.6.2/src/commands/webdav-config.ts)_
+_See code: [src/commands/webdav-config.ts](https://github.com/internxt/cli/blob/v1.6.3/src/commands/webdav-config.ts)_
 
 ## `internxt whoami`
 
@@ -1298,7 +1436,197 @@ EXAMPLES
   $ internxt whoami
 ```
 
-_See code: [src/commands/whoami.ts](https://github.com/internxt/cli/blob/v1.6.2/src/commands/whoami.ts)_
+_See code: [src/commands/whoami.ts](https://github.com/internxt/cli/blob/v1.6.3/src/commands/whoami.ts)_
+
+## `internxt workspaces-list`
+
+Get the list of workspaces.
+
+```
+USAGE
+  $ internxt workspaces-list [--json] [-x] [--debug] [-e]
+
+FLAGS
+  -e, --extended  Displays additional information in the list.
+
+HELPER FLAGS
+  -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
+                         not request input through the console and will throw errors directly.
+      --debug            [env: INXT_DEBUG] Enables debug mode. When enabled, the CLI will print debug messages to the
+                         console.
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Get the list of workspaces.
+
+ALIASES
+  $ internxt workspaces list
+
+EXAMPLES
+  $ internxt workspaces-list
+```
+
+_See code: [src/commands/workspaces-list.ts](https://github.com/internxt/cli/blob/v1.6.3/src/commands/workspaces-list.ts)_
+
+## `internxt workspaces-unset`
+
+Unset the active workspace context for the current user session. Once a workspace is unset, WebDAV and all of the subsequent CLI commands will operate within the personal drive space until it is changed or set again.
+
+```
+USAGE
+  $ internxt workspaces-unset [--json] [-x] [--debug]
+
+HELPER FLAGS
+  -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
+                         not request input through the console and will throw errors directly.
+      --debug            [env: INXT_DEBUG] Enables debug mode. When enabled, the CLI will print debug messages to the
+                         console.
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Unset the active workspace context for the current user session. Once a workspace is unset, WebDAV and all of the
+  subsequent CLI commands will operate within the personal drive space until it is changed or set again.
+
+ALIASES
+  $ internxt workspaces unset
+
+EXAMPLES
+  $ internxt workspaces-unset
+```
+
+_See code: [src/commands/workspaces-unset.ts](https://github.com/internxt/cli/blob/v1.6.3/src/commands/workspaces-unset.ts)_
+
+## `internxt workspaces-use`
+
+Set the active workspace context for the current user session. Once a workspace is selected, WebDAV and all of the subsequent CLI commands will operate within that workspace until it is changed or unset.
+
+```
+USAGE
+  $ internxt workspaces-use [--json] [-x] [--debug] [-i <value> | -p]
+
+FLAGS
+  -i, --id=<value>  The id of the workspace to activate. Use internxt workspaces list to view your available workspace
+                    ids.
+  -p, --personal    Change to the personal drive space. It unsets the active workspace context for the current user
+                    session.
+
+HELPER FLAGS
+  -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
+                         not request input through the console and will throw errors directly.
+      --debug            [env: INXT_DEBUG] Enables debug mode. When enabled, the CLI will print debug messages to the
+                         console.
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Set the active workspace context for the current user session. Once a workspace is selected, WebDAV and all of the
+  subsequent CLI commands will operate within that workspace until it is changed or unset.
+
+ALIASES
+  $ internxt workspaces use
+
+EXAMPLES
+  $ internxt workspaces-use
+```
+
+_See code: [src/commands/workspaces-use.ts](https://github.com/internxt/cli/blob/v1.6.3/src/commands/workspaces-use.ts)_
+
+## `internxt workspaces list`
+
+Get the list of workspaces.
+
+```
+USAGE
+  $ internxt workspaces list [--json] [-x] [--debug] [-e]
+
+FLAGS
+  -e, --extended  Displays additional information in the list.
+
+HELPER FLAGS
+  -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
+                         not request input through the console and will throw errors directly.
+      --debug            [env: INXT_DEBUG] Enables debug mode. When enabled, the CLI will print debug messages to the
+                         console.
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Get the list of workspaces.
+
+ALIASES
+  $ internxt workspaces list
+
+EXAMPLES
+  $ internxt workspaces list
+```
+
+## `internxt workspaces unset`
+
+Unset the active workspace context for the current user session. Once a workspace is unset, WebDAV and all of the subsequent CLI commands will operate within the personal drive space until it is changed or set again.
+
+```
+USAGE
+  $ internxt workspaces unset [--json] [-x] [--debug]
+
+HELPER FLAGS
+  -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
+                         not request input through the console and will throw errors directly.
+      --debug            [env: INXT_DEBUG] Enables debug mode. When enabled, the CLI will print debug messages to the
+                         console.
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Unset the active workspace context for the current user session. Once a workspace is unset, WebDAV and all of the
+  subsequent CLI commands will operate within the personal drive space until it is changed or set again.
+
+ALIASES
+  $ internxt workspaces unset
+
+EXAMPLES
+  $ internxt workspaces unset
+```
+
+## `internxt workspaces use`
+
+Set the active workspace context for the current user session. Once a workspace is selected, WebDAV and all of the subsequent CLI commands will operate within that workspace until it is changed or unset.
+
+```
+USAGE
+  $ internxt workspaces use [--json] [-x] [--debug] [-i <value> | -p]
+
+FLAGS
+  -i, --id=<value>  The id of the workspace to activate. Use internxt workspaces list to view your available workspace
+                    ids.
+  -p, --personal    Change to the personal drive space. It unsets the active workspace context for the current user
+                    session.
+
+HELPER FLAGS
+  -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
+                         not request input through the console and will throw errors directly.
+      --debug            [env: INXT_DEBUG] Enables debug mode. When enabled, the CLI will print debug messages to the
+                         console.
+
+GLOBAL FLAGS
+  --json  Format output as json.
+
+DESCRIPTION
+  Set the active workspace context for the current user session. Once a workspace is selected, WebDAV and all of the
+  subsequent CLI commands will operate within that workspace until it is changed or unset.
+
+ALIASES
+  $ internxt workspaces use
+
+EXAMPLES
+  $ internxt workspaces use
+```
 <!-- commandsstop -->
 
 # Current Limitations

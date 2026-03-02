@@ -31,6 +31,8 @@ const thumbnailablePdfExtension: Set<string> = new Set(pdfExtensions['pdf']);
 const thumbnailableExtension: Set<string> = new Set(thumbnailableImageExtension);
 
 export class ThumbnailUtils {
+  static readonly MAX_IMAGE_THUMBNAILABLE_SIZE_IN_MB = 500 * 1024 * 1024;
+
   static readonly isFileThumbnailable = (fileType: string) => {
     return fileType.trim().length > 0 && thumbnailableExtension.has(fileType.trim().toLowerCase());
   };
@@ -39,7 +41,8 @@ export class ThumbnailUtils {
     return fileType.trim().length > 0 && thumbnailablePdfExtension.has(fileType.trim().toLowerCase());
   };
 
-  static readonly isImageThumbnailable = (fileType: string) => {
+  static readonly isImageThumbnailable = (fileType: string, size: number) => {
+    if (size > ThumbnailUtils.MAX_IMAGE_THUMBNAILABLE_SIZE_IN_MB) return false;
     return fileType.trim().length > 0 && thumbnailableImageExtension.has(fileType.trim().toLowerCase());
   };
 }

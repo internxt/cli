@@ -27,6 +27,8 @@ export class UploadFileService {
     destinationFolderUuid,
     currentProgress,
     emitProgress,
+    debugMode,
+    reporter,
   }: UploadFilesConcurrentlyParams): Promise<number> => {
     let bytesUploaded = 0;
 
@@ -40,7 +42,9 @@ export class UploadFileService {
             parentPath === '.' || parentPath === '' ? destinationFolderUuid : folderMap.get(parentPath);
 
           if (!parentFolderUuid) {
-            logger.warn(`Parent folder not found for ${file.relativePath}, skipping...`);
+            if (debugMode) {
+              CLIUtils.warning(reporter, `Parent folder not found for ${file.relativePath}, skipping...`);
+            }
             return null;
           }
           const createdFileUuid = await this.uploadFileWithRetry({
@@ -48,6 +52,8 @@ export class UploadFileService {
             network,
             bucket,
             parentFolderUuid,
+            debugMode,
+            reporter,
           });
           if (createdFileUuid) {
             bytesUploaded += file.size;
@@ -66,6 +72,8 @@ export class UploadFileService {
     network,
     bucket,
     parentFolderUuid,
+    debugMode,
+    reporter,
   }: UploadFileWithRetryParams): Promise<DriveFileItem | null> => {
     for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
       try {
@@ -131,20 +139,25 @@ export class UploadFileService {
             bucket,
             fileUuid: createdDriveFile.uuid,
             networkFacade: network,
+            size: fileSize,
           });
         }
         timings.thumbnailUpload = thumbnailTimer.stop();
 
-        const totalTime = Object.values(timings).reduce((sum, time) => sum + time, 0);
-        const throughputMBps = CLIUtils.calculateThroughputMBps(stats.size, timings.networkUpload);
-        logger.info(`Uploaded '${file.name}' (${CLIUtils.formatBytesToString(stats.size)})`);
-        logger.info(
-          'Timing breakdown:\n' +
-            `Network upload: ${CLIUtils.formatDuration(timings.networkUpload)} (${throughputMBps.toFixed(2)} MB/s)\n` +
-            `Drive upload: ${CLIUtils.formatDuration(timings.driveUpload)}\n` +
-            `Thumbnail: ${CLIUtils.formatDuration(timings.thumbnailUpload)}\n` +
-            `Total: ${CLIUtils.formatDuration(totalTime)}\n`,
-        );
+        if (debugMode) {
+          const totalTime = Object.values(timings).reduce((sum, time) => sum + time, 0);
+          const throughputMBps = CLIUtils.calculateThroughputMBps(stats.size, timings.networkUpload);
+          CLIUtils.success(reporter, `Uploaded '${file.name}' (${CLIUtils.formatBytesToString(stats.size)})`);
+          CLIUtils.log(
+            reporter,
+            'Timing breakdown:\n' +
+              `Network upload: ${CLIUtils.formatDuration(timings.networkUpload)}` +
+              ` (${throughputMBps.toFixed(2)} MB/s)\n` +
+              `Drive upload: ${CLIUtils.formatDuration(timings.driveUpload)}\n` +
+              `Thumbnail: ${CLIUtils.formatDuration(timings.thumbnailUpload)}\n` +
+              `Total: ${CLIUtils.formatDuration(totalTime)}\n`,
+          );
+        }
 
         return createdDriveFile;
       } catch (error: unknown) {
@@ -156,11 +169,13 @@ export class UploadFileService {
 
         if (attempt < MAX_RETRIES) {
           const delay = DELAYS_MS[attempt];
-          const retryMsg = `Failed to upload file ${file.name}, retrying in ${delay}ms...`;
-          logger.warn(`${retryMsg} (attempt ${attempt + 1}/${MAX_RETRIES + 1})`);
+          if (debugMode) {
+            const retryMsg = `Failed to upload file ${file.name}, retrying in ${delay}ms...`;
+            CLIUtils.warning(reporter, `${retryMsg} (attempt ${attempt + 1}/${MAX_RETRIES + 1})`);
+          }
           await new Promise((resolve) => setTimeout(resolve, delay));
         } else {
-          logger.error(`Failed to upload file ${file.name} after ${MAX_RETRIES + 1} attempts`);
+          CLIUtils.error(reporter, `Failed to upload file '${file.name}' after ${MAX_RETRIES + 1} attempts`);
           return null;
         }
       }

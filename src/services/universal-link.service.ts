@@ -4,7 +4,7 @@ import { AddressInfo } from 'node:net';
 import { LoginCredentials } from '../types/command.types';
 import { ConfigService } from './config.service';
 import { AuthService } from './auth.service';
-import { CLIUtils } from '../utils/cli.utils';
+import { CLIUtils, LogReporter } from '../utils/cli.utils';
 
 export class UniversalLinkService {
   public static readonly instance: UniversalLinkService = new UniversalLinkService();
@@ -48,7 +48,7 @@ export class UniversalLinkService {
 
   public loginSSO = async (
     jsonFlag: boolean,
-    reporter: (message: string) => void,
+    reporter: LogReporter,
     hostIp = '127.0.0.1',
     forcedPort = 0,
   ): Promise<LoginCredentials> => {

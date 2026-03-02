@@ -38,6 +38,8 @@ describe('UploadFolderService', () => {
         destinationFolderUuid,
         currentProgress,
         emitProgress,
+        reporter: vi.fn(),
+        debugMode: true,
       });
 
       expect(result.size).toBe(2);
@@ -55,6 +57,8 @@ describe('UploadFolderService', () => {
         destinationFolderUuid,
         currentProgress,
         emitProgress,
+        reporter: vi.fn(),
+        debugMode: true,
       });
 
       expect(result.size).toBe(0);
@@ -70,6 +74,8 @@ describe('UploadFolderService', () => {
         destinationFolderUuid,
         currentProgress,
         emitProgress,
+        reporter: vi.fn(),
+        debugMode: true,
       });
 
       expect(DriveFolderService.instance.createFolder).toHaveBeenCalledWith({
@@ -86,12 +92,15 @@ describe('UploadFolderService', () => {
         destinationFolderUuid,
         currentProgress,
         emitProgress,
+        reporter: vi.fn(),
+        debugMode: true,
       });
 
       expect(currentProgress.itemsUploaded).toBe(1);
       expect(emitProgress).toHaveBeenCalledTimes(1);
     });
   });
+
   describe('createFolderWithRetry', () => {
     const folderName = 'test-folder';
     const parentFolderUuid = 'parent-uuid';
@@ -101,7 +110,12 @@ describe('UploadFolderService', () => {
         Promise.resolve({ uuid: 'created-folder-uuid' }),
       ] as unknown as ReturnType<typeof DriveFolderService.instance.createFolder>);
 
-      const result = await sut.createFolderWithRetry({ folderName, parentFolderUuid });
+      const result = await sut.createFolderWithRetry({
+        folderName,
+        parentFolderUuid,
+        reporter: vi.fn(),
+        debugMode: true,
+      });
 
       expect(result).toBe('created-folder-uuid');
       expect(DriveFolderService.instance.createFolder).toHaveBeenCalledWith({
@@ -113,14 +127,17 @@ describe('UploadFolderService', () => {
     it('should properly return null if the folder already exists', async () => {
       const alreadyExistsError = new Error('Folder already exists');
       vi.spyOn(ErrorUtils, 'isAlreadyExistsError').mockReturnValue(true);
-      vi.spyOn(DriveFolderService.instance, 'createFolder').mockReturnValueOnce([
-        Promise.reject(alreadyExistsError),
-      ] as unknown as ReturnType<typeof DriveFolderService.instance.createFolder>);
+      vi.spyOn(DriveFolderService.instance, 'createFolder').mockRejectedValue(alreadyExistsError);
 
-      const result = await sut.createFolderWithRetry({ folderName, parentFolderUuid });
+      const result = await sut.createFolderWithRetry({
+        folderName,
+        parentFolderUuid,
+        reporter: vi.fn(),
+        debugMode: true,
+      });
 
       expect(result).toBeNull();
-      expect(logger.info).toHaveBeenCalledWith(`Folder ${folderName} already exists, skipping...`);
+      expect(logger.warn).toHaveBeenCalledWith(`Folder ${folderName} already exists, skipping...`);
     });
 
     it('should properly retry up to 3 times when error caught', async () => {
@@ -138,7 +155,14 @@ describe('UploadFolderService', () => {
           typeof DriveFolderService.instance.createFolder
         >);
 
-      const resultPromise = sut.createFolderWithRetry({ folderName, parentFolderUuid });
+      const reporter = vi.fn();
+
+      const resultPromise = sut.createFolderWithRetry({
+        folderName,
+        parentFolderUuid,
+        reporter,
+        debugMode: true,
+      });
 
       await vi.advanceTimersByTimeAsync(DELAYS_MS[0]);
       await vi.advanceTimersByTimeAsync(DELAYS_MS[1]);
@@ -147,7 +171,7 @@ describe('UploadFolderService', () => {
 
       expect(result).toBe('success-uuid');
       expect(DriveFolderService.instance.createFolder).toHaveBeenCalledTimes(3);
-      expect(logger.warn).toHaveBeenCalledTimes(2);
+      expect(reporter).toHaveBeenCalledTimes(2);
 
       vi.useRealTimers();
     });
@@ -164,14 +188,22 @@ describe('UploadFolderService', () => {
           typeof DriveFolderService.instance.createFolder
         >;
       });
+      const reporter = vi.fn();
 
-      const resultPromise = sut.createFolderWithRetry({ folderName, parentFolderUuid });
+      const resultPromise = sut.createFolderWithRetry({
+        folderName,
+        parentFolderUuid,
+        reporter,
+        debugMode: true,
+      });
       await vi.advanceTimersByTimeAsync(DELAYS_MS[0]);
       await vi.advanceTimersByTimeAsync(DELAYS_MS[1]);
       await expect(resultPromise).rejects.toThrow('Persistent network error');
       expect(DriveFolderService.instance.createFolder).toHaveBeenCalledTimes(3);
-      expect(logger.warn).toHaveBeenCalledTimes(2);
-      expect(logger.error).toHaveBeenCalledWith(`Failed to create folder ${folderName} after 3 attempts`);
+      expect(reporter).toHaveBeenCalledTimes(3);
+      expect(reporter).toHaveBeenLastCalledWith(
+        expect.stringContaining(`Error: Failed to create folder '${folderName}' after 3 attempts`),
+      );
 
       vi.useRealTimers();
     });

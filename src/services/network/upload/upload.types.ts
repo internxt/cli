@@ -1,4 +1,5 @@
 import { LoginUserDetails } from '../../../types/command.types';
+import { LogReporter } from '../../../utils/cli.utils';
 import { FileSystemNode } from '../../local-filesystem/local-filesystem.types';
 import { NetworkFacade } from '../network-facade.service';
 
@@ -14,6 +15,8 @@ export interface UploadFolderParams {
   loginUserDetails: LoginUserDetails;
   jsonFlag?: boolean;
   onProgress: (progress: UploadProgress) => void;
+  debugMode: boolean;
+  reporter: LogReporter;
 }
 
 export interface UploadProgress {
@@ -26,11 +29,15 @@ export interface CreateFoldersParams {
   destinationFolderUuid: string;
   currentProgress: { itemsUploaded: number; bytesUploaded: number };
   emitProgress: () => void;
+  debugMode: boolean;
+  reporter: LogReporter;
 }
 
 export interface CreateFolderWithRetryParams {
   folderName: string;
   parentFolderUuid: string;
+  debugMode: boolean;
+  reporter: LogReporter;
 }
 
 export interface UploadFilesConcurrentlyParams {
@@ -41,6 +48,8 @@ export interface UploadFilesConcurrentlyParams {
   destinationFolderUuid: string;
   currentProgress: { itemsUploaded: number; bytesUploaded: number };
   emitProgress: () => void;
+  debugMode: boolean;
+  reporter: LogReporter;
 }
 
 export interface UploadFileWithRetryParams {
@@ -48,7 +57,10 @@ export interface UploadFileWithRetryParams {
   network: NetworkFacade;
   bucket: string;
   parentFolderUuid: string;
+  debugMode: boolean;
+  reporter: LogReporter;
 }
+
 export const MAX_CONCURRENT_UPLOADS = 10;
 export const DELAYS_MS = [500, 1000, 2000];
 export const MAX_RETRIES = 2;

@@ -7,6 +7,7 @@ import { FormatUtils } from '../utils/format.utils';
 import { ValidationService } from '../services/validation.service';
 import { SdkManager } from '../services/sdk-manager.service';
 import WorkspacesUnset from './workspaces-unset';
+import { DatabaseService } from '../services/database/database.service';
 
 export default class WorkspacesUse extends Command {
   static readonly args = {};
@@ -73,6 +74,8 @@ export default class WorkspacesUse extends Command {
         workspaceData: selectedWorkspace,
       },
     });
+
+    void DatabaseService.instance.clear();
 
     const message =
       `Workspace ${workspaceUuid} selected successfully. Now WebDAV and all of the CLI commands ` +

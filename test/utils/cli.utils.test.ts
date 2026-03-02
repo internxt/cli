@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, MockInstance } from 'vitest';
 import { ux } from '@oclif/core';
-import { CLIUtils } from '../../src/utils/cli.utils';
+import { CLIUtils, LogReporter } from '../../src/utils/cli.utils';
 import { Direction } from 'node:readline';
 import { Options } from '@oclif/core/lib/ux/action/types';
 import { LoginUserDetails } from '../../src/types/command.types';
@@ -37,7 +37,7 @@ describe('CliUtils', () => {
     (str: Uint8Array | string, encoding?: BufferEncoding, cb?: (err?: Error) => void): boolean;
   }>;
   let stdoutClear: MockInstance<(dir: Direction, callback?: () => void) => boolean>;
-  const reporter: (message: string) => void = vi.fn();
+  const reporter: LogReporter = vi.fn();
 
   const BRIDGE_URL = 'https://test.com';
   const mockNetworkFacade: NetworkFacade = {} as NetworkFacade;

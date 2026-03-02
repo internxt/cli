@@ -67,6 +67,8 @@ describe('UploadFacade', () => {
           loginUserDetails: mockLoginUserDetails,
           jsonFlag: false,
           onProgress,
+          debugMode: false,
+          reporter: vi.fn(),
         }),
       ).rejects.toThrow('Failed to create folders, cannot upload files');
 
@@ -75,12 +77,15 @@ describe('UploadFacade', () => {
     });
 
     it('should properly handle the upload of folder and the creation of file and return proper result', async () => {
+      const reporter = vi.fn();
       const result = await sut.uploadFolder({
         localPath,
         destinationFolderUuid,
         loginUserDetails: mockLoginUserDetails,
         jsonFlag: false,
         onProgress,
+        debugMode: true,
+        reporter,
       });
 
       expect(result).toBeDefined();
@@ -89,7 +94,9 @@ describe('UploadFacade', () => {
       expect(result.uploadTimeMs).toBe(1000);
       expect(UploadFolderService.instance.createFolders).toHaveBeenCalled();
       expect(UploadFileService.instance.uploadFilesConcurrently).toHaveBeenCalled();
-      expect(logger.info).toHaveBeenCalledWith(`Scanned folder ${localPath}: found 2 items, total size 500 bytes.`);
+      expect(reporter).toHaveBeenCalledWith(
+        expect.stringContaining(`Scanned folder ${localPath}: found 2 items, total size 500 bytes.`),
+      );
     });
 
     it('should report progress correctly during upload', async () => {
@@ -118,6 +125,8 @@ describe('UploadFacade', () => {
         loginUserDetails: mockLoginUserDetails,
         jsonFlag: false,
         onProgress,
+        debugMode: false,
+        reporter: vi.fn(),
       });
 
       expect(onProgress).toHaveBeenCalledTimes(2);
@@ -137,6 +146,8 @@ describe('UploadFacade', () => {
         loginUserDetails: mockLoginUserDetails,
         jsonFlag: false,
         onProgress,
+        debugMode: false,
+        reporter: vi.fn(),
       });
 
       await vi.advanceTimersByTimeAsync(500);
