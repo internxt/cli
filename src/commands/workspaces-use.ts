@@ -1,7 +1,12 @@
 import { Command, Flags } from '@oclif/core';
 import { ConfigService } from '../services/config.service';
-import { CLIUtils } from '../utils/cli.utils';
-import { MissingCredentialsError, NotValidWorkspaceUuidError } from '../types/command.types';
+import { CLIUtils, LogReporter } from '../utils/cli.utils';
+import {
+  LoginCredentials,
+  MissingCredentialsError,
+  NotValidWorkspaceUuidError,
+  Workspace,
+} from '../types/command.types';
 import { WorkspaceService } from '../services/drive/workspace.service';
 import { FormatUtils } from '../utils/format.utils';
 import { ValidationService } from '../services/validation.service';
@@ -43,46 +48,22 @@ export default class WorkspacesUse extends Command {
     const userCredentials = await ConfigService.instance.readUser();
     if (!userCredentials) throw new MissingCredentialsError();
 
+    const reporter = this.log.bind(this);
+
     if (flags['personal']) {
-      return WorkspacesUnset.unsetWorkspace(userCredentials, this.log.bind(this));
+      return WorkspacesUnset.unsetWorkspace(userCredentials, reporter);
     }
 
-    const workspaces = await WorkspaceService.instance.getAvailableWorkspaces(userCredentials.user);
-    const availableWorkspaces: string[] = workspaces.map((workspaceData) => {
-      const name = workspaceData.workspace.name;
-      const id = workspaceData.workspace.id;
-      const totalUsedSpace =
-        Number(workspaceData.workspaceUser?.driveUsage ?? 0) + Number(workspaceData.workspaceUser?.backupsUsage ?? 0);
-      const spaceLimit = Number(workspaceData.workspaceUser?.spaceLimit ?? 0);
-      const usedSpace = FormatUtils.humanFileSize(totalUsedSpace);
-      const availableSpace = FormatUtils.formatLimit(spaceLimit);
+    const workspace = await this.getWorkspace(userCredentials, flags['id'], nonInteractive, reporter);
 
-      return `[${id}] Name: ${name} | Used Space: ${usedSpace} | Available Space: ${availableSpace}`;
-    });
-    const workspaceUuid = await this.getWorkspaceUuid(flags['id'], availableWorkspaces, nonInteractive);
-
-    const workspaceCredentials = await WorkspaceService.instance.getWorkspaceCredentials(workspaceUuid);
-    const selectedWorkspace = workspaces.find((workspace) => workspace.workspace.id === workspaceUuid);
-    if (!selectedWorkspace) throw new NotValidWorkspaceUuidError();
-
-    SdkManager.init({ token: userCredentials.token, workspaceToken: workspaceCredentials.token });
-
-    await ConfigService.instance.saveUser({
-      ...userCredentials,
-      workspace: {
-        workspaceCredentials,
-        workspaceData: selectedWorkspace,
-      },
-    });
-
-    void DatabaseService.instance.clear();
+    await this.setWorkspace(userCredentials, workspace);
 
     const message =
-      `Workspace ${workspaceUuid} selected successfully. Now WebDAV and all of the CLI commands ` +
-      'will operate within this workspace until it is changed or unset.';
-    CLIUtils.success(this.log.bind(this), message);
+      `Workspace ${workspace.workspaceCredentials.id} selected successfully. Now WebDAV and ` +
+      'all of the CLI commands will operate within this workspace until it is changed or unset.';
+    CLIUtils.success(reporter, message);
 
-    return { success: true, list: { workspaces } };
+    return { success: true, workspace };
   };
 
   public catch = async (error: Error) => {
@@ -100,6 +81,7 @@ export default class WorkspacesUse extends Command {
     workspaceUuidFlag: string | undefined,
     availableWorkspaces: string[],
     nonInteractive: boolean,
+    reporter: LogReporter,
   ): Promise<string> => {
     const workspaceUuid = await CLIUtils.getValueFromFlag(
       {
@@ -121,11 +103,49 @@ export default class WorkspacesUse extends Command {
           ValidationService.instance.validateUUIDv4(this.extractUuidFromWorkspaceString(value)),
         error: new NotValidWorkspaceUuidError(),
       },
-      this.log.bind(this),
+      reporter,
     );
     return this.extractUuidFromWorkspaceString(workspaceUuid);
   };
 
   private extractUuidFromWorkspaceString = (workspaceString: string) =>
     workspaceString.match(/\[(.*?)\]/)?.[1] ?? workspaceString;
+
+  private getWorkspace = async (
+    userCredentials: LoginCredentials,
+    workspaceUuidFlag: string | undefined,
+    nonInteractive: boolean,
+    reporter: LogReporter,
+  ): Promise<Workspace> => {
+    const workspaces = await WorkspaceService.instance.getAvailableWorkspaces(userCredentials.user);
+    const availableWorkspaces: string[] = workspaces.map((workspaceData) => {
+      const name = workspaceData.workspace.name;
+      const id = workspaceData.workspace.id;
+      const totalUsedSpace =
+        Number(workspaceData.workspaceUser?.driveUsage ?? 0) + Number(workspaceData.workspaceUser?.backupsUsage ?? 0);
+      const spaceLimit = Number(workspaceData.workspaceUser?.spaceLimit ?? 0);
+      const usedSpace = FormatUtils.humanFileSize(totalUsedSpace);
+      const availableSpace = FormatUtils.formatLimit(spaceLimit);
+
+      return `[${id}] Name: ${name} | Used Space: ${usedSpace} | Available Space: ${availableSpace}`;
+    });
+    const workspaceUuid = await this.getWorkspaceUuid(workspaceUuidFlag, availableWorkspaces, nonInteractive, reporter);
+
+    const workspaceCredentials = await WorkspaceService.instance.getWorkspaceCredentials(workspaceUuid);
+    const selectedWorkspace = workspaces.find((workspace) => workspace.workspace.id === workspaceUuid);
+    if (!selectedWorkspace) throw new NotValidWorkspaceUuidError();
+
+    return { workspaceCredentials, workspaceData: selectedWorkspace };
+  };
+
+  private setWorkspace = async (userCredentials: LoginCredentials, workspace: Workspace) => {
+    SdkManager.init({ token: userCredentials.token, workspaceToken: workspace.workspaceCredentials.token });
+
+    await ConfigService.instance.saveUser({
+      ...userCredentials,
+      workspace,
+    });
+
+    void DatabaseService.instance.clear();
+  };
 }

@@ -8,6 +8,7 @@ import { WebDavServer } from '../../src/webdav/webdav-server';
 import { NetworkUtils } from '../../src/utils/network.utils';
 import { WebdavConfig } from '../../src/types/command.types';
 import { UserCredentialsFixture } from '../fixtures/login.fixture';
+import { WEBDAV_DEFAULT_CUSTOM_AUTH } from '../../src/constants/configs';
 
 describe('WebDav server', () => {
   it('When the WebDav server is started with https, it should generate self-signed certificates', async () => {
@@ -17,6 +18,9 @@ describe('WebDav server', () => {
       protocol: 'https',
       timeoutMinutes: randomInt(900),
       createFullPath: true,
+      customAuth: WEBDAV_DEFAULT_CUSTOM_AUTH,
+      username: '',
+      password: '',
     };
     const sslSelfSigned = {
       private: randomBytes(8).toString('hex'),
@@ -56,6 +60,9 @@ describe('WebDav server', () => {
       protocol: 'http',
       timeoutMinutes: randomInt(900),
       createFullPath: true,
+      customAuth: WEBDAV_DEFAULT_CUSTOM_AUTH,
+      username: '',
+      password: '',
     };
 
     vi.spyOn(ConfigService.instance, 'readWebdavConfig').mockResolvedValue(webdavConfig);

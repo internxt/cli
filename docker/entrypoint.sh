@@ -22,6 +22,11 @@ fi
 
 internxt login-legacy $LOGIN_ARGS
 
+if [ -n "$INXT_WORKSPACE_ID" ]; then
+  echo "Switching to workspace: $INXT_WORKSPACE_ID"
+  internxt workspaces use -i="$INXT_WORKSPACE_ID"
+fi
+
 
 WEBDAV_ARGS="-l=0.0.0.0"
 
@@ -34,6 +39,16 @@ if [ "$proto" = "http" ]; then
   WEBDAV_ARGS="$WEBDAV_ARGS -h"
 elif [ "$proto" = "https" ]; then
   WEBDAV_ARGS="$WEBDAV_ARGS -s"
+fi
+
+customAuth=$(echo "$WEBDAV_CUSTOM_AUTH" | tr '[:upper:]' '[:lower:]')
+if [ "$customAuth" = "true" ] || [ "$customAuth" = "1" ] || [ "$customAuth" = "yes" ] || [ "$customAuth" = "y" ]; then
+  if [ -z "$WEBDAV_USERNAME" ] || [ -z "$WEBDAV_PASSWORD" ]; then
+    echo "Error: WEBDAV_USERNAME and WEBDAV_PASSWORD must be set when WEBDAV_CUSTOM_AUTH is enabled."
+    exit 1
+  fi
+  echo "Enabling custom WebDAV authentication for user: $WEBDAV_USERNAME"
+  WEBDAV_ARGS="$WEBDAV_ARGS --customAuth -u=$WEBDAV_USERNAME -w=$WEBDAV_PASSWORD"
 fi
 
 internxt webdav-config $WEBDAV_ARGS

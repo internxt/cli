@@ -1396,15 +1396,25 @@ Edit the configuration of the Internxt CLI WebDav server as the port or the prot
 
 ```
 USAGE
-  $ internxt webdav-config [--json] [-l <value>] [-p <value>] [-s | -h] [-t <value>] [-c]
+  $ internxt webdav-config [--json] [-x] [--debug] [-l <value>] [-p <value>] [-s | -h] [-t <value>] [-c] [-a] [-u
+    <value>] [-w <value>]
 
 FLAGS
+  -a, --[no-]customAuth      Configures the WebDAV server to use custom authentication.
   -c, --[no-]createFullPath  Auto-create missing parent directories during file uploads.
   -h, --http                 Configures the WebDAV server to use insecure plain HTTP.
   -l, --host=<value>         The listening host for the WebDAV server.
   -p, --port=<value>         The new port for the WebDAV server.
   -s, --https                Configures the WebDAV server to use HTTPS with self-signed certificates.
   -t, --timeout=<value>      Configures the WebDAV server to use this timeout in minutes.
+  -u, --username=<value>     Configures the WebDAV server to use this username for custom authentication.
+  -w, --password=<value>     Configures the WebDAV server to use this password for custom authentication.
+
+HELPER FLAGS
+  -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
+                         not request input through the console and will throw errors directly.
+      --debug            [env: INXT_DEBUG] Enables debug mode. When enabled, the CLI will print debug messages to the
+                         console.
 
 GLOBAL FLAGS
   --json  Format output as json.

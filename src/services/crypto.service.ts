@@ -6,7 +6,6 @@ import { ConfigService } from '../services/config.service';
 import { StreamUtils } from '../utils/stream.utils';
 import { LoginCredentials } from '../types/command.types';
 import { WorkspaceData } from '@internxt/sdk/dist/workspaces';
-import { logger } from '../utils/logger.utils';
 
 export class CryptoService {
   public static readonly instance: CryptoService = new CryptoService();
@@ -206,8 +205,7 @@ export class CryptoService {
         privateKeyInBase64,
         privateKyberKeyInBase64,
       });
-    } catch (error) {
-      logger.warn('Decryption failed, using fallback mnemonic', { error });
+    } catch {
       return user.mnemonic;
     }
   };

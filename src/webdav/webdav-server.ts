@@ -21,11 +21,14 @@ import { PROPPATCHRequestHandler } from './handlers/PROPPATCH.handler';
 import { MOVERequestHandler } from './handlers/MOVE.handler';
 import { COPYRequestHandler } from './handlers/COPY.handler';
 import { MkcolMiddleware } from './middewares/mkcol.middleware';
+import { WebdavConfig } from '../types/command.types';
+import { WebDAVAuthMiddleware } from './middewares/webdav-auth.middleware';
 
 export class WebDavServer {
   constructor(private readonly app: Express) {}
 
-  private readonly registerStartMiddlewares = () => {
+  private readonly registerStartMiddlewares = (configs: WebdavConfig) => {
+    this.app.use(WebDAVAuthMiddleware(configs));
     this.app.use(AuthMiddleware());
     this.app.use(
       RequestLoggerMiddleware({
@@ -40,7 +43,7 @@ export class WebDavServer {
     this.app.use(ErrorHandlingMiddleware);
   };
 
-  private readonly registerHandlers = async () => {
+  private readonly registerHandlers = () => {
     const serverListenPath = /(.*)/;
     this.app.head(serverListenPath, asyncHandler(new HEADRequestHandler().handle));
     this.app.get(serverListenPath, asyncHandler(new GETRequestHandler().handle));
@@ -59,8 +62,8 @@ export class WebDavServer {
   start = async () => {
     const configs = await ConfigService.instance.readWebdavConfig();
     this.app.disable('x-powered-by');
-    this.registerStartMiddlewares();
-    await this.registerHandlers();
+    this.registerStartMiddlewares(configs);
+    this.registerHandlers();
     this.registerEndMiddleWares();
 
     const plainHttp = configs.protocol === 'http';
@@ -78,7 +81,8 @@ export class WebDavServer {
     server.listen(Number(configs.port), configs.host, undefined, () => {
       webdavLogger.info(
         `Internxt ${SdkManager.getAppDetails().clientVersion} WebDav server ` +
-          `listening at ${configs.protocol}://${configs.host}:${configs.port}`,
+          `listening at ${configs.protocol}://${configs.host}:${configs.port}` +
+          `${configs.customAuth ? ' (with custom authentication)' : ''}`,
       );
     });
   };

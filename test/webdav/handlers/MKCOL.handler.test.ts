@@ -11,7 +11,7 @@ import { WebDavRequestedResource } from '../../../src/types/webdav.types';
 import { WebDavUtils } from '../../../src/utils/webdav.utils';
 import { AuthService } from '../../../src/services/auth.service';
 import { UserCredentialsFixture } from '../../fixtures/login.fixture';
-import { WebDavFolderService } from '../../../src/webdav/services/webdav-folder.service';
+import { WebDavFolderService } from '../../../src/services/webdav/webdav-folder.service';
 
 describe('MKCOL request handler', () => {
   let sut: MKCOLRequestHandler;

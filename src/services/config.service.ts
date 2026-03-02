@@ -13,6 +13,7 @@ import {
   WEBDAV_DEFAULT_PORT,
   WEBDAV_DEFAULT_PROTOCOL,
   WEBDAV_DEFAULT_TIMEOUT,
+  WEBDAV_DEFAULT_CUSTOM_AUTH,
   WEBDAV_SSL_CERTS_DIR,
 } from '../constants/configs';
 
@@ -92,6 +93,9 @@ export class ConfigService {
         protocol: configs?.protocol ?? WEBDAV_DEFAULT_PROTOCOL,
         timeoutMinutes: configs?.timeoutMinutes ?? WEBDAV_DEFAULT_TIMEOUT,
         createFullPath: configs?.createFullPath ?? WEBDAV_DEFAULT_CREATE_FULL_PATH,
+        customAuth: configs?.customAuth ?? WEBDAV_DEFAULT_CUSTOM_AUTH,
+        username: configs?.username ?? '',
+        password: configs?.password ?? '',
       };
     } catch {
       return {
@@ -100,6 +104,9 @@ export class ConfigService {
         protocol: WEBDAV_DEFAULT_PROTOCOL,
         timeoutMinutes: WEBDAV_DEFAULT_TIMEOUT,
         createFullPath: WEBDAV_DEFAULT_CREATE_FULL_PATH,
+        customAuth: WEBDAV_DEFAULT_CUSTOM_AUTH,
+        username: '',
+        password: '',
       };
     }
   };
