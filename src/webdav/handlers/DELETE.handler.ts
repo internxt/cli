@@ -5,6 +5,7 @@ import { TrashService } from '../../services/drive/trash.service';
 import { webdavLogger } from '../../utils/logger.utils';
 import { NotFoundError } from '../../utils/errors.utils';
 import { ConfigService } from '../../services/config.service';
+import { FormatUtils } from '../../utils/format.utils';
 
 export class DELETERequestHandler implements WebDavMethodHandler {
   handle = async (req: Request, res: Response) => {
@@ -16,7 +17,7 @@ export class DELETERequestHandler implements WebDavMethodHandler {
     if (!driveItem) {
       throw new NotFoundError(`Resource not found on Internxt Drive at ${resource.url}`);
     }
-    const type = driveItem.itemType.charAt(0).toUpperCase() + driveItem.itemType.substring(1);
+    const type = FormatUtils.capitalizeFirstLetter(driveItem.itemType);
 
     const configs = await ConfigService.instance.readWebdavConfig();
     if (configs.deleteFilesPermanently) {
