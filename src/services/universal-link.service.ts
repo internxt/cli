@@ -17,7 +17,7 @@ export class UniversalLinkService {
     const clearMnemonic = Buffer.from(userSession.mnemonic, 'base64').toString('utf-8');
     const clearToken = Buffer.from(userSession.token, 'base64').toString('utf-8');
     const clearPrivateKey = Buffer.from(userSession.privateKey, 'base64').toString('utf-8');
-    const loginCredentials = await AuthService.instance.refreshUserToken(clearToken, clearMnemonic);
+    const loginCredentials = await AuthService.instance.refreshUserToken(clearToken, clearMnemonic, clearPrivateKey);
     return {
       user: {
         ...loginCredentials.user,
