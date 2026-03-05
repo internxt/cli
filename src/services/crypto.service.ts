@@ -191,12 +191,15 @@ export class CryptoService {
     return { key, iv };
   };
 
-  private readonly decryptMnemonic = async (encryptionKey: string, user: LoginCredentials['user']): Promise<string> => {
+  private readonly decryptWorkspaceMnemonic = async (
+    encryptionKey: string,
+    user: LoginCredentials['user'],
+  ): Promise<string> => {
     const privateKeyInBase64 = user.keys?.ecc?.privateKey;
     const privateKyberKeyInBase64 = user.keys?.kyber?.privateKey;
 
     if (!privateKeyInBase64) {
-      return user.mnemonic;
+      throw new Error('Missing privateKey in user keys');
     }
 
     try {
@@ -206,7 +209,7 @@ export class CryptoService {
         privateKyberKeyInBase64,
       });
     } catch {
-      return user.mnemonic;
+      throw new Error('Failed to decrypt workspace mnemonic');
     }
   };
 
@@ -220,7 +223,7 @@ export class CryptoService {
           ...workspace,
           workspaceUser: {
             ...workspace.workspaceUser,
-            key: await this.decryptMnemonic(workspace.workspaceUser.key, user),
+            key: await this.decryptWorkspaceMnemonic(workspace.workspaceUser.key, user),
           },
         };
       }),
