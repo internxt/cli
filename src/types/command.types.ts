@@ -55,6 +55,7 @@ export interface WebdavConfig {
   customAuth: boolean;
   username: string;
   password: string;
+  deleteFilesPermanently: boolean;
 }
 
 export class NotValidEmailError extends Error {

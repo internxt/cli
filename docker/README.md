@@ -16,16 +16,17 @@ services:
     container_name: internxt-webdav
     restart: unless-stopped
     environment:
-      INXT_USER: ""           # Your Internxt account email
-      INXT_PASSWORD: ""       # Your Internxt account password
-      INXT_TWOFACTORCODE: ""  # (Optional) Current 2FA one-time code
-      INXT_OTPTOKEN: ""       # (Optional) OTP secret for auto-generating 2FA codes
-      INXT_WORKSPACE_ID: ""   # (Optional) Workspace ID to use for WebDAV server
-      WEBDAV_PORT: ""         # (Optional) WebDAV port. Defaults to 3005 if empty
-      WEBDAV_PROTOCOL: ""     # (Optional) WebDAV protocol. Accepts 'http' or 'https'. Defaults to 'https' if empty
-      WEBDAV_CUSTOM_AUTH: ""  # (Optional) Enable custom authentication. Set to 'true' to enable
-      WEBDAV_USERNAME: ""     # (Optional) Custom username for WebDAV authentication
-      WEBDAV_PASSWORD: ""     # (Optional) Custom password for WebDAV authentication
+      INXT_USER: ""                       # Your Internxt account email
+      INXT_PASSWORD: ""                   # Your Internxt account password
+      INXT_TWOFACTORCODE: ""              # (Optional) Current 2FA one-time code
+      INXT_OTPTOKEN: ""                   # (Optional) OTP secret for auto-generating 2FA codes
+      INXT_WORKSPACE_ID: ""               # (Optional) Workspace ID to use for WebDAV server
+      WEBDAV_PORT: ""                     # (Optional) WebDAV port. Defaults to 3005 if empty
+      WEBDAV_PROTOCOL: ""                 # (Optional) WebDAV protocol. Accepts 'http' or 'https'. Defaults to 'https' if empty
+      WEBDAV_CUSTOM_AUTH: ""              # (Optional) Enable custom authentication. Set to 'true' to enable
+      WEBDAV_USERNAME: ""                 # (Optional) Custom username for WebDAV authentication
+      WEBDAV_PASSWORD: ""                 # (Optional) Custom password for WebDAV authentication
+      WEBDAV_DELETE_FILES_PERMANENTLY: "" # (Optional) Delete files permanently. Set to 'true' to enable
     ports:
       - "127.0.0.1:3005:3005" # Map container port to host. Change if WEBDAV_PORT is customized
 ```
@@ -49,9 +50,10 @@ docker run -d \
   -e INXT_WORKSPACE_ID="" \
   -e WEBDAV_PORT="" \
   -e WEBDAV_PROTOCOL="" \
-  -e WEBDAV_CUSTOM_AUTH="false" \
+  -e WEBDAV_CUSTOM_AUTH="" \
   -e WEBDAV_USERNAME="" \
   -e WEBDAV_PASSWORD="" \
+  -e WEBDAV_DELETE_FILES_PERMANENTLY="" \
   -p 127.0.0.1:3005:3005 \
   internxt/webdav:latest
 ```
@@ -79,19 +81,19 @@ You can also run the `internxt/webdav` image directly on popular NAS devices lik
 
 ## 🔑 Authentication & Environment Variables
 
-| Variable             | Required | Description                                                                                    |
-|----------------------|----------|------------------------------------------------------------------------------------------------|
-| `INXT_USER`          | ✅ Yes   | Your Internxt account email.                                                                   |
-| `INXT_PASSWORD`      | ✅ Yes   | Your Internxt account password.                                                                |
-| `INXT_TWOFACTORCODE` | ❌ No    | Temporary one-time code from your 2FA app. Must be refreshed every startup.                    |
-| `INXT_OTPTOKEN`      | ❌ No    | OTP secret key (base32). Used to auto-generate fresh codes at runtime.                         |
-| `INXT_WORKSPACE_ID`  | ❌ No    | Workspace ID to use. If set, the WebDAV server will operate within this workspace.             |
-| `WEBDAV_PORT`        | ❌ No    | Port for the WebDAV server. Defaults to `3005` if left empty.                                  |
-| `WEBDAV_PROTOCOL`    | ❌ No    | Protocol for the WebDAV server. Accepts `http` or `https`. Defaults to `https` if left empty.  |
-| `WEBDAV_CUSTOM_AUTH` | ❌ No    | Enable custom Basic Authentication for WebDAV. Set to `true` to enable.                        |
-| `WEBDAV_USERNAME`    | ❌ No    | Username for custom WebDAV authentication. Required if `WEBDAV_CUSTOM_AUTH` is enabled.        |
-| `WEBDAV_PASSWORD`    | ❌ No    | Password for custom WebDAV authentication. Required if `WEBDAV_CUSTOM_AUTH` is enabled.        |
-
+| Variable                          | Required | Description                                                                                    |
+|-----------------------------------|----------|------------------------------------------------------------------------------------------------|
+| `INXT_USER`                       | ✅ Yes   | Your Internxt account email.                                                                   |
+| `INXT_PASSWORD`                   | ✅ Yes   | Your Internxt account password.                                                                |
+| `INXT_TWOFACTORCODE`              | ❌ No    | Temporary one-time code from your 2FA app. Must be refreshed every startup.                    |
+| `INXT_OTPTOKEN`                   | ❌ No    | OTP secret key (base32). Used to auto-generate fresh codes at runtime.                         |
+| `INXT_WORKSPACE_ID`               | ❌ No    | Workspace ID to use. If set, the WebDAV server will operate within this workspace.             |
+| `WEBDAV_PORT`                     | ❌ No    | Port for the WebDAV server. Defaults to `3005` if left empty.                                  |
+| `WEBDAV_PROTOCOL`                 | ❌ No    | Protocol for the WebDAV server. Accepts `http` or `https`. Defaults to `https` if left empty.  |
+| `WEBDAV_CUSTOM_AUTH`              | ❌ No    | Enable custom Basic Authentication for WebDAV. Set to `true` to enable.                        |
+| `WEBDAV_USERNAME`                 | ❌ No    | Username for custom WebDAV authentication. Required if `WEBDAV_CUSTOM_AUTH` is enabled.        |
+| `WEBDAV_PASSWORD`                 | ❌ No    | Password for custom WebDAV authentication. Required if `WEBDAV_CUSTOM_AUTH` is enabled.        |
+| `WEBDAV_DELETE_FILES_PERMANENTLY` | ❌ No    | Delete files permanently instead of moving them to trash. Set to `true`to enable.              |
 
 ---
 
@@ -121,6 +123,12 @@ If your Internxt account has **two-factor authentication enabled**, you can choo
 
 ### Using Workspaces
 If you have access to Internxt Workspaces and want to use the WebDAV server with a specific workspace instead of your personal drive, you can set the INXT_WORKSPACE_ID environment variable.
+
+
+### Permanent File Deletion
+By default, when you delete files through the WebDAV server, they are moved to your Internxt trash and can be recovered. However, you can configure the server to delete files permanently by enabling `WEBDAV_DELETE_FILES_PERMANENTLY`.
+⚠️ WARNING: When this option is enabled, deleted files CANNOT be recovered. They will be permanently deleted from your Internxt account, bypassing the trash entirely. Use this option with extreme caution and only if you understand the consequences.
+
 
 ## 🌐 Accessing WebDAV
 
