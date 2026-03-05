@@ -22,11 +22,7 @@ export class DELETERequestHandler implements WebDavMethodHandler {
     const configs = await ConfigService.instance.readWebdavConfig();
     if (configs.deleteFilesPermanently) {
       webdavLogger.info(`[DELETE] [${driveItem.uuid}] Deleting permanently ${driveItem.itemType}`);
-      if (driveItem.itemType === 'folder') {
-        await TrashService.instance.deleteFolder(driveItem.uuid);
-      } else {
-        await TrashService.instance.deleteFile(driveItem.uuid);
-      }
+      await TrashService.instance.deleteItemPermanently(driveItem.itemType, driveItem.uuid);
       webdavLogger.info(`[DELETE] [${driveItem.uuid}] ${type} deleted permanently successfully`);
     } else {
       webdavLogger.info(`[DELETE] [${driveItem.uuid}] Trashing ${driveItem.itemType}`);
