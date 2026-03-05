@@ -19,6 +19,9 @@ describe('SDKManager service', () => {
   it('When SDKManager ApiSecurityFixture is requested, then it is returned from static property', () => {
     const ApiSecurityFixture: SdkManagerApiSecurity = {
       token: crypto.randomBytes(16).toString('hex'),
+      retryOptions: {
+        maxRetries: 3,
+      },
     };
     SdkManager.init(ApiSecurityFixture);
 

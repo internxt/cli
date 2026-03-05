@@ -23,10 +23,13 @@ export class SdkManager {
    * @param apiSecurity Security properties to be setted
    **/
   public static readonly init = (apiSecurity: SdkManagerApiSecurity) => {
-    apiSecurity.retryOptions = {
-      maxRetries: MAX_RETRIES,
+    const newApiSecurity: SdkManagerApiSecurity = {
+      ...apiSecurity,
+      retryOptions: {
+        maxRetries: MAX_RETRIES,
+      },
     };
-    SdkManager.apiSecurity = apiSecurity;
+    SdkManager.apiSecurity = newApiSecurity;
   };
 
   /**
