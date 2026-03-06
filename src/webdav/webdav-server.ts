@@ -59,7 +59,7 @@ export class WebDavServer {
     this.app.copy(serverListenPath, asyncHandler(new COPYRequestHandler().handle));
   };
 
-  private checkCredentials = (configs: WebdavConfig) => {
+  private readonly checkCredentials = (configs: WebdavConfig) => {
     if (configs.customAuth) {
       if (!configs.username?.trim()) {
         throw new Error('WebDAV CustomAuth is enabled but no username was provided.');
