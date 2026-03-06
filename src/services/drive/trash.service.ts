@@ -12,6 +12,14 @@ export class TrashService {
     return storageClient.addItemsToTrash(payload);
   };
 
+  public deleteItemPermanently = (itemType: 'file' | 'folder', id: string) => {
+    if (itemType === 'file') {
+      return this.deleteFile(id);
+    } else {
+      return this.deleteFolder(id);
+    }
+  };
+
   public deleteFile = (fileId: string) => {
     const storageClient = SdkManager.instance.getStorage();
     return storageClient.deleteFileByUuid(fileId);

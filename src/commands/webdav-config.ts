@@ -67,12 +67,20 @@ export default class WebDAVConfig extends Command {
       description: 'Configures the WebDAV server to use this password for custom authentication.',
       required: false,
     }),
+    deleteFilesPermanently: Flags.boolean({
+      char: 'd',
+      description: 'Configures the WebDAV server to delete files permanently instead of trashing them.',
+      required: false,
+      default: undefined,
+      allowNo: true,
+    }),
   };
   static readonly enableJsonFlag = true;
 
   public run = async () => {
     const { flags } = await this.parse(WebDAVConfig);
-    const { host, port, https, http, timeout, createFullPath, customAuth, username, password } = flags;
+    const { host, port, https, http, timeout, createFullPath, customAuth, username, password, deleteFilesPermanently } =
+      flags;
     const nonInteractive = flags['non-interactive'];
 
     const webdavConfig = await ConfigService.instance.readWebdavConfig();
@@ -116,6 +124,10 @@ export default class WebDAVConfig extends Command {
     }
     if (webdavConfig['customAuth'] && (!webdavConfig['username'] || !webdavConfig['password'])) {
       throw new MissingCredentialsWhenUsingAuthError();
+    }
+
+    if (deleteFilesPermanently !== undefined) {
+      webdavConfig['deleteFilesPermanently'] = deleteFilesPermanently;
     }
 
     await ConfigService.instance.saveWebdavConfig(webdavConfig);

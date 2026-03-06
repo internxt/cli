@@ -16,11 +16,25 @@ import {
   WEBDAV_DEFAULT_TIMEOUT,
   WEBDAV_DEFAULT_CUSTOM_AUTH,
   WEBDAV_SSL_CERTS_DIR,
+  WEBDAV_DEFAULT_DELETE_FILES_PERMANENTLY,
 } from '../../src/constants/configs';
+import { getWebdavConfigMock } from '../fixtures/webdav.fixture';
 
 const env = Object.assign({}, process.env);
 
 describe('Config service', () => {
+  const defaultWebdavConfig: WebdavConfig = {
+    host: WEBDAV_DEFAULT_HOST,
+    port: WEBDAV_DEFAULT_PORT,
+    protocol: WEBDAV_DEFAULT_PROTOCOL,
+    timeoutMinutes: WEBDAV_DEFAULT_TIMEOUT,
+    createFullPath: WEBDAV_DEFAULT_CREATE_FULL_PATH,
+    customAuth: WEBDAV_DEFAULT_CUSTOM_AUTH,
+    username: '',
+    password: '',
+    deleteFilesPermanently: WEBDAV_DEFAULT_DELETE_FILES_PERMANENTLY,
+  };
+
   beforeEach(() => {
     process.env = env;
   });
@@ -138,16 +152,7 @@ describe('Config service', () => {
   });
 
   it('When webdav config options are saved, then they are written to a file', async () => {
-    const webdavConfig: WebdavConfig = {
-      host: '127.0.0.1',
-      port: crypto.randomInt(65000).toString(),
-      protocol: 'https',
-      timeoutMinutes: crypto.randomInt(100),
-      createFullPath: false,
-      customAuth: WEBDAV_DEFAULT_CUSTOM_AUTH,
-      username: '',
-      password: '',
-    };
+    const webdavConfig: WebdavConfig = getWebdavConfigMock();
     const stringConfig = JSON.stringify(webdavConfig);
 
     const fsStub = vi.spyOn(fs, 'writeFile').mockResolvedValue();
@@ -157,16 +162,7 @@ describe('Config service', () => {
   });
 
   it('When webdav config options are read and exist, then they are read from a file', async () => {
-    const webdavConfig: WebdavConfig = {
-      host: '127.0.0.1',
-      port: crypto.randomInt(65000).toString(),
-      protocol: 'http',
-      timeoutMinutes: crypto.randomInt(100),
-      createFullPath: false,
-      customAuth: WEBDAV_DEFAULT_CUSTOM_AUTH,
-      username: '',
-      password: '',
-    };
+    const webdavConfig: WebdavConfig = getWebdavConfigMock();
     const stringConfig = JSON.stringify(webdavConfig);
 
     const fsStub = vi.spyOn(fs, 'readFile').mockResolvedValue(stringConfig);
@@ -177,17 +173,6 @@ describe('Config service', () => {
   });
 
   it('When webdav config options are read but not exist, then they are returned from defaults', async () => {
-    const defaultWebdavConfig: WebdavConfig = {
-      host: WEBDAV_DEFAULT_HOST,
-      port: WEBDAV_DEFAULT_PORT,
-      protocol: WEBDAV_DEFAULT_PROTOCOL,
-      timeoutMinutes: WEBDAV_DEFAULT_TIMEOUT,
-      createFullPath: WEBDAV_DEFAULT_CREATE_FULL_PATH,
-      customAuth: WEBDAV_DEFAULT_CUSTOM_AUTH,
-      username: '',
-      password: '',
-    };
-
     const fsStub = vi.spyOn(fs, 'readFile').mockResolvedValue('');
 
     const webdavConfigResult = await ConfigService.instance.readWebdavConfig();
@@ -196,17 +181,6 @@ describe('Config service', () => {
   });
 
   it('When webdav config options are read but an error is thrown, then they are returned from defaults', async () => {
-    const defaultWebdavConfig: WebdavConfig = {
-      host: WEBDAV_DEFAULT_HOST,
-      port: WEBDAV_DEFAULT_PORT,
-      protocol: WEBDAV_DEFAULT_PROTOCOL,
-      timeoutMinutes: WEBDAV_DEFAULT_TIMEOUT,
-      createFullPath: WEBDAV_DEFAULT_CREATE_FULL_PATH,
-      customAuth: WEBDAV_DEFAULT_CUSTOM_AUTH,
-      username: '',
-      password: '',
-    };
-
     const fsStub = vi.spyOn(fs, 'readFile').mockRejectedValue(new Error());
 
     const webdavConfigResult = await ConfigService.instance.readWebdavConfig();

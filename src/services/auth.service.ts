@@ -35,10 +35,20 @@ export class AuthService {
     const { user, newToken } = data;
 
     const clearMnemonic = CryptoService.instance.decryptTextWithKey(user.mnemonic, password);
+    const clearPrivateKey = Buffer.from(
+      CryptoService.instance.decryptPrivateKey(user.keys.ecc.privateKey, password),
+    ).toString('base64');
+    user.keys.ecc.privateKey = clearPrivateKey;
+    if (user.keys?.kyber?.privateKey) {
+      user.keys.kyber.privateKey = Buffer.from(
+        CryptoService.instance.decryptPrivateKey(user.keys.kyber.privateKey, password),
+      ).toString('base64');
+    }
     const clearUser: LoginCredentials['user'] = {
       ...user,
       mnemonic: clearMnemonic,
     };
+
     return {
       user: clearUser,
       token: newToken,
@@ -86,7 +96,11 @@ export class AuthService {
 
     if (tokenDetails.expiration.refreshRequired) {
       try {
-        loginCreds = await this.refreshUserToken(loginCreds.token, loginCreds.user.mnemonic);
+        loginCreds = await this.refreshUserToken(
+          loginCreds.token,
+          loginCreds.user.mnemonic,
+          loginCreds.user.keys.ecc.privateKey,
+        );
       } catch (error) {
         await ConfigService.instance.clearUser();
         throw error;
@@ -107,7 +121,11 @@ export class AuthService {
    * @returns The user details and the renewed auth token
    * @throws {InvalidCredentialsError} When the mnemonic is invalid
    */
-  public refreshUserToken = async (oldToken: string, mnemonic: string): Promise<LoginCredentials> => {
+  public refreshUserToken = async (
+    oldToken: string,
+    mnemonic: string,
+    privateKey: string,
+  ): Promise<LoginCredentials> => {
     SdkManager.init({ token: oldToken });
 
     const isValidMnemonic = ValidationService.instance.validateMnemonic(mnemonic);
@@ -124,6 +142,16 @@ export class AuthService {
       user: {
         ...newCreds.user,
         mnemonic: mnemonic,
+        keys: {
+          ecc: {
+            privateKey: privateKey,
+            publicKey: newCreds.user.keys.ecc.publicKey,
+          },
+          kyber: {
+            privateKey: newCreds.user.keys.kyber.privateKey,
+            publicKey: newCreds.user.keys.kyber.publicKey,
+          },
+        },
       },
       token: newCreds.newToken,
     };

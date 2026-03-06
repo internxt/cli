@@ -8,6 +8,9 @@ import { ConfigService } from '../../src/services/config.service';
 import { UserFixture } from './auth.fixture';
 import { NetworkFacade } from '../../src/services/network/network-facade.service';
 import { NetworkOptions } from '../../src/types/network.types';
+import { WebdavConfig } from '../../src/types/command.types';
+import { WEBDAV_DEFAULT_CUSTOM_AUTH, WEBDAV_DEFAULT_DELETE_FILES_PERMANENTLY } from '../../src/constants/configs';
+import { randomInt } from 'node:crypto';
 
 export const createWebDavRequestFixture = <T extends object>(request: T): T & Request => {
   return getMockReq({
@@ -91,4 +94,19 @@ export const getNetworkOptionsMock = (attributes?: Partial<NetworkOptions>): Net
     mnemonic: UserFixture.mnemonic,
   };
   return { ...options, ...attributes };
+};
+
+export const getWebdavConfigMock = (attributes?: Partial<WebdavConfig>): WebdavConfig => {
+  const config: WebdavConfig = {
+    host: '127.0.0.1',
+    port: randomInt(65000).toString(),
+    protocol: 'https',
+    timeoutMinutes: randomInt(100),
+    createFullPath: false,
+    customAuth: WEBDAV_DEFAULT_CUSTOM_AUTH,
+    username: '',
+    password: '',
+    deleteFilesPermanently: WEBDAV_DEFAULT_DELETE_FILES_PERMANENTLY,
+  };
+  return { ...config, ...attributes };
 };

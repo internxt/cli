@@ -32,6 +32,7 @@ export default class Whoami extends Command {
             const refreshedCreds = await AuthService.instance.refreshUserToken(
               userCredentials.token,
               userCredentials.user.mnemonic,
+              userCredentials.user.keys.ecc.privateKey,
             );
             await ConfigService.instance.saveUser(refreshedCreds);
           } catch {

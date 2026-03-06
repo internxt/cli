@@ -6,6 +6,7 @@ import { ConfigService } from '../services/config.service';
 import { StreamUtils } from '../utils/stream.utils';
 import { LoginCredentials } from '../types/command.types';
 import { WorkspaceData } from '@internxt/sdk/dist/workspaces';
+import { aes } from '@internxt/lib';
 
 export class CryptoService {
   public static readonly instance: CryptoService = new CryptoService();
@@ -191,12 +192,15 @@ export class CryptoService {
     return { key, iv };
   };
 
-  private readonly decryptMnemonic = async (encryptionKey: string, user: LoginCredentials['user']): Promise<string> => {
+  private readonly decryptWorkspaceMnemonic = async (
+    encryptionKey: string,
+    user: LoginCredentials['user'],
+  ): Promise<string> => {
     const privateKeyInBase64 = user.keys?.ecc?.privateKey;
     const privateKyberKeyInBase64 = user.keys?.kyber?.privateKey;
 
     if (!privateKeyInBase64) {
-      return user.mnemonic;
+      throw new Error('Missing privateKey in user keys');
     }
 
     try {
@@ -206,7 +210,7 @@ export class CryptoService {
         privateKyberKeyInBase64,
       });
     } catch {
-      return user.mnemonic;
+      throw new Error('Failed to decrypt workspace mnemonic');
     }
   };
 
@@ -220,10 +224,23 @@ export class CryptoService {
           ...workspace,
           workspaceUser: {
             ...workspace.workspaceUser,
-            key: await this.decryptMnemonic(workspace.workspaceUser.key, user),
+            key: await this.decryptWorkspaceMnemonic(workspace.workspaceUser.key, user),
           },
         };
       }),
     );
+  };
+
+  public decryptPrivateKey = (privateKey: string, password: string): string => {
+    const MINIMAL_ENCRYPTED_KEY_LEN = 129;
+    if (!privateKey || privateKey.length <= MINIMAL_ENCRYPTED_KEY_LEN) return '';
+    else {
+      try {
+        const result = aes.decrypt(privateKey, password);
+        return result;
+      } catch {
+        throw new Error('Private key is corrupted');
+      }
+    }
   };
 }

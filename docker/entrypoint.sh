@@ -51,6 +51,12 @@ if [ "$customAuth" = "true" ] || [ "$customAuth" = "1" ] || [ "$customAuth" = "y
   WEBDAV_ARGS="$WEBDAV_ARGS --customAuth -u=$WEBDAV_USERNAME -w=$WEBDAV_PASSWORD"
 fi
 
+deleteFilesPermanently=$(echo "$WEBDAV_DELETE_FILES_PERMANENTLY" | tr '[:upper:]' '[:lower:]')
+if [ "$deleteFilesPermanently" = "true" ] || [ "$deleteFilesPermanently" = "1" ] || [ "$deleteFilesPermanently" = "yes" ] || [ "$deleteFilesPermanently" = "y" ]; then
+  echo "WARNING: Permanent file deletion is enabled. Deleted files will NOT be recoverable."
+  WEBDAV_ARGS="$WEBDAV_ARGS -d"
+fi
+
 internxt webdav-config $WEBDAV_ARGS
 
 internxt webdav enable

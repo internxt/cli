@@ -15,6 +15,7 @@ import {
   WEBDAV_DEFAULT_TIMEOUT,
   WEBDAV_DEFAULT_CUSTOM_AUTH,
   WEBDAV_SSL_CERTS_DIR,
+  WEBDAV_DEFAULT_DELETE_FILES_PERMANENTLY,
 } from '../constants/configs';
 
 export class ConfigService {
@@ -96,6 +97,7 @@ export class ConfigService {
         customAuth: configs?.customAuth ?? WEBDAV_DEFAULT_CUSTOM_AUTH,
         username: configs?.username ?? '',
         password: configs?.password ?? '',
+        deleteFilesPermanently: configs?.deleteFilesPermanently ?? WEBDAV_DEFAULT_DELETE_FILES_PERMANENTLY,
       };
     } catch {
       return {
@@ -107,6 +109,7 @@ export class ConfigService {
         customAuth: WEBDAV_DEFAULT_CUSTOM_AUTH,
         username: '',
         password: '',
+        deleteFilesPermanently: WEBDAV_DEFAULT_DELETE_FILES_PERMANENTLY,
       };
     }
   };

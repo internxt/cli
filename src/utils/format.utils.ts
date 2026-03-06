@@ -24,4 +24,8 @@ export class FormatUtils {
     }
     return result;
   };
+
+  static readonly capitalizeFirstLetter = (string: string) => {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+  };
 }
