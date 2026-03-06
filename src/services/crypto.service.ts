@@ -6,6 +6,7 @@ import { ConfigService } from '../services/config.service';
 import { StreamUtils } from '../utils/stream.utils';
 import { LoginCredentials } from '../types/command.types';
 import { WorkspaceData } from '@internxt/sdk/dist/workspaces';
+import { aes } from '@internxt/lib';
 
 export class CryptoService {
   public static readonly instance: CryptoService = new CryptoService();
@@ -228,5 +229,18 @@ export class CryptoService {
         };
       }),
     );
+  };
+
+  public decryptPrivateKey = (privateKey: string, password: string): string => {
+    const MINIMAL_ENCRYPTED_KEY_LEN = 129;
+    if (!privateKey || privateKey.length <= MINIMAL_ENCRYPTED_KEY_LEN) return '';
+    else {
+      try {
+        const result = aes.decrypt(privateKey, password);
+        return result;
+      } catch {
+        throw new Error('Private key is corrupted');
+      }
+    }
   };
 }

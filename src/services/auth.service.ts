@@ -35,10 +35,20 @@ export class AuthService {
     const { user, newToken } = data;
 
     const clearMnemonic = CryptoService.instance.decryptTextWithKey(user.mnemonic, password);
+    const clearPrivateKey = Buffer.from(
+      CryptoService.instance.decryptPrivateKey(user.keys.ecc.privateKey, password),
+    ).toString('base64');
+    user.keys.ecc.privateKey = clearPrivateKey;
+    if (user.keys?.kyber?.privateKey) {
+      user.keys.kyber.privateKey = Buffer.from(
+        CryptoService.instance.decryptPrivateKey(user.keys.kyber.privateKey, password),
+      ).toString('base64');
+    }
     const clearUser: LoginCredentials['user'] = {
       ...user,
       mnemonic: clearMnemonic,
     };
+
     return {
       user: clearUser,
       token: newToken,
