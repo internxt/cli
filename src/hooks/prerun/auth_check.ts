@@ -21,9 +21,12 @@ const hook: Hook<'prerun'> = async function (opts) {
   const { Command, argv } = opts;
   const jsonFlag = argv.includes('--json');
 
+  const commandsToSkipNames = CommandsToSkip.map((command) => command.name?.toLowerCase()).filter(Boolean);
+  const commandsToSkipIds = CommandsToSkip.map((command) => command.id?.toLowerCase()).filter(Boolean);
+
   if (
-    !CommandsToSkip.map((command) => command.name.toLowerCase()).includes(Command.name.toLowerCase()) &&
-    !CommandsToSkip.map((command) => command.id.toLowerCase()).includes(Command.id.toLowerCase())
+    !commandsToSkipNames.includes(Command.name?.toLowerCase()) &&
+    !commandsToSkipIds.includes(Command.id?.toLowerCase())
   ) {
     CLIUtils.doing('Checking credentials', jsonFlag);
     try {
