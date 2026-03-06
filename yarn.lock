@@ -1521,8 +1521,8 @@
 
 "@internxt/inxt-js@2.3.1":
   version "2.3.1"
-  resolved "https://npm.pkg.github.com/download/@internxt/inxt-js/2.3.1/f993ecb92c7fe04aa005aceca5841e728f7afe43#f993ecb92c7fe04aa005aceca5841e728f7afe43"
-  integrity sha512-lN31qkDmL92ZDFCVwiBkC/qMa1VM0qnG+QT4IU9jVYeUGHScew4A/XDjcQxlHk5GsdzVmVs/ORpcSoe6nDbXew==
+  resolved "https://registry.yarnpkg.com/@internxt/inxt-js/-/inxt-js-2.3.1.tgz#a4484cd8b877f94dd35c50e84684ee5fd4fbf37e"
+  integrity sha512-Ta2yMItwSuYPqhVE5Or7RIgbwticWtIjU9xgNNkD5HmcNhvnbMYj+R6DphSTP0++yJhrCg42lIbDG03oggr2bw==
   dependencies:
     "@internxt/lib" "1.4.1"
     "@internxt/sdk" "1.15.1"
