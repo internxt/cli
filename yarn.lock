@@ -1551,6 +1551,14 @@
     axios "1.13.5"
     internxt-crypto "0.0.13"
 
+"@internxt/sdk@1.15.2":
+  version "1.15.2"
+  resolved "https://registry.yarnpkg.com/@internxt/sdk/-/sdk-1.15.2.tgz#240dfb0f9ad3d18bf0ea32a36b15aabc5cc6bed9"
+  integrity sha512-Hial7LUBGQ0nUTQc9G6ANRCYyVseGA73JG9ZMQCywkqGlEBslrLod0TuxyvrEcvFLkfS4iNvATWGZGNFMsMceg==
+  dependencies:
+    axios "1.13.5"
+    internxt-crypto "0.0.13"
+
 "@isaacs/cliui@^8.0.2":
   version "8.0.2"
   resolved "https://registry.yarnpkg.com/@isaacs/cliui/-/cliui-8.0.2.tgz#b37667b7bc181c168782259bab42474fbf52b550"
