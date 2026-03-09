@@ -8,6 +8,7 @@ import { DriveFolderService } from './drive-folder.service';
 import { NotFoundError } from '../../utils/errors.utils';
 import { PathUtils } from '../../utils/path.utils';
 import { logger } from '../../utils/logger.utils';
+import { FileStatus } from '@internxt/sdk/dist/drive/storage/types';
 
 export class DriveFileService {
   static readonly instance = new DriveFileService();
@@ -102,7 +103,7 @@ export class DriveFileService {
     const fileMeta = subFiles.find(
       (file) => (file.plainName === name || file.name === name) && (file.type ?? null) === type,
     );
-    if (!fileMeta) {
+    if (!fileMeta || fileMeta.status !== FileStatus.EXISTS) {
       throw new NotFoundError('File not found');
     }
     return DriveUtils.driveFileMetaToItem(fileMeta);
@@ -117,7 +118,7 @@ export class DriveFileService {
     if (localFileDB) {
       try {
         const file = await this.getFileMetadata(localFileDB.uuid);
-        if (file) {
+        if (file && file.status === FileStatus.EXISTS) {
           return file;
         }
       } catch {

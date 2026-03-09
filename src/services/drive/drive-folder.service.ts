@@ -202,7 +202,7 @@ export class DriveFolderService {
   public getByParentUuidAndName = async (parentUuid: string, name: string): Promise<DriveFolderItem> => {
     const subFolders = await this.getFolderSubfolders(parentUuid);
     const folderMeta = subFolders.find((folder) => folder.plainName === name || folder.name === name);
-    if (!folderMeta) {
+    if (!folderMeta || folderMeta.status !== FileStatus.EXISTS) {
       throw new NotFoundError('Folder not found');
     }
 
@@ -245,7 +245,7 @@ export class DriveFolderService {
     if (localFolderDB) {
       try {
         const folder = await this.getFolderMetaByUuid(localFolderDB.uuid);
-        if (folder) {
+        if (folder && folder.status === FileStatus.EXISTS) {
           return folder;
         }
       } catch {
