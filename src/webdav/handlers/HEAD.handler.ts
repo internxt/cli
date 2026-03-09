@@ -9,34 +9,32 @@ export class HEADRequestHandler implements WebDavMethodHandler {
   handle = async (req: Request, res: Response) => {
     const resource = await WebDavUtils.getRequestedResource(req.url);
 
-    webdavLogger.info(`[HEAD] Request received for file at ${resource.url}`);
+    webdavLogger.info(`[HEAD] Request received for item at ${resource.url}`);
 
-    try {
-      const driveFile = await WebDavUtils.getDriveFileFromResource(resource.url);
+    const driveItem = await WebDavUtils.getDriveItemFromResource(resource);
 
-      if (!driveFile) {
-        throw new NotFoundError(`Resource not found on Internxt Drive at ${resource.url}`);
-      }
+    if (!driveItem) {
+      throw new NotFoundError(`Resource not found on Internxt Drive at ${resource.url}`);
+    }
 
-      webdavLogger.info(`[HEAD] [${driveFile.uuid}] Found Drive File`);
+    webdavLogger.info(`[HEAD] [${driveItem.uuid}] Found Drive item`);
 
+    if (driveItem.itemType === 'file') {
       const range = req.headers['range'];
       const rangeOptions = NetworkUtils.parseRangeHeader({
         range,
-        totalFileSize: driveFile.size,
+        totalFileSize: driveItem.size,
       });
-      let contentLength = driveFile.size;
+      let contentLength = driveItem.size;
       if (rangeOptions) {
-        webdavLogger.info(`[HEAD] [${driveFile.uuid}] Range request received:`, { rangeOptions });
+        webdavLogger.info(`[HEAD] [${driveItem.uuid}] Range request received:`, { rangeOptions });
         contentLength = rangeOptions.rangeSize;
       }
 
       res.header('Content-Type', 'application/octet-stream');
       res.header('Content-length', contentLength.toString());
-      res.status(200).send();
-    } catch {
-      res.header('Content-Type', 'application/octet-stream');
-      res.status(200).send();
     }
+
+    res.status(200).send();
   };
 }
