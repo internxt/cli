@@ -3,6 +3,7 @@ import { PM2Utils } from '../utils/pm2.utils';
 import { CLIUtils } from '../utils/cli.utils';
 import { ConfigService } from '../services/config.service';
 import { AuthService } from '../services/auth.service';
+import { WebDavServer } from '../webdav/webdav-server';
 
 export default class Webdav extends Command {
   static readonly args = {
@@ -28,10 +29,14 @@ export default class Webdav extends Command {
     let message = '';
     let success = true;
     await PM2Utils.connect();
+
+    const configs = await ConfigService.instance.readWebdavConfig();
+
     switch (args.action) {
       case 'start':
       case 'enable': {
         await AuthService.instance.getAuthDetails();
+        WebDavServer.checkwebDAVCredentials(configs);
         message = await this.enableWebDav(flags['json']);
         break;
       }
@@ -44,6 +49,7 @@ export default class Webdav extends Command {
 
       case 'restart': {
         await AuthService.instance.getAuthDetails();
+        WebDavServer.checkwebDAVCredentials(configs);
         message = await this.restartWebDav(flags['json']);
         break;
       }
