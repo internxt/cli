@@ -6,6 +6,7 @@ import {
   createWebDavResponseFixture,
   getRequestedFileResource,
   getRequestedFolderResource,
+  getWebdavConfigMock,
 } from '../../fixtures/webdav.fixture';
 import { TrashService } from '../../../src/services/drive/trash.service';
 import { NotFoundError } from '../../../src/utils/errors.utils';
@@ -14,6 +15,7 @@ import { newFileItem, newFolderItem } from '../../fixtures/drive.fixture';
 import { WebDavRequestedResource } from '../../../src/types/webdav.types';
 import { AuthService } from '../../../src/services/auth.service';
 import { UserCredentialsFixture } from '../../fixtures/login.fixture';
+import { ConfigService } from '../../../src/services/config.service';
 
 describe('DELETE request handler', () => {
   beforeEach(() => {
@@ -32,7 +34,9 @@ describe('DELETE request handler', () => {
     const response = createWebDavResponseFixture({
       status: vi.fn().mockReturnValue({ send: vi.fn() }),
     });
+    const mockWebdavConfig = getWebdavConfigMock();
 
+    vi.spyOn(ConfigService.instance, 'readWebdavConfig').mockResolvedValue(mockWebdavConfig);
     const getRequestedResourceStub = vi
       .spyOn(WebDavUtils, 'getRequestedResource')
       .mockResolvedValue(requestedFileResource);
@@ -63,7 +67,9 @@ describe('DELETE request handler', () => {
     });
 
     const mockFile = newFileItem();
+    const mockWebdavConfig = getWebdavConfigMock();
 
+    vi.spyOn(ConfigService.instance, 'readWebdavConfig').mockResolvedValue(mockWebdavConfig);
     const getRequestedResourceStub = vi
       .spyOn(WebDavUtils, 'getRequestedResource')
       .mockResolvedValue(requestedFileResource);
@@ -93,7 +99,9 @@ describe('DELETE request handler', () => {
     });
 
     const mockFolder = newFolderItem();
+    const mockWebdavConfig = getWebdavConfigMock();
 
+    vi.spyOn(ConfigService.instance, 'readWebdavConfig').mockResolvedValue(mockWebdavConfig);
     const getRequestedResourceStub = vi
       .spyOn(WebDavUtils, 'getRequestedResource')
       .mockResolvedValue(requestedFolderResource);
