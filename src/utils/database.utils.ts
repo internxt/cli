@@ -27,7 +27,6 @@ export class DatabaseUtils {
 
     const folder = await getByParentAndName(parentUuid, currentFolder);
 
-    // If no intermediate folder is found, return onNotFound callback
     if (!folder) {
       return;
     }

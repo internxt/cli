@@ -21,7 +21,11 @@ export class DriveFolderService {
     const storageClient = SdkManager.instance.getStorage();
     const folderMeta = await storageClient.getFolderMeta(uuid);
     const folderItem = DriveUtils.driveFolderMetaToItem(folderMeta);
+    if (!folderItem || folderItem.status !== FileStatus.EXISTS) {
+      throw new NotFoundError(`Folder with uuid ${uuid} not found`);
+    }
     await FolderRepository.instance.createOrUpdate([folderItem]);
+
     return folderItem;
   };
 
@@ -83,6 +87,8 @@ export class DriveFolderService {
       folders = (await personalFolderContentPromise).folders;
     }
 
+    folders = folders.filter((folder) => folder.status === FileStatus.EXISTS);
+
     await FolderRepository.instance.createOrUpdate(
       folders.map(
         (folder) =>
@@ -129,6 +135,8 @@ export class DriveFolderService {
       const [folderContentPromise] = storageClient.getFolderFilesByUuid(folderUuid, offset, 50, 'plainName', 'ASC');
       files = (await folderContentPromise).files;
     }
+
+    files = files.filter((file) => file.status === FileStatus.EXISTS);
 
     if (files.length > 0) {
       await FileRepository.instance.deleteByParentUuid(folderUuid);
@@ -245,7 +253,7 @@ export class DriveFolderService {
     if (localFolderDB) {
       try {
         const folder = await this.getFolderMetaByUuid(localFolderDB.uuid);
-        if (folder && folder.status === FileStatus.EXISTS) {
+        if (folder) {
           return folder;
         }
       } catch {

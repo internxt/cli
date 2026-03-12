@@ -1,4 +1,4 @@
-import { FileMeta, FolderMeta, CreateFolderResponse } from '@internxt/sdk/dist/drive/storage/types';
+import { FileMeta, FolderMeta, CreateFolderResponse, FileStatus } from '@internxt/sdk/dist/drive/storage/types';
 import { DriveFileItem, DriveFolderItem } from '../types/drive.types';
 
 export class DriveUtils {
@@ -25,7 +25,7 @@ export class DriveUtils {
       itemType: 'folder',
       uuid: folderMeta.uuid,
       bucket: folderMeta.bucket,
-      status: folderMeta.deleted || folderMeta.removed ? 'TRASHED' : 'EXISTS',
+      status: folderMeta.deleted || folderMeta.removed ? FileStatus.TRASHED : FileStatus.EXISTS,
       name: folderMeta.plainName ?? folderMeta.name,
       parentUuid: folderMeta.parentUuid,
       createdAt: new Date(folderMeta.createdAt),
@@ -40,7 +40,7 @@ export class DriveUtils {
       itemType: 'folder',
       uuid: folderResponse.uuid,
       bucket: folderResponse.bucket,
-      status: folderResponse.deleted || folderResponse.removed ? 'TRASHED' : 'EXISTS',
+      status: folderResponse.deleted || folderResponse.removed ? FileStatus.TRASHED : FileStatus.EXISTS,
       name: folderResponse.plainName ?? folderResponse.name,
       parentUuid: folderResponse.parentUuid,
       createdAt: new Date(folderResponse.createdAt),
