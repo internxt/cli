@@ -68,7 +68,7 @@ export class DriveFileService {
     const [getFileMetadata] = storageClient.getFile(uuid);
 
     const fileMetadata = await getFileMetadata;
-    if (!fileMetadata || fileMetadata.status !== FileStatus.EXISTS) {
+    if (fileMetadata?.status !== FileStatus.EXISTS) {
       throw new NotFoundError(`File with uuid ${uuid} not found`);
     }
     const driveFileItem = DriveUtils.driveFileMetaToItem(fileMetadata);
@@ -106,7 +106,7 @@ export class DriveFileService {
     const fileMeta = subFiles.find(
       (file) => (file.plainName === name || file.name === name) && (file.type ?? null) === type,
     );
-    if (!fileMeta || fileMeta.status !== FileStatus.EXISTS) {
+    if (fileMeta?.status !== FileStatus.EXISTS) {
       throw new NotFoundError('File not found');
     }
     return DriveUtils.driveFileMetaToItem(fileMeta);
