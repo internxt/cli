@@ -6,6 +6,7 @@ import {
   createWebDavResponseFixture,
   getRequestedFileResource,
   getRequestedFolderResource,
+  getWebdavConfigMock,
 } from '../../fixtures/webdav.fixture';
 import { TrashService } from '../../../src/services/drive/trash.service';
 import { NotFoundError } from '../../../src/utils/errors.utils';
@@ -14,10 +15,12 @@ import { newFileItem, newFolderItem } from '../../fixtures/drive.fixture';
 import { WebDavRequestedResource } from '../../../src/types/webdav.types';
 import { AuthService } from '../../../src/services/auth.service';
 import { UserCredentialsFixture } from '../../fixtures/login.fixture';
+import { ConfigService } from '../../../src/services/config.service';
 
 describe('DELETE request handler', () => {
   beforeEach(() => {
     vi.spyOn(AuthService.instance, 'getAuthDetails').mockResolvedValue(UserCredentialsFixture);
+    vi.spyOn(ConfigService.instance, 'readWebdavConfig').mockResolvedValue(getWebdavConfigMock());
   });
 
   it('When the item does not exist, it should reply with a 404 error', async () => {
@@ -32,7 +35,6 @@ describe('DELETE request handler', () => {
     const response = createWebDavResponseFixture({
       status: vi.fn().mockReturnValue({ send: vi.fn() }),
     });
-
     const getRequestedResourceStub = vi
       .spyOn(WebDavUtils, 'getRequestedResource')
       .mockResolvedValue(requestedFileResource);

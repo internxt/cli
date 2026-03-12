@@ -8,9 +8,10 @@ import {
 } from '../../fixtures/webdav.fixture';
 import { DriveFileService } from '../../../src/services/drive/drive-file.service';
 import { WebDavRequestedResource } from '../../../src/types/webdav.types';
-import { newFileItem } from '../../fixtures/drive.fixture';
+import { newFileItem, newFolderItem } from '../../fixtures/drive.fixture';
 import { WebDavUtils } from '../../../src/utils/webdav.utils';
 import { randomInt } from 'crypto';
+import { DriveFolderService } from '../../../src/services/drive/drive-folder.service';
 
 describe('HEAD request handler', () => {
   let sut: HEADRequestHandler;
@@ -30,8 +31,20 @@ describe('HEAD request handler', () => {
       status: vi.fn().mockReturnValue({ send: vi.fn() }),
     });
 
+    const mockFolder = newFolderItem();
+
+    vi.spyOn(DriveFileService.instance, 'getFileMetadataByPath').mockRejectedValue(undefined);
+    const getRequestedResourceStub = vi
+      .spyOn(WebDavUtils, 'getRequestedResource')
+      .mockResolvedValue(requestedFolderResource);
+    const getFolderMetadataStub = vi
+      .spyOn(DriveFolderService.instance, 'getFolderMetadataByPath')
+      .mockResolvedValue(mockFolder);
+
     await sut.handle(request, response);
     expect(response.status).toHaveBeenCalledWith(200);
+    expect(getRequestedResourceStub).toHaveBeenCalledOnce();
+    expect(getFolderMetadataStub).toHaveBeenCalledOnce();
   });
 
   it('When a file is requested, it should reply with a 200 with the correct headers', async () => {

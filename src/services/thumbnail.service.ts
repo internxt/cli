@@ -6,6 +6,7 @@ import { NetworkFacade } from './network/network-facade.service';
 import { ThumbnailConfig, ThumbnailUtils } from '../utils/thumbnail.utils';
 import { BufferStream } from '../utils/stream.utils';
 import { ErrorUtils } from '../utils/errors.utils';
+import { AsyncUtils } from '../utils/async.utils';
 
 let sharpDependency: typeof import('sharp') | null = null;
 
@@ -102,19 +103,11 @@ export class ThumbnailService {
     try {
       const thumbnailBuffer = bufferStream?.getBuffer();
       if (thumbnailBuffer) {
-        let timeoutId: NodeJS.Timeout;
-        const timeoutPromise = new Promise<never>((_, reject) => {
-          timeoutId = setTimeout(() => {
-            reject(new Error('Thumbnail upload timeout'));
-          }, ThumbnailService.MAX_THUMBNAIL_TIMEOUT);
-        });
-
-        await Promise.race([
+        await AsyncUtils.withTimeout(
           ThumbnailService.instance.uploadThumbnail(thumbnailBuffer, fileType, bucket, fileUuid, networkFacade, size),
-          timeoutPromise,
-        ]).finally(() => {
-          clearTimeout(timeoutId);
-        });
+          ThumbnailService.MAX_THUMBNAIL_TIMEOUT,
+          'Thumbnail upload timeout',
+        );
       }
     } catch (error) {
       ErrorUtils.report(error);

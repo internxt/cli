@@ -4,6 +4,9 @@ import { CLIUtils } from '../utils/cli.utils';
 import { UsageService } from '../services/usage.service';
 import { FormatUtils } from '../utils/format.utils';
 import { Header } from 'tty-table';
+import { AsyncUtils } from '../utils/async.utils';
+
+const MAX_USAGE_TIMEOUT = 15_000;
 
 export default class Config extends Command {
   static readonly args = {};
@@ -25,8 +28,7 @@ export default class Config extends Command {
 
     const userCredentials = await ConfigService.instance.readUser();
     if (userCredentials?.user) {
-      const usedSpace = FormatUtils.humanFileSize(await UsageService.instance.fetchUsage());
-      const availableSpace = FormatUtils.formatLimit(await UsageService.instance.fetchSpaceLimit());
+      const [usedSpace, availableSpace] = await Promise.all([this.tryGetUsage(), this.tryGetSpaceLimit()]);
 
       const configList = [
         { key: 'Email', value: userCredentials.user.email },
@@ -64,5 +66,31 @@ export default class Config extends Command {
       jsonFlag: flags['json'],
     });
     this.exit(1);
+  };
+
+  private readonly tryGetUsage = async () => {
+    try {
+      const usage = await AsyncUtils.withTimeout(
+        UsageService.instance.fetchUsage(),
+        MAX_USAGE_TIMEOUT,
+        'Usage fetch timeout',
+      );
+      return FormatUtils.humanFileSize(usage);
+    } catch {
+      return '-';
+    }
+  };
+
+  private readonly tryGetSpaceLimit = async () => {
+    try {
+      const limit = await AsyncUtils.withTimeout(
+        UsageService.instance.fetchSpaceLimit(),
+        MAX_USAGE_TIMEOUT,
+        'Space limit timeout',
+      );
+      return FormatUtils.formatLimit(limit);
+    } catch {
+      return '-';
+    }
   };
 }

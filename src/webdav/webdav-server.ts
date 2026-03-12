@@ -59,8 +59,22 @@ export class WebDavServer {
     this.app.copy(serverListenPath, asyncHandler(new COPYRequestHandler().handle));
   };
 
+  public static readonly checkwebDAVCredentials = (configs: WebdavConfig) => {
+    if (configs.customAuth) {
+      if (!configs.username?.trim()) {
+        throw new Error('WebDAV CustomAuth is enabled but no username was provided.');
+      }
+
+      if (!configs.password?.trim()) {
+        throw new Error('WebDAV CustomAuth is enabled but no password was provided.');
+      }
+    }
+  };
+
   start = async () => {
     const configs = await ConfigService.instance.readWebdavConfig();
+    WebDavServer.checkwebDAVCredentials(configs);
+
     this.app.disable('x-powered-by');
     this.registerStartMiddlewares(configs);
     this.registerHandlers();
