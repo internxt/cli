@@ -78,7 +78,7 @@
     "@vitest/spy": "4.0.18",
     "eslint": "9.39.4",
     "husky": "9.1.7",
-    "lint-staged": "16.3.2",
+    "lint-staged": "16.3.3",
     "nodemon": "3.1.14",
     "oclif": "4.22.85",
     "prettier": "3.8.1",
