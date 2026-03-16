@@ -40,7 +40,7 @@
     "@inquirer/prompts": "8.3.0",
     "@internxt/inxt-js": "2.3.1",
     "@internxt/lib": "1.4.1",
-    "@internxt/sdk": "1.15.1",
+    "@internxt/sdk": "1.15.3",
     "@oclif/core": "4.8.3",
     "@oclif/plugin-autocomplete": "3.2.40",
     "axios": "1.13.6",
