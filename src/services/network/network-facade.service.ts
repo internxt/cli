@@ -9,7 +9,7 @@ import { CryptoService } from '../crypto.service';
 import { DownloadService } from './download.service';
 import { ValidationService } from '../validation.service';
 import { RangeOptions } from '../../utils/network.utils';
-import { ActionState } from '@internxt/inxt-js/build/api';
+import { EncryptProgressCallback } from '@internxt/inxt-js/build/lib/core';
 
 const TWENTY_GIGABYTES = 20 * 1024 * 1024 * 1024;
 
@@ -118,35 +118,36 @@ export class NetworkFacade {
    * @param bucketId The bucket where the file will be uploaded
    * @param size The total size of the stream content
    * @param from The source ReadStream to upload from
-   * @returns A promise to execute the upload and an abort controller to cancel the upload
+   * @param progressCallback A callback to update the upload progress
+   * @param abortSignal A signal to abort the upload
+   * @param encryptProgressCallback A callback to update the encryption progress
+   * @returns A promise to execute the upload
    */
-  public uploadFile = (
-    from: Readable,
-    size: number,
-    bucketId: string,
-    finishedCallback: (err: Error | null, res: string | null) => void,
-    progressCallback: (progress: number) => void,
-  ): ActionState => {
+  public uploadFile = ({
+    from,
+    size,
+    bucketId,
+    progressCallback,
+    abortSignal,
+    encryptProgressCallback,
+  }: {
+    from: Readable;
+    size: number;
+    bucketId: string;
+    progressCallback: (progress: number) => void;
+    abortSignal?: AbortSignal;
+    encryptProgressCallback?: EncryptProgressCallback;
+  }): Promise<string> => {
     if (size > TWENTY_GIGABYTES) {
       throw new Error('File is too big (more than 20 GB)');
     }
-    const minimumMultipartThreshold = 100 * 1024 * 1024;
-    const useMultipart = size > minimumMultipartThreshold;
 
-    if (useMultipart) {
-      return this.environment.uploadMultipartFile(bucketId, {
-        source: from,
-        fileSize: size,
-        finishedCallback,
-        progressCallback,
-      });
-    } else {
-      return this.environment.upload(bucketId, {
-        source: from,
-        fileSize: size,
-        finishedCallback,
-        progressCallback,
-      });
-    }
+    return this.environment.upload(bucketId, {
+      source: from,
+      fileSize: size,
+      progressCallback,
+      abortSignal,
+      encryptProgressCallback,
+    });
   };
 }

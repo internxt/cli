@@ -82,27 +82,22 @@ export class PUTRequestHandler implements WebDavMethodHandler {
       };
 
       const networkUploadTimer = CLIUtils.timer();
-      fileId = await new Promise((resolve: (fileId: string) => void, reject) => {
-        const state = networkFacade.uploadFile(
-          fileStream,
-          contentLength,
-          bucket,
-          (err: Error | null, res: string | null) => {
-            if (err) {
-              aborted = true;
-              return reject(err);
-            }
-            resolve(res as string);
-          },
-          progressCallback,
-        );
-        res.on('close', async () => {
-          aborted = true;
-          if (!uploaded) {
-            webdavLogger.info('[PUT] ❌ HTTP Client has been disconnected, res has been closed.');
-            state.stop();
-          }
-        });
+      const abortable = new AbortController();
+
+      fileId = await networkFacade.uploadFile({
+        from: fileStream,
+        size: contentLength,
+        bucketId: bucket,
+        progressCallback,
+        abortSignal: abortable.signal,
+      });
+
+      res.on('close', async () => {
+        aborted = true;
+        if (!uploaded) {
+          webdavLogger.info('[PUT] ❌ HTTP Client has been disconnected, res has been closed.');
+          abortable.abort();
+        }
       });
       uploaded = true;
       timings.networkUpload = networkUploadTimer.stop();

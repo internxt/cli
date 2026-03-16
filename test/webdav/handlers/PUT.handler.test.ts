@@ -115,12 +115,7 @@ describe('PUT request handler', () => {
     const getAuthDetailsStub = vi
       .spyOn(AuthService.instance, 'getAuthDetails')
       .mockResolvedValue(UserCredentialsFixture);
-    const uploadStub = vi.spyOn(networkFacade, 'uploadFile').mockImplementation(
-      // @ts-expect-error - We only mock the properties we need
-      (_, __, ___, callback: (err: Error | null, res: string | null) => void) => {
-        return callback(null, 'uploaded-file-id');
-      },
-    );
+    const uploadStub = vi.spyOn(networkFacade, 'uploadFile').mockResolvedValue('uploaded-file-id');
     const createDriveFileStub = vi
       .spyOn(DriveFileService.instance, 'createFile')
       .mockResolvedValue(fileFixture.toItem());
@@ -170,12 +165,7 @@ describe('PUT request handler', () => {
     const getAuthDetailsStub = vi
       .spyOn(AuthService.instance, 'getAuthDetails')
       .mockResolvedValue(UserCredentialsFixture);
-    const uploadStub = vi.spyOn(networkFacade, 'uploadFile').mockImplementation(
-      // @ts-expect-error - We only mock the properties we need
-      (_, __, ___, callback: (err: Error | null, res: string | null) => void) => {
-        return callback(null, 'uploaded-file-id');
-      },
-    );
+    const uploadStub = vi.spyOn(networkFacade, 'uploadFile').mockResolvedValue('uploaded-file-id');
     const createDriveFileStub = vi
       .spyOn(DriveFileService.instance, 'createFile')
       .mockResolvedValue(fileFixture.toItem());
@@ -218,12 +208,7 @@ describe('PUT request handler', () => {
     vi.spyOn(WebDavUtils, 'getDriveItemFromResource').mockResolvedValue(undefined);
     vi.spyOn(WebDavUtils, 'getDriveFolderFromResource').mockResolvedValue(folderFixture);
     vi.spyOn(AuthService.instance, 'getAuthDetails').mockResolvedValue(UserCredentialsFixture);
-    vi.spyOn(networkFacade, 'uploadFile').mockImplementation(
-      // @ts-expect-error - We only mock the properties we need
-      (_, __, ___, callback: (err: Error | null, res: string | null) => void) => {
-        return callback(null, 'uploaded-file-id');
-      },
-    );
+    vi.spyOn(networkFacade, 'uploadFile').mockResolvedValue('uploaded-file-id');
     vi.spyOn(DriveFileService.instance, 'createFile').mockResolvedValue(fileFixture.toItem());
 
     const startTime = Date.now();

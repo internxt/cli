@@ -26,13 +26,10 @@ vi.mock('fs/promises', () => ({
 
 describe('UploadFileService', () => {
   let sut: UploadFileService;
-  const mockFile = newFileItem();
+  const mockFile = newFileItem({ fileId: 'mock-uploaded-file-id' });
 
   const mockNetworkFacade = {
-    uploadFile: vi.fn((_stream, _size, _bucket, callback) => {
-      callback(null, 'mock-uploaded-file-id');
-      return { stop: vi.fn() };
-    }),
+    uploadFile: vi.fn().mockResolvedValue(mockFile.fileId),
   } as unknown as NetworkFacade;
 
   beforeEach(() => {
@@ -210,13 +207,12 @@ describe('UploadFileService', () => {
 
       expect(result).toBe(mockFile);
       expect(stat).toHaveBeenCalledWith(file.absolutePath);
-      expect(mockNetworkFacade.uploadFile).toHaveBeenCalledWith(
-        expect.anything(),
-        1024,
-        bucket,
-        expect.any(Function),
-        expect.any(Function),
-      );
+      expect(mockNetworkFacade.uploadFile).toHaveBeenCalledWith({
+        from: expect.anything(),
+        size: 1024,
+        bucketId: bucket,
+        progressCallback: expect.any(Function),
+      });
       expect(DriveFileService.instance.createFile).toHaveBeenCalledWith(
         expect.objectContaining({
           plainName: 'test',
@@ -241,18 +237,9 @@ describe('UploadFileService', () => {
       const error = new Error('Network error');
 
       vi.mocked(mockNetworkFacade.uploadFile)
-        .mockImplementationOnce((_stream, _size, _bucket, callback) => {
-          callback(error, null);
-          return { stop: vi.fn() } as unknown as ReturnType<typeof mockNetworkFacade.uploadFile>;
-        })
-        .mockImplementationOnce((_stream, _size, _bucket, callback) => {
-          callback(error, null);
-          return { stop: vi.fn() } as unknown as ReturnType<typeof mockNetworkFacade.uploadFile>;
-        })
-        .mockImplementationOnce((_stream, _size, _bucket, callback) => {
-          callback(null, 'success-file-id');
-          return { stop: vi.fn() } as unknown as ReturnType<typeof mockNetworkFacade.uploadFile>;
-        });
+        .mockRejectedValueOnce(error)
+        .mockRejectedValueOnce(error)
+        .mockResolvedValueOnce('success-file-id');
 
       const reporter = vi.fn();
 
@@ -349,10 +336,7 @@ describe('UploadFileService', () => {
 
     it('should return null when file already exists', async () => {
       vi.spyOn(ErrorUtils, 'isAlreadyExistsError').mockReturnValue(true);
-      vi.mocked(mockNetworkFacade.uploadFile).mockImplementation((_stream, _size, _bucket, callback) => {
-        callback(new Error('File already exists'), null);
-        return { stop: vi.fn() } as unknown as ReturnType<typeof mockNetworkFacade.uploadFile>;
-      });
+      vi.mocked(mockNetworkFacade.uploadFile).mockRejectedValue(new Error('File already exists'));
 
       const file = createFileSystemNodeFixture({
         type: 'file',
@@ -384,10 +368,7 @@ describe('UploadFileService', () => {
       });
       const error = new Error('Network error');
 
-      vi.mocked(mockNetworkFacade.uploadFile).mockImplementation((_stream, _size, _bucket, callback) => {
-        callback(error, null);
-        return { stop: vi.fn() } as unknown as ReturnType<typeof mockNetworkFacade.uploadFile>;
-      });
+      vi.mocked(mockNetworkFacade.uploadFile).mockRejectedValue(error);
 
       const reporter = vi.fn();
 

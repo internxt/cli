@@ -100,23 +100,19 @@ export default class UploadFile extends Command {
         progressBar?.update(progress * 100 * 0.99);
       };
 
-      fileId = await new Promise((resolve: (fileId: string) => void, reject) => {
-        const state = networkFacade.uploadFile(
-          fileStream,
-          fileSize,
-          bucket,
-          (err: Error | null, res: string | null) => {
-            if (err) {
-              return reject(err);
-            }
-            resolve(res as string);
-          },
-          progressCallback,
-        );
-        process.on('SIGINT', () => {
-          state.stop();
-          process.exit(1);
-        });
+      const abortable = new AbortController();
+
+      fileId = await networkFacade.uploadFile({
+        from: fileStream,
+        size: fileSize,
+        bucketId: bucket,
+        progressCallback,
+        abortSignal: abortable.signal,
+      });
+
+      process.on('SIGINT', () => {
+        abortable.abort();
+        process.exit(1);
       });
     }
     timings.networkUpload = networkUploadTimer.stop();
