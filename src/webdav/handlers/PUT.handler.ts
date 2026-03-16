@@ -5,7 +5,6 @@ import { WebDavMethodHandler } from '../../types/webdav.types';
 import { NotFoundError } from '../../utils/errors.utils';
 import { WebDavUtils } from '../../utils/webdav.utils';
 import { webdavLogger } from '../../utils/logger.utils';
-import { TrashService } from '../../services/drive/trash.service';
 import { EncryptionVersion } from '@internxt/sdk/dist/drive/storage/types';
 import { CLIUtils } from '../../utils/cli.utils';
 import { BufferStream } from '../../utils/stream.utils';
@@ -47,10 +46,10 @@ export class PUTRequestHandler implements WebDavMethodHandler {
 
     try {
       if (driveFileItem && driveFileItem.status === 'EXISTS') {
-        webdavLogger.info(`[PUT] File '${resource.name}' already exists in '${resource.path.dir}', trashing it...`);
-        await TrashService.instance.trashItems({
-          items: [{ type: driveFileItem.itemType, uuid: driveFileItem.uuid }],
-        });
+        webdavLogger.info(
+          `[PUT] File '${resource.name}' already exists in '${resource.path.dir}', it will be replaced...`,
+        );
+        await WebDavUtils.deleteOrTrashItem(driveFileItem);
       }
     } catch {
       //noop

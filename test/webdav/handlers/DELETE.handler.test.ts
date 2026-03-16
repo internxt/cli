@@ -8,7 +8,6 @@ import {
   getRequestedFolderResource,
   getWebdavConfigMock,
 } from '../../fixtures/webdav.fixture';
-import { TrashService } from '../../../src/services/drive/trash.service';
 import { NotFoundError } from '../../../src/utils/errors.utils';
 import { WebDavUtils } from '../../../src/utils/webdav.utils';
 import { newFileItem, newFolderItem } from '../../fixtures/drive.fixture';
@@ -53,7 +52,6 @@ describe('DELETE request handler', () => {
   });
 
   it('When the file exists, then it should reply with a 204 response', async () => {
-    const trashService = TrashService.instance;
     const requestHandler = new DELETERequestHandler();
     const requestedFileResource: WebDavRequestedResource = getRequestedFileResource();
     const request = createWebDavRequestFixture({
@@ -72,17 +70,16 @@ describe('DELETE request handler', () => {
     const getAndSearchItemFromResourceStub = vi
       .spyOn(WebDavUtils, 'getDriveItemFromResource')
       .mockResolvedValue(mockFile);
-    const trashItemsStub = vi.spyOn(trashService, 'trashItems').mockResolvedValue();
+    const removeItemsStub = vi.spyOn(WebDavUtils, 'deleteOrTrashItem').mockResolvedValue();
 
     await requestHandler.handle(request, response);
     expect(response.status).toHaveBeenCalledWith(204);
     expect(getRequestedResourceStub).toHaveBeenCalledOnce();
     expect(getAndSearchItemFromResourceStub).toHaveBeenCalledOnce();
-    expect(trashItemsStub).toHaveBeenCalledWith({ items: [{ type: 'file', uuid: mockFile.uuid }] });
+    expect(removeItemsStub).toHaveBeenCalledWith(mockFile);
   });
 
   it('When folder exists, then it should reply with a 204 response', async () => {
-    const trashService = TrashService.instance;
     const requestHandler = new DELETERequestHandler();
     const requestedFolderResource: WebDavRequestedResource = getRequestedFolderResource();
 
@@ -102,12 +99,12 @@ describe('DELETE request handler', () => {
     const getAndSearchItemFromResourceStub = vi
       .spyOn(WebDavUtils, 'getDriveItemFromResource')
       .mockResolvedValue(mockFolder);
-    const trashItemsStub = vi.spyOn(trashService, 'trashItems').mockResolvedValue();
+    const removeItemsStub = vi.spyOn(WebDavUtils, 'deleteOrTrashItem').mockResolvedValue();
 
     await requestHandler.handle(request, response);
     expect(response.status).toHaveBeenCalledWith(204);
     expect(getRequestedResourceStub).toHaveBeenCalledOnce();
     expect(getAndSearchItemFromResourceStub).toHaveBeenCalledOnce();
-    expect(trashItemsStub).toHaveBeenCalledWith({ items: [{ type: 'folder', uuid: mockFolder.uuid }] });
+    expect(removeItemsStub).toHaveBeenCalledWith(mockFolder);
   });
 });

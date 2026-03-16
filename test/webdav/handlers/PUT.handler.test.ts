@@ -11,7 +11,6 @@ import { DriveFileService } from '../../../src/services/drive/drive-file.service
 import { AuthService } from '../../../src/services/auth.service';
 import { NetworkFacade } from '../../../src/services/network/network-facade.service';
 import { PUTRequestHandler } from '../../../src/webdav/handlers/PUT.handler';
-import { TrashService } from '../../../src/services/drive/trash.service';
 import { WebDavRequestedResource } from '../../../src/types/webdav.types';
 import { WebDavUtils } from '../../../src/utils/webdav.utils';
 import { newDriveFile, newFolderItem } from '../../fixtures/drive.fixture';
@@ -167,7 +166,7 @@ describe('PUT request handler', () => {
     const getDriveFolderFromResourceStub = vi
       .spyOn(WebDavUtils, 'getDriveFolderFromResource')
       .mockResolvedValue(folderFixture);
-    const deleteDriveFileStub = vi.spyOn(TrashService.instance, 'trashItems').mockResolvedValue();
+    const deleteDriveFileStub = vi.spyOn(WebDavUtils, 'deleteOrTrashItem').mockResolvedValue();
     const getAuthDetailsStub = vi
       .spyOn(AuthService.instance, 'getAuthDetails')
       .mockResolvedValue(UserCredentialsFixture);
