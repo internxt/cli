@@ -1367,16 +1367,16 @@
 
 "@internxt/eslint-config-internxt@2.0.1":
   version "2.0.1"
-  resolved "https://npm.pkg.github.com/download/@internxt/eslint-config-internxt/2.0.1/da01ca87ded6781de963cda13c292d9f273bd392#da01ca87ded6781de963cda13c292d9f273bd392"
-  integrity sha512-TeRsWhp9UVHMbhsDuz2gXieSva677ugM8NUjeFyskd8AzP/H43FZNzrfhCO4H1uP7SUsh2IjkJN7HDaL/z9jJw==
+  resolved "https://registry.yarnpkg.com/@internxt/eslint-config-internxt/-/eslint-config-internxt-2.0.1.tgz#0d4c4f085245f10937a3b1914ba091811dba9d05"
+  integrity sha512-Ueczo0BAy8T9P8tXztRUoTnY7KU0ISoJ5H4cfqVTiJqkot09uPOaWmLTwI1xTMeKIkBF4h34PzNbGQ32N/nlMw==
   dependencies:
     eslint-config-prettier "^10.1.8"
     typescript-eslint "^8.40.0"
 
 "@internxt/inxt-js@3.0.1":
   version "3.0.1"
-  resolved "https://npm.pkg.github.com/download/@internxt/inxt-js/3.0.1/a631680130c6c3c092f2abe00c2cac3cca409b6b#a631680130c6c3c092f2abe00c2cac3cca409b6b"
-  integrity sha512-zDHjs6gbLqR3gZMMvUKiVGjFVtfUJWMdaCSZbGZZx868Y9+lG4l0cWvX8uBJhbi363OAWTuEv/I8oTIo2LmW+w==
+  resolved "https://registry.yarnpkg.com/@internxt/inxt-js/-/inxt-js-3.0.1.tgz#bbab24ad37f0a50516b7a14916602169b07c02cc"
+  integrity sha512-kjt/8pLZaLqYnFiqJbPVnGFdqPzPN3vgitlLzFlehakONF5vH7mrxPCcI1Wobl82sQVnhSqPrGadbiIBK7H3gw==
   dependencies:
     "@internxt/lib" "1.4.1"
     "@internxt/sdk" "1.15.3"
@@ -1388,8 +1388,8 @@
 
 "@internxt/lib@1.4.1":
   version "1.4.1"
-  resolved "https://npm.pkg.github.com/download/@internxt/lib/1.4.1/215ee72e49c238e13d40ec9033296f70c8279f88#215ee72e49c238e13d40ec9033296f70c8279f88"
-  integrity sha512-0Nv+/V4z+bwCt9r+XMKWMSxwdnTCD7YHEeNMtMQKtyOzNVElDjGoDuYP8UrQ5TC5wVsP/yyQ/kM2ugZjueH6Mg==
+  resolved "https://registry.yarnpkg.com/@internxt/lib/-/lib-1.4.1.tgz#dd4974cb49ab6bba118cf218434e69e95cc4a481"
+  integrity sha512-sWNp57IKCk0HjzTdPSuxOgZWvrSDWGYrzNOq90LIZTzr1HwkxObicUaZqSzmw4uDKrJhsdFdzwdywk3g8gwDDA==
   dependencies:
     uuid "^11.1.0"
 
@@ -1399,8 +1399,8 @@
 
 "@internxt/sdk@1.15.3":
   version "1.15.3"
-  resolved "https://npm.pkg.github.com/download/@internxt/sdk/1.15.3/91b662831b0254613201fb67d0c477ce5c93c6da#91b662831b0254613201fb67d0c477ce5c93c6da"
-  integrity sha512-grSotetXK7Q15f+cFeqVnknfbqhwk+SQC0g6vpEwp6jfQ0k8NwbTLtKxhfL4Bq1EWG9GePjosEo39wprCZGCiA==
+  resolved "https://registry.yarnpkg.com/@internxt/sdk/-/sdk-1.15.3.tgz#ac941ad41e02d487f63f33116fcf1b7ee8376585"
+  integrity sha512-tJ+QyhLNt8Uvxa+a+nNIBoiA6MuSiqo48heBFot7Y0aW4hUWesrPS5w+yTUwIJtRPJPLBIXqcR6yQcyHBfEUZA==
   dependencies:
     axios "1.13.5"
     internxt-crypto "0.0.13"
