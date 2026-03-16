@@ -11,7 +11,7 @@ import { ValidationService } from '../validation.service';
 import { RangeOptions } from '../../utils/network.utils';
 import { EncryptProgressCallback } from '@internxt/inxt-js/build/lib/core';
 
-const TWENTY_GIGABYTES = 20 * 1024 * 1024 * 1024;
+const FORTY_GIGABYTES = 40 * 1024 * 1024 * 1024;
 
 export class NetworkFacade {
   private readonly cryptoLib: Network.Crypto;
@@ -138,8 +138,8 @@ export class NetworkFacade {
     abortSignal?: AbortSignal;
     encryptProgressCallback?: EncryptProgressCallback;
   }): Promise<string> => {
-    if (size > TWENTY_GIGABYTES) {
-      throw new Error('File is too big (more than 20 GB)');
+    if (size > FORTY_GIGABYTES) {
+      throw new Error('File is too big (more than 40 GB)');
     }
 
     return this.environment.upload(bucketId, {

@@ -1642,4 +1642,4 @@ EXAMPLES
 
 # Current Limitations
 
-- We currently have a 20GB size upload limitation per file for both, CLI and WebDAV
+- We currently have a 40GB size upload limitation per file for both, CLI and WebDAV
