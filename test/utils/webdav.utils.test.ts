@@ -5,6 +5,9 @@ import { newFileItem, newFolderItem } from '../fixtures/drive.fixture';
 import { DriveFolderService } from '../../src/services/drive/drive-folder.service';
 import { DriveFileService } from '../../src/services/drive/drive-file.service';
 import AppError from '@internxt/sdk/dist/shared/types/errors';
+import { ConfigService } from '../../src/services/config.service';
+import { TrashService } from '../../src/services/drive/trash.service';
+import { getWebdavConfigMock } from '../fixtures/webdav.fixture';
 
 describe('Webdav utils', () => {
   describe('joinURL', () => {
@@ -129,6 +132,68 @@ describe('Webdav utils', () => {
       expect(driveFileItem).to.be.deep.equal(expectedFile);
       expect(findFileStub).toHaveBeenCalledOnce();
       expect(findFolderStub).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('deleteOrTrashItem', () => {
+    it('When deleteFilesPermanently is true for a file, then it should delete permanently', async () => {
+      const fileItem = newFileItem();
+      vi.spyOn(ConfigService.instance, 'readWebdavConfig').mockResolvedValue(
+        getWebdavConfigMock({ deleteFilesPermanently: true }),
+      );
+      const deleteItemPermanentlyStub = vi.spyOn(TrashService.instance, 'deleteItemPermanently').mockResolvedValue();
+      const trashItemsStub = vi.spyOn(TrashService.instance, 'trashItems').mockResolvedValue();
+
+      await WebDavUtils.deleteOrTrashItem(fileItem);
+
+      expect(deleteItemPermanentlyStub).toHaveBeenCalledWith('file', fileItem.uuid);
+      expect(trashItemsStub).not.toHaveBeenCalled();
+    });
+
+    it('When deleteFilesPermanently is true for a folder, then it should delete permanently', async () => {
+      const folderItem = newFolderItem();
+      vi.spyOn(ConfigService.instance, 'readWebdavConfig').mockResolvedValue(
+        getWebdavConfigMock({ deleteFilesPermanently: true }),
+      );
+      const deleteItemPermanentlyStub = vi.spyOn(TrashService.instance, 'deleteItemPermanently').mockResolvedValue();
+      const trashItemsStub = vi.spyOn(TrashService.instance, 'trashItems').mockResolvedValue();
+
+      await WebDavUtils.deleteOrTrashItem(folderItem);
+
+      expect(deleteItemPermanentlyStub).toHaveBeenCalledWith('folder', folderItem.uuid);
+      expect(trashItemsStub).not.toHaveBeenCalled();
+    });
+
+    it('When deleteFilesPermanently is false for a file, then it should trash the file', async () => {
+      const fileItem = newFileItem();
+      vi.spyOn(ConfigService.instance, 'readWebdavConfig').mockResolvedValue(
+        getWebdavConfigMock({ deleteFilesPermanently: false }),
+      );
+      const deleteItemPermanentlyStub = vi.spyOn(TrashService.instance, 'deleteItemPermanently').mockResolvedValue();
+      const trashItemsStub = vi.spyOn(TrashService.instance, 'trashItems').mockResolvedValue();
+
+      await WebDavUtils.deleteOrTrashItem(fileItem);
+
+      expect(trashItemsStub).toHaveBeenCalledWith({
+        items: [{ type: 'file', uuid: fileItem.uuid }],
+      });
+      expect(deleteItemPermanentlyStub).not.toHaveBeenCalled();
+    });
+
+    it('When deleteFilesPermanently is false for a folder, then it should trash the folder', async () => {
+      const folderItem = newFolderItem();
+      vi.spyOn(ConfigService.instance, 'readWebdavConfig').mockResolvedValue(
+        getWebdavConfigMock({ deleteFilesPermanently: false }),
+      );
+      const deleteItemPermanentlyStub = vi.spyOn(TrashService.instance, 'deleteItemPermanently').mockResolvedValue();
+      const trashItemsStub = vi.spyOn(TrashService.instance, 'trashItems').mockResolvedValue();
+
+      await WebDavUtils.deleteOrTrashItem(folderItem);
+
+      expect(trashItemsStub).toHaveBeenCalledWith({
+        items: [{ type: 'folder', uuid: folderItem.uuid }],
+      });
+      expect(deleteItemPermanentlyStub).not.toHaveBeenCalled();
     });
   });
 });
