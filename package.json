@@ -66,7 +66,7 @@
     "winston": "3.19.0"
   },
   "devDependencies": {
-    "@internxt/eslint-config-internxt": "2.0.1",
+    "@internxt/eslint-config-internxt": "2.1.0",
     "@internxt/prettier-config": "internxt/prettier-config#v1.0.2",
     "@openpgp/web-stream-tools": "0.3.0",
     "@types/cli-progress": "3.11.6",
@@ -76,7 +76,7 @@
     "@types/range-parser": "1.2.7",
     "@vitest/coverage-istanbul": "4.1.0",
     "@vitest/spy": "4.1.0",
-    "eslint": "9.39.4",
+    "eslint": "10.0.3",
     "husky": "9.1.7",
     "lint-staged": "16.4.0",
     "nodemon": "3.1.14",
