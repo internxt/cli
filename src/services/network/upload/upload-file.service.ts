@@ -100,19 +100,11 @@ export class UploadFileService {
           const uploadTimer = CLIUtils.timer();
           thumbnailStream = bufferStream;
 
-          fileId = await new Promise<string>((resolve, reject) => {
-            network.uploadFile(
-              fileStream,
-              fileSize,
-              bucket,
-              (err: Error | null, res: string | null) => {
-                if (err) {
-                  return reject(err);
-                }
-                resolve(res as string);
-              },
-              () => {},
-            );
+          fileId = await network.uploadFile({
+            from: fileStream,
+            size: fileSize,
+            bucketId: bucket,
+            progressCallback: () => {},
           });
           timings.networkUpload = uploadTimer.stop();
         }

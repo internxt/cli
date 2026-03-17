@@ -4,6 +4,9 @@ import { DriveFolderService } from '../services/drive/drive-folder.service';
 import { DriveFileService } from '../services/drive/drive-file.service';
 import { DriveFileItem, DriveFolderItem, DriveItem } from '../types/drive.types';
 import { webdavLogger } from './logger.utils';
+import { ConfigService } from '../services/config.service';
+import { TrashService } from '../services/drive/trash.service';
+import { FormatUtils } from './format.utils';
 
 export class WebDavUtils {
   static joinURL(...pathComponents: string[]): string {
@@ -91,5 +94,21 @@ export class WebDavUtils {
       //no op
     }
     return item;
+  }
+
+  static async deleteOrTrashItem(driveItem: DriveItem) {
+    const configs = await ConfigService.instance.readWebdavConfig();
+    const type = FormatUtils.capitalizeFirstLetter(driveItem.itemType);
+    if (configs.deleteFilesPermanently) {
+      webdavLogger.info(`[DELETE] [${driveItem.uuid}] Deleting permanently ${driveItem.itemType}`);
+      await TrashService.instance.deleteItemPermanently(driveItem.itemType, driveItem.uuid);
+      webdavLogger.info(`[DELETE] [${driveItem.uuid}] ${type} deleted permanently successfully`);
+    } else {
+      webdavLogger.info(`[DELETE] [${driveItem.uuid}] Trashing ${driveItem.itemType}`);
+      await TrashService.instance.trashItems({
+        items: [{ type: driveItem.itemType, uuid: driveItem.uuid }],
+      });
+      webdavLogger.info(`[DELETE] [${driveItem.uuid}] ${type} trashed successfully`);
+    }
   }
 }

@@ -32,7 +32,6 @@ describe('Network Facade Service', () => {
   it('When a file is uploaded, then it should call the inxt-js upload functionality', async () => {
     const mockEnvironment = {
       upload: vi.fn(),
-      uploadMultipartFile: vi.fn(),
     };
     const sut = new NetworkFacade(
       getNetworkMock(),
@@ -42,36 +41,16 @@ describe('Network Facade Service', () => {
     const file = path.join(process.cwd(), 'test/fixtures/test-content.fixture.txt');
     const readStream = createReadStream(file);
 
-    const finishedCallback = vi.fn();
     const progressCallback = vi.fn();
 
-    sut.uploadFile(readStream, 100, 'f1858bc9675f9e4f7ab29429', finishedCallback, progressCallback);
+    sut.uploadFile({
+      from: readStream,
+      size: 100,
+      bucketId: 'f1858bc9675f9e4f7ab29429',
+      progressCallback,
+    });
 
     expect(mockEnvironment.upload).toHaveBeenCalledOnce();
-    expect(mockEnvironment.uploadMultipartFile).not.toHaveBeenCalled();
-  });
-
-  it('When a file is uploaded via multipart, then it should call the inxt-js upload multipart', async () => {
-    const mockEnvironment = {
-      upload: vi.fn(),
-      uploadMultipartFile: vi.fn(),
-    };
-
-    const sut = new NetworkFacade(
-      getNetworkMock(),
-      // @ts-expect-error - We only mock the properties we need
-      mockEnvironment,
-    );
-    const file = path.join(process.cwd(), 'test/fixtures/test-content.fixture.txt');
-    const readStream = createReadStream(file);
-
-    const finishedCallback = vi.fn();
-    const progressCallback = vi.fn();
-
-    sut.uploadFile(readStream, 101 * 1024 * 1024, 'f1858bc9675f9e4f7ab29429', finishedCallback, progressCallback);
-
-    expect(mockEnvironment.uploadMultipartFile).toHaveBeenCalledOnce();
-    expect(mockEnvironment.upload).not.toHaveBeenCalled();
   });
 
   it('When a file is downloaded, should write it to a stream', async () => {

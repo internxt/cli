@@ -11,7 +11,6 @@ import { DriveFileService } from '../../../src/services/drive/drive-file.service
 import { AuthService } from '../../../src/services/auth.service';
 import { NetworkFacade } from '../../../src/services/network/network-facade.service';
 import { PUTRequestHandler } from '../../../src/webdav/handlers/PUT.handler';
-import { TrashService } from '../../../src/services/drive/trash.service';
 import { WebDavRequestedResource } from '../../../src/types/webdav.types';
 import { WebDavUtils } from '../../../src/utils/webdav.utils';
 import { newDriveFile, newFolderItem } from '../../fixtures/drive.fixture';
@@ -116,12 +115,7 @@ describe('PUT request handler', () => {
     const getAuthDetailsStub = vi
       .spyOn(AuthService.instance, 'getAuthDetails')
       .mockResolvedValue(UserCredentialsFixture);
-    const uploadStub = vi.spyOn(networkFacade, 'uploadFile').mockImplementation(
-      // @ts-expect-error - We only mock the properties we need
-      (_, __, ___, callback: (err: Error | null, res: string | null) => void) => {
-        return callback(null, 'uploaded-file-id');
-      },
-    );
+    const uploadStub = vi.spyOn(networkFacade, 'uploadFile').mockResolvedValue('uploaded-file-id');
     const createDriveFileStub = vi
       .spyOn(DriveFileService.instance, 'createFile')
       .mockResolvedValue(fileFixture.toItem());
@@ -167,16 +161,11 @@ describe('PUT request handler', () => {
     const getDriveFolderFromResourceStub = vi
       .spyOn(WebDavUtils, 'getDriveFolderFromResource')
       .mockResolvedValue(folderFixture);
-    const deleteDriveFileStub = vi.spyOn(TrashService.instance, 'trashItems').mockResolvedValue();
+    const deleteDriveFileStub = vi.spyOn(WebDavUtils, 'deleteOrTrashItem').mockResolvedValue();
     const getAuthDetailsStub = vi
       .spyOn(AuthService.instance, 'getAuthDetails')
       .mockResolvedValue(UserCredentialsFixture);
-    const uploadStub = vi.spyOn(networkFacade, 'uploadFile').mockImplementation(
-      // @ts-expect-error - We only mock the properties we need
-      (_, __, ___, callback: (err: Error | null, res: string | null) => void) => {
-        return callback(null, 'uploaded-file-id');
-      },
-    );
+    const uploadStub = vi.spyOn(networkFacade, 'uploadFile').mockResolvedValue('uploaded-file-id');
     const createDriveFileStub = vi
       .spyOn(DriveFileService.instance, 'createFile')
       .mockResolvedValue(fileFixture.toItem());
@@ -219,12 +208,7 @@ describe('PUT request handler', () => {
     vi.spyOn(WebDavUtils, 'getDriveItemFromResource').mockResolvedValue(undefined);
     vi.spyOn(WebDavUtils, 'getDriveFolderFromResource').mockResolvedValue(folderFixture);
     vi.spyOn(AuthService.instance, 'getAuthDetails').mockResolvedValue(UserCredentialsFixture);
-    vi.spyOn(networkFacade, 'uploadFile').mockImplementation(
-      // @ts-expect-error - We only mock the properties we need
-      (_, __, ___, callback: (err: Error | null, res: string | null) => void) => {
-        return callback(null, 'uploaded-file-id');
-      },
-    );
+    vi.spyOn(networkFacade, 'uploadFile').mockResolvedValue('uploaded-file-id');
     vi.spyOn(DriveFileService.instance, 'createFile').mockResolvedValue(fileFixture.toItem());
 
     const startTime = Date.now();

@@ -40,19 +40,11 @@ export class ThumbnailService {
     if (thumbnailBuffer) {
       const size = thumbnailBuffer.length;
 
-      const fileId = await new Promise((resolve: (fileId: string) => void, reject) => {
-        networkFacade.uploadFile(
-          Readable.from(thumbnailBuffer),
-          size,
-          userBucket,
-          (err: Error | null, res: string | null) => {
-            if (err) {
-              return reject(err);
-            }
-            resolve(res as string);
-          },
-          () => {},
-        );
+      const fileId = await networkFacade.uploadFile({
+        from: Readable.from(thumbnailBuffer),
+        size: size,
+        bucketId: userBucket,
+        progressCallback: () => {},
       });
 
       const createdThumbnailFile = await DriveFileService.instance.createThumbnail({
