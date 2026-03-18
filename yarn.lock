@@ -1360,10 +1360,10 @@
     eslint-config-prettier "^10.1.8"
     typescript-eslint "^8.57.1"
 
-"@internxt/inxt-js@3.0.1":
-  version "3.0.1"
-  resolved "https://registry.yarnpkg.com/@internxt/inxt-js/-/inxt-js-3.0.1.tgz#bbab24ad37f0a50516b7a14916602169b07c02cc"
-  integrity sha512-kjt/8pLZaLqYnFiqJbPVnGFdqPzPN3vgitlLzFlehakONF5vH7mrxPCcI1Wobl82sQVnhSqPrGadbiIBK7H3gw==
+"@internxt/inxt-js@3.0.2":
+  version "3.0.2"
+  resolved "https://registry.yarnpkg.com/@internxt/inxt-js/-/inxt-js-3.0.2.tgz#c1300d1022abca60c3d6792b06e1f8d23ce3c1b4"
+  integrity sha512-+4UCXK162FS2EfAJGdh7AbcdOMOJFCtLprLuWUJtKVBDs4Mp2T48Nf9OFFfTOF8zclTVeQZYYP6vIHiNddfmCQ==
   dependencies:
     "@internxt/lib" "1.4.1"
     "@internxt/sdk" "1.15.3"
@@ -1391,6 +1391,14 @@
   dependencies:
     axios "1.13.5"
     internxt-crypto "0.0.13"
+
+"@internxt/sdk@1.15.4":
+  version "1.15.4"
+  resolved "https://registry.yarnpkg.com/@internxt/sdk/-/sdk-1.15.4.tgz#34b4e5bdea82d36f50e78d2ffbd82f95d192e02a"
+  integrity sha512-4cC2HhryRhdZ60BqpWeKJZSFfnU6u6nDpun6uXYe98/AfIhW4ERY7Gah8/NqpENYf1Ay0nf62HA1QnRXoCcdUg==
+  dependencies:
+    axios "1.13.6"
+    internxt-crypto "0.0.14"
 
 "@isaacs/cliui@^8.0.2":
   version "8.0.2"
@@ -1459,6 +1467,11 @@
     "@emnapi/core" "^1.7.1"
     "@emnapi/runtime" "^1.7.1"
     "@tybys/wasm-util" "^0.10.1"
+
+"@noble/ciphers@^2.1.1":
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/@noble/ciphers/-/ciphers-2.1.1.tgz#c8c74fcda8c3d1f88797d0ecda24f9fc8b92b052"
+  integrity sha512-bysYuiVfhxNJuldNXlFEitTVdNnYUc+XNJZd7Qm2a5j1vZHgY+fazadNFWFaMK/2vye0JVlxV3gHmC0WDfAOQw==
 
 "@noble/curves@~2.0.0":
   version "2.0.1"
@@ -4789,6 +4802,21 @@ internxt-crypto@0.0.13:
   resolved "https://registry.yarnpkg.com/internxt-crypto/-/internxt-crypto-0.0.13.tgz#90c83828a34667ecf6938ad7c22d94c9f0d9808b"
   integrity sha512-V8Epf4oFZQZwMyIt8mcw7w36M+tryQ9VcfaiKtcruNW/129bawZnPXEeoOfLvAV+9OYlY2ZAwIYP0EtOD2ec6g==
   dependencies:
+    "@noble/hashes" "^2.0.1"
+    "@noble/post-quantum" "^0.5.2"
+    "@scure/bip39" "^2.0.1"
+    flexsearch "^0.8.205"
+    hash-wasm "^4.12.0"
+    husky "^9.1.7"
+    idb "^8.0.3"
+    uuid "^13.0.0"
+
+internxt-crypto@0.0.14:
+  version "0.0.14"
+  resolved "https://registry.yarnpkg.com/internxt-crypto/-/internxt-crypto-0.0.14.tgz#1290b2a70190c23d25b83483de8200d9eafae00f"
+  integrity sha512-gIvqgou0r86kSk6x2t6pxAh9dJiob/sQ1Y3TdGnAF4Qq2RD++4Aq1b6NY2UqfUYV4vPhWsd2BkFS71jAyVrXpA==
+  dependencies:
+    "@noble/ciphers" "^2.1.1"
     "@noble/hashes" "^2.0.1"
     "@noble/post-quantum" "^0.5.2"
     "@scure/bip39" "^2.0.1"
