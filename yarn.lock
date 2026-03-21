@@ -5706,10 +5706,10 @@ obug@^2.1.1:
   resolved "https://registry.yarnpkg.com/obug/-/obug-2.1.1.tgz#2cba74ff241beb77d63055ddf4cd1e9f90b538be"
   integrity sha512-uTqF9MuPraAQ+IsnPf366RG4cP9RtUi7MLO1N3KEc+wb0a6yKpeL0lmk2IB1jY5KHPAlTc6T/JRdC/YqxHNwkQ==
 
-oclif@4.22.92:
-  version "4.22.92"
-  resolved "https://registry.yarnpkg.com/oclif/-/oclif-4.22.92.tgz#b82ba4c1e902adb9a9bf851ed0023eaabef8a7d6"
-  integrity sha512-pjz5noZi8FvsYExsqNS493hWy5zccphMyLQGDJ6xWjSUkgZz4jaj1ZS8nj/QqZzKXrKHC8DXRDiVnqmcw+evBw==
+oclif@4.22.93:
+  version "4.22.93"
+  resolved "https://registry.yarnpkg.com/oclif/-/oclif-4.22.93.tgz#45a95adb76d4d0a29764b9affb5150c2b8df6cb1"
+  integrity sha512-x7FjnZOTuKl4p6KsWFZ2nCH3jQv0EU7+fG+udUHgV+CnXx6xGgCGPfkkDv3jYzjlcW7v1P62f3Ab8hudR0zrnA==
   dependencies:
     "@aws-sdk/client-cloudfront" "3.1009.0"
     "@aws-sdk/client-s3" "3.1009.0"
