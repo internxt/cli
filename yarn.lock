@@ -1392,13 +1392,13 @@
     axios "1.13.5"
     internxt-crypto "0.0.13"
 
-"@internxt/sdk@1.15.4":
-  version "1.15.4"
-  resolved "https://registry.yarnpkg.com/@internxt/sdk/-/sdk-1.15.4.tgz#34b4e5bdea82d36f50e78d2ffbd82f95d192e02a"
-  integrity sha512-4cC2HhryRhdZ60BqpWeKJZSFfnU6u6nDpun6uXYe98/AfIhW4ERY7Gah8/NqpENYf1Ay0nf62HA1QnRXoCcdUg==
+"@internxt/sdk@1.15.7":
+  version "1.15.7"
+  resolved "https://registry.yarnpkg.com/@internxt/sdk/-/sdk-1.15.7.tgz#12c0ad2fb9f9ec80e2d0b9ae37d5543f34e32f9e"
+  integrity sha512-Gwvgs72cpZI7ud9Gs8dk4kizghIBZrVBVPST6wUU6JbzD4b9Sc6HnRHJ3sVO2F9oFkx2u3M3QgcksDnr9Tpk8w==
   dependencies:
     axios "1.13.6"
-    internxt-crypto "0.0.14"
+    internxt-crypto "1.0.2"
 
 "@isaacs/cliui@^8.0.2":
   version "8.0.2"
@@ -1473,7 +1473,7 @@
   resolved "https://registry.yarnpkg.com/@noble/ciphers/-/ciphers-2.1.1.tgz#c8c74fcda8c3d1f88797d0ecda24f9fc8b92b052"
   integrity sha512-bysYuiVfhxNJuldNXlFEitTVdNnYUc+XNJZd7Qm2a5j1vZHgY+fazadNFWFaMK/2vye0JVlxV3gHmC0WDfAOQw==
 
-"@noble/curves@~2.0.0":
+"@noble/curves@^2.0.1", "@noble/curves@~2.0.0":
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/@noble/curves/-/curves-2.0.1.tgz#64ba8bd5e8564a02942655602515646df1cdb3ad"
   integrity sha512-vs1Az2OOTBiP4q0pwjW5aF0xp9n4MxVrmkFBxc6EKZc6ddYx5gaZiAsZoq0uRRXWbi3AT/sBqn05eRPtn1JCPw==
@@ -4840,12 +4840,13 @@ internxt-crypto@0.0.13:
     idb "^8.0.3"
     uuid "^13.0.0"
 
-internxt-crypto@0.0.14:
-  version "0.0.14"
-  resolved "https://registry.yarnpkg.com/internxt-crypto/-/internxt-crypto-0.0.14.tgz#1290b2a70190c23d25b83483de8200d9eafae00f"
-  integrity sha512-gIvqgou0r86kSk6x2t6pxAh9dJiob/sQ1Y3TdGnAF4Qq2RD++4Aq1b6NY2UqfUYV4vPhWsd2BkFS71jAyVrXpA==
+internxt-crypto@1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/internxt-crypto/-/internxt-crypto-1.0.2.tgz#983fe991dfbb00a453e93070bb34049a88a94707"
+  integrity sha512-F9PuXci0eU1wlgDwqEbGR7hVDNS0MX8VNh/W+pdpR4ZsEsjRDBrOD2g1DvViR2woCxPiu1AW9Wwekpw2YVKfnA==
   dependencies:
     "@noble/ciphers" "^2.1.1"
+    "@noble/curves" "^2.0.1"
     "@noble/hashes" "^2.0.1"
     "@noble/post-quantum" "^0.5.2"
     "@scure/bip39" "^2.0.1"
