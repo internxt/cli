@@ -76,7 +76,7 @@
     "@types/range-parser": "1.2.7",
     "@vitest/coverage-istanbul": "4.1.0",
     "@vitest/spy": "4.1.2",
-    "eslint": "10.1.0",
+    "eslint": "10.2.0",
     "husky": "9.1.7",
     "lint-staged": "16.4.0",
     "nodemon": "3.1.14",
