@@ -38,7 +38,7 @@
   "dependencies": {
     "@dashlane/pqc-kem-kyber512-node": "1.0.0",
     "@inquirer/prompts": "8.3.2",
-    "@internxt/inxt-js": "3.0.2",
+    "@internxt/inxt-js": "3.0.4",
     "@internxt/lib": "1.4.1",
     "@internxt/sdk": "1.15.7",
     "@oclif/core": "4.10.4",
