@@ -1802,10 +1802,10 @@
     wordwrap "^1.0.0"
     wrap-ansi "^7.0.0"
 
-"@oclif/plugin-autocomplete@3.2.41":
-  version "3.2.41"
-  resolved "https://registry.yarnpkg.com/@oclif/plugin-autocomplete/-/plugin-autocomplete-3.2.41.tgz#8048d306b6660011217b3dce1b95a5103eb89470"
-  integrity sha512-s8IcxohWtnbYCOA1nC6cUGWFGLBG3MjNWfCBTTa5pUyh4tGsjC5ihLeLCs8WJgGnFkPhVVQ+CfmKOIVmVGYMvA==
+"@oclif/plugin-autocomplete@3.2.45":
+  version "3.2.45"
+  resolved "https://registry.yarnpkg.com/@oclif/plugin-autocomplete/-/plugin-autocomplete-3.2.45.tgz#e799dd57599187065996cea5ae82ab6105b50b16"
+  integrity sha512-ENrUg8rbVCjh40uvi3MC9kGbiUoEf11nyqE59RBzegeeLpRXNo/Zp27L9j1tUmPEqGgfS2/wvHPihNzkpK1FDw==
   dependencies:
     "@oclif/core" "^4"
     ansis "^3.16.0"
