@@ -1851,10 +1851,10 @@
     lodash "^4.17.23"
     registry-auth-token "^5.1.1"
 
-"@openpgp/web-stream-tools@0.3.0":
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/@openpgp/web-stream-tools/-/web-stream-tools-0.3.0.tgz#a90cb856b6c7b5d2ad03a0bbc02e3c0f533bf034"
-  integrity sha512-WGCcIti5uAwySkdny5IJ975Vu6fS45LE9Ce3M7vylIWOZwzL4qFUFclskZ6JU7rQ1zgoze6CQ//QKFc/ML2uqw==
+"@openpgp/web-stream-tools@0.3.1":
+  version "0.3.1"
+  resolved "https://registry.yarnpkg.com/@openpgp/web-stream-tools/-/web-stream-tools-0.3.1.tgz#503b981659563d8c6fab1b0ca4d4fcec6ac37bcd"
+  integrity sha512-EV+VQ4Dr8b+JmlGnc74FLgx7EhLyydOr4j6s6Hp+2scQh6sLQMs2h+1oEYUIslXcQPicWKG5ZQx+/dua0dgPWA==
 
 "@oxc-project/types@=0.127.0":
   version "0.127.0"
