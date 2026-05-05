@@ -5725,7 +5725,7 @@ locate-path@^6.0.0:
   dependencies:
     p-locate "^5.0.0"
 
-lodash@^4.17.14, lodash@^4.17.23:
+lodash@^4.17.14, lodash@^4.17.23, lodash@^4.18.1:
   version "4.18.1"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.18.1.tgz#ff2b66c1f6326d59513de2407bf881439812771c"
   integrity sha512-dMInicTPVE8d1e5otfwmmjlxkZoUpiVLwyeTdUsi/Caj/gfzzblBcCE5sRHV/AsjuCmxWrte2TNGSYuCeCq+0Q==
@@ -6076,10 +6076,10 @@ obug@^2.1.1:
   resolved "https://registry.yarnpkg.com/obug/-/obug-2.1.1.tgz#2cba74ff241beb77d63055ddf4cd1e9f90b538be"
   integrity sha512-uTqF9MuPraAQ+IsnPf366RG4cP9RtUi7MLO1N3KEc+wb0a6yKpeL0lmk2IB1jY5KHPAlTc6T/JRdC/YqxHNwkQ==
 
-oclif@4.22.96:
-  version "4.22.96"
-  resolved "https://registry.yarnpkg.com/oclif/-/oclif-4.22.96.tgz#a5adc7d64947c65df17b31c5f05463d187707efa"
-  integrity sha512-aWM9cMb7Q3KW09qi5Mkw0Hq9sIM7DjVlyMAUl8Q2FP3+e5afBlUU9vmL3EJazVPhqcbg5u18E3z+6kCMk72KYw==
+oclif@4.23.0:
+  version "4.23.0"
+  resolved "https://registry.yarnpkg.com/oclif/-/oclif-4.23.0.tgz#217af04e05bdc26e4bd856597fa342983775329a"
+  integrity sha512-0Rz8YsJx6NQORMgyDeDr6i0OlJa6h4oLXBht9iRZhn/YI/by/ONKgcJIPXyTgeLK21JmhbFqJn6Y1AME0EH1Dw==
   dependencies:
     "@aws-sdk/client-cloudfront" "3.1009.0"
     "@aws-sdk/client-s3" "3.1014.0"
@@ -6099,7 +6099,7 @@ oclif@4.22.96:
     fs-extra "^8.1"
     github-slugger "^2"
     got "^13"
-    lodash "^4.17.23"
+    lodash "^4.18.1"
     normalize-package-data "^6"
     semver "^7.7.4"
     sort-package-json "^2.15.1"
