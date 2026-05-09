@@ -62,7 +62,7 @@
     "range-parser": "1.2.1",
     "selfsigned": "5.5.0",
     "tty-table": "5.0.0",
-    "typeorm": "0.3.28",
+    "typeorm": "0.3.29",
     "winston": "3.19.0"
   },
   "devDependencies": {
