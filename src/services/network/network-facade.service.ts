@@ -9,7 +9,6 @@ import { CryptoService } from '../crypto.service';
 import { DownloadService } from './download.service';
 import { ValidationService } from '../validation.service';
 import { RangeOptions } from '../../utils/network.utils';
-import { EncryptProgressCallback } from '@internxt/inxt-js/build/lib/core';
 
 const FORTY_GIGABYTES = 40 * 1024 * 1024 * 1024;
 
@@ -129,14 +128,12 @@ export class NetworkFacade {
     bucketId,
     progressCallback,
     abortSignal,
-    encryptProgressCallback,
   }: {
     from: Readable;
     size: number;
     bucketId: string;
     progressCallback: (progress: number) => void;
     abortSignal?: AbortSignal;
-    encryptProgressCallback?: EncryptProgressCallback;
   }): Promise<string> => {
     if (size > FORTY_GIGABYTES) {
       throw new Error('File is too big (more than 40 GB)');
@@ -147,7 +144,6 @@ export class NetworkFacade {
       fileSize: size,
       progressCallback,
       abortSignal,
-      encryptProgressCallback,
     });
   };
 }
