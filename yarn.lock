@@ -3526,7 +3526,7 @@ dayjs@1.11.15:
   resolved "https://registry.yarnpkg.com/dayjs/-/dayjs-1.11.15.tgz#fd7fd2db6fc92f08ffe4adc306756d45db00ada3"
   integrity sha512-MC+DfnSWiM9APs7fpiurHGCoeIx0Gdl6QZBy+5lu8MbYKN5FZEXqOgrundfibdfhGZ15o9hzmZ2xJjZnbvgKXQ==
 
-dayjs@1.11.20, dayjs@^1.11.19:
+dayjs@1.11.20, dayjs@^1.11.20:
   version "1.11.20"
   resolved "https://registry.yarnpkg.com/dayjs/-/dayjs-1.11.20.tgz#88d919fd639dc991415da5f4cb6f1b6650811938"
   integrity sha512-YbwwqR/uYpeoP4pu043q+LTDLFBLApUP6VxRihdfNTqu4ubqMlGDLd6ErXhEgsyvY0K6nCs7nggYumAN+9uEuQ==
@@ -3557,7 +3557,7 @@ decompress-response@^6.0.0:
   dependencies:
     mimic-response "^3.1.0"
 
-dedent@^1.7.0:
+dedent@^1.7.2:
   version "1.7.2"
   resolved "https://registry.yarnpkg.com/dedent/-/dedent-1.7.2.tgz#34e2264ab538301e27cf7b07bf2369c19baa8dd9"
   integrity sha512-WzMx3mW98SN+zn3hgemf4OzdmyNhhhKz5Ay0pUfQiMQ3e1g+xmTJWp/pKdwKVXhdSkAEGIIzqeuWrL3mV/AXbA==
@@ -6961,25 +6961,25 @@ typed-array-length@^1.0.7:
     possible-typed-array-names "^1.0.0"
     reflect.getprototypeof "^1.0.6"
 
-typeorm@0.3.28:
-  version "0.3.28"
-  resolved "https://registry.yarnpkg.com/typeorm/-/typeorm-0.3.28.tgz#a3aabed8ef64287ee68da278d8ffa1d3c6c6b8ca"
-  integrity sha512-6GH7wXhtfq2D33ZuRXYwIsl/qM5685WZcODZb7noOOcRMteM9KF2x2ap3H0EBjnSV0VO4gNAfJT5Ukp0PkOlvg==
+typeorm@0.3.29:
+  version "0.3.29"
+  resolved "https://registry.yarnpkg.com/typeorm/-/typeorm-0.3.29.tgz#811e27ee2e74bc269866d57ddab28740bfa85c8f"
+  integrity sha512-wwPEX/df4l72gCmOsrs0otJZYLGA9lLQkUZCkukbsymEycV4zXv2KM7wU7v2r8L01TaCgY9ApSSqHQWBOUhEoQ==
   dependencies:
     "@sqltools/formatter" "^1.2.5"
     ansis "^4.2.0"
     app-root-path "^3.1.0"
     buffer "^6.0.3"
-    dayjs "^1.11.19"
+    dayjs "^1.11.20"
     debug "^4.4.3"
-    dedent "^1.7.0"
+    dedent "^1.7.2"
     dotenv "^16.6.1"
     glob "^10.5.0"
     reflect-metadata "^0.2.2"
     sha.js "^2.4.12"
     sql-highlight "^6.1.0"
     tslib "^2.8.1"
-    uuid "^11.1.0"
+    uuid "^11.1.1"
     yargs "^17.7.2"
 
 typescript-eslint@^8.57.1:
@@ -7071,7 +7071,7 @@ util-deprecate@^1.0.1:
   resolved "https://registry.yarnpkg.com/util-deprecate/-/util-deprecate-1.0.2.tgz#450d4dc9fa70de732762fbd2d4a28981419a0ccf"
   integrity sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==
 
-uuid@^11.1.0:
+uuid@^11.1.1:
   version "11.1.1"
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-11.1.1.tgz#f6d81d2e1c65d00762e5e29b16c5d2d995e208ad"
   integrity sha512-vIYxrBCC/N/K+Js3qSN88go7kIfNPssr/hHCesKCQNAjmgvYS2oqr69kIufEG+O4+PfezOH4EbIeHCfFov8ZgQ==
