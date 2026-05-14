@@ -180,42 +180,4 @@ describe('PUT request handler', () => {
     expect(createDriveFileStub).toHaveBeenCalledOnce();
     expect(deleteDriveFileStub).toHaveBeenCalledOnce();
   });
-
-  it('should wait 500ms for backend propagation before returning 201 when a file is uploaded', async () => {
-    const requestedFileResource: WebDavRequestedResource = getRequestedFileResource();
-    const requestedParentFolderResource: WebDavRequestedResource = getRequestedFolderResource({
-      parentFolder: '/',
-      folderName: '',
-    });
-    const folderFixture = newFolderItem({ name: requestedParentFolderResource.name });
-    const fileFixture = newDriveFile({ folderUuid: folderFixture.uuid });
-
-    const request = createWebDavRequestFixture({
-      method: 'PUT',
-      url: requestedFileResource.url,
-      headers: {
-        'content-length': '100',
-      },
-    });
-
-    const response = createWebDavResponseFixture({
-      status: vi.fn().mockReturnValue({ send: vi.fn() }),
-    });
-
-    vi.spyOn(WebDavUtils, 'getRequestedResource')
-      .mockResolvedValueOnce(requestedFileResource)
-      .mockResolvedValueOnce(requestedParentFolderResource);
-    vi.spyOn(WebDavUtils, 'getDriveItemFromResource').mockResolvedValue(undefined);
-    vi.spyOn(WebDavUtils, 'getDriveFolderFromResource').mockResolvedValue(folderFixture);
-    vi.spyOn(AuthService.instance, 'getAuthDetails').mockResolvedValue(UserCredentialsFixture);
-    vi.spyOn(networkFacade, 'uploadFile').mockResolvedValue('uploaded-file-id');
-    vi.spyOn(DriveFileService.instance, 'createFile').mockResolvedValue(fileFixture.toItem());
-
-    const startTime = Date.now();
-    await sut.handle(request, response);
-    const endTime = Date.now();
-
-    expect(response.status).toHaveBeenCalledWith(201);
-    expect(endTime - startTime).toBeGreaterThanOrEqual(500);
-  });
 });

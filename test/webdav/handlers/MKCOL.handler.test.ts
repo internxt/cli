@@ -22,6 +22,37 @@ describe('MKCOL request handler', () => {
     vi.spyOn(AuthService.instance, 'getAuthDetails').mockResolvedValue(UserCredentialsFixture);
   });
 
+  it('should wait 500ms for backend propagation before returning 201 when a folder is created', async () => {
+    const requestedFolderResource: WebDavRequestedResource = getRequestedFolderResource({
+      parentFolder: '/test',
+      folderName: 'FolderA',
+    });
+    const request = createWebDavRequestFixture({
+      method: 'MKCOL',
+      url: requestedFolderResource.url,
+      user: UserSettingsFixture,
+    });
+    const response = createWebDavResponseFixture({
+      status: vi.fn().mockReturnValue({ send: vi.fn() }),
+    });
+
+    const parentFolder = newFolderItem({ name: 'test', uuid: 'parent-uuid' });
+
+    vi.spyOn(WebDavUtils, 'getRequestedResource').mockResolvedValue(requestedFolderResource);
+    vi.spyOn(WebDavFolderService.instance, 'getDriveFolderItemFromPath').mockResolvedValue(parentFolder);
+    vi.spyOn(WebDavUtils, 'getDriveFolderFromResource').mockResolvedValue(undefined);
+    vi.spyOn(WebDavFolderService.instance, 'createFolder').mockResolvedValue(
+      newFolderItem({ name: 'FolderA', uuid: 'new-folder-uuid' }),
+    );
+
+    const startTime = Date.now();
+    await sut.handle(request, response);
+    const endTime = Date.now();
+
+    expect(response.status).toHaveBeenCalledWith(201);
+    expect(endTime - startTime).toBeGreaterThanOrEqual(500);
+  });
+
   it('When a WebDav client sends a MKCOL request, it should reply with a 201 if success', async () => {
     const requestedFolderResource: WebDavRequestedResource = getRequestedFolderResource({
       parentFolder: '/test',

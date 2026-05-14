@@ -10,7 +10,6 @@ import { CLIUtils } from '../../utils/cli.utils';
 import { BufferStream } from '../../utils/stream.utils';
 import { Readable } from 'node:stream';
 import { WebDavFolderService } from '../../services/webdav/webdav-folder.service';
-import { AsyncUtils } from '../../utils/async.utils';
 import { ThumbnailUtils } from '../../utils/thumbnail.utils';
 import { ThumbnailService } from '../../services/thumbnail.service';
 
@@ -133,17 +132,13 @@ export class PUTRequestHandler implements WebDavMethodHandler {
     const totalTime = Object.values(timings).reduce((sum, time) => sum + time, 0);
     const throughputMBps = CLIUtils.calculateThroughputMBps(contentLength, timings.networkUpload);
 
-    webdavLogger.info(`[PUT] ✅ File uploaded in ${CLIUtils.formatDuration(totalTime)} to Internxt Drive`);
-
     webdavLogger.info(
-      '[PUT] Timing breakdown:\n' +
+      `[PUT] ✅ File uploaded in ${CLIUtils.formatDuration(totalTime)} to Internxt Drive\n` +
+        '[PUT] Timing breakdown:\n' +
         `Network upload: ${CLIUtils.formatDuration(timings.networkUpload)} (${throughputMBps.toFixed(2)} MB/s)\n` +
         `Drive upload: ${CLIUtils.formatDuration(timings.driveUpload)}\n` +
         `Thumbnail: ${CLIUtils.formatDuration(timings.thumbnailUpload)}\n`,
     );
-
-    // Wait for backend search index to propagate (same as folder creation delay in PB-1446)
-    await AsyncUtils.sleep(500);
 
     webdavLogger.info(
       `[PUT] [RESPONSE-201] ${resource.url} - Returning 201 Created after ${CLIUtils.formatDuration(totalTime)}`,
