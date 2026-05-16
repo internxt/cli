@@ -1535,10 +1535,10 @@
     wordwrap "^1.0.0"
     wrap-ansi "^7.0.0"
 
-"@oclif/plugin-autocomplete@3.2.47":
-  version "3.2.47"
-  resolved "https://registry.yarnpkg.com/@oclif/plugin-autocomplete/-/plugin-autocomplete-3.2.47.tgz#a89f901505825880c8c0c387aa305dc20f492f3c"
-  integrity sha512-Rm8xvKj18T4MBbFdd5HLCQNqojYOcOvwtZxWZ7FE8mPFMjPgj1WKDHeDm8RyWGS3PxV6mdRPUKE5DXsZK9nPoA==
+"@oclif/plugin-autocomplete@3.2.49":
+  version "3.2.49"
+  resolved "https://registry.yarnpkg.com/@oclif/plugin-autocomplete/-/plugin-autocomplete-3.2.49.tgz#f9c2a5135b20fbeeef150244f1cc56ad1ea5716d"
+  integrity sha512-+rrAZ468bW/B9uVrn6sEnFYepy3M1N/BWht8mHzhFIFCIduPSoE+8MweROxZLOGBZrXGWt0iavuPQmy0eaXRfQ==
   dependencies:
     "@oclif/core" "^4"
     ansis "^3.16.0"
