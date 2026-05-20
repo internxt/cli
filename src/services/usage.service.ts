@@ -16,4 +16,10 @@ export class UsageService {
     const spaceLimit = await storageClient.spaceLimitV2();
     return spaceLimit.maxSpaceBytes;
   };
+
+  public fetchLimits = async () => {
+    const storageClient = SdkManager.instance.getStorage();
+    const limits = await storageClient.getFileVersionLimits();
+    return limits;
+  };
 }

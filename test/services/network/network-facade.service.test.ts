@@ -10,6 +10,7 @@ import { fail } from 'node:assert';
 import { Environment } from '@internxt/inxt-js';
 import { ConfigService } from '../../../src/services/config.service';
 import { UserFixture } from '../../fixtures/auth.fixture';
+import { UsageService } from '../../../src/services/usage.service';
 
 describe('Network Facade Service', () => {
   const getNetworkMock = () => {
@@ -29,7 +30,7 @@ describe('Network Facade Service', () => {
     });
   };
 
-  it('When a file is uploaded, then it should call the inxt-js upload functionality', async () => {
+  it('Should call the inxt-js upload functionality when a file is uploaded', async () => {
     const mockEnvironment = {
       upload: vi.fn(),
     };
@@ -43,7 +44,12 @@ describe('Network Facade Service', () => {
 
     const progressCallback = vi.fn();
 
-    sut.uploadFile({
+    vi.spyOn(UsageService.instance, 'fetchLimits').mockResolvedValue({
+      maxUploadFileSize: null,
+      versioning: { enabled: false, maxFileSize: 0, retentionDays: 0, maxVersions: 0 },
+    });
+
+    await sut.uploadFile({
       from: readStream,
       size: 100,
       bucketId: 'f1858bc9675f9e4f7ab29429',
@@ -53,7 +59,117 @@ describe('Network Facade Service', () => {
     expect(mockEnvironment.upload).toHaveBeenCalledOnce();
   });
 
-  it('When a file is downloaded, should write it to a stream', async () => {
+  it('Should throw an error when a file exceeds maxUploadFileSize limit', async () => {
+    const mockEnvironment = {
+      upload: vi.fn(),
+    };
+    const sut = new NetworkFacade(
+      getNetworkMock(),
+      // @ts-expect-error - We only mock the properties we need
+      mockEnvironment,
+    );
+    const readStream = createReadStream(path.join(process.cwd(), 'test/fixtures/test-content.fixture.txt'));
+
+    vi.spyOn(UsageService.instance, 'fetchLimits').mockResolvedValue({
+      maxUploadFileSize: 1024 * 1024,
+      versioning: { enabled: false, maxFileSize: 0, retentionDays: 0, maxVersions: 0 },
+    });
+
+    await expect(() =>
+      sut.uploadFile({
+        from: readStream,
+        size: 2 * 1024 * 1024,
+        bucketId: 'bucket-id',
+        progressCallback: vi.fn(),
+      }),
+    ).rejects.toThrow('File is too big (2 MB exceeds account upload limit of 1 MB)');
+
+    expect(mockEnvironment.upload).not.toHaveBeenCalled();
+  });
+
+  it('Should throw an error when a file exceeds 40 GB', async () => {
+    const mockEnvironment = {
+      upload: vi.fn(),
+    };
+    const sut = new NetworkFacade(
+      getNetworkMock(),
+      // @ts-expect-error - We only mock the properties we need
+      mockEnvironment,
+    );
+    const readStream = createReadStream(path.join(process.cwd(), 'test/fixtures/test-content.fixture.txt'));
+
+    vi.spyOn(UsageService.instance, 'fetchLimits').mockResolvedValue({
+      maxUploadFileSize: null,
+      versioning: { enabled: false, maxFileSize: 0, retentionDays: 0, maxVersions: 0 },
+    });
+
+    await expect(() =>
+      sut.uploadFile({
+        from: readStream,
+        size: 41 * 1024 * 1024 * 1024,
+        bucketId: 'bucket-id',
+        progressCallback: vi.fn(),
+      }),
+    ).rejects.toThrow('File is too big (more than 40 GB)');
+
+    expect(mockEnvironment.upload).not.toHaveBeenCalled();
+  });
+
+  it('Should enforce API limit over 40 GB hard cap when maxUploadFileSize is smaller', async () => {
+    const mockEnvironment = {
+      upload: vi.fn(),
+    };
+    const sut = new NetworkFacade(
+      getNetworkMock(),
+      // @ts-expect-error - We only mock the properties we need
+      mockEnvironment,
+    );
+    const readStream = createReadStream(path.join(process.cwd(), 'test/fixtures/test-content.fixture.txt'));
+
+    vi.spyOn(UsageService.instance, 'fetchLimits').mockResolvedValue({
+      maxUploadFileSize: 1024 * 1024 * 1024,
+      versioning: { enabled: false, maxFileSize: 0, retentionDays: 0, maxVersions: 0 },
+    });
+
+    await expect(() =>
+      sut.uploadFile({
+        from: readStream,
+        size: 5 * 1024 * 1024 * 1024,
+        bucketId: 'bucket-id',
+        progressCallback: vi.fn(),
+      }),
+    ).rejects.toThrow('5 GB exceeds account upload limit of 1 GB');
+
+    expect(mockEnvironment.upload).not.toHaveBeenCalled();
+  });
+
+  it('Should proceed with upload when file size is within maxUploadFileSize limit', async () => {
+    const mockEnvironment = {
+      upload: vi.fn(),
+    };
+    const sut = new NetworkFacade(
+      getNetworkMock(),
+      // @ts-expect-error - We only mock the properties we need
+      mockEnvironment,
+    );
+    const readStream = createReadStream(path.join(process.cwd(), 'test/fixtures/test-content.fixture.txt'));
+
+    vi.spyOn(UsageService.instance, 'fetchLimits').mockResolvedValue({
+      maxUploadFileSize: 100 * 1024 * 1024,
+      versioning: { enabled: false, maxFileSize: 0, retentionDays: 0, maxVersions: 0 },
+    });
+
+    await sut.uploadFile({
+      from: readStream,
+      size: 1024,
+      bucketId: 'bucket-id',
+      progressCallback: vi.fn(),
+    });
+
+    expect(mockEnvironment.upload).toHaveBeenCalledOnce();
+  });
+
+  it('Should write a downloaded file to a stream', async () => {
     const encryptedContent = Buffer.from('b6ccfa381c150f3a4b65245bffa4d84087', 'hex');
     const bucket = 'cd8abd7e8b13081660b58dbe';
     const readableContent = new ReadableStream<Uint8Array>({
@@ -105,7 +221,7 @@ describe('Network Facade Service', () => {
     expect(fileContent.toString('utf-8')).to.be.equal('encrypted-content');
   });
 
-  it('When a file download is aborted, should abort the download', async () => {
+  it('Should abort the download when requested', async () => {
     const encryptedContent = Buffer.from('b6ccfa381c150f3a4b65245bffa4d84087', 'hex');
     const bucket = 'cd8abd7e8b13081660b58dbe';
     const readableContent = new ReadableStream<Uint8Array>({
@@ -154,7 +270,7 @@ describe('Network Facade Service', () => {
     }
   });
 
-  it('When a file is downloaded, should report progress', async () => {
+  it('Should report download progress when a file is downloaded', async () => {
     const encryptedContent = Buffer.from('b6ccfa381c150f3a4b65245bffa4d84087', 'hex');
     const bucket = 'cd8abd7e8b13081660b58dbe';
 

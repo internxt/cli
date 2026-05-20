@@ -10,6 +10,8 @@ import { CryptoService } from '../crypto.service';
 import { DownloadService } from './download.service';
 import { ValidationService } from '../validation.service';
 import { RangeOptions } from '../../utils/network.utils';
+import { UsageService } from '../usage.service';
+import { FormatUtils } from '../../utils/format.utils';
 
 const FORTY_GIGABYTES = 40 * 1024 * 1024 * 1024;
 
@@ -123,7 +125,7 @@ export class NetworkFacade {
    * @param encryptProgressCallback A callback to update the encryption progress
    * @returns A promise to execute the upload
    */
-  public uploadFile = ({
+  public uploadFile = async ({
     from,
     size,
     bucketId,
@@ -136,6 +138,13 @@ export class NetworkFacade {
     progressCallback: (progress: number) => void;
     abortSignal?: AbortSignal;
   }): Promise<string> => {
+    const limits = await UsageService.instance.fetchLimits();
+    if (limits?.maxUploadFileSize && size > limits.maxUploadFileSize) {
+      const formattedSize = FormatUtils.humanFileSize(size);
+      const formattedLimit = FormatUtils.humanFileSize(limits.maxUploadFileSize);
+      throw new Error(`File is too big (${formattedSize} exceeds account upload limit of ${formattedLimit})`);
+    }
+
     if (size > FORTY_GIGABYTES) {
       throw new Error('File is too big (more than 40 GB)');
     }
