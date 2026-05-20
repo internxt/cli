@@ -19,7 +19,7 @@ describe('Format utils', () => {
       },
       {
         value: value * Math.pow(1024, 1),
-        expected: value + ' kB',
+        expected: value + ' KB',
       },
       {
         value: value * Math.pow(1024, 2),
@@ -32,6 +32,22 @@ describe('Format utils', () => {
       {
         value: value * Math.pow(1024, 4),
         expected: value + ' TB',
+      },
+      {
+        value: value * Math.pow(1024, 5),
+        expected: value + ' PB',
+      },
+      {
+        value: value * Math.pow(1024, 6),
+        expected: value + ' EB',
+      },
+      {
+        value: value * Math.pow(1024, 7),
+        expected: value + ' ZB',
+      },
+      {
+        value: value * Math.pow(1024, 8),
+        expected: value + ' YB',
       },
     ];
     expectedSizes.forEach((expectedSize) => {
