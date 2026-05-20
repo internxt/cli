@@ -1,4 +1,4 @@
-const ONE_HOUR = 60 * 60 * 1000;
+const FIFTEEN_MINUTES = 15 * 60 * 1000;
 
 interface CacheEntry<T> {
   data: T;
@@ -9,7 +9,7 @@ interface CacheEntry<T> {
 export class CacheService {
   public static readonly instance: CacheService = new CacheService();
   private readonly store = new Map<string, CacheEntry<unknown>>();
-  private readonly defaultTtl = ONE_HOUR;
+  private readonly defaultTtl = FIFTEEN_MINUTES;
 
   public get = <T>(key: string): T | null => {
     const entry = this.store.get(key);
