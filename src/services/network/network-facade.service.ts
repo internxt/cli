@@ -2,6 +2,7 @@ import { Network } from '@internxt/sdk';
 import * as NetworkDownload from '@internxt/sdk/dist/network/download';
 import { DecryptFileFunction, DownloadFileFunction } from '@internxt/sdk/dist/network';
 import { Environment } from '@internxt/inxt-js';
+import { GenerateFileKey } from '@internxt/inxt-js/build/lib/utils/crypto';
 import { randomBytes } from 'node:crypto';
 import { Readable } from 'node:stream';
 import { DownloadOptions, DownloadProgressCallback } from '../../types/network.types';
@@ -25,7 +26,7 @@ export class NetworkFacade {
         return ValidationService.instance.validateMnemonic(mnemonic);
       },
       generateFileKey: (mnemonic, bucketId, index) => {
-        return Environment.utils.generateFileKey(mnemonic, bucketId, index as Buffer);
+        return GenerateFileKey(mnemonic, bucketId, index as Buffer);
       },
       randomBytes: randomBytes,
     };
