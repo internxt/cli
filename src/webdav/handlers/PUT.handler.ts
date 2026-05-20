@@ -12,6 +12,7 @@ import { Readable } from 'node:stream';
 import { WebDavFolderService } from '../../services/webdav/webdav-folder.service';
 import { ThumbnailUtils } from '../../utils/thumbnail.utils';
 import { ThumbnailService } from '../../services/thumbnail.service';
+import { FormatUtils } from '../../utils/format.utils';
 
 export class PUTRequestHandler implements WebDavMethodHandler {
   handle = async (req: Request, res: Response) => {
@@ -30,7 +31,7 @@ export class PUTRequestHandler implements WebDavMethodHandler {
     }
     webdavLogger.info(`[PUT] Request received for file at ${resource.url}`);
     webdavLogger.info(
-      `[PUT] Uploading '${resource.name}' (${CLIUtils.formatBytesToString(contentLength)}) to '${resource.parentPath}'`,
+      `[PUT] Uploading '${resource.name}' (${FormatUtils.humanFileSize(contentLength)}) to '${resource.parentPath}'`,
     );
 
     const timings = {

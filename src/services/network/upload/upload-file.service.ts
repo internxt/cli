@@ -15,6 +15,7 @@ import { BufferStream } from '../../../utils/stream.utils';
 import { DriveFileItem } from '../../../types/drive.types';
 import { CLIUtils } from '../../../utils/cli.utils';
 import { ThumbnailService } from '../../thumbnail.service';
+import { FormatUtils } from '../../../utils/format.utils';
 
 export class UploadFileService {
   static readonly instance = new UploadFileService();
@@ -139,7 +140,7 @@ export class UploadFileService {
         if (debugMode) {
           const totalTime = Object.values(timings).reduce((sum, time) => sum + time, 0);
           const throughputMBps = CLIUtils.calculateThroughputMBps(stats.size, timings.networkUpload);
-          CLIUtils.success(reporter, `Uploaded '${file.name}' (${CLIUtils.formatBytesToString(stats.size)})`);
+          CLIUtils.success(reporter, `Uploaded '${file.name}' (${FormatUtils.humanFileSize(stats.size)})`);
           CLIUtils.log(
             reporter,
             'Timing breakdown:\n' +
