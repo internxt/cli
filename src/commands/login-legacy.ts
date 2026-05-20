@@ -6,6 +6,7 @@ import { ValidationService } from '../services/validation.service';
 import { CLIUtils } from '../utils/cli.utils';
 import { SdkManager } from '../services/sdk-manager.service';
 import * as OTPAuth from 'otpauth';
+import { CacheService } from '../services/cache.service';
 
 export default class LoginLegacy extends Command {
   static readonly args = {};
@@ -77,7 +78,10 @@ export default class LoginLegacy extends Command {
 
     SdkManager.init({ token: loginCredentials.token });
 
+    CacheService.instance.clearCaches();
+
     await ConfigService.instance.saveUser(loginCredentials);
+
     const message = `Succesfully logged in to: ${loginCredentials.user.email}`;
     CLIUtils.success(this.log.bind(this), message);
     return {

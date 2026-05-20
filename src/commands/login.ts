@@ -1,4 +1,5 @@
 import { Command, Flags } from '@oclif/core';
+import { CacheService } from '../services/cache.service';
 import { ConfigService } from '../services/config.service';
 import { CLIUtils } from '../utils/cli.utils';
 import { SdkManager } from '../services/sdk-manager.service';
@@ -48,7 +49,10 @@ export default class Login extends Command {
 
     SdkManager.init({ token: loginCredentials.token });
 
+    CacheService.instance.clearCaches();
+
     await ConfigService.instance.saveUser(loginCredentials);
+
     const message = `Succesfully logged in to: ${loginCredentials.user.email}`;
     CLIUtils.success(this.log.bind(this), message);
     return {
