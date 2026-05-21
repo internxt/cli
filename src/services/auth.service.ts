@@ -1,5 +1,6 @@
 import { LoginDetails } from '@internxt/sdk';
 import { SdkManager } from './sdk-manager.service';
+import { CacheService } from './cache.service';
 import { CryptoService } from './crypto.service';
 import { ConfigService } from './config.service';
 import {
@@ -217,6 +218,8 @@ export class AuthService {
    * @returns A promise that resolves when the logout process is complete.
    */
   public logout = async (): Promise<void> => {
+    CacheService.instance.clearCaches();
+
     try {
       const user = await ConfigService.instance.readUser();
       if (!user?.token) {

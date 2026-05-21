@@ -96,12 +96,13 @@ export class WebDavUtils {
     return item;
   }
 
-  static async deleteOrTrashItem(driveItem: DriveItem) {
+  static async deleteOrTrashItem<T extends { itemType: 'file' | 'folder'; uuid: string }>(driveItem: T) {
     const configs = await ConfigService.instance.readWebdavConfig();
     const type = FormatUtils.capitalizeFirstLetter(driveItem.itemType);
     if (configs.deleteFilesPermanently) {
       webdavLogger.info(`[DELETE] [${driveItem.uuid}] Deleting permanently ${driveItem.itemType}`);
       await TrashService.instance.deleteItemPermanently(driveItem.itemType, driveItem.uuid);
+
       webdavLogger.info(`[DELETE] [${driveItem.uuid}] ${type} deleted permanently successfully`);
     } else {
       webdavLogger.info(`[DELETE] [${driveItem.uuid}] Trashing ${driveItem.itemType}`);

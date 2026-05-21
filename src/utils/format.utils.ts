@@ -5,8 +5,9 @@ import { UsageService } from '../services/usage.service';
 dayjs.extend(utc);
 export class FormatUtils {
   static readonly humanFileSize = (size: number) => {
-    const i = size == 0 ? 0 : Math.floor(Math.log(size) / Math.log(1024));
-    return Number((size / Math.pow(1024, i)).toFixed(2)) * 1 + ' ' + ['B', 'kB', 'MB', 'GB', 'TB'][i];
+    const units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+    const unitIndex = size === 0 ? 0 : Math.min(Math.floor(Math.log(size) / Math.log(1024)), units.length - 1);
+    return Number((size / Math.pow(1024, unitIndex)).toFixed(2)) + ' ' + units[unitIndex];
   };
 
   static readonly formatDate = (date: string | Date) => {

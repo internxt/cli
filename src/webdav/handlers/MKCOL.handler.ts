@@ -5,6 +5,7 @@ import { webdavLogger } from '../../utils/logger.utils';
 import { XMLUtils } from '../../utils/xml.utils';
 import { WebDavFolderService } from '../../services/webdav/webdav-folder.service';
 import { MethodNotAllowed } from '../../utils/errors.utils';
+import { AsyncUtils } from '../../utils/async.utils';
 
 export class MKCOLRequestHandler implements WebDavMethodHandler {
   handle = async (req: Request, res: Response) => {
@@ -31,6 +32,9 @@ export class MKCOLRequestHandler implements WebDavMethodHandler {
     });
 
     webdavLogger.info(`[MKCOL] ✅ Folder created with UUID ${newFolder.uuid}`);
+
+    // This aims to prevent this issue: https://inxt.atlassian.net/browse/PB-1446
+    await AsyncUtils.sleep(500);
 
     res.status(201).send(XMLUtils.toWebDavXML({}, {}));
   };

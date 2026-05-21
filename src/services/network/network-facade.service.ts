@@ -2,6 +2,7 @@ import { Network } from '@internxt/sdk';
 import * as NetworkDownload from '@internxt/sdk/dist/network/download';
 import { DecryptFileFunction, DownloadFileFunction } from '@internxt/sdk/dist/network';
 import { Environment } from '@internxt/inxt-js';
+import { GenerateFileKey } from '@internxt/inxt-js/build/lib/utils/crypto';
 import { randomBytes } from 'node:crypto';
 import { Readable } from 'node:stream';
 import { DownloadOptions, DownloadProgressCallback } from '../../types/network.types';
@@ -9,7 +10,8 @@ import { CryptoService } from '../crypto.service';
 import { DownloadService } from './download.service';
 import { ValidationService } from '../validation.service';
 import { RangeOptions } from '../../utils/network.utils';
-import { EncryptProgressCallback } from '@internxt/inxt-js/build/lib/core';
+import { UsageService } from '../usage.service';
+import { FormatUtils } from '../../utils/format.utils';
 
 const FORTY_GIGABYTES = 40 * 1024 * 1024 * 1024;
 
@@ -26,7 +28,7 @@ export class NetworkFacade {
         return ValidationService.instance.validateMnemonic(mnemonic);
       },
       generateFileKey: (mnemonic, bucketId, index) => {
-        return Environment.utils.generateFileKey(mnemonic, bucketId, index as Buffer);
+        return GenerateFileKey(mnemonic, bucketId, index as Buffer);
       },
       randomBytes: randomBytes,
     };
@@ -123,21 +125,26 @@ export class NetworkFacade {
    * @param encryptProgressCallback A callback to update the encryption progress
    * @returns A promise to execute the upload
    */
-  public uploadFile = ({
+  public uploadFile = async ({
     from,
     size,
     bucketId,
     progressCallback,
     abortSignal,
-    encryptProgressCallback,
   }: {
     from: Readable;
     size: number;
     bucketId: string;
     progressCallback: (progress: number) => void;
     abortSignal?: AbortSignal;
-    encryptProgressCallback?: EncryptProgressCallback;
   }): Promise<string> => {
+    const limits = await UsageService.instance.fetchLimits();
+    if (limits?.maxUploadFileSize && size > limits.maxUploadFileSize) {
+      const formattedSize = FormatUtils.humanFileSize(size);
+      const formattedLimit = FormatUtils.humanFileSize(limits.maxUploadFileSize);
+      throw new Error(`File is too big (${formattedSize} exceeds account upload limit of ${formattedLimit})`);
+    }
+
     if (size > FORTY_GIGABYTES) {
       throw new Error('File is too big (more than 40 GB)');
     }
@@ -147,7 +154,6 @@ export class NetworkFacade {
       fileSize: size,
       progressCallback,
       abortSignal,
-      encryptProgressCallback,
     });
   };
 }

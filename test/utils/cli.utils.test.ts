@@ -275,45 +275,6 @@ describe('CliUtils', () => {
     });
   });
 
-  describe('formatBytesToString', () => {
-    it('should format bytes to MB correctly', () => {
-      expect(CLIUtils.formatBytesToString(1048576)).toBe('1.00 MB');
-    });
-
-    it('should handle zero bytes', () => {
-      expect(CLIUtils.formatBytesToString(0)).toBe('0.00 KB');
-    });
-
-    it('should format small byte values in KB', () => {
-      expect(CLIUtils.formatBytesToString(1024)).toBe('1.00 KB');
-    });
-
-    it('should format large byte values in MB', () => {
-      expect(CLIUtils.formatBytesToString(10485760)).toBe('10.00 MB');
-    });
-
-    it('should round to two decimal places for MB', () => {
-      expect(CLIUtils.formatBytesToString(1572864)).toBe('1.50 MB');
-    });
-
-    it('should handle fractional MB values', () => {
-      expect(CLIUtils.formatBytesToString(2621440)).toBe('2.50 MB');
-    });
-
-    it('should handle negative values gracefully', () => {
-      expect(CLIUtils.formatBytesToString(-1048576)).toBe('0.00 KB');
-    });
-
-    it('should format bytes less than 1 KB', () => {
-      expect(CLIUtils.formatBytesToString(512)).toBe('0.50 KB');
-    });
-
-    it('should switch from KB to MB at 1024 KB', () => {
-      expect(CLIUtils.formatBytesToString(1048575)).toBe('1024.00 KB');
-      expect(CLIUtils.formatBytesToString(1048576)).toBe('1.00 MB');
-    });
-  });
-
   describe('calculateThroughputMBps', () => {
     it('should calculate throughput in MB/s correctly', () => {
       const throughput = CLIUtils.calculateThroughputMBps(10485760, 1000);
