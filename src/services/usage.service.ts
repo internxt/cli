@@ -11,7 +11,7 @@ export class UsageService {
 
   public fetchUsage = async (): Promise<number> => {
     const cached = CacheService.instance.get<number>(UsageService.FETCH_USAGE_CACHE_KEY);
-    if (cached !== null && typeof cached === 'number') return cached;
+    if (cached !== null) return cached;
 
     const storageClient = SdkManager.instance.getStorage();
     const driveUsage = await storageClient.spaceUsageV2();
@@ -22,7 +22,7 @@ export class UsageService {
 
   public fetchSpaceLimit = async (): Promise<number> => {
     const cached = CacheService.instance.get<number>(UsageService.FETCH_SPACE_LIMIT_CACHE_KEY);
-    if (cached !== null && typeof cached === 'number') return cached;
+    if (cached !== null) return cached;
 
     const storageClient = SdkManager.instance.getStorage();
     const spaceLimit = await storageClient.spaceLimitV2();
@@ -33,7 +33,7 @@ export class UsageService {
 
   public fetchLimits = async (): Promise<StorageTypes.FileLimitsResponse> => {
     const cached = CacheService.instance.get<StorageTypes.FileLimitsResponse>(UsageService.FETCH_LIMITS_CACHE_KEY);
-    if (cached !== null && typeof cached === 'object' && 'maxUploadFileSize' in cached) return cached;
+    if (cached !== null) return cached;
 
     const storageClient = SdkManager.instance.getStorage();
     const limits = await storageClient.getFileVersionLimits();
