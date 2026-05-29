@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { DriveFileService } from '../../services/drive/drive-file.service';
 import { AuthService } from '../../services/auth.service';
 import { WebDavMethodHandler } from '../../types/webdav.types';
-import { NotFoundError } from '../../utils/errors.utils';
+import { ConflictError } from '../../utils/errors.utils';
 import { WebDavUtils } from '../../utils/webdav.utils';
 import { webdavLogger } from '../../utils/logger.utils';
 import { EncryptionVersion } from '@internxt/sdk/dist/drive/storage/types';
@@ -22,13 +22,6 @@ export class PUTRequestHandler implements WebDavMethodHandler {
     }
 
     const resource = await WebDavUtils.getRequestedResource(req.url);
-
-    // If the file already exists, the WebDAV specification states that 'PUT /…/file' should replace it.
-    // http://www.webdav.org/specs/rfc4918.html#put-resources
-    const driveFileItem = await WebDavUtils.getDriveItemFromResource(resource);
-    if (driveFileItem?.itemType === 'folder') {
-      throw new NotFoundError('Folders cannot be created with PUT. Use MKCOL instead.');
-    }
     webdavLogger.info(`[PUT] Request received for file at ${resource.url}`);
     webdavLogger.info(
       `[PUT] Uploading '${resource.name}' (${FormatUtils.humanFileSize(contentLength)}) to '${resource.parentPath}'`,
@@ -44,15 +37,22 @@ export class PUTRequestHandler implements WebDavMethodHandler {
       (await WebDavFolderService.instance.getDriveFolderItemFromPath(resource.parentPath)) ??
       (await WebDavFolderService.instance.createParentPathOrThrow(resource.parentPath));
 
-    try {
-      if (driveFileItem && driveFileItem.status === 'EXISTS') {
-        webdavLogger.info(
-          `[PUT] File '${resource.name}' already exists in '${resource.path.dir}', it will be replaced...`,
-        );
-        await WebDavUtils.deleteOrTrashItem(driveFileItem);
+    // If the file already exists, the WebDAV specification states that 'PUT /…/file' should replace it.
+    // http://www.webdav.org/specs/rfc4918.html#put-resources
+    const driveFileItem = await WebDavUtils.getDriveItemFromResource(resource);
+    if (driveFileItem && driveFileItem.status === 'EXISTS') {
+      if (driveFileItem.itemType === 'folder') {
+        webdavLogger.info('[PUT] ❌ A folder exists on the cloud with the same name.');
+        throw new ConflictError('A folder exists on the cloud with the same name');
       }
-    } catch {
-      //noop
+      webdavLogger.info(
+        `[PUT] File '${resource.name}' already exists in '${resource.path.dir}', it will be replaced...`,
+      );
+      try {
+        await WebDavUtils.deleteOrTrashItem(driveFileItem);
+      } catch {
+        //noop
+      }
     }
 
     const { user } = await AuthService.instance.getAuthDetails();
