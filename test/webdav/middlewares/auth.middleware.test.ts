@@ -1,12 +1,17 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { AuthMiddleware } from '../../../src/webdav/middewares/auth.middleware';
 import { createWebDavRequestFixture, createWebDavResponseFixture } from '../../fixtures/webdav.fixture';
 import { UserCredentialsFixture } from '../../fixtures/login.fixture';
 import { AuthService } from '../../../src/services/auth.service';
+import { CacheService } from '../../../src/services/cache.service';
 import { MissingCredentialsError } from '../../../src/types/command.types';
 import { XMLUtils } from '../../../src/utils/xml.utils';
 
 describe('Auth middleware', () => {
+  beforeEach(() => {
+    CacheService.instance.clearCaches();
+  });
+
   it('When the user is not authenticated, then it should return 401', async () => {
     const req = createWebDavRequestFixture({});
     const res = createWebDavResponseFixture({
@@ -34,7 +39,7 @@ describe('Auth middleware', () => {
     );
   });
 
-  it('When the user is authenticated, then it should call next', async () => {
+  it('When the user is authenticated, then it should call next and cache the result', async () => {
     const req = createWebDavRequestFixture({});
     const res = createWebDavResponseFixture({});
     const next = vi.fn();
@@ -43,6 +48,26 @@ describe('Auth middleware', () => {
     await AuthMiddleware()(req, res, next);
 
     expect(authServiceStub).toHaveBeenCalledOnce();
+    expect(next).toHaveBeenCalledOnce();
+    expect(res.status).not.toHaveBeenCalled();
+    expect(res.send).not.toHaveBeenCalled();
+
+    const cached = CacheService.instance.get(CacheService.AUTH_CACHE_KEY);
+    expect(cached).toEqual(UserCredentialsFixture);
+  });
+
+  it('When the auth details are cached, then it should not call getAuthDetails', async () => {
+    const req = createWebDavRequestFixture({});
+    const res = createWebDavResponseFixture({});
+    const next = vi.fn();
+
+    CacheService.instance.set(CacheService.AUTH_CACHE_KEY, UserCredentialsFixture);
+
+    const authServiceStub = vi.spyOn(AuthService.instance, 'getAuthDetails');
+
+    await AuthMiddleware()(req, res, next);
+
+    expect(authServiceStub).not.toHaveBeenCalled();
     expect(next).toHaveBeenCalledOnce();
     expect(res.status).not.toHaveBeenCalled();
     expect(res.send).not.toHaveBeenCalled();

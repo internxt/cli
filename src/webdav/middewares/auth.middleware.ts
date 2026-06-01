@@ -1,16 +1,26 @@
 import { RequestHandler } from 'express';
 import { SdkManager } from '../../services/sdk-manager.service';
 import { AuthService } from '../../services/auth.service';
+import { CacheService } from '../../services/cache.service';
 import { webdavLogger } from '../../utils/logger.utils';
 import { XMLUtils } from '../../utils/xml.utils';
 import { ErrorUtils } from '../../utils/errors.utils';
+import { LoginCredentials } from '../../types/command.types';
 
 export const AuthMiddleware = (): RequestHandler => {
   return (_, res, next) => {
     (async () => {
       try {
-        const { token, workspace } = await AuthService.instance.getAuthDetails();
-        SdkManager.init({ token, workspaceToken: workspace?.workspaceCredentials.token });
+        const cached = CacheService.instance.get<LoginCredentials>(CacheService.AUTH_CACHE_KEY);
+
+        if (cached) {
+          SdkManager.init({ token: cached.token, workspaceToken: cached.workspace?.workspaceCredentials?.token });
+          next();
+          return;
+        }
+
+        const authDetails = await AuthService.instance.getAuthDetails();
+        CacheService.instance.set(CacheService.AUTH_CACHE_KEY, authDetails);
         next();
       } catch (error) {
         let message = 'Authentication required to access this resource.';
