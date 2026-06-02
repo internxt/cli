@@ -41,7 +41,7 @@
     "@internxt/inxt-js": "3.2.2",
     "@internxt/lib": "1.4.2",
     "@internxt/sdk": "1.17.0",
-    "@oclif/core": "4.11.3",
+    "@oclif/core": "4.11.4",
     "@oclif/plugin-autocomplete": "3.2.50",
     "axios": "1.16.1",
     "better-sqlite3": "12.10.0",
