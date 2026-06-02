@@ -1281,10 +1281,10 @@
     wordwrap "^1.0.0"
     wrap-ansi "^7.0.0"
 
-"@oclif/plugin-autocomplete@3.2.49":
-  version "3.2.49"
-  resolved "https://registry.yarnpkg.com/@oclif/plugin-autocomplete/-/plugin-autocomplete-3.2.49.tgz#f9c2a5135b20fbeeef150244f1cc56ad1ea5716d"
-  integrity sha512-+rrAZ468bW/B9uVrn6sEnFYepy3M1N/BWht8mHzhFIFCIduPSoE+8MweROxZLOGBZrXGWt0iavuPQmy0eaXRfQ==
+"@oclif/plugin-autocomplete@3.2.50":
+  version "3.2.50"
+  resolved "https://registry.yarnpkg.com/@oclif/plugin-autocomplete/-/plugin-autocomplete-3.2.50.tgz#540657df5dfea04f3908008d40554ed00be2e850"
+  integrity sha512-SQRIJSYue/1tIn7X55W/97gTb8UkSoHeFAcBng2r2YMJyWj8uB1DtFl28D8BDXPQXPTiPK89hQGejoT7RdkR2w==
   dependencies:
     "@oclif/core" "^4"
     ansis "^3.16.0"
