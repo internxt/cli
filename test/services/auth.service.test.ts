@@ -25,7 +25,7 @@ describe('Auth service', () => {
     vi.spyOn(CacheService.instance, 'get').mockReturnValue(undefined);
   });
 
-  it('When user logs in, then login user credentials are generated', async () => {
+  it('should generate login user credentials when user logs in', async () => {
     const loginResponse = {
       token: crypto.randomBytes(16).toString('hex'),
       newToken: crypto.randomBytes(16).toString('hex'),
@@ -50,7 +50,7 @@ describe('Auth service', () => {
     expect(responseLogin).to.be.deep.equal(expectedResponseLogin);
   });
 
-  it('When user logs in and credentials are not correct, then an error is thrown', async () => {
+  it('should throw an error when user logs in and credentials are not correct', async () => {
     const loginDetails: LoginDetails = {
       email: crypto.randomBytes(16).toString('hex'),
       password: crypto.randomBytes(8).toString('hex'),
@@ -69,7 +69,7 @@ describe('Auth service', () => {
     expect(loginStub).toHaveBeenCalledOnce();
   });
 
-  it('When two factor authentication is enabled, then it is returned from is2FANeeded functionality', async () => {
+  it('should return true from is2FANeeded when two factor authentication is enabled', async () => {
     const email = crypto.randomBytes(16).toString('hex');
     const securityDetails: SecurityDetails = {
       encryptedSalt: crypto.randomBytes(16).toString('hex'),
@@ -85,7 +85,7 @@ describe('Auth service', () => {
     expect(responseLogin).to.be.equal(securityDetails.tfaEnabled);
   });
 
-  it('When email is not correct when checking two factor authentication, then an error is thrown', async () => {
+  it('should throw an error when checking two factor authentication with an incorrect email', async () => {
     const email = crypto.randomBytes(16).toString('hex');
 
     const securityStub = vi.spyOn(Auth.prototype, 'securityDetails').mockRejectedValue(new Error());
@@ -100,7 +100,7 @@ describe('Auth service', () => {
     expect(securityStub).toHaveBeenCalledOnce();
   });
 
-  it('When getting auth details, should get them if all are found', async () => {
+  it('should return auth details when all credentials are found', async () => {
     const sut = AuthService.instance;
 
     const loginCreds: LoginCredentials = UserCredentialsFixture;
@@ -127,7 +127,7 @@ describe('Auth service', () => {
     expect(result).to.deep.equal(loginCreds);
   });
 
-  it('When credentials are missing, should throw an error', async () => {
+  it('should throw an error when credentials are missing', async () => {
     const sut = AuthService.instance;
 
     const readUserStub = vi.spyOn(ConfigService.instance, 'readUser').mockResolvedValue(undefined);
@@ -141,7 +141,7 @@ describe('Auth service', () => {
     expect(readUserStub).toHaveBeenCalledOnce();
   });
 
-  it('When auth token is missing, should throw an error', async () => {
+  it('should throw an error when auth token is missing', async () => {
     const sut = AuthService.instance;
 
     const readUserStub = vi.spyOn(ConfigService.instance, 'readUser').mockResolvedValue({
@@ -159,7 +159,7 @@ describe('Auth service', () => {
     expect(readUserStub).toHaveBeenCalledOnce();
   });
 
-  it('When mnemonic is invalid, should throw an error', async () => {
+  it('should throw an error when mnemonic is invalid', async () => {
     const sut = AuthService.instance;
 
     const mockToken = {
@@ -187,7 +187,7 @@ describe('Auth service', () => {
     expect(validateMnemonicStub).toHaveBeenCalledWith(UserCredentialsFixture.user.mnemonic);
   });
 
-  it('When token has expired, should throw an error', async () => {
+  it('should throw an error when token has expired', async () => {
     const sut = AuthService.instance;
 
     const mockToken = {
@@ -215,7 +215,7 @@ describe('Auth service', () => {
     expect(validateMnemonicStub).toHaveBeenCalledWith(UserCredentialsFixture.user.mnemonic);
   });
 
-  it('When tokens are going to expire soon, then they are refreshed', async () => {
+  it('should refresh tokens when they are going to expire soon', async () => {
     const sut = AuthService.instance;
 
     const mockToken = {

@@ -12,7 +12,7 @@ describe('Auth middleware', () => {
     CacheService.instance.clearCaches();
   });
 
-  it('When the user is not authenticated, then it should return 401', async () => {
+  it('should return 401 when the user is not authenticated', async () => {
     const req = createWebDavRequestFixture({});
     const res = createWebDavResponseFixture({
       status: vi.fn().mockReturnValue({ send: vi.fn() }),
@@ -39,7 +39,7 @@ describe('Auth middleware', () => {
     );
   });
 
-  it('When the user is authenticated, then it should call next and cache the result', async () => {
+  it('should call next and cache the result when the user is authenticated', async () => {
     const req = createWebDavRequestFixture({});
     const res = createWebDavResponseFixture({});
     const next = vi.fn();
@@ -56,7 +56,7 @@ describe('Auth middleware', () => {
     expect(cached).toEqual(UserCredentialsFixture);
   });
 
-  it('When the auth details are cached, then it should not call getAuthDetails', async () => {
+  it('should not call getAuthDetails when the auth details are cached', async () => {
     const req = createWebDavRequestFixture({});
     const res = createWebDavResponseFixture({});
     const next = vi.fn();
