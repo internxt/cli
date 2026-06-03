@@ -16,11 +16,13 @@ import {
 import { UserCredentialsFixture } from '../fixtures/login.fixture';
 import { fail } from 'node:assert';
 import { paths } from '@internxt/sdk/dist/schema';
+import { CacheService } from '../../src/services/cache.service';
 
 describe('Auth service', () => {
   beforeEach(() => {
     vi.spyOn(ConfigService.instance, 'readUser').mockResolvedValue(UserCredentialsFixture);
     vi.spyOn(ConfigService.instance, 'saveUser').mockResolvedValue(undefined);
+    vi.spyOn(CacheService.instance, 'get').mockReturnValue(undefined);
   });
 
   it('When user logs in, then login user credentials are generated', async () => {
