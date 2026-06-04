@@ -17,6 +17,7 @@ import {
   WEBDAV_SSL_CERTS_DIR,
   WEBDAV_DEFAULT_DELETE_FILES_PERMANENTLY,
 } from '../constants/configs';
+import { CacheService } from './cache.service';
 
 export class ConfigService {
   public static readonly instance: ConfigService = new ConfigService();
@@ -44,6 +45,8 @@ export class ConfigService {
     const credentialsString = JSON.stringify(loginCredentials);
     const encryptedCredentials = CryptoService.instance.encryptText(credentialsString);
     await fs.writeFile(CREDENTIALS_FILE, encryptedCredentials, 'utf8');
+
+    CacheService.instance.set(CacheService.AUTH_CACHE_KEY, loginCredentials);
   };
 
   /**
@@ -51,6 +54,7 @@ export class ConfigService {
    * @async
    **/
   public clearUser = async (): Promise<void> => {
+    CacheService.instance.set(CacheService.AUTH_CACHE_KEY, undefined);
     try {
       const stat = await fs.stat(CREDENTIALS_FILE);
       if (stat.size === 0) return;
@@ -68,6 +72,9 @@ export class ConfigService {
    * @async
    **/
   public readUser = async (): Promise<LoginCredentials | undefined> => {
+    const cached = CacheService.instance.get<LoginCredentials>(CacheService.AUTH_CACHE_KEY);
+    if (cached) return cached;
+
     try {
       const encryptedCredentials = await fs.readFile(CREDENTIALS_FILE, 'utf8');
       const credentialsString = CryptoService.instance.decryptText(encryptedCredentials);

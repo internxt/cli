@@ -80,12 +80,6 @@ export class AuthService {
    * @throws {ExpiredCredentialsError} When token has expired
    */
   public getAuthDetails = async (): Promise<LoginCredentials> => {
-    const cached = CacheService.instance.get<LoginCredentials>(CacheService.AUTH_CACHE_KEY);
-    if (cached) {
-      SdkManager.init({ token: cached.token, workspaceToken: cached.workspace?.workspaceCredentials?.token });
-      return cached;
-    }
-
     let loginCreds = await ConfigService.instance.readUser();
     if (!loginCreds?.token || !loginCreds?.user?.mnemonic) {
       throw new MissingCredentialsError();
@@ -119,7 +113,6 @@ export class AuthService {
 
     SdkManager.init({ token: loginCreds.token, workspaceToken: workspaceCreds?.workspaceCredentials.token });
     await ConfigService.instance.saveUser(loginCreds);
-    CacheService.instance.set(CacheService.AUTH_CACHE_KEY, loginCreds);
     return loginCreds;
   };
 

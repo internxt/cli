@@ -19,6 +19,7 @@ import {
   WEBDAV_DEFAULT_DELETE_FILES_PERMANENTLY,
 } from '../../src/constants/configs';
 import { getWebdavConfigMock } from '../fixtures/webdav.fixture';
+import { CacheService } from '../../src/services/cache.service';
 
 const env = Object.assign({}, process.env);
 
@@ -37,6 +38,8 @@ describe('Config service', () => {
 
   beforeEach(() => {
     process.env = env;
+    vi.spyOn(CacheService.instance, 'get').mockReturnValue(null);
+    vi.spyOn(CacheService.instance, 'set').mockImplementation(() => {});
   });
 
   it('When an env property is requested, then the get method return its value', async () => {
