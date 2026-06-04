@@ -26,7 +26,9 @@ export class DatabaseService {
   );
 
   public initialize = () => {
-    return this.dataSource.initialize();
+    if (!this.dataSource.isInitialized) {
+      return this.dataSource.initialize();
+    }
   };
 
   public destroy = () => {

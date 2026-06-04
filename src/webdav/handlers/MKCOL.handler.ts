@@ -4,7 +4,6 @@ import { WebDavUtils } from '../../utils/webdav.utils';
 import { webdavLogger } from '../../utils/logger.utils';
 import { XMLUtils } from '../../utils/xml.utils';
 import { WebDavFolderService } from '../../services/webdav/webdav-folder.service';
-import { MethodNotAllowed } from '../../utils/errors.utils';
 import { AsyncUtils } from '../../utils/async.utils';
 
 export class MKCOLRequestHandler implements WebDavMethodHandler {
@@ -22,8 +21,9 @@ export class MKCOLRequestHandler implements WebDavMethodHandler {
     const folderAlreadyExists = !!driveFolderItem;
 
     if (folderAlreadyExists) {
-      webdavLogger.info(`[MKCOL] ❌ Folder '${resource.url}' already exists`);
-      throw new MethodNotAllowed('Folder already exists');
+      webdavLogger.info(`[MKCOL] Folder '${resource.url}' already exists, ignoring the creation request`);
+      res.status(200).send(XMLUtils.toWebDavXML({}, {}));
+      return;
     }
 
     const newFolder = await WebDavFolderService.instance.createFolder({

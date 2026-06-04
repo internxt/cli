@@ -1,6 +1,6 @@
-FROM node:24-alpine
+FROM node:24-bookworm-slim
 
-RUN apk add --no-cache jq
+RUN apt-get update && apt-get install -y jq && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 COPY . .
@@ -17,4 +17,4 @@ RUN ln -s '/app/bin/run.js' /usr/local/bin/internxt
 
 ENTRYPOINT ["/app/docker/entrypoint.sh"]
 
-HEALTHCHECK --interval=60s --timeout=20s --start-period=30s --retries=3 CMD /app/docker/health_check.sh
+HEALTHCHECK --interval=120s --timeout=30s --start-period=60s --retries=3 CMD /app/docker/health_check.sh

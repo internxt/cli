@@ -11,6 +11,11 @@ export class CacheService {
   private readonly store = new Map<string, CacheEntry<unknown>>();
   private readonly defaultTtl = FIFTEEN_MINUTES;
 
+  public static readonly FETCH_USAGE_CACHE_KEY = 'usage:fetchUsage';
+  public static readonly FETCH_SPACE_LIMIT_CACHE_KEY = 'usage:fetchSpaceLimit';
+  public static readonly FETCH_LIMITS_CACHE_KEY = 'usage:fetchLimits';
+  public static readonly AUTH_CACHE_KEY = 'auth:details';
+
   public get = <T>(key: string): T | null => {
     const entry = this.store.get(key);
     if (!entry) return null;
