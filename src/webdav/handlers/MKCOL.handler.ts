@@ -22,7 +22,7 @@ export class MKCOLRequestHandler implements WebDavMethodHandler {
 
     if (folderAlreadyExists) {
       webdavLogger.info(`[MKCOL] Folder '${resource.url}' already exists, ignoring the creation request`);
-      res.status(201).send(XMLUtils.toWebDavXML({}, {}));
+      res.status(200).send(XMLUtils.toWebDavXML({}, {}));
       return;
     }
 
