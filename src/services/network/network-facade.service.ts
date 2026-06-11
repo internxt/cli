@@ -13,7 +13,7 @@ import { RangeOptions } from '../../utils/network.utils';
 import { UsageService } from '../usage.service';
 import { FormatUtils } from '../../utils/format.utils';
 
-const FORTY_GIGABYTES = 40 * 1024 * 1024 * 1024;
+const HUNDRED_GIGABYTES = 100 * 1024 * 1024 * 1024;
 
 export class NetworkFacade {
   private readonly cryptoLib: Network.Crypto;
@@ -145,8 +145,8 @@ export class NetworkFacade {
       throw new Error(`File is too big (${formattedSize} exceeds account upload limit of ${formattedLimit})`);
     }
 
-    if (size > FORTY_GIGABYTES) {
-      throw new Error('File is too big (more than 40 GB)');
+    if (size >= HUNDRED_GIGABYTES) {
+      throw new Error('File is too big (more than 100 GB)');
     }
 
     return this.environment.upload(bucketId, {

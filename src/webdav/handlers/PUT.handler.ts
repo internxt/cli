@@ -13,6 +13,7 @@ import { WebDavFolderService } from '../../services/webdav/webdav-folder.service
 import { ThumbnailUtils } from '../../utils/thumbnail.utils';
 import { ThumbnailService } from '../../services/thumbnail.service';
 import { FormatUtils } from '../../utils/format.utils';
+import { XMLUtils } from '../../utils/xml.utils';
 
 export class PUTRequestHandler implements WebDavMethodHandler {
   handle = async (req: Request, res: Response) => {
@@ -84,13 +85,39 @@ export class PUTRequestHandler implements WebDavMethodHandler {
       const networkUploadTimer = CLIUtils.timer();
       const abortable = new AbortController();
 
-      fileId = await networkFacade.uploadFile({
-        from: fileStream,
-        size: contentLength,
-        bucketId: bucket,
-        progressCallback,
-        abortSignal: abortable.signal,
-      });
+      try {
+        fileId = await networkFacade.uploadFile({
+          from: fileStream,
+          size: contentLength,
+          bucketId: bucket,
+          progressCallback,
+          abortSignal: abortable.signal,
+        });
+      } catch (e) {
+        aborted = true;
+        abortable.abort();
+        const error = e as Error;
+        if (bufferStream) {
+          req.unpipe(bufferStream);
+          bufferStream.destroy();
+        }
+        if (error.message.toLowerCase().includes('file is too big')) {
+          webdavLogger.error('[PUT] ❌ File is too big (' + FormatUtils.humanFileSize(contentLength) + ')');
+          const errorBodyXML = XMLUtils.toWebDavXML(
+            {
+              [XMLUtils.addDefaultNamespace('responsedescription')]: error.message,
+            },
+            {},
+            'error',
+          );
+          res.set('Content-Type', 'application/xml; charset="utf-8"');
+          res.status(413).send(errorBodyXML);
+          req.destroy();
+          return;
+        }
+
+        throw e;
+      }
 
       res.on('close', async () => {
         aborted = true;
