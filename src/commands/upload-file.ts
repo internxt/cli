@@ -8,11 +8,10 @@ import { DriveFileService } from '../services/drive/drive-file.service';
 import { MissingCredentialsError, NotValidFileError } from '../types/command.types';
 import { ValidationService } from '../services/validation.service';
 import { EncryptionVersion } from '@internxt/sdk/dist/drive/storage/types';
-import { BufferStream } from '../utils/stream.utils';
-import { Readable } from 'node:stream';
-import { ThumbnailUtils } from '../utils/thumbnail.utils';
 import { ThumbnailService } from '../services/thumbnail.service';
 import { AuthService } from '../services/auth.service';
+import { UploadUtils } from '../utils/upload.utils';
+import { BufferStream } from '../utils/stream.utils';
 
 export default class UploadFile extends Command {
   static readonly args = {};
@@ -82,19 +81,14 @@ export default class UploadFile extends Command {
     progressBar?.start(100, 0);
 
     let fileId: string | undefined;
-    let bufferStream: BufferStream | undefined;
-    const isThumbnailable = ThumbnailUtils.isFileThumbnailable(fileType);
+    let thumbnailStream: BufferStream | undefined;
     const fileSize = stats.size ?? 0;
 
     if (fileSize > 0) {
       // Upload file to the Network
       const readStream = createReadStream(filePath);
-      let fileStream: Readable = readStream;
-
-      if (isThumbnailable) {
-        bufferStream = new BufferStream();
-        fileStream = readStream.pipe(bufferStream);
-      }
+      const preparedStreams = UploadUtils.prepareUploadStreams(readStream, fileType);
+      thumbnailStream = preparedStreams.thumbnailStream;
 
       const progressCallback = (progress: number) => {
         progressBar?.update(progress * 100 * 0.99);
@@ -103,7 +97,7 @@ export default class UploadFile extends Command {
       const abortable = new AbortController();
 
       fileId = await networkFacade.uploadFile({
-        from: fileStream,
+        from: preparedStreams.fileStream,
         size: fileSize,
         bucketId: bucket,
         progressCallback,
@@ -133,32 +127,23 @@ export default class UploadFile extends Command {
     timings.driveUpload = driveUploadTimer.stop();
 
     const thumbnailTimer = CLIUtils.timer();
-    if (fileSize > 0 && isThumbnailable && bufferStream) {
-      await ThumbnailService.instance.tryUploadThumbnail({
-        bufferStream,
-        fileType,
-        bucket,
-        fileUuid: createdDriveFile.uuid,
-        networkFacade,
-        size: fileSize,
-      });
-    }
+    await ThumbnailService.instance.tryUploadThumbnail({
+      bufferStream: thumbnailStream,
+      fileType,
+      bucket,
+      fileUuid: createdDriveFile.uuid,
+      networkFacade,
+      size: fileSize,
+    });
     timings.thumbnailUpload = thumbnailTimer.stop();
 
     progressBar?.update(100);
     progressBar?.stop();
 
-    const totalTime = Object.values(timings).reduce((sum, time) => sum + time, 0);
-    const throughputMBps = CLIUtils.calculateThroughputMBps(stats.size, timings.networkUpload);
+    const { totalTime, timingBreakdown } = UploadUtils.getTimings(stats.size, timings);
 
     if (flags['debug']) {
-      CLIUtils.log(
-        reporter,
-        '[PUT] Timing breakdown:\n' +
-          `Network upload: ${CLIUtils.formatDuration(timings.networkUpload)} (${throughputMBps.toFixed(2)} MB/s)\n` +
-          `Drive upload: ${CLIUtils.formatDuration(timings.driveUpload)}\n` +
-          `Thumbnail: ${CLIUtils.formatDuration(timings.thumbnailUpload)}\n`,
-      );
+      CLIUtils.log(reporter, timingBreakdown);
     }
     const workspace = await AuthService.instance.getCurrentWorkspace();
     const workspaceId = workspace?.workspaceData.workspace.id;

@@ -7,10 +7,7 @@ import { WebDavUtils } from '../../utils/webdav.utils';
 import { webdavLogger } from '../../utils/logger.utils';
 import { EncryptionVersion } from '@internxt/sdk/dist/drive/storage/types';
 import { CLIUtils } from '../../utils/cli.utils';
-import { BufferStream } from '../../utils/stream.utils';
-import { Readable } from 'node:stream';
 import { WebDavFolderService } from '../../services/webdav/webdav-folder.service';
-import { ThumbnailUtils } from '../../utils/thumbnail.utils';
 import { ThumbnailService } from '../../services/thumbnail.service';
 import { FormatUtils } from '../../utils/format.utils';
 import { UploadUtils } from '../../utils/upload.utils';
@@ -59,16 +56,9 @@ export class PUTRequestHandler implements WebDavMethodHandler {
     }
 
     const { user } = await AuthService.instance.getAuthDetails();
-
     const fileType = resource.path.ext.replace('.', '');
 
-    let bufferStream: BufferStream | undefined;
-    let fileStream: Readable = req;
-    const isThumbnailable = ThumbnailUtils.isFileThumbnailable(fileType);
-    if (isThumbnailable) {
-      bufferStream = new BufferStream();
-      fileStream = req.pipe(bufferStream);
-    }
+    const { fileStream, thumbnailStream } = UploadUtils.prepareUploadStreams(req, fileType);
 
     const { networkFacade, bucket } = await CLIUtils.prepareNetwork(user);
 
@@ -121,27 +111,22 @@ export class PUTRequestHandler implements WebDavMethodHandler {
     timings.driveUpload = driveTimer.stop();
 
     const thumbnailTimer = CLIUtils.timer();
-    if (contentLength > 0 && isThumbnailable && bufferStream) {
-      await ThumbnailService.instance.tryUploadThumbnail({
-        fileUuid: file.uuid,
-        bufferStream,
-        fileType,
-        bucket,
-        networkFacade,
-        size: contentLength,
-      });
-    }
+    await ThumbnailService.instance.tryUploadThumbnail({
+      fileUuid: file.uuid,
+      bufferStream: thumbnailStream,
+      fileType,
+      bucket,
+      networkFacade,
+      size: contentLength,
+    });
     timings.thumbnailUpload = thumbnailTimer.stop();
 
-    const totalTime = Object.values(timings).reduce((sum, time) => sum + time, 0);
-    const throughputMBps = CLIUtils.calculateThroughputMBps(contentLength, timings.networkUpload);
+    const { totalTime, timingBreakdown } = UploadUtils.getTimings(contentLength, timings);
 
     webdavLogger.info(
       `[PUT] ✅ File uploaded in ${CLIUtils.formatDuration(totalTime)} to Internxt Drive\n` +
         '[PUT] Timing breakdown:\n' +
-        `Network upload: ${CLIUtils.formatDuration(timings.networkUpload)} (${throughputMBps.toFixed(2)} MB/s)\n` +
-        `Drive upload: ${CLIUtils.formatDuration(timings.driveUpload)}\n` +
-        `Thumbnail: ${CLIUtils.formatDuration(timings.thumbnailUpload)}\n`,
+        timingBreakdown,
     );
 
     webdavLogger.info(
