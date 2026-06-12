@@ -64,17 +64,20 @@ describe('Config service', () => {
     }
   });
 
-  it('When user credentials are saved, then they are written encrypted to a file', async () => {
+  it('When credentials are saved, then they are written encrypted to a temp file and renamed atomically', async () => {
     const userCredentials: LoginCredentials = UserCredentialsFixture;
     const stringCredentials = JSON.stringify(userCredentials);
     const encryptedUserCredentials = CryptoService.instance.encryptText(stringCredentials);
+    const tempPath = CREDENTIALS_FILE + '.tmp';
 
     const configServiceStub = vi.spyOn(CryptoService.instance, 'encryptText').mockReturnValue(encryptedUserCredentials);
-    const fsStub = vi.spyOn(fs, 'writeFile').mockResolvedValue();
+    const writeFileStub = vi.spyOn(fs, 'writeFile').mockResolvedValue();
+    const renameStub = vi.spyOn(fs, 'rename').mockResolvedValue();
 
     await ConfigService.instance.saveUser(userCredentials);
     expect(configServiceStub).toHaveBeenCalledWith(stringCredentials);
-    expect(fsStub).toHaveBeenCalledWith(CREDENTIALS_FILE, encryptedUserCredentials, 'utf8');
+    expect(writeFileStub).toHaveBeenCalledWith(tempPath, encryptedUserCredentials, 'utf8');
+    expect(renameStub).toHaveBeenCalledWith(tempPath, CREDENTIALS_FILE);
   });
 
   it('When user credentials are read, then they are read and decrypted from a file', async () => {
