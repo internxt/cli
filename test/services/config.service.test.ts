@@ -42,7 +42,7 @@ describe('Config service', () => {
     vi.spyOn(CacheService.instance, 'set').mockImplementation(() => {});
   });
 
-  it('When an env property is requested, then the get method return its value', async () => {
+  it('should return the value when an env property is requested', async () => {
     const envKey = 'APP_CRYPTO_SECRET';
     const envValue = crypto.randomBytes(8).toString('hex');
     process.env[envKey] = envValue;
@@ -51,7 +51,7 @@ describe('Config service', () => {
     expect(newEnvValue).to.be.equal(envValue);
   });
 
-  it('When an env property that do not have value is requested, then an error is thrown', async () => {
+  it('should throw an error when an env property has no value', async () => {
     const envKey = 'APP_CRYPTO_SECRET';
     process.env = {};
 
@@ -64,7 +64,7 @@ describe('Config service', () => {
     }
   });
 
-  it('When credentials are saved, then they are written encrypted to a temp file and renamed atomically', async () => {
+  it('should write credentials encrypted to a temp file and rename atomically when saveUser is called', async () => {
     const userCredentials: LoginCredentials = UserCredentialsFixture;
     const stringCredentials = JSON.stringify(userCredentials);
     const encryptedUserCredentials = CryptoService.instance.encryptText(stringCredentials);
@@ -80,7 +80,7 @@ describe('Config service', () => {
     expect(renameStub).toHaveBeenCalledWith(tempPath, CREDENTIALS_FILE);
   });
 
-  it('When user credentials are read, then they are read and decrypted from a file', async () => {
+  it('should read and decrypt credentials from file when readUser is called', async () => {
     const userCredentials: LoginCredentials = UserCredentialsFixture;
     const stringCredentials = JSON.stringify(userCredentials);
     const encryptedUserCredentials = CryptoService.instance.encryptText(stringCredentials);
@@ -94,7 +94,7 @@ describe('Config service', () => {
     expect(configServiceStub).toHaveBeenCalledWith(encryptedUserCredentials);
   });
 
-  it('When user credentials are read but they dont exist, then they are not returned', async () => {
+  it('should return undefined when credentials file does not exist', async () => {
     const fsStub = vi.spyOn(fs, 'readFile').mockRejectedValue(new Error());
     const configServiceStub = vi.spyOn(CryptoService.instance, 'decryptText');
 
@@ -104,7 +104,7 @@ describe('Config service', () => {
     expect(configServiceStub).not.toHaveBeenCalled();
   });
 
-  it('When user credentials are cleared, then they are cleared from file', async () => {
+  it('should clear credentials from file when clearUser is called', async () => {
     const writeFileStub = vi.spyOn(fs, 'writeFile').mockResolvedValue();
     const readFileStub = vi.spyOn(fs, 'readFile').mockResolvedValue('');
     const existFileStub = vi
@@ -147,7 +147,7 @@ describe('Config service', () => {
     expect(writeFileStub).not.toHaveBeenCalled();
   });
 
-  it('When webdav certs directory is required to exist, then it is created', async () => {
+  it('should create the webdav certs directory when it does not exist', async () => {
     vi.spyOn(fs, 'access').mockRejectedValue(new Error());
 
     const stubMkdir = vi.spyOn(fs, 'mkdir').mockResolvedValue('');
@@ -157,7 +157,7 @@ describe('Config service', () => {
     expect(stubMkdir).toHaveBeenCalledWith(WEBDAV_SSL_CERTS_DIR);
   });
 
-  it('When webdav config options are saved, then they are written to a file', async () => {
+  it('should write webdav config to file when saveWebdavConfig is called', async () => {
     const webdavConfig: WebdavConfig = getWebdavConfigMock();
     const stringConfig = JSON.stringify(webdavConfig);
 
@@ -167,7 +167,7 @@ describe('Config service', () => {
     expect(fsStub).toHaveBeenCalledWith(WEBDAV_CONFIGS_FILE, stringConfig, 'utf8');
   });
 
-  it('When webdav config options are read and exist, then they are read from a file', async () => {
+  it('should read webdav config from file when readWebdavConfig is called', async () => {
     const webdavConfig: WebdavConfig = getWebdavConfigMock();
     const stringConfig = JSON.stringify(webdavConfig);
 
@@ -178,7 +178,7 @@ describe('Config service', () => {
     expect(fsStub).toHaveBeenCalledWith(WEBDAV_CONFIGS_FILE, 'utf8');
   });
 
-  it('When webdav config options are read but not exist, then they are returned from defaults', async () => {
+  it('should return default config when webdav config file is empty', async () => {
     const fsStub = vi.spyOn(fs, 'readFile').mockResolvedValue('');
 
     const webdavConfigResult = await ConfigService.instance.readWebdavConfig();
@@ -186,7 +186,7 @@ describe('Config service', () => {
     expect(fsStub).toHaveBeenCalledWith(WEBDAV_CONFIGS_FILE, 'utf8');
   });
 
-  it('When webdav config options are read but an error is thrown, then they are returned from defaults', async () => {
+  it('should return default config when readWebdavConfig throws an error', async () => {
     const fsStub = vi.spyOn(fs, 'readFile').mockRejectedValue(new Error());
 
     const webdavConfigResult = await ConfigService.instance.readWebdavConfig();
