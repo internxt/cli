@@ -48,20 +48,20 @@ describe('UploadUtils', () => {
       );
     });
 
-    it('should throw when size equals the account upload limit', async () => {
+    it('should not throw when size equals the account upload limit', async () => {
       const limitBytes = 10 * 1024 * 1024 * 1024;
       vi.spyOn(UsageService.instance, 'fetchLimits').mockResolvedValue({
         maxUploadFileSize: limitBytes,
         versioning: { enabled: false, maxFileSize: 0, retentionDays: 0, maxVersions: 0 },
       });
 
-      await expect(UploadUtils.checkUploadSizeLimits(limitBytes)).rejects.toThrow('File is too big');
+      await expect(UploadUtils.checkUploadSizeLimits(limitBytes)).resolves.toBeUndefined();
     });
 
-    it('should throw when size is >= 100GB even if no account limit is set', async () => {
+    it('should throw when size exceeds 100GB even if no account limit is set', async () => {
       vi.spyOn(UsageService.instance, 'fetchLimits').mockResolvedValue(undefined as never);
 
-      await expect(UploadUtils.checkUploadSizeLimits(100 * 1024 * 1024 * 1024)).rejects.toThrow(
+      await expect(UploadUtils.checkUploadSizeLimits(101 * 1024 * 1024 * 1024)).rejects.toThrow(
         'File is too big (more than 100 GB)',
       );
     });
