@@ -87,7 +87,7 @@ describe('Network Facade Service', () => {
     expect(mockEnvironment.upload).not.toHaveBeenCalled();
   });
 
-  it('Should throw an error when a file exceeds 40 GB', async () => {
+  it('Should throw an error when a file exceeds 100 GB', async () => {
     const mockEnvironment = {
       upload: vi.fn(),
     };
@@ -106,16 +106,16 @@ describe('Network Facade Service', () => {
     await expect(() =>
       sut.uploadFile({
         from: readStream,
-        size: 41 * 1024 * 1024 * 1024,
+        size: 101 * 1024 * 1024 * 1024,
         bucketId: 'bucket-id',
         progressCallback: vi.fn(),
       }),
-    ).rejects.toThrow('File is too big (more than 40 GB)');
+    ).rejects.toThrow('File is too big (more than 100 GB)');
 
     expect(mockEnvironment.upload).not.toHaveBeenCalled();
   });
 
-  it('Should enforce API limit over 40 GB hard cap when maxUploadFileSize is smaller', async () => {
+  it('Should enforce API limit over 100 GB hard cap when maxUploadFileSize is smaller', async () => {
     const mockEnvironment = {
       upload: vi.fn(),
     };

@@ -16,6 +16,7 @@ import { WebDavUtils } from '../../../src/utils/webdav.utils';
 import { newDriveFile, newFolderItem } from '../../fixtures/drive.fixture';
 import { UserCredentialsFixture } from '../../fixtures/login.fixture';
 import { CLIUtils } from '../../../src/utils/cli.utils';
+import { UsageService } from '../../../src/services/usage.service';
 
 describe('PUT request handler', () => {
   let networkFacade: NetworkFacade;
@@ -24,6 +25,10 @@ describe('PUT request handler', () => {
   beforeEach(() => {
     networkFacade = getNetworkFacadeMock();
     vi.spyOn(CLIUtils, 'prepareNetwork').mockResolvedValue(getNetworkOptionsMock({ networkFacade }));
+    vi.spyOn(UsageService.instance, 'fetchLimits').mockResolvedValue({
+      maxUploadFileSize: null,
+      versioning: { enabled: false, maxFileSize: 0, retentionDays: 0, maxVersions: 0 },
+    });
 
     sut = new PUTRequestHandler();
   });

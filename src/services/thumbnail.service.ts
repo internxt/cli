@@ -94,7 +94,7 @@ export class ThumbnailService {
   }) => {
     try {
       const thumbnailBuffer = bufferStream?.getBuffer();
-      if (thumbnailBuffer) {
+      if (thumbnailBuffer && size > 0) {
         await AsyncUtils.withTimeout(
           ThumbnailService.instance.uploadThumbnail(thumbnailBuffer, fileType, bucket, fileUuid, networkFacade, size),
           ThumbnailService.MAX_THUMBNAIL_TIMEOUT,
