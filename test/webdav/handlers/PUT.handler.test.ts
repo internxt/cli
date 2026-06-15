@@ -176,7 +176,7 @@ describe('PUT request handler', () => {
       .mockResolvedValue(fileFixture.toItem());
 
     await sut.handle(request, response);
-    expect(response.status).toHaveBeenCalledWith(201);
+    expect(response.status).toHaveBeenCalledWith(204);
     expect(getRequestedResourceStub).toHaveBeenCalledTimes(2);
     expect(getAndSearchItemFromResourceStub).toHaveBeenCalledOnce();
     expect(getDriveFolderFromResourceStub).toHaveBeenCalledOnce();

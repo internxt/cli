@@ -37,6 +37,8 @@ export class PUTRequestHandler implements WebDavMethodHandler {
       (await WebDavFolderService.instance.getDriveFolderItemFromPath(resource.parentPath)) ??
       (await WebDavFolderService.instance.createParentPathOrThrow(resource.parentPath));
 
+    let isReplacement = false;
+
     // If the file already exists, the WebDAV specification states that 'PUT /…/file' should replace it.
     // http://www.webdav.org/specs/rfc4918.html#put-resources
     const driveFileItem = await WebDavUtils.getDriveItemFromResource(resource);
@@ -45,6 +47,7 @@ export class PUTRequestHandler implements WebDavMethodHandler {
         webdavLogger.info('[PUT] ❌ A folder exists on the cloud with the same name.');
         throw new ConflictError('A folder exists on the cloud with the same name');
       }
+      isReplacement = true;
       webdavLogger.info(
         `[PUT] File '${resource.name}' already exists in '${resource.path.dir}', it will be replaced...`,
       );
@@ -129,10 +132,12 @@ export class PUTRequestHandler implements WebDavMethodHandler {
         timingBreakdown,
     );
 
+    const statusCode = isReplacement ? 204 : 201;
     webdavLogger.info(
-      `[PUT] [RESPONSE-201] ${resource.url} - Returning 201 Created after ${CLIUtils.formatDuration(totalTime)}`,
+      `[PUT] [RESPONSE-${statusCode}] ${resource.url} - Returning ${statusCode} ` +
+        `after ${CLIUtils.formatDuration(totalTime)}`,
     );
 
-    res.status(201).send();
+    res.status(statusCode).send();
   };
 }
