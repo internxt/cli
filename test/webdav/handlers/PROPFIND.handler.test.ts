@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { PROPFINDRequestHandler } from '../../../src/webdav/handlers/PROPFIND.handler';
 import { DriveFolderService } from '../../../src/services/drive/drive-folder.service';
 import { DriveItemService } from '../../../src/services/drive/drive-item.service';
+import { DriveItemRepository } from '../../../src/services/database/drive-item/drive-item.repository';
 import { UserSettingsFixture } from '../../fixtures/auth.fixture';
 import { newFileItem, newFolderItem, newPaginatedFolder } from '../../fixtures/drive.fixture';
 import {
@@ -35,7 +36,7 @@ describe('PROPFIND request handler', () => {
     sut = new PROPFINDRequestHandler();
   });
 
-  it('When the root folder exists and there is no content, then it should return the correct XML', async () => {
+  it('should return the correct XML when root folder exists and is empty', async () => {
     const requestedFolderResource: WebDavRequestedResource = getRequestedFolderResource({
       parentFolder: '/',
       folderName: '',
@@ -82,7 +83,37 @@ describe('PROPFIND request handler', () => {
     expect(spaceLimitStub).toHaveBeenCalledOnce();
   });
 
-  it('When the root folder exists and there is content, then it should return the correct XML', async () => {
+  it('should not cache folder content items when root folder is empty', async () => {
+    const requestedFolderResource = getRequestedFolderResource({
+      parentFolder: '/',
+      folderName: '',
+    });
+
+    const request = createWebDavRequestFixture({
+      method: 'PROPFIND',
+      url: '/',
+      user: UserSettingsFixture,
+    });
+
+    const response = createWebDavResponseFixture({
+      status: vi.fn().mockReturnValue({ send: vi.fn() }),
+    });
+
+    const folderFixture = newFolderItem({ uuid: UserSettingsFixture.rootFolderId });
+
+    vi.spyOn(WebDavUtils, 'getRequestedResource').mockResolvedValue(requestedFolderResource);
+    vi.spyOn(DriveItemService.instance, 'getFolderByPath').mockResolvedValue(folderFixture);
+    vi.spyOn(DriveFolderService.instance, 'getFolderContent').mockResolvedValue({ folders: [], files: [] });
+    vi.spyOn(UsageService.instance, 'fetchUsage').mockResolvedValue(0);
+    vi.spyOn(UsageService.instance, 'fetchSpaceLimit').mockResolvedValue(100);
+    const createOrUpdateSpy = vi.spyOn(DriveItemRepository.instance, 'createOrUpdate').mockResolvedValue(undefined);
+
+    await sut.handle(request, response);
+    expect(response.status).toHaveBeenCalledWith(207);
+    expect(createOrUpdateSpy).not.toHaveBeenCalled();
+  });
+
+  it('should return the correct XML with child items when root folder has content', async () => {
     const requestedFolderResource: WebDavRequestedResource = getRequestedFolderResource({
       parentFolder: '/',
       folderName: '',
@@ -134,7 +165,42 @@ describe('PROPFIND request handler', () => {
     expect(spaceLimitStub).toHaveBeenCalledOnce();
   });
 
-  it('When the file exists, then it should return the correct XML', async () => {
+  it('should cache child items via createOrUpdate when root folder has content', async () => {
+    const requestedFolderResource = getRequestedFolderResource({
+      parentFolder: '/',
+      folderName: '',
+    });
+
+    const request = createWebDavRequestFixture({
+      method: 'PROPFIND',
+      url: '/',
+      user: UserSettingsFixture,
+    });
+    const response = createWebDavResponseFixture({
+      status: vi.fn().mockReturnValue({ send: vi.fn() }),
+    });
+
+    const folderFixture = newFolderItem({ uuid: UserSettingsFixture.rootFolderId });
+    const paginatedFolder1 = newPaginatedFolder({ plainName: 'folder_1', uuid: 'FOLDER_UUID_1' });
+
+    vi.spyOn(WebDavUtils, 'getRequestedResource').mockResolvedValue(requestedFolderResource);
+    vi.spyOn(WebDavUtils, 'getDriveItemFromResource').mockResolvedValue(folderFixture);
+    vi.spyOn(DriveFolderService.instance, 'getFolderContent').mockResolvedValue({
+      files: [],
+      folders: [paginatedFolder1],
+    });
+    vi.spyOn(UsageService.instance, 'fetchUsage').mockResolvedValue(0);
+    vi.spyOn(UsageService.instance, 'fetchSpaceLimit').mockResolvedValue(100);
+    const createOrUpdateSpy = vi.spyOn(DriveItemRepository.instance, 'createOrUpdate').mockResolvedValue(undefined);
+
+    await sut.handle(request, response);
+    expect(response.status).toHaveBeenCalledWith(207);
+    expect(createOrUpdateSpy).toHaveBeenCalledWith(
+      expect.arrayContaining([expect.objectContaining({ uuid: 'FOLDER_UUID_1', type: 'folder' })]),
+    );
+  });
+
+  it('should return the correct XML for a file', async () => {
     const requestedFileResource: WebDavRequestedResource = getRequestedFileResource({
       parentFolder: '/',
       fileName: 'file',
@@ -177,7 +243,7 @@ describe('PROPFIND request handler', () => {
     expect(mimeLookupStub).toHaveBeenCalledOnce();
   });
 
-  it('When the folder exists, then it should return the correct XML', async () => {
+  it('should return the correct XML for a folder', async () => {
     const requestedFolderResource: WebDavRequestedResource = getRequestedFolderResource({
       parentFolder: '/',
       folderName: 'folder_a',
@@ -214,7 +280,40 @@ describe('PROPFIND request handler', () => {
     expect(getFolderContentStub).toHaveBeenCalledOnce();
   });
 
-  it('When the folder does not exists, then it should return a 404 empty response', async () => {
+  it('should cache child items when folder has content', async () => {
+    const requestedFolderResource = getRequestedFolderResource({
+      parentFolder: '/',
+      folderName: 'folder_a',
+    });
+
+    const request = createWebDavRequestFixture({
+      method: 'PROPFIND',
+      url: '/folder_a/',
+      user: UserSettingsFixture,
+    });
+    const response = createWebDavResponseFixture({
+      status: vi.fn().mockReturnValue({ send: vi.fn() }),
+    });
+
+    const folderFixture = newFolderItem({ name: requestedFolderResource.name });
+    const paginatedFolder1 = newPaginatedFolder({ uuid: 'CHILD_UUID', plainName: 'child' });
+
+    vi.spyOn(WebDavUtils, 'getRequestedResource').mockResolvedValue(requestedFolderResource);
+    vi.spyOn(WebDavUtils, 'getDriveItemFromResource').mockResolvedValue(folderFixture);
+    vi.spyOn(DriveFolderService.instance, 'getFolderContent').mockResolvedValue({
+      files: [],
+      folders: [paginatedFolder1],
+    });
+    const createOrUpdateSpy = vi.spyOn(DriveItemRepository.instance, 'createOrUpdate').mockResolvedValue(undefined);
+
+    await sut.handle(request, response);
+    expect(response.status).toHaveBeenCalledWith(207);
+    expect(createOrUpdateSpy).toHaveBeenCalledWith(
+      expect.arrayContaining([expect.objectContaining({ uuid: 'CHILD_UUID', type: 'folder' })]),
+    );
+  });
+
+  it('should return a 404 empty response when folder does not exist', async () => {
     const requestedFolderResource: WebDavRequestedResource = getRequestedFolderResource({
       parentFolder: '/',
       folderName: 'folder_a',
