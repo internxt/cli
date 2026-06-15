@@ -11,21 +11,21 @@ export class OPTIONSRequestHandler implements WebDavMethodHandler {
 
     if (resource.url === '/' || resource.url === '') {
       // Root Folder
-      const allowedMethods = 'DELETE, GET, HEAD, MKCOL, MOVE, OPTIONS, PROPFIND, PUT';
+      const allowedMethods = 'DELETE, GET, HEAD, LOCK, MKCOL, MOVE, OPTIONS, PROPFIND, PUT, UNLOCK';
       webdavLogger.info(`[OPTIONS] Returning Allowed Options: ${allowedMethods}`);
-      res.header('Allow', 'DELETE, GET, HEAD, MKCOL, MOVE, OPTIONS, PROPFIND, PUT');
+      res.header('Allow', allowedMethods);
       res.header('DAV', '1, 2, ordered-collections');
       res.status(200).send();
     } else if (resource.url.endsWith('/')) {
       // Children Folder
-      const allowedMethods = 'DELETE, HEAD, MKCOL, MOVE, OPTIONS, PROPFIND';
+      const allowedMethods = 'DELETE, HEAD, LOCK, MKCOL, MOVE, OPTIONS, PROPFIND, UNLOCK';
       webdavLogger.info(`[OPTIONS] Returning Allowed Options: ${allowedMethods}`);
       res.header('Allow', allowedMethods);
       res.header('DAV', '1, 2, ordered-collections');
       res.status(200).send();
     } else {
       // Children File
-      const allowedMethods = 'DELETE, GET, HEAD, MOVE, OPTIONS, PROPFIND, PUT';
+      const allowedMethods = 'DELETE, GET, HEAD, LOCK, MOVE, OPTIONS, PROPFIND, PUT, UNLOCK';
       webdavLogger.info(`[OPTIONS] Returning Allowed Options: ${allowedMethods}`);
       res.header('Allow', allowedMethods);
       res.header('DAV', '1, 2, ordered-collections');
