@@ -58,16 +58,16 @@ export class WebDavUtils {
   static async getDriveFileFromResource(url: string): Promise<DriveFileItem | undefined> {
     try {
       return await DriveItemService.instance.getFileByPath(url);
-    } catch (err) {
-      webdavLogger.error('Exception while getting the file metadata by path', err);
+    } catch {
+      // no op
     }
   }
 
   static async getDriveFolderFromResource(url: string): Promise<DriveFolderItem | undefined> {
     try {
       return await DriveItemService.instance.getFolderByPath(url);
-    } catch (err) {
-      webdavLogger.error('Exception while getting the folder metadata by path', err);
+    } catch {
+      // no op
     }
   }
 
