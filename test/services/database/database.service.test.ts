@@ -1,7 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { DatabaseService } from '../../../src/services/database/database.service';
-import { DriveFileModel } from '../../../src/services/database/drive-file/drive-file.model';
-import { DriveFolderModel } from '../../../src/services/database/drive-folder/drive-folder.model';
+import { DriveItemModel } from '../../../src/services/database/drive-item/drive-item.model';
 import { ConfigService } from '../../../src/services/config.service';
 import { DRIVE_SQLITE_FILE } from '../../../src/constants/configs';
 
@@ -15,7 +14,7 @@ describe('DatabaseService', () => {
 
       expect(service.dataSource.options.type).toBe('sqljs');
       expect(service.dataSource.options.synchronize).toBe(true);
-      expect(service.dataSource.options.entities).toEqual([DriveFileModel, DriveFolderModel]);
+      expect(service.dataSource.options.entities).toEqual([DriveItemModel]);
       expect(configServiceInstancespyOn).toHaveBeenCalledWith('NODE_ENV', false);
     });
 
@@ -28,7 +27,7 @@ describe('DatabaseService', () => {
       expect(service.dataSource.options.type).toBe('better-sqlite3');
       expect(service.dataSource.options.database).toBe(DRIVE_SQLITE_FILE);
       expect(service.dataSource.options.synchronize).toBe(true);
-      expect(service.dataSource.options.entities).toEqual([DriveFileModel, DriveFolderModel]);
+      expect(service.dataSource.options.entities).toEqual([DriveItemModel]);
       expect(configServiceInstancespyOn).toHaveBeenCalledWith('NODE_ENV', false);
     });
   });

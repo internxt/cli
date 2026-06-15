@@ -10,10 +10,6 @@ import {
 import { getDefaultWordlist, wordlists } from 'bip39';
 import crypto, { randomInt, randomUUID } from 'node:crypto';
 import { DriveFileItem, DriveFolderItem } from '../../src/types/drive.types';
-import { DriveFile } from '../../src/services/database/drive-file/drive-file.domain';
-import { DriveFileAttributes } from '../../src/services/database/drive-file/drive-file.attributes';
-import { DriveFolderAttributes } from '../../src/services/database/drive-folder/drive-folder.attributes';
-import { DriveFolder } from '../../src/services/database/drive-folder/drive-folder.domain';
 
 const wordlist = wordlists[getDefaultWordlist()];
 const fileTypes = ['png', 'jpg', 'docx', 'pdf', 'mp4', 'mp3'];
@@ -164,38 +160,6 @@ export const newPaginatedFile = (attributes?: Partial<FetchPaginatedFile>): Fetc
     modificationTime: getRandomDate().toISOString(),
   };
   return { ...file, ...attributes };
-};
-
-export const newDriveFolder = (attributes?: Partial<DriveFolderAttributes>): DriveFolder => {
-  const folder: DriveFolderAttributes = {
-    name: crypto.randomBytes(16).toString('hex'),
-    uuid: crypto.randomBytes(16).toString('hex'),
-    parentUuid: crypto.randomBytes(16).toString('hex'),
-    createdAt: getRandomDate(),
-    updatedAt: getRandomDate(),
-    status: FileStatus.EXISTS,
-    creationTime: getRandomDate(),
-    modificationTime: getRandomDate(),
-  };
-  return new DriveFolder({ ...folder, ...attributes });
-};
-
-export const newDriveFile = (attributes?: Partial<DriveFileAttributes>): DriveFile => {
-  const file: DriveFileAttributes = {
-    name: crypto.randomBytes(16).toString('hex'),
-    type: fileTypes[randomInt(fileTypes.length)],
-    uuid: crypto.randomBytes(16).toString('hex'),
-    fileId: crypto.randomBytes(16).toString('hex'),
-    folderUuid: crypto.randomBytes(16).toString('hex'),
-    bucket: crypto.randomBytes(16).toString('hex'),
-    createdAt: getRandomDate(),
-    updatedAt: getRandomDate(),
-    size: randomInt(1, 10000),
-    status: FileStatus.EXISTS,
-    creationTime: getRandomDate(),
-    modificationTime: getRandomDate(),
-  };
-  return new DriveFile({ ...file, ...attributes });
 };
 
 export const generateSubcontent = (uuid: string, countFolders: number, countFiles: number) => {
