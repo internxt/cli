@@ -16,7 +16,7 @@ describe('Request logger middleware', () => {
     middleware(req, createWebDavResponseFixture({}), next);
 
     expect(infoStub).toHaveBeenCalledOnce();
-    expect(infoStub).toHaveBeenCalledWith(expect.stringContaining('WebDav request received'));
+    expect(infoStub).toHaveBeenCalledWith(expect.stringContaining('[PROPFIND] /path - Start'));
     expect(next).toHaveBeenCalledOnce();
   });
 

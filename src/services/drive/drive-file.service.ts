@@ -125,7 +125,7 @@ export class DriveFileService {
           return file;
         }
       } catch {
-        logger.error('File not found when getting file by path on local DB', { path });
+        logger.warn('File not found when getting file by path on local DB', { path });
       }
     }
 

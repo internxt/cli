@@ -257,7 +257,7 @@ export class DriveFolderService {
           return folder;
         }
       } catch {
-        logger.error('Folder not found when getting folder by path on local DB', { path, rootFolderUuid });
+        logger.warn('Folder not found when getting folder by path on local DB', { path, rootFolderUuid });
       }
     }
     return this.getByPath(path, rootFolderUuid);
