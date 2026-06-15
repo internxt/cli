@@ -87,16 +87,22 @@ export class ConfigService {
   };
 
   public saveWebdavConfig = async (webdavConfig: WebdavConfig): Promise<void> => {
+    CacheService.instance.set(CacheService.WEBDAV_CONFIG_CACHE_KEY, webdavConfig);
     await this.ensureInternxtCliDataDirExists();
     const configs = JSON.stringify(webdavConfig);
-    await fs.writeFile(WEBDAV_CONFIGS_FILE, configs, 'utf8');
+    const tempPath = WEBDAV_CONFIGS_FILE + '.tmp';
+    await fs.writeFile(tempPath, configs, 'utf8');
+    await fs.rename(tempPath, WEBDAV_CONFIGS_FILE);
   };
 
   public readWebdavConfig = async (): Promise<WebdavConfig> => {
+    const cached = CacheService.instance.get<WebdavConfig>(CacheService.WEBDAV_CONFIG_CACHE_KEY);
+    if (cached) return cached;
+
     try {
       const configsData = await fs.readFile(WEBDAV_CONFIGS_FILE, 'utf8');
       const configs = JSON.parse(configsData);
-      return {
+      const webdavConfig = {
         host: configs?.host ?? WEBDAV_DEFAULT_HOST,
         port: configs?.port ?? WEBDAV_DEFAULT_PORT,
         protocol: configs?.protocol ?? WEBDAV_DEFAULT_PROTOCOL,
@@ -107,6 +113,8 @@ export class ConfigService {
         password: configs?.password ?? '',
         deleteFilesPermanently: configs?.deleteFilesPermanently ?? WEBDAV_DEFAULT_DELETE_FILES_PERMANENTLY,
       };
+      CacheService.instance.set(CacheService.WEBDAV_CONFIG_CACHE_KEY, webdavConfig);
+      return webdavConfig;
     } catch {
       return {
         host: WEBDAV_DEFAULT_HOST,
