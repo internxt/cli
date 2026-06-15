@@ -13,25 +13,25 @@ describe('UploadUtils', () => {
   });
 
   describe('checkUploadSizeLimits', () => {
-    it('should not throw when fetchLimits returns no maxUploadFileSize and size is under 100GB', async () => {
+    it('should not throw when fetchLimits returns no maxUploadFileSize and size is under 10GB', async () => {
       vi.spyOn(UsageService.instance, 'fetchLimits').mockResolvedValue(undefined as never);
 
-      await expect(UploadUtils.checkUploadSizeLimits(50 * 1024 * 1024 * 1024)).resolves.toBeUndefined();
+      await expect(UploadUtils.checkUploadSizeLimits(5 * 1024 * 1024 * 1024)).resolves.toBeUndefined();
     });
 
     it('should not throw when fetchLimits returns null', async () => {
       vi.spyOn(UsageService.instance, 'fetchLimits').mockResolvedValue(null as never);
 
-      await expect(UploadUtils.checkUploadSizeLimits(50 * 1024 * 1024 * 1024)).resolves.toBeUndefined();
+      await expect(UploadUtils.checkUploadSizeLimits(5 * 1024 * 1024 * 1024)).resolves.toBeUndefined();
     });
 
     it('should not throw when size is below the account upload limit', async () => {
       vi.spyOn(UsageService.instance, 'fetchLimits').mockResolvedValue({
-        maxUploadFileSize: 100 * 1024 * 1024 * 1024,
+        maxUploadFileSize: 8 * 1024 * 1024 * 1024,
         versioning: { enabled: false, maxFileSize: 0, retentionDays: 0, maxVersions: 0 },
       });
 
-      await expect(UploadUtils.checkUploadSizeLimits(50 * 1024 * 1024 * 1024)).resolves.toBeUndefined();
+      await expect(UploadUtils.checkUploadSizeLimits(5 * 1024 * 1024 * 1024)).resolves.toBeUndefined();
     });
 
     it('should throw when size exceeds the account upload limit', async () => {
@@ -58,34 +58,34 @@ describe('UploadUtils', () => {
       await expect(UploadUtils.checkUploadSizeLimits(limitBytes)).resolves.toBeUndefined();
     });
 
-    it('should throw when size exceeds 100GB even if no account limit is set', async () => {
+    it('should throw when size exceeds 10GB even if no account limit is set', async () => {
       vi.spyOn(UsageService.instance, 'fetchLimits').mockResolvedValue(undefined as never);
 
-      await expect(UploadUtils.checkUploadSizeLimits(101 * 1024 * 1024 * 1024)).rejects.toThrow(
-        'File is too big (more than 100 GB)',
+      await expect(UploadUtils.checkUploadSizeLimits(11 * 1024 * 1024 * 1024)).rejects.toThrow(
+        'File is too big (more than 10 GB)',
       );
     });
 
-    it('should throw when size > 100GB', async () => {
+    it('should throw when size > 10GB', async () => {
       vi.spyOn(UsageService.instance, 'fetchLimits').mockResolvedValue({
-        maxUploadFileSize: 200 * 1024 * 1024 * 1024,
+        maxUploadFileSize: 20 * 1024 * 1024 * 1024,
         versioning: { enabled: false, maxFileSize: 0, retentionDays: 0, maxVersions: 0 },
       });
 
-      await expect(UploadUtils.checkUploadSizeLimits(150 * 1024 * 1024 * 1024)).rejects.toThrow(
-        'File is too big (more than 100 GB)',
+      await expect(UploadUtils.checkUploadSizeLimits(15 * 1024 * 1024 * 1024)).rejects.toThrow(
+        'File is too big (more than 10 GB)',
       );
     });
 
-    it('should use the account limit when it is below 100GB', async () => {
-      const limitBytes = 50 * 1024 * 1024 * 1024;
+    it('should use the account limit when it is below the default limit', async () => {
+      const limitBytes = 8 * 1024 * 1024 * 1024;
       vi.spyOn(UsageService.instance, 'fetchLimits').mockResolvedValue({
         maxUploadFileSize: limitBytes,
         versioning: { enabled: false, maxFileSize: 0, retentionDays: 0, maxVersions: 0 },
       });
 
-      await expect(UploadUtils.checkUploadSizeLimits(75 * 1024 * 1024 * 1024)).rejects.toThrow(
-        `File is too big (${FormatUtils.humanFileSize(75 * 1024 * 1024 * 1024)} exceeds account ` +
+      await expect(UploadUtils.checkUploadSizeLimits(9 * 1024 * 1024 * 1024)).rejects.toThrow(
+        `File is too big (${FormatUtils.humanFileSize(9 * 1024 * 1024 * 1024)} exceeds account ` +
           `upload limit of ${FormatUtils.humanFileSize(limitBytes)})`,
       );
     });
