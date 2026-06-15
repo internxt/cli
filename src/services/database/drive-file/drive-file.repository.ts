@@ -15,6 +15,19 @@ export class FileRepository {
       for (let i = 0; i < files.length; i += DatabaseUtils.CREATE_BATCH_SIZE) {
         const chunk = files.slice(i, i + DatabaseUtils.CREATE_BATCH_SIZE);
 
+        const seenKeys = new Set<string>();
+        for (const f of chunk) {
+          seenKeys.add(`${f.folderUuid}::${f.name}::${f.type ?? ''}`);
+        }
+        for (const key of seenKeys) {
+          const parts = key.split('::');
+          const folderUuid = parts[0];
+          const name = parts[1];
+          const type = parts[2] || null;
+          const typeCondition = type ?? IsNull();
+          await this.fileRepository.delete({ folderUuid, name, type: typeCondition });
+        }
+
         await this.fileRepository.upsert(chunk, { conflictPaths: ['uuid'] });
       }
 
@@ -48,6 +61,18 @@ export class FileRepository {
     }
   };
 
+  public getByUuid = async (uuid: string): Promise<DriveFile | undefined> => {
+    try {
+      const file = await this.fileRepository.findOneBy({ uuid });
+      if (!file) {
+        return;
+      }
+      return DriveFile.build(file);
+    } catch (error) {
+      ErrorUtils.report(error, { getByUuid: uuid });
+    }
+  };
+
   public getByParentUuidNameAndType = async (
     parentUuid: string,
     name: string,
@@ -55,11 +80,15 @@ export class FileRepository {
   ): Promise<DriveFile | undefined> => {
     try {
       const typeCondition = type ?? IsNull();
-      const file = await this.fileRepository.findOneBy({ folderUuid: parentUuid, name, type: typeCondition });
-      if (!file) {
+      const files = await this.fileRepository.find({
+        where: { folderUuid: parentUuid, name, type: typeCondition },
+        order: { createdAt: 'DESC' },
+        take: 1,
+      });
+      if (files.length === 0) {
         return;
       }
-      return DriveFile.build(file);
+      return DriveFile.build(files[0]);
     } catch (error) {
       ErrorUtils.report(error, { getByParentuuidAndName: { parentUuid, name, type } });
     }
