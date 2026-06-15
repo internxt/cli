@@ -46,6 +46,8 @@ Find below the methods that are supported in the latest version of the Internxt 
 | MKCOL     | ✅        |
 | COPY      | ❌        |
 | MOVE      | ✅        |
+| LOCK      | ✅        |
+| UNLOCK    | ✅        |
 
 ## Requisites
 

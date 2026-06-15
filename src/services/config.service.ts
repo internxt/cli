@@ -41,12 +41,13 @@ export class ConfigService {
    * @async
    **/
   public saveUser = async (loginCredentials: LoginCredentials): Promise<void> => {
+    CacheService.instance.set(CacheService.AUTH_CACHE_KEY, loginCredentials);
     await this.ensureInternxtCliDataDirExists();
     const credentialsString = JSON.stringify(loginCredentials);
     const encryptedCredentials = CryptoService.instance.encryptText(credentialsString);
-    await fs.writeFile(CREDENTIALS_FILE, encryptedCredentials, 'utf8');
-
-    CacheService.instance.set(CacheService.AUTH_CACHE_KEY, loginCredentials);
+    const tempPath = CREDENTIALS_FILE + '.tmp';
+    await fs.writeFile(tempPath, encryptedCredentials, 'utf8');
+    await fs.rename(tempPath, CREDENTIALS_FILE);
   };
 
   /**

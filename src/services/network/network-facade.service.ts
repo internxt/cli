@@ -10,10 +10,7 @@ import { CryptoService } from '../crypto.service';
 import { DownloadService } from './download.service';
 import { ValidationService } from '../validation.service';
 import { RangeOptions } from '../../utils/network.utils';
-import { UsageService } from '../usage.service';
-import { FormatUtils } from '../../utils/format.utils';
-
-const FORTY_GIGABYTES = 40 * 1024 * 1024 * 1024;
+import { UploadUtils } from '../../utils/upload.utils';
 
 export class NetworkFacade {
   private readonly cryptoLib: Network.Crypto;
@@ -138,16 +135,7 @@ export class NetworkFacade {
     progressCallback: (progress: number) => void;
     abortSignal?: AbortSignal;
   }): Promise<string> => {
-    const limits = await UsageService.instance.fetchLimits();
-    if (limits?.maxUploadFileSize && size > limits.maxUploadFileSize) {
-      const formattedSize = FormatUtils.humanFileSize(size);
-      const formattedLimit = FormatUtils.humanFileSize(limits.maxUploadFileSize);
-      throw new Error(`File is too big (${formattedSize} exceeds account upload limit of ${formattedLimit})`);
-    }
-
-    if (size > FORTY_GIGABYTES) {
-      throw new Error('File is too big (more than 40 GB)');
-    }
+    await UploadUtils.checkUploadSizeLimits(size);
 
     return this.environment.upload(bucketId, {
       source: from,

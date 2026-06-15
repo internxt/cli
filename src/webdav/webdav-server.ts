@@ -20,6 +20,8 @@ import { DELETERequestHandler } from './handlers/DELETE.handler';
 import { PROPPATCHRequestHandler } from './handlers/PROPPATCH.handler';
 import { MOVERequestHandler } from './handlers/MOVE.handler';
 import { COPYRequestHandler } from './handlers/COPY.handler';
+import { LOCKRequestHandler } from './handlers/LOCK.handler';
+import { UNLOCKRequestHandler } from './handlers/UNLOCK.handler';
 import { MkcolMiddleware } from './middewares/mkcol.middleware';
 import { WebdavConfig } from '../types/command.types';
 import { WebDAVAuthMiddleware } from './middewares/webdav-auth.middleware';
@@ -51,6 +53,8 @@ export class WebDavServer {
     this.app.propfind(serverListenPath, asyncHandler(new PROPFINDRequestHandler().handle));
 
     this.app.put(serverListenPath, asyncHandler(new PUTRequestHandler().handle));
+    this.app.lock(serverListenPath, asyncHandler(new LOCKRequestHandler().handle));
+    this.app.unlock(serverListenPath, asyncHandler(new UNLOCKRequestHandler().handle));
 
     this.app.mkcol(serverListenPath, asyncHandler(new MKCOLRequestHandler().handle));
     this.app.delete(serverListenPath, asyncHandler(new DELETERequestHandler().handle));

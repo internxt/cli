@@ -95,6 +95,8 @@ export class AuthService {
       throw new ExpiredCredentialsError();
     }
 
+    let credentialsChanged = false;
+
     if (tokenDetails.expiration.refreshRequired) {
       try {
         loginCreds = await this.refreshUserToken(
@@ -102,6 +104,7 @@ export class AuthService {
           loginCreds.user.mnemonic,
           loginCreds.user.keys.ecc.privateKey,
         );
+        credentialsChanged = true;
       } catch (error) {
         await ConfigService.instance.clearUser();
         throw error;
@@ -109,10 +112,16 @@ export class AuthService {
     }
 
     const workspaceCreds = await this.refreshWorkspaceCredentials(loginCreds);
+    if (workspaceCreds !== loginCreds.workspace) {
+      credentialsChanged = true;
+    }
     loginCreds.workspace = workspaceCreds;
 
     SdkManager.init({ token: loginCreds.token, workspaceToken: workspaceCreds?.workspaceCredentials.token });
-    await ConfigService.instance.saveUser(loginCreds);
+
+    if (credentialsChanged) {
+      await ConfigService.instance.saveUser(loginCreds);
+    }
     return loginCreds;
   };
 

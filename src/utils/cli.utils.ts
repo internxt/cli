@@ -11,6 +11,8 @@ import { ConfigService } from '../services/config.service';
 import { NetworkFacade } from '../services/network/network-facade.service';
 import { AuthService } from '../services/auth.service';
 import { NetworkCredentials, NetworkOptions } from '../types/network.types';
+import { AppError } from '@internxt/sdk';
+import { AxiosResponseError } from '@internxt/sdk/dist/shared/types/errors';
 
 export type LogReporter = (message: string) => void;
 
@@ -251,24 +253,40 @@ export class CLIUtils {
     command,
     jsonFlag,
   }: {
-    error: Error;
+    error: Error | AppError | AxiosResponseError;
     command?: string;
     logReporter: LogReporter;
     jsonFlag?: boolean;
   }) => {
-    let message;
-    if ('message' in error && error.message.trim().length > 0) {
-      message = error.message;
-    } else {
-      message = JSON.stringify(error);
+    let message: string | undefined;
+    let requestId: string | undefined;
+    if ('requestId' in error) {
+      requestId = error.requestId;
+    } else if ('xRequestId' in error) {
+      requestId = error.xRequestId;
+    }
+
+    if ('data' in error) {
+      const errorData = error.data as { message?: string };
+      if (errorData.message && errorData.message.trim().length > 0) {
+        message = errorData.message;
+      }
+    }
+
+    if (!message) {
+      if ('message' in error && error.message.trim().length > 0) {
+        message = error.message;
+      } else {
+        message = JSON.stringify(error);
+      }
     }
 
     CLIUtils.failed(jsonFlag);
     if (jsonFlag) {
-      CLIUtils.consoleLog(JSON.stringify({ success: false, message }));
+      CLIUtils.consoleLog(JSON.stringify({ success: false, message, requestId }));
     } else {
-      ErrorUtils.report(error, { command });
-      CLIUtils.error(logReporter, message);
+      ErrorUtils.report(error, { command, requestId });
+      CLIUtils.error(logReporter, message + (requestId ? ` (requestId: ${requestId})` : ''));
     }
   };
 

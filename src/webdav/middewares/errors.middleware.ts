@@ -26,5 +26,7 @@ export const ErrorHandlingMiddleware: ErrorRequestHandler = (err, req, res, _) =
     statusCode = err.statusCode;
   }
 
+  res.set('Content-Type', 'application/xml; charset="utf-8"');
   res.status(statusCode).send(errorBodyXML);
+  req.destroy();
 };

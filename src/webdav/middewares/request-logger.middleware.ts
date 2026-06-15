@@ -6,16 +6,22 @@ type RequestLoggerConfig = {
   methods?: string[];
 };
 export const RequestLoggerMiddleware = (config: RequestLoggerConfig): RequestHandler => {
-  return (req, _, next) => {
+  return (req, res, next) => {
     if (!config.enable) return next();
     if (config.methods && !config.methods.includes(req.method)) return next();
-    webdavLogger.info(
-      'WebDav request received\n' +
-        `Method: ${req.method}\n` +
-        `URL: ${req.url}\n` +
-        `Body: ${JSON.stringify(req.body)}\n` +
-        `Headers: ${JSON.stringify(req.headers)}`,
-    );
+
+    const start = Date.now();
+    const contentLength = req.headers['content-length'] ?? '0';
+
+    webdavLogger.info(`[${req.method}] ${req.url} - Start (${contentLength}B)`);
+
+    const originalEnd = res.end.bind(res);
+    res.end = function (...args: Parameters<typeof originalEnd>): ReturnType<typeof originalEnd> {
+      const duration = Date.now() - start;
+      webdavLogger.info(`[${req.method}] ${req.url} - ${res.statusCode} (${duration}ms)`);
+      return originalEnd(...args);
+    } as typeof originalEnd;
+
     next();
   };
 };
