@@ -6,12 +6,11 @@ import {
   getRequestedFileResource,
   getRequestedFolderResource,
 } from '../../fixtures/webdav.fixture';
-import { DriveFileService } from '../../../src/services/drive/drive-file.service';
+import { DriveItemService } from '../../../src/services/drive/drive-item.service';
 import { WebDavRequestedResource } from '../../../src/types/webdav.types';
 import { newFileItem, newFolderItem } from '../../fixtures/drive.fixture';
 import { WebDavUtils } from '../../../src/utils/webdav.utils';
 import { randomInt } from 'crypto';
-import { DriveFolderService } from '../../../src/services/drive/drive-folder.service';
 
 describe('HEAD request handler', () => {
   let sut: HEADRequestHandler;
@@ -33,13 +32,11 @@ describe('HEAD request handler', () => {
 
     const mockFolder = newFolderItem();
 
-    vi.spyOn(DriveFileService.instance, 'getFileMetadataByPath').mockRejectedValue(undefined);
+    vi.spyOn(DriveItemService.instance, 'getFileByPath').mockRejectedValue(new Error());
     const getRequestedResourceStub = vi
       .spyOn(WebDavUtils, 'getRequestedResource')
       .mockResolvedValue(requestedFolderResource);
-    const getFolderMetadataStub = vi
-      .spyOn(DriveFolderService.instance, 'getFolderMetadataByPath')
-      .mockResolvedValue(mockFolder);
+    const getFolderMetadataStub = vi.spyOn(DriveItemService.instance, 'getFolderByPath').mockResolvedValue(mockFolder);
 
     await sut.handle(request, response);
     expect(response.status).toHaveBeenCalledWith(200);
@@ -65,9 +62,7 @@ describe('HEAD request handler', () => {
     const getRequestedResourceStub = vi
       .spyOn(WebDavUtils, 'getRequestedResource')
       .mockResolvedValue(requestedFileResource);
-    const getFileMetadataStub = vi
-      .spyOn(DriveFileService.instance, 'getFileMetadataByPath')
-      .mockResolvedValue(mockFile);
+    const getFileMetadataStub = vi.spyOn(DriveItemService.instance, 'getFileByPath').mockResolvedValue(mockFile);
 
     await sut.handle(request, response);
     expect(response.status).toHaveBeenCalledWith(200);
@@ -99,9 +94,7 @@ describe('HEAD request handler', () => {
     const getRequestedResourceStub = vi
       .spyOn(WebDavUtils, 'getRequestedResource')
       .mockResolvedValue(requestedFileResource);
-    const getFileMetadataStub = vi
-      .spyOn(DriveFileService.instance, 'getFileMetadataByPath')
-      .mockResolvedValue(mockFile);
+    const getFileMetadataStub = vi.spyOn(DriveItemService.instance, 'getFileByPath').mockResolvedValue(mockFile);
 
     await sut.handle(request, response);
     expect(response.status).toHaveBeenCalledWith(200);

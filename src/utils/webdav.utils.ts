@@ -1,12 +1,12 @@
 import path from 'node:path';
 import { WebDavRequestedResource } from '../types/webdav.types';
-import { DriveFolderService } from '../services/drive/drive-folder.service';
-import { DriveFileService } from '../services/drive/drive-file.service';
 import { DriveFileItem, DriveFolderItem, DriveItem } from '../types/drive.types';
+import { DriveItemService } from '../services/drive/drive-item.service';
 import { webdavLogger } from './logger.utils';
 import { ConfigService } from '../services/config.service';
 import { TrashService } from '../services/drive/trash.service';
 import { FormatUtils } from './format.utils';
+import { DriveItemRepository } from '../services/database/drive-item/drive-item.repository';
 
 export class WebDavUtils {
   static joinURL(...pathComponents: string[]): string {
@@ -55,17 +55,9 @@ export class WebDavUtils {
     };
   }
 
-  static async tryGetFileOrFolderMetadata(url: string): Promise<DriveItem | undefined> {
-    try {
-      return await DriveFileService.instance.getFileMetadataByPath(url);
-    } catch {
-      return await DriveFolderService.instance.getFolderMetadataByPath(url);
-    }
-  }
-
   static async getDriveFileFromResource(url: string): Promise<DriveFileItem | undefined> {
     try {
-      return await DriveFileService.instance.getFileMetadataByPath(url);
+      return await DriveItemService.instance.getFileByPath(url);
     } catch (err) {
       webdavLogger.error('Exception while getting the file metadata by path', err);
     }
@@ -73,7 +65,7 @@ export class WebDavUtils {
 
   static async getDriveFolderFromResource(url: string): Promise<DriveFolderItem | undefined> {
     try {
-      return await DriveFolderService.instance.getFolderMetadataByPath(url);
+      return await DriveItemService.instance.getFolderByPath(url);
     } catch (err) {
       webdavLogger.error('Exception while getting the folder metadata by path', err);
     }
@@ -86,9 +78,13 @@ export class WebDavUtils {
 
     try {
       if (isFolder) {
-        item = await DriveFolderService.instance.getFolderMetadataByPath(resource.url);
+        item = await DriveItemService.instance.getFolderByPath(resource.url);
       } else {
-        item = await this.tryGetFileOrFolderMetadata(resource.url);
+        try {
+          item = await DriveItemService.instance.getFileByPath(resource.url);
+        } catch {
+          item = await DriveItemService.instance.getFolderByPath(resource.url);
+        }
       }
     } catch {
       //no op
@@ -111,5 +107,6 @@ export class WebDavUtils {
       });
       webdavLogger.info(`[DELETE] [${driveItem.uuid}] ${type} trashed successfully`);
     }
+    await DriveItemRepository.instance.delete([driveItem.uuid]);
   }
 }

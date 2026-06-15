@@ -8,7 +8,7 @@ import {
   getRequestedFileResource,
 } from '../../fixtures/webdav.fixture';
 import { GETRequestHandler } from '../../../src/webdav/handlers/GET.handler';
-import { DriveFileService } from '../../../src/services/drive/drive-file.service';
+import { DriveItemService } from '../../../src/services/drive/drive-item.service';
 import { AuthService } from '../../../src/services/auth.service';
 import { NotFoundError } from '../../../src/utils/errors.utils';
 import { NetworkFacade } from '../../../src/services/network/network-facade.service';
@@ -49,7 +49,7 @@ describe('GET request handler', () => {
       .spyOn(WebDavUtils, 'getRequestedResource')
       .mockResolvedValue(requestedFileResource);
     const getFileMetadataStub = vi
-      .spyOn(DriveFileService.instance, 'getFileMetadataByPath')
+      .spyOn(DriveItemService.instance, 'getFileByPath')
       .mockRejectedValue(new Error('File not found'));
 
     try {
@@ -81,9 +81,7 @@ describe('GET request handler', () => {
     const getRequestedResourceStub = vi
       .spyOn(WebDavUtils, 'getRequestedResource')
       .mockResolvedValue(requestedFileResource);
-    const getFileMetadataStub = vi
-      .spyOn(DriveFileService.instance, 'getFileMetadataByPath')
-      .mockResolvedValue(mockFile);
+    const getFileMetadataStub = vi.spyOn(DriveItemService.instance, 'getFileByPath').mockResolvedValue(mockFile);
     const authDetailsStub = vi.spyOn(AuthService.instance, 'getAuthDetails').mockResolvedValue(mockAuthDetails);
     const downloadStreamStub = vi
       .spyOn(networkFacade, 'downloadToStream')
@@ -138,9 +136,7 @@ describe('GET request handler', () => {
     const getRequestedResourceStub = vi
       .spyOn(WebDavUtils, 'getRequestedResource')
       .mockResolvedValue(requestedFileResource);
-    const getFileMetadataStub = vi
-      .spyOn(DriveFileService.instance, 'getFileMetadataByPath')
-      .mockResolvedValue(mockFile);
+    const getFileMetadataStub = vi.spyOn(DriveItemService.instance, 'getFileByPath').mockResolvedValue(mockFile);
     const authDetailsStub = vi.spyOn(AuthService.instance, 'getAuthDetails').mockResolvedValue(mockAuthDetails);
     const downloadStreamStub = vi
       .spyOn(networkFacade, 'downloadToStream')
@@ -183,9 +179,7 @@ describe('GET request handler', () => {
     const getRequestedResourceStub = vi
       .spyOn(WebDavUtils, 'getRequestedResource')
       .mockResolvedValue(requestedFileResource);
-    const getFileMetadataStub = vi
-      .spyOn(DriveFileService.instance, 'getFileMetadataByPath')
-      .mockResolvedValue(mockFile);
+    const getFileMetadataStub = vi.spyOn(DriveItemService.instance, 'getFileByPath').mockResolvedValue(mockFile);
     const authDetailsStub = vi.spyOn(AuthService.instance, 'getAuthDetails').mockResolvedValue(mockAuthDetails);
     const downloadStreamStub = vi
       .spyOn(networkFacade, 'downloadToStream')

@@ -1,3 +1,4 @@
+import { DriveItemRepository } from '../../services/database/drive-item/drive-item.repository';
 import { WebDavMethodHandler } from '../../types/webdav.types';
 import { Request, Response } from 'express';
 import { WebDavUtils } from '../../utils/webdav.utils';
@@ -32,6 +33,16 @@ export class MKCOLRequestHandler implements WebDavMethodHandler {
     });
 
     webdavLogger.info(`[MKCOL] ✅ Folder created with UUID ${newFolder.uuid}`);
+
+    await DriveItemRepository.instance.createOrUpdate([
+      {
+        uuid: newFolder.uuid,
+        path: resource.url,
+        type: 'folder',
+        createdAt: newFolder.createdAt,
+        updatedAt: new Date(),
+      },
+    ]);
 
     // This aims to prevent this issue: https://inxt.atlassian.net/browse/PB-1446
     await AsyncUtils.sleep(500);

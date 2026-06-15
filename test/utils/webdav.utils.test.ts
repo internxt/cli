@@ -2,9 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { WebDavUtils } from '../../src/utils/webdav.utils';
 import { WebDavRequestedResource } from '../../src/types/webdav.types';
 import { newFileItem, newFolderItem } from '../fixtures/drive.fixture';
-import { DriveFolderService } from '../../src/services/drive/drive-folder.service';
-import { DriveFileService } from '../../src/services/drive/drive-file.service';
-import AppError from '@internxt/sdk/dist/shared/types/errors';
+import { DriveItemService } from '../../src/services/drive/drive-item.service';
 import { ConfigService } from '../../src/services/config.service';
 import { TrashService } from '../../src/services/drive/trash.service';
 import { getWebdavConfigMock } from '../fixtures/webdav.fixture';
@@ -98,10 +96,8 @@ describe('Webdav utils', () => {
 
     it('When folder resource is looked by its path, then it is returned', async () => {
       const expectedFolder = newFolderItem();
-      const findFolderStub = vi
-        .spyOn(DriveFolderService.instance, 'getFolderMetadataByPath')
-        .mockResolvedValue(expectedFolder);
-      const findFileStub = vi.spyOn(DriveFileService.instance, 'getFileMetadataByPath').mockRejectedValue(new Error());
+      const findFolderStub = vi.spyOn(DriveItemService.instance, 'getFolderByPath').mockResolvedValue(expectedFolder);
+      const findFileStub = vi.spyOn(DriveItemService.instance, 'getFileByPath').mockRejectedValue(new Error());
 
       const driveFolderItem = await WebDavUtils.getDriveItemFromResource(requestFolderFixture);
       expect(driveFolderItem).to.be.deep.equal(expectedFolder);
@@ -111,22 +107,18 @@ describe('Webdav utils', () => {
 
     it('When folder is not found, then it returns undefined', async () => {
       const findFolderStub = vi
-        .spyOn(DriveFolderService.instance, 'getFolderMetadataByPath')
-        .mockRejectedValue(new AppError('Folder not found', 404));
-      const findFileStub = vi.spyOn(DriveFileService.instance, 'getFileMetadataByPath').mockRejectedValue(new Error());
+        .spyOn(DriveItemService.instance, 'getFolderByPath')
+        .mockRejectedValue(new Error('Folder not found'));
 
       const item = await WebDavUtils.getDriveItemFromResource(requestFolderFixture);
       expect(findFolderStub).toHaveBeenCalledOnce();
-      expect(findFileStub).not.toHaveBeenCalled();
       expect(item).toBeUndefined();
     });
 
     it('When file resource is looked by its path, then it is returned', async () => {
       const expectedFile = newFileItem();
-      const findFileStub = vi.spyOn(DriveFileService.instance, 'getFileMetadataByPath').mockResolvedValue(expectedFile);
-      const findFolderStub = vi
-        .spyOn(DriveFolderService.instance, 'getFolderMetadataByPath')
-        .mockRejectedValue(new Error());
+      const findFileStub = vi.spyOn(DriveItemService.instance, 'getFileByPath').mockResolvedValue(expectedFile);
+      const findFolderStub = vi.spyOn(DriveItemService.instance, 'getFolderByPath').mockRejectedValue(new Error());
 
       const driveFileItem = await WebDavUtils.getDriveItemFromResource(requestFileFixture);
       expect(driveFileItem).to.be.deep.equal(expectedFile);

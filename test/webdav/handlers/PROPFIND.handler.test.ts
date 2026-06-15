@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { PROPFINDRequestHandler } from '../../../src/webdav/handlers/PROPFIND.handler';
 import { DriveFolderService } from '../../../src/services/drive/drive-folder.service';
+import { DriveItemService } from '../../../src/services/drive/drive-item.service';
 import { UserSettingsFixture } from '../../fixtures/auth.fixture';
 import { newFileItem, newFolderItem, newPaginatedFolder } from '../../fixtures/drive.fixture';
 import {
@@ -60,7 +61,7 @@ describe('PROPFIND request handler', () => {
       .spyOn(WebDavUtils, 'getRequestedResource')
       .mockResolvedValue(requestedFolderResource);
     const getFolderMetadataStub = vi
-      .spyOn(DriveFolderService.instance, 'getFolderMetadataByPath')
+      .spyOn(DriveItemService.instance, 'getFolderByPath')
       .mockResolvedValue(folderFixture);
     const getFolderContentStub = vi
       .spyOn(DriveFolderService.instance, 'getFolderContent')

@@ -1,6 +1,7 @@
 import { WebDavMethodHandler, WebDavRequestedResource } from '../../types/webdav.types';
 import { XMLUtils } from '../../utils/xml.utils';
 import { DriveFileItem, DriveFolderItem } from '../../types/drive.types';
+import { DriveItemRepository } from '../../services/database/drive-item/drive-item.repository';
 import { DriveFolderService } from '../../services/drive/drive-folder.service';
 import { FormatUtils } from '../../utils/format.utils';
 import { Request, Response } from 'express';
@@ -134,6 +135,24 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
         fileRelativePath,
       );
     });
+
+    const driveItems = [
+      ...folderContent.folders.map((folder) => ({
+        uuid: folder.uuid,
+        path: WebDavUtils.joinURL(relativePath, folder.plainName, '/'),
+        type: 'folder' as const,
+        createdAt: new Date(folder.createdAt),
+        updatedAt: new Date(),
+      })),
+      ...folderContent.files.map((file) => ({
+        uuid: file.uuid,
+        path: WebDavUtils.joinURL(relativePath, file.type ? `${file.plainName}.${file.type}` : file.plainName),
+        type: 'file' as const,
+        createdAt: new Date(file.createdAt),
+        updatedAt: new Date(),
+      })),
+    ];
+    await DriveItemRepository.instance.createOrUpdate(driveItems);
 
     return foldersXML.concat(filesXML);
   };
