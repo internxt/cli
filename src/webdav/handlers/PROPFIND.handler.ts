@@ -1,6 +1,7 @@
 import { WebDavMethodHandler, WebDavRequestedResource } from '../../types/webdav.types';
 import { XMLUtils } from '../../utils/xml.utils';
 import { DriveFileItem, DriveFolderItem } from '../../types/drive.types';
+import { DriveItem } from '../../services/database/drive-item/drive-item.domain';
 import { DriveItemRepository } from '../../services/database/drive-item/drive-item.repository';
 import { DriveFolderService } from '../../services/drive/drive-folder.service';
 import { FormatUtils } from '../../utils/format.utils';
@@ -91,70 +92,84 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
   private readonly getFolderChildsXMLNode = async (relativePath: string, folderUuid: string) => {
     const folderContent = await DriveFolderService.instance.getFolderContent(folderUuid);
 
-    const foldersXML = folderContent.folders.map((folder) => {
+    const xmlNodes: object[] = [];
+    const cachedItems: DriveItem[] = [];
+
+    for (const folder of folderContent.folders) {
       const folderRelativePath = WebDavUtils.joinURL(relativePath, folder.plainName, '/');
 
-      return this.driveFolderItemToXMLNode(
-        {
-          itemType: 'folder',
-          name: folder.plainName,
-          bucket: folder.bucket,
-          status: folder.deleted || folder.removed ? 'TRASHED' : 'EXISTS',
-          createdAt: new Date(folder.createdAt),
-          updatedAt: new Date(folder.updatedAt),
-          creationTime: new Date(folder.creationTime),
-          modificationTime: new Date(folder.modificationTime),
-          uuid: folder.uuid,
-          parentUuid: folder.parentUuid,
-        },
-        folderRelativePath,
+      xmlNodes.push(
+        this.driveFolderItemToXMLNode(
+          {
+            itemType: 'folder',
+            name: folder.plainName,
+            bucket: folder.bucket,
+            status: folder.deleted || folder.removed ? 'TRASHED' : 'EXISTS',
+            createdAt: new Date(folder.createdAt),
+            updatedAt: new Date(folder.updatedAt),
+            creationTime: new Date(folder.creationTime),
+            modificationTime: new Date(folder.modificationTime),
+            uuid: folder.uuid,
+            parentUuid: folder.parentUuid,
+          },
+          folderRelativePath,
+        ),
       );
-    });
 
-    const filesXML = folderContent.files.map((file) => {
+      cachedItems.push(
+        new DriveItem({
+          uuid: folder.uuid,
+          path: folderRelativePath,
+          type: 'folder',
+          createdAt: new Date(folder.createdAt),
+          updatedAt: new Date(),
+        }),
+      );
+    }
+
+    for (const file of folderContent.files) {
       const fileRelativePath = WebDavUtils.joinURL(
         relativePath,
         file.type ? `${file.plainName}.${file.type}` : file.plainName,
       );
-      return this.driveFileItemToXMLNode(
-        {
-          itemType: 'file',
-          name: file.plainName,
-          bucket: file.bucket,
-          fileId: file.fileId,
-          uuid: file.uuid,
-          type: file.type,
-          status: file.status,
-          folderUuid: file.folderUuid,
-          size: Number(file.size),
-          creationTime: new Date(file.creationTime),
-          modificationTime: new Date(file.modificationTime),
-          createdAt: new Date(file.createdAt),
-          updatedAt: new Date(file.updatedAt),
-        },
-        fileRelativePath,
+
+      xmlNodes.push(
+        this.driveFileItemToXMLNode(
+          {
+            itemType: 'file',
+            name: file.plainName,
+            bucket: file.bucket,
+            fileId: file.fileId,
+            uuid: file.uuid,
+            type: file.type,
+            status: file.status,
+            folderUuid: file.folderUuid,
+            size: Number(file.size),
+            creationTime: new Date(file.creationTime),
+            modificationTime: new Date(file.modificationTime),
+            createdAt: new Date(file.createdAt),
+            updatedAt: new Date(file.updatedAt),
+          },
+          fileRelativePath,
+        ),
       );
-    });
 
-    const driveItems = [
-      ...folderContent.folders.map((folder) => ({
-        uuid: folder.uuid,
-        path: WebDavUtils.joinURL(relativePath, folder.plainName, '/'),
-        type: 'folder' as const,
-        createdAt: new Date(folder.createdAt),
-        updatedAt: new Date(),
-      })),
-      ...folderContent.files.map((file) => ({
-        uuid: file.uuid,
-        path: WebDavUtils.joinURL(relativePath, file.type ? `${file.plainName}.${file.type}` : file.plainName),
-        type: 'file' as const,
-        createdAt: new Date(file.createdAt),
-        updatedAt: new Date(),
-      })),
-    ];
-    await DriveItemRepository.instance.createOrUpdate(driveItems);
+      cachedItems.push(
+        new DriveItem({
+          uuid: file.uuid,
+          path: fileRelativePath,
+          type: 'file',
+          createdAt: new Date(file.createdAt),
+          updatedAt: new Date(),
+        }),
+      );
+    }
 
-    return foldersXML.concat(filesXML);
+    if (cachedItems.length > 0) {
+      await DriveItemRepository.instance.createOrUpdate(cachedItems);
+    }
+
+    return xmlNodes;
   };
 
   private readonly driveFolderRootStatsToXMLNode = async (
