@@ -5,7 +5,7 @@ import { BufferStream } from './stream.utils';
 import { ThumbnailUtils } from './thumbnail.utils';
 import { CLIUtils } from './cli.utils';
 
-const TEN_GIGABYTES = 10 * 1024 * 1024 * 1024;
+const DEFAULT_MAX_FILE_SIZE = 100 * 1024 * 1024 * 1024;
 
 export class UploadUtils {
   static readonly checkUploadSizeLimits = async (size: number): Promise<void> => {
@@ -16,9 +16,9 @@ export class UploadUtils {
       throw new Error(`File is too big (${formattedSize} exceeds account upload limit of ${formattedLimit})`);
     }
 
-    if (size > TEN_GIGABYTES) {
+    if (size > DEFAULT_MAX_FILE_SIZE) {
       //Default limit if limits are not set from backend
-      throw new Error('File is too big (more than 10 GB)');
+      throw new Error('File is too big (more than 100 GB)');
     }
   };
 
