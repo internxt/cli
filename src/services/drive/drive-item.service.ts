@@ -9,7 +9,7 @@ import { DriveItemBD } from '../database/drive-item/drive-item.domain';
 export class DriveItemService {
   static readonly instance = new DriveItemService();
 
-  private tryGetFileByUuid = async (cached: DriveItemBD, path: string): Promise<DriveFileItem | undefined> => {
+  private readonly tryGetFileByUuid = async (cached: DriveItemBD, path: string): Promise<DriveFileItem | undefined> => {
     try {
       const item = await DriveFileService.instance.getFileMetadata(cached.uuid);
       await DriveItemRepository.instance.createOrUpdate([
@@ -28,7 +28,10 @@ export class DriveItemService {
     }
   };
 
-  private tryGetFolderByUuid = async (cached: DriveItemBD, path: string): Promise<DriveFolderItem | undefined> => {
+  private readonly tryGetFolderByUuid = async (
+    cached: DriveItemBD,
+    path: string,
+  ): Promise<DriveFolderItem | undefined> => {
     try {
       const item = await DriveFolderService.instance.getFolderMetaByUuid(cached.uuid);
       await DriveItemRepository.instance.createOrUpdate([
