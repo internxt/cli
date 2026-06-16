@@ -1,6 +1,5 @@
 import { DataSource } from 'typeorm';
-import { DriveFileModel } from './drive-file/drive-file.model';
-import { DriveFolderModel } from './drive-folder/drive-folder.model';
+import { DriveItemModel } from './drive-item/drive-item.model';
 import { DRIVE_SQLITE_FILE } from '../../constants/configs';
 import { ConfigService } from '../config.service';
 
@@ -14,14 +13,14 @@ export class DatabaseService {
           autoSave: false,
           logging: false,
           synchronize: true,
-          entities: [DriveFileModel, DriveFolderModel],
+          entities: [DriveItemModel],
         }
       : {
           type: 'better-sqlite3',
           database: DRIVE_SQLITE_FILE,
           logging: false,
           synchronize: true,
-          entities: [DriveFileModel, DriveFolderModel],
+          entities: [DriveItemModel],
         },
   );
 

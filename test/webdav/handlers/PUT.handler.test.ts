@@ -13,7 +13,7 @@ import { NetworkFacade } from '../../../src/services/network/network-facade.serv
 import { PUTRequestHandler } from '../../../src/webdav/handlers/PUT.handler';
 import { WebDavRequestedResource } from '../../../src/types/webdav.types';
 import { WebDavUtils } from '../../../src/utils/webdav.utils';
-import { newDriveFile, newFolderItem } from '../../fixtures/drive.fixture';
+import { newFileItem, newFolderItem } from '../../fixtures/drive.fixture';
 import { UserCredentialsFixture } from '../../fixtures/login.fixture';
 import { CLIUtils } from '../../../src/utils/cli.utils';
 import { UsageService } from '../../../src/services/usage.service';
@@ -40,7 +40,7 @@ describe('PUT request handler', () => {
       folderName: '',
     });
     const folderFixture = newFolderItem({ name: requestedParentFolderResource.name });
-    const fileFixture = newDriveFile({
+    const fileFixture = newFileItem({
       folderUuid: folderFixture.uuid,
       size: 0,
       fileId: undefined,
@@ -72,9 +72,7 @@ describe('PUT request handler', () => {
       .spyOn(AuthService.instance, 'getAuthDetails')
       .mockResolvedValue(UserCredentialsFixture);
     const uploadStub = vi.spyOn(networkFacade, 'uploadFile');
-    const createDriveFileStub = vi
-      .spyOn(DriveFileService.instance, 'createFile')
-      .mockResolvedValue(fileFixture.toItem());
+    const createDriveFileStub = vi.spyOn(DriveFileService.instance, 'createFile').mockResolvedValue(fileFixture);
 
     await sut.handle(request, response);
     expect(response.status).toHaveBeenCalledWith(201);
@@ -93,7 +91,7 @@ describe('PUT request handler', () => {
       folderName: '',
     });
     const folderFixture = newFolderItem({ name: requestedParentFolderResource.name });
-    const fileFixture = newDriveFile({ folderUuid: folderFixture.uuid });
+    const fileFixture = newFileItem({ folderUuid: folderFixture.uuid });
 
     const request = createWebDavRequestFixture({
       method: 'PUT',
@@ -121,9 +119,7 @@ describe('PUT request handler', () => {
       .spyOn(AuthService.instance, 'getAuthDetails')
       .mockResolvedValue(UserCredentialsFixture);
     const uploadStub = vi.spyOn(networkFacade, 'uploadFile').mockResolvedValue('uploaded-file-id');
-    const createDriveFileStub = vi
-      .spyOn(DriveFileService.instance, 'createFile')
-      .mockResolvedValue(fileFixture.toItem());
+    const createDriveFileStub = vi.spyOn(DriveFileService.instance, 'createFile').mockResolvedValue(fileFixture);
 
     await sut.handle(request, response);
     expect(response.status).toHaveBeenCalledWith(201);
@@ -142,7 +138,7 @@ describe('PUT request handler', () => {
       folderName: '',
     });
     const folderFixture = newFolderItem({ name: requestedParentFolderResource.name });
-    const fileFixture = newDriveFile({ folderUuid: folderFixture.uuid });
+    const fileFixture = newFileItem({ folderUuid: folderFixture.uuid });
 
     const request = createWebDavRequestFixture({
       method: 'PUT',
@@ -162,7 +158,7 @@ describe('PUT request handler', () => {
       .mockResolvedValueOnce(requestedParentFolderResource);
     const getAndSearchItemFromResourceStub = vi
       .spyOn(WebDavUtils, 'getDriveItemFromResource')
-      .mockResolvedValueOnce(fileFixture.toItem());
+      .mockResolvedValueOnce(fileFixture);
     const getDriveFolderFromResourceStub = vi
       .spyOn(WebDavUtils, 'getDriveFolderFromResource')
       .mockResolvedValue(folderFixture);
@@ -171,9 +167,7 @@ describe('PUT request handler', () => {
       .spyOn(AuthService.instance, 'getAuthDetails')
       .mockResolvedValue(UserCredentialsFixture);
     const uploadStub = vi.spyOn(networkFacade, 'uploadFile').mockResolvedValue('uploaded-file-id');
-    const createDriveFileStub = vi
-      .spyOn(DriveFileService.instance, 'createFile')
-      .mockResolvedValue(fileFixture.toItem());
+    const createDriveFileStub = vi.spyOn(DriveFileService.instance, 'createFile').mockResolvedValue(fileFixture);
 
     await sut.handle(request, response);
     expect(response.status).toHaveBeenCalledWith(204);

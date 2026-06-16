@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { DriveFileService } from '../../services/drive/drive-file.service';
 import { DriveFolderService } from '../../services/drive/drive-folder.service';
+import { DriveItemRepository } from '../../services/database/drive-item/drive-item.repository';
 import { WebDavMethodHandler } from '../../types/webdav.types';
 import { NotFoundError } from '../../utils/errors.utils';
 import { webdavLogger } from '../../utils/logger.utils';
@@ -77,6 +78,17 @@ export class MOVERequestHandler implements WebDavMethodHandler {
         });
       }
     }
+
+    await DriveItemRepository.instance.delete([originalDriveItem.uuid]);
+    await DriveItemRepository.instance.createOrUpdate([
+      {
+        uuid: originalDriveItem.uuid,
+        path: destinationResource.url,
+        type: originalDriveItem.itemType,
+        createdAt: new Date(originalDriveItem.createdAt),
+        updatedAt: new Date(),
+      },
+    ]);
 
     res.status(204).send();
   };

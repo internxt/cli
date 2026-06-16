@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { DriveFileService } from '../../services/drive/drive-file.service';
+import { DriveItemRepository } from '../../services/database/drive-item/drive-item.repository';
 import { AuthService } from '../../services/auth.service';
 import { WebDavMethodHandler } from '../../types/webdav.types';
 import { ConflictError } from '../../utils/errors.utils';
@@ -53,6 +54,7 @@ export class PUTRequestHandler implements WebDavMethodHandler {
       );
       try {
         await WebDavUtils.deleteOrTrashItem(driveFileItem);
+        await DriveItemRepository.instance.delete([driveFileItem.uuid]);
       } catch {
         //noop
       }
@@ -112,6 +114,16 @@ export class PUTRequestHandler implements WebDavMethodHandler {
       encryptVersion: EncryptionVersion.Aes03,
     });
     timings.driveUpload = driveTimer.stop();
+
+    await DriveItemRepository.instance.createOrUpdate([
+      {
+        uuid: file.uuid,
+        path: resource.url,
+        type: 'file',
+        createdAt: file.createdAt,
+        updatedAt: new Date(),
+      },
+    ]);
 
     const thumbnailTimer = CLIUtils.timer();
     await ThumbnailService.instance.tryUploadThumbnail({

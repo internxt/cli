@@ -15,6 +15,7 @@ export class CacheService {
   public static readonly FETCH_SPACE_LIMIT_CACHE_KEY = 'usage:fetchSpaceLimit';
   public static readonly FETCH_LIMITS_CACHE_KEY = 'usage:fetchLimits';
   public static readonly AUTH_CACHE_KEY = 'auth:details';
+  public static readonly WEBDAV_CONFIG_CACHE_KEY = 'webdav:config';
 
   public get = <T>(key: string): T | null => {
     const entry = this.store.get(key);

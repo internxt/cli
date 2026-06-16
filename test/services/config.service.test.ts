@@ -157,25 +157,42 @@ describe('Config service', () => {
     expect(stubMkdir).toHaveBeenCalledWith(WEBDAV_SSL_CERTS_DIR);
   });
 
-  it('should write webdav config to file when saveWebdavConfig is called', async () => {
+  it('should write webdav config to a temp file and rename atomically when saveWebdavConfig is called', async () => {
     const webdavConfig: WebdavConfig = getWebdavConfigMock();
     const stringConfig = JSON.stringify(webdavConfig);
+    const tempPath = WEBDAV_CONFIGS_FILE + '.tmp';
 
-    const fsStub = vi.spyOn(fs, 'writeFile').mockResolvedValue();
+    const writeFileStub = vi.spyOn(fs, 'writeFile').mockResolvedValue();
+    const renameStub = vi.spyOn(fs, 'rename').mockResolvedValue();
+    const cacheSetSpy = vi.spyOn(CacheService.instance, 'set');
 
     await ConfigService.instance.saveWebdavConfig(webdavConfig);
-    expect(fsStub).toHaveBeenCalledWith(WEBDAV_CONFIGS_FILE, stringConfig, 'utf8');
+    expect(cacheSetSpy).toHaveBeenCalledWith(CacheService.WEBDAV_CONFIG_CACHE_KEY, webdavConfig);
+    expect(writeFileStub).toHaveBeenCalledWith(tempPath, stringConfig, 'utf8');
+    expect(renameStub).toHaveBeenCalledWith(tempPath, WEBDAV_CONFIGS_FILE);
   });
 
-  it('should read webdav config from file when readWebdavConfig is called', async () => {
+  it('should read webdav config from file and cache it when readWebdavConfig is called', async () => {
     const webdavConfig: WebdavConfig = getWebdavConfigMock();
     const stringConfig = JSON.stringify(webdavConfig);
 
     const fsStub = vi.spyOn(fs, 'readFile').mockResolvedValue(stringConfig);
+    const cacheSetSpy = vi.spyOn(CacheService.instance, 'set');
 
     const webdavConfigResult = await ConfigService.instance.readWebdavConfig();
     expect(webdavConfigResult).to.be.deep.equal(webdavConfig);
     expect(fsStub).toHaveBeenCalledWith(WEBDAV_CONFIGS_FILE, 'utf8');
+    expect(cacheSetSpy).toHaveBeenCalledWith(CacheService.WEBDAV_CONFIG_CACHE_KEY, webdavConfig);
+  });
+
+  it('should return cached webdav config without reading file when cache hits', async () => {
+    const webdavConfig: WebdavConfig = getWebdavConfigMock();
+    vi.spyOn(CacheService.instance, 'get').mockReturnValue(webdavConfig);
+    const fsStub = vi.spyOn(fs, 'readFile');
+
+    const webdavConfigResult = await ConfigService.instance.readWebdavConfig();
+    expect(webdavConfigResult).to.be.deep.equal(webdavConfig);
+    expect(fsStub).not.toHaveBeenCalled();
   });
 
   it('should return default config when webdav config file is empty', async () => {
