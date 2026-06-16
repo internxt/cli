@@ -31,7 +31,7 @@ export class DriveItemRepository {
         }
       }
 
-      return items.map((item) => DriveItem.build(item));
+      return items.map((item) => new DriveItem(item));
     } catch (error) {
       ErrorUtils.report(error, { createOrUpdate: items });
     }
@@ -59,7 +59,7 @@ export class DriveItemRepository {
       if (!item) {
         return;
       }
-      return DriveItem.build(item);
+      return new DriveItem(item);
     } catch (error) {
       ErrorUtils.report(error, { getByUuid: uuid });
     }
@@ -71,7 +71,7 @@ export class DriveItemRepository {
       if (!item) {
         return;
       }
-      return DriveItem.build(item);
+      return new DriveItem(item);
     } catch (error) {
       ErrorUtils.report(error, { getByPath: path });
     }
@@ -80,7 +80,7 @@ export class DriveItemRepository {
   public getAll = async (): Promise<DriveItem[]> => {
     try {
       const items = await this.repository.find();
-      return items.map((item) => DriveItem.build(item));
+      return items.map((item) => new DriveItem(item));
     } catch (error) {
       ErrorUtils.report(error, { getAll: true });
       return [];

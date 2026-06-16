@@ -15,10 +15,6 @@ export class DriveItem implements DriveItemAttributes {
     this.updatedAt = updatedAt;
   }
 
-  static build(item: DriveItemAttributes): DriveItem {
-    return new DriveItem(item);
-  }
-
   public toJSON(): DriveItemAttributes {
     return {
       uuid: this.uuid,
