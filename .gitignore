@@ -5,7 +5,7 @@
 /.nyc_output
 /dist
 /lib
-/package-lock.json
+/yarn-lock.json
 /tmp
 node_modules
 oclif.lock
