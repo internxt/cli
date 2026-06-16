@@ -24,6 +24,6 @@ export class AsyncUtils {
 
     return Promise.race([promise, timeoutPromise]).finally(() => {
       clearTimeout(timeoutId);
-    }) as Promise<T>;
+    });
   };
 }

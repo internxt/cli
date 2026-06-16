@@ -64,7 +64,7 @@ export class ThumbnailService {
   private readonly getThumbnailFromImageBuffer = async (buffer: Buffer): Promise<Buffer | undefined> => {
     const sharp = await getSharp();
     if (sharp) {
-      return sharp(buffer, { failOnError: false })
+      return sharp(buffer, { failOn: 'none' })
         .resize({
           height: ThumbnailConfig.MaxHeight,
           width: ThumbnailConfig.MaxWidth,

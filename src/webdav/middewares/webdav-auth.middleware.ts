@@ -32,11 +32,9 @@ export const WebDAVAuthMiddleware = (configs: WebdavConfig): RequestHandler => {
           return sendUnauthorizedError(res, 'Authentication failed. Please check your WebDAV custom credentials.');
         } else {
           next();
-          return;
         }
       } else {
         next();
-        return;
       }
     })();
   };
@@ -52,5 +50,4 @@ const sendUnauthorizedError = (res: Response, message: string) => {
   );
 
   res.status(401).send(errorBodyXML);
-  return;
 };

@@ -31,7 +31,9 @@ export class DriveFileService {
     return driveFileItem;
   };
 
-  private createDriveFileEntry = async (payload: StorageTypes.FileEntryByUuid): Promise<StorageTypes.DriveFileData> => {
+  private readonly createDriveFileEntry = async (
+    payload: StorageTypes.FileEntryByUuid,
+  ): Promise<StorageTypes.DriveFileData> => {
     const currentWorkspace = await AuthService.instance.getCurrentWorkspace();
 
     if (currentWorkspace) {
