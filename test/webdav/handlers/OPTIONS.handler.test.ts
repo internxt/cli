@@ -1,10 +1,10 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, test, vi } from 'vitest';
 import { OPTIONSRequestHandler } from '../../../src/webdav/handlers/OPTIONS.handler';
 import { UserSettingsFixture } from '../../fixtures/auth.fixture';
 import { createWebDavRequestFixture, createWebDavResponseFixture } from '../../fixtures/webdav.fixture';
 
 describe('OPTIONS request handler', () => {
-  it('When the root folder is requested, it should return all of the server allowed methods', async () => {
+  test('when the root folder is requested, then the server lists all available capabilities', async () => {
     const requestHandler = new OPTIONSRequestHandler();
 
     const request = createWebDavRequestFixture({
@@ -25,7 +25,7 @@ describe('OPTIONS request handler', () => {
     expect(response.header).toHaveBeenCalledWith('DAV', '1, 2, ordered-collections');
   });
 
-  it('When a folder is requested, it should return all of the folder allowed methods', async () => {
+  test('when a folder is requested, then the server lists the folder capabilities', async () => {
     const requestHandler = new OPTIONSRequestHandler();
 
     const request = createWebDavRequestFixture({
@@ -46,7 +46,7 @@ describe('OPTIONS request handler', () => {
     expect(response.header).toHaveBeenCalledWith('DAV', '1, 2, ordered-collections');
   });
 
-  it('When a file is requested, it should return all of the file allowed methods', async () => {
+  test('when a file is requested, then the server lists the file capabilities', async () => {
     const requestHandler = new OPTIONSRequestHandler();
 
     const request = createWebDavRequestFixture({

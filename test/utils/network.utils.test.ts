@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, test, vi } from 'vitest';
 import { randomBytes, randomInt, X509Certificate } from 'node:crypto';
 import selfsigned, { GenerateResult } from 'selfsigned';
 import { readFile, stat, writeFile } from 'node:fs/promises';
@@ -31,7 +31,7 @@ vi.mock('node:crypto', async () => {
 const mock509Certificate = vi.mocked(X509Certificate);
 
 describe('Network utils', () => {
-  it('When obtaining auth credentials, should return the password as a SHA256 hash', async () => {
+  test('when obtaining authentication credentials, then the password is returned as a hash', async () => {
     const result = NetworkUtils.getAuthFromCredentials({
       user: 'test',
       pass: 'password123!',
@@ -40,7 +40,7 @@ describe('Network utils', () => {
     expect(result.password).to.be.equal('5751a44782594819e4cb8aa27c2c9d87a420af82bc6a5a05bc7f19c3bb00452b');
   });
 
-  it('When webdav ssl certs do not exist, then they should be self signed and saved to files', async () => {
+  test('when SSL certificates do not exist, then they are self-signed and saved', async () => {
     const webdavConfig: WebdavConfig = getWebdavConfigMock();
 
     const sslSelfSigned: GenerateResult = {
@@ -68,7 +68,7 @@ describe('Network utils', () => {
   });
 
   // We will need to find a way to mock the X509Certificate successfully
-  it.skip('When webdav ssl certs exist, then they are read from the files', async () => {
+  test.skip('when SSL certificates exist, then they are read from storage', async () => {
     const webdavConfig: WebdavConfig = getWebdavConfigMock();
     const sslMock = {
       private: randomBytes(8).toString('hex'),
@@ -104,7 +104,7 @@ describe('Network utils', () => {
   });
 
   // We will need to find a way to mock the X509Certificate successfully
-  it.skip('When webdav ssl certs exist but they are expired, then they are generated and saved to files', async () => {
+  test.skip('when SSL certificates exist but are expired, then new ones are generated and saved', async () => {
     const webdavConfig: WebdavConfig = getWebdavConfigMock();
     const sslSelfSigned: GenerateResult = {
       private: randomBytes(8).toString('hex'),
@@ -146,7 +146,7 @@ describe('Network utils', () => {
     expect(mockReadFile).toHaveBeenCalledTimes(2);
   });
 
-  it('When parsing range, it should parse it if its all good', () => {
+  test('when a valid range header is provided, then it is parsed successfully', () => {
     const mockSize = randomInt(500, 10000);
     const rangeStart = randomInt(0, 450);
     const range = `bytes=${rangeStart}-${mockSize}`;
@@ -161,7 +161,7 @@ describe('Network utils', () => {
     });
   });
 
-  it('When parsing range, it should return errors if found', () => {
+  test('when an invalid range header is provided, then an error is returned', () => {
     const totalFileSize = randomInt(500, 10000);
 
     expect(NetworkUtils.parseRangeHeader({ range: undefined, totalFileSize })).to.be.equal(undefined);

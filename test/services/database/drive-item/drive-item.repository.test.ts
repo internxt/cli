@@ -1,9 +1,9 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, test, vi } from 'vitest';
 import { DriveItemRepository } from '../../../../src/services/database/drive-item/drive-item.repository';
 import { DriveItemBD } from '../../../../src/services/database/drive-item/drive-item.domain';
 
-describe('DriveItemRepository', () => {
-  it('should create and retrieve an item via createOrUpdate', async () => {
+describe('Drive Item Repository', () => {
+  test('when an item is saved, then it can be retrieved', async () => {
     const mockItem = {
       uuid: 'uuid-1',
       path: '/folder/file.txt',
@@ -22,7 +22,7 @@ describe('DriveItemRepository', () => {
     expect(item?.type).toBe('file');
   });
 
-  it('should update an existing item when uuid matches', async () => {
+  test('when an existing item is updated, then the changes are saved', async () => {
     const items = [
       { uuid: 'uuid-1', path: '/old/path.txt', type: 'file' as const, createdAt: new Date(), updatedAt: new Date() },
     ];
@@ -43,7 +43,7 @@ describe('DriveItemRepository', () => {
     expect(createOrUpdateSpy).toHaveBeenCalledTimes(2);
   });
 
-  it('should retrieve an item by uuid', async () => {
+  test('when an item is requested by its identifier, then it is returned', async () => {
     const driveItem = new DriveItemBD({
       uuid: 'uuid-1',
       path: '/folder/',
@@ -58,19 +58,19 @@ describe('DriveItemRepository', () => {
     expect(item?.uuid).toBe('uuid-1');
   });
 
-  it('should return undefined when item not found by path', async () => {
+  test('when no item matches the given path, then undefined is returned', async () => {
     vi.spyOn(DriveItemRepository.instance, 'getByPath').mockResolvedValue(undefined);
     const item = await DriveItemRepository.instance.getByPath('/nonexistent');
     expect(item).toBeUndefined();
   });
 
-  it('should return undefined when item not found by uuid', async () => {
+  test('when no item matches the given identifier, then undefined is returned', async () => {
     vi.spyOn(DriveItemRepository.instance, 'getByUuid').mockResolvedValue(undefined);
     const item = await DriveItemRepository.instance.getByUuid('nonexistent-uuid');
     expect(item).toBeUndefined();
   });
 
-  it('should delete items by uuids', async () => {
+  test('when items are removed by their identifiers, then they are no longer available', async () => {
     const allItems = [
       new DriveItemBD({
         uuid: 'uuid-1',
@@ -96,7 +96,7 @@ describe('DriveItemRepository', () => {
     expect(remaining[0].uuid).toBe('uuid-2');
   });
 
-  it('should return all items', async () => {
+  test('when all stored items are requested, then they are returned', async () => {
     const allItems = [
       new DriveItemBD({
         uuid: 'uuid-1',
@@ -119,7 +119,7 @@ describe('DriveItemRepository', () => {
     expect(result).toHaveLength(2);
   });
 
-  it('should update items by path when uuid differs', async () => {
+  test('when an item at a given path is replaced with a different identifier, then the update is saved', async () => {
     const items = [
       { uuid: 'uuid-1', path: '/same/path.txt', type: 'file' as const, createdAt: new Date(), updatedAt: new Date() },
     ];
@@ -138,7 +138,7 @@ describe('DriveItemRepository', () => {
     expect(item?.uuid).toBe('uuid-2');
   });
 
-  it('should update an item by uuid with partial data', async () => {
+  test('when an item is partially updated, then only the specified fields change', async () => {
     const updatedPath = '/renamed.txt';
     vi.spyOn(DriveItemRepository.instance, 'updateByUuid').mockResolvedValue(undefined);
     vi.spyOn(DriveItemRepository.instance, 'getByUuid').mockResolvedValue(
@@ -157,7 +157,7 @@ describe('DriveItemRepository', () => {
     expect(item?.path).toBe(updatedPath);
   });
 
-  it('should return DriveItem instances from all methods', async () => {
+  test('when items are returned, then they have the expected structure', async () => {
     const driveItem = new DriveItemBD({
       uuid: 'uuid-1',
       path: '/file.txt',

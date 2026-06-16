@@ -1,10 +1,10 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, test, vi } from 'vitest';
 import { webdavLogger } from '../../../src/utils/logger.utils';
 import { RequestLoggerMiddleware } from '../../../src/webdav/middewares/request-logger.middleware';
 import { createWebDavRequestFixture, createWebDavResponseFixture } from '../../fixtures/webdav.fixture';
 
 describe('Request logger middleware', () => {
-  it('When a request is received, should log only the specified methods', () => {
+  test('when a request is received, then the logger records only the specified methods', () => {
     const req = createWebDavRequestFixture({
       method: 'PROPFIND',
       url: '/path',
@@ -20,7 +20,7 @@ describe('Request logger middleware', () => {
     expect(next).toHaveBeenCalledOnce();
   });
 
-  it('When a request is received, should not log the request if the method is not specified', () => {
+  test('when a request method is not in the specified list, then the logger does not record it', () => {
     const req = createWebDavRequestFixture({
       method: 'GET',
       url: '/path',

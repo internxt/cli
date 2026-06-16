@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, test } from 'vitest';
 import { BufferStream } from '../../src/utils/stream.utils';
 import { ThumbnailService } from '../../src/services/thumbnail.service';
 import path from 'node:path';
@@ -8,7 +8,7 @@ describe('Thumbnail Service tests', () => {
   const testFilePath = path.join(process.cwd(), 'test/fixtures/test-content.fixture.txt');
 
   describe('createFileStreamWithBuffer', () => {
-    it('should create BufferStream and pipe stream when file type is thumbnailable', () => {
+    test('when the file has a supported image type, then a buffer stream and file stream are created', () => {
       const result = ThumbnailService.instance.createFileStreamWithBuffer({ path: testFilePath, fileType: 'png' });
 
       expect(result.bufferStream).toBeDefined();
@@ -17,7 +17,7 @@ describe('Thumbnail Service tests', () => {
       expect(result.fileStream).toBeInstanceOf(Readable);
     });
 
-    it('should not create BufferStream when file type is not thumbnailable', () => {
+    test('when the file has an unsupported type, then only a file stream is created without buffering', () => {
       const result = ThumbnailService.instance.createFileStreamWithBuffer({ path: testFilePath, fileType: 'txt' });
 
       expect(result.bufferStream).toBeUndefined();

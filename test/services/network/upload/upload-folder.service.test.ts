@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest';
+import { beforeEach, describe, expect, test, onTestFinished, vi } from 'vitest';
 import { DriveFolderService } from '../../../../src/services/drive/drive-folder.service';
 import { UploadFolderService } from '../../../../src/services/network/upload/upload-folder.service';
 import { logger } from '../../../../src/utils/logger.utils';
@@ -6,7 +6,7 @@ import { ErrorUtils } from '../../../../src/utils/errors.utils';
 import { createFileSystemNodeFixture, createProgressFixtures } from './upload.service.helpers';
 import { DELAYS_MS } from '../../../../src/services/network/upload/upload.types';
 
-describe('UploadFolderService', () => {
+describe('Upload Folder Service', () => {
   let sut: UploadFolderService;
 
   beforeEach(() => {
@@ -17,10 +17,10 @@ describe('UploadFolderService', () => {
     vi.spyOn(ErrorUtils, 'isAlreadyExistsError').mockReturnValue(false);
   });
 
-  describe('createFolders', () => {
+  describe('creating multiple folders', () => {
     const destinationFolderUuid = 'dest-uuid';
 
-    it('should properly return a map of created folders where key is relativePath and value is uuid', async () => {
+    test('when folders are created, then a mapping of paths to identifiers is returned', async () => {
       const { currentProgress, emitProgress } = createProgressFixtures();
       vi.spyOn(DriveFolderService.instance, 'createFolder')
         .mockReturnValueOnce([Promise.resolve({ uuid: 'root-uuid' })] as unknown as ReturnType<
@@ -47,7 +47,7 @@ describe('UploadFolderService', () => {
       expect(result.get('root/subfolder')).toBe('subfolder-uuid');
     });
 
-    it('should properly skip over folders that dont have a parentUuid', async () => {
+    test('when a folder has no known parent, then it is skipped', async () => {
       const { currentProgress, emitProgress } = createProgressFixtures();
 
       const result = await sut.createFolders({
@@ -66,7 +66,7 @@ describe('UploadFolderService', () => {
       expect(DriveFolderService.instance.createFolder).not.toHaveBeenCalled();
     });
 
-    it('should properly set as parent folder the destinationFolderUuid for base folder', async () => {
+    test('when creating a top-level folder, then the destination folder is set as its parent', async () => {
       const { currentProgress, emitProgress } = createProgressFixtures();
 
       await sut.createFolders({
@@ -84,7 +84,7 @@ describe('UploadFolderService', () => {
       });
     });
 
-    it('should properly update the progress on successful folder creation', async () => {
+    test('when a folder is created successfully, then the progress is updated', async () => {
       const { currentProgress, emitProgress } = createProgressFixtures();
 
       await sut.createFolders({
@@ -101,11 +101,11 @@ describe('UploadFolderService', () => {
     });
   });
 
-  describe('createFolderWithRetry', () => {
+  describe('creating a folder with retry', () => {
     const folderName = 'test-folder';
     const parentFolderUuid = 'parent-uuid';
 
-    it('should properly create a folder and return the created folder uuid', async () => {
+    test('when a folder is created, then its identifier is returned', async () => {
       vi.spyOn(DriveFolderService.instance, 'createFolder').mockReturnValueOnce([
         Promise.resolve({ uuid: 'created-folder-uuid' }),
       ] as unknown as ReturnType<typeof DriveFolderService.instance.createFolder>);
@@ -124,7 +124,7 @@ describe('UploadFolderService', () => {
       });
     });
 
-    it('should properly return null if the folder already exists', async () => {
+    test('when the folder already exists, then null is returned', async () => {
       const alreadyExistsError = new Error('Folder already exists');
       vi.spyOn(ErrorUtils, 'isAlreadyExistsError').mockReturnValue(true);
       vi.spyOn(DriveFolderService.instance, 'createFolder').mockRejectedValue(alreadyExistsError);
@@ -140,7 +140,7 @@ describe('UploadFolderService', () => {
       expect(logger.warn).toHaveBeenCalledWith(`Folder ${folderName} already exists, skipping...`);
     });
 
-    it('should properly retry up to 3 times when error caught', async () => {
+    test('when a transient error occurs during creation, then up to three retries are attempted', async () => {
       vi.useFakeTimers();
       const transientError = new Error('Network error');
 
@@ -176,7 +176,7 @@ describe('UploadFolderService', () => {
       vi.useRealTimers();
     });
 
-    it('should properly throw an error when multiple unsuccessfull retries', async () => {
+    test('when all creation attempts fail, then the error is thrown', async () => {
       const unhandledRejectionListener = vi.fn();
       process.on('unhandledRejection', unhandledRejectionListener);
       onTestFinished(() => {

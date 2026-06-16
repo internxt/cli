@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, test, vi } from 'vitest';
 import { NetworkFacade } from '../../../src/services/network/network-facade.service';
 import { SdkManager } from '../../../src/services/sdk-manager.service';
 import path from 'node:path';
@@ -30,7 +30,7 @@ describe('Network Facade Service', () => {
     });
   };
 
-  it('Should call the inxt-js upload functionality when a file is uploaded', async () => {
+  test('when a file is uploaded, then the upload functionality is called', async () => {
     const mockEnvironment = {
       upload: vi.fn(),
     };
@@ -59,7 +59,7 @@ describe('Network Facade Service', () => {
     expect(mockEnvironment.upload).toHaveBeenCalledOnce();
   });
 
-  it('Should throw an error when a file exceeds maxUploadFileSize limit', async () => {
+  test('when a file exceeds the account upload size limit, then an error is thrown', async () => {
     const mockEnvironment = {
       upload: vi.fn(),
     };
@@ -87,7 +87,7 @@ describe('Network Facade Service', () => {
     expect(mockEnvironment.upload).not.toHaveBeenCalled();
   });
 
-  it('Should throw an error when a file exceeds 100 GB', async () => {
+  test('when a file exceeds the maximum allowed size, then an error is thrown', async () => {
     const mockEnvironment = {
       upload: vi.fn(),
     };
@@ -115,7 +115,7 @@ describe('Network Facade Service', () => {
     expect(mockEnvironment.upload).not.toHaveBeenCalled();
   });
 
-  it('Should enforce API limit over 100 GB hard cap when maxUploadFileSize is smaller', async () => {
+  test('when the account limit is stricter than the maximum allowed size, then the account limit is enforced', async () => {
     const mockEnvironment = {
       upload: vi.fn(),
     };
@@ -143,7 +143,7 @@ describe('Network Facade Service', () => {
     expect(mockEnvironment.upload).not.toHaveBeenCalled();
   });
 
-  it('Should proceed with upload when file size is within maxUploadFileSize limit', async () => {
+  test('when a file is within the allowed size limit, then the upload proceeds', async () => {
     const mockEnvironment = {
       upload: vi.fn(),
     };
@@ -169,7 +169,7 @@ describe('Network Facade Service', () => {
     expect(mockEnvironment.upload).toHaveBeenCalledOnce();
   });
 
-  it('Should write a downloaded file to a stream', async () => {
+  test('when a file is downloaded, then it is written to a stream', async () => {
     const encryptedContent = Buffer.from('b6ccfa381c150f3a4b65245bffa4d84087', 'hex');
     const bucket = 'cd8abd7e8b13081660b58dbe';
     const readableContent = new ReadableStream<Uint8Array>({
@@ -208,7 +208,6 @@ describe('Network Facade Service', () => {
 
     const [executeDownload] = await sut.downloadToStream(
       bucket,
-      // eslint-disable-next-line max-len
       'index course habit soon assist dragon tragic helmet salute stuff later twice consider grit pulse cement obvious trick sponsor stereo hello win royal more',
       'f1858bc9675f9e4f7ab29429',
       encryptedContent.length,
@@ -221,7 +220,7 @@ describe('Network Facade Service', () => {
     expect(fileContent.toString('utf-8')).to.be.equal('encrypted-content');
   });
 
-  it('Should abort the download when requested', async () => {
+  test('when the download is aborted, then the operation is cancelled', async () => {
     const encryptedContent = Buffer.from('b6ccfa381c150f3a4b65245bffa4d84087', 'hex');
     const bucket = 'cd8abd7e8b13081660b58dbe';
     const readableContent = new ReadableStream<Uint8Array>({
@@ -254,7 +253,6 @@ describe('Network Facade Service', () => {
 
     const [executeDownload, abort] = await sut.downloadToStream(
       bucket,
-      // eslint-disable-next-line max-len
       'index course habit soon assist dragon tragic helmet salute stuff later twice consider grit pulse cement obvious trick sponsor stereo hello win royal more',
       'f1858bc9675f9e4f7ab29429',
       encryptedContent.length,
@@ -270,7 +268,7 @@ describe('Network Facade Service', () => {
     }
   });
 
-  it('Should report download progress when a file is downloaded', async () => {
+  test('when a file is downloaded, then download progress is reported', async () => {
     const encryptedContent = Buffer.from('b6ccfa381c150f3a4b65245bffa4d84087', 'hex');
     const bucket = 'cd8abd7e8b13081660b58dbe';
 
@@ -316,7 +314,6 @@ describe('Network Facade Service', () => {
 
     const [executeDownload] = await sut.downloadToStream(
       bucket,
-      // eslint-disable-next-line max-len
       'index course habit soon assist dragon tragic helmet salute stuff later twice consider grit pulse cement obvious trick sponsor stereo hello win royal more',
       'f1858bc9675f9e4f7ab29429',
       encryptedContent.length,

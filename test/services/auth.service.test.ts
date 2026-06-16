@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 import crypto from 'node:crypto';
 import { Auth, LoginDetails, SecurityDetails } from '@internxt/sdk';
 import { AuthService } from '../../src/services/auth.service';
@@ -25,7 +25,7 @@ describe('Auth service', () => {
     vi.spyOn(CacheService.instance, 'get').mockReturnValue(undefined);
   });
 
-  it('should generate login user credentials when user logs in', async () => {
+  test('when the user logs in successfully, then login credentials are generated', async () => {
     const loginResponse = {
       token: crypto.randomBytes(16).toString('hex'),
       newToken: crypto.randomBytes(16).toString('hex'),
@@ -50,7 +50,7 @@ describe('Auth service', () => {
     expect(responseLogin).to.be.deep.equal(expectedResponseLogin);
   });
 
-  it('should throw an error when user logs in and credentials are not correct', async () => {
+  test('when the user provides incorrect login credentials, then an error is thrown', async () => {
     const loginDetails: LoginDetails = {
       email: crypto.randomBytes(16).toString('hex'),
       password: crypto.randomBytes(8).toString('hex'),
@@ -69,7 +69,7 @@ describe('Auth service', () => {
     expect(loginStub).toHaveBeenCalledOnce();
   });
 
-  it('should return true from is2FANeeded when two factor authentication is enabled', async () => {
+  test('when two-factor authentication is enabled on the account, then the system reports it as required', async () => {
     const email = crypto.randomBytes(16).toString('hex');
     const securityDetails: SecurityDetails = {
       encryptedSalt: crypto.randomBytes(16).toString('hex'),
@@ -85,7 +85,7 @@ describe('Auth service', () => {
     expect(responseLogin).to.be.equal(securityDetails.tfaEnabled);
   });
 
-  it('should throw an error when checking two factor authentication with an incorrect email', async () => {
+  test('when an invalid email is provided for authentication validation, then an error is thrown', async () => {
     const email = crypto.randomBytes(16).toString('hex');
 
     const securityStub = vi.spyOn(Auth.prototype, 'securityDetails').mockRejectedValue(new Error());
@@ -100,7 +100,7 @@ describe('Auth service', () => {
     expect(securityStub).toHaveBeenCalledOnce();
   });
 
-  it('should return auth details when all credentials are found', async () => {
+  test('when all stored credentials are complete and valid, then authentication details are returned', async () => {
     const sut = AuthService.instance;
 
     const loginCreds: LoginCredentials = UserCredentialsFixture;
@@ -127,7 +127,7 @@ describe('Auth service', () => {
     expect(result).to.deep.equal(loginCreds);
   });
 
-  it('should throw an error when credentials are missing', async () => {
+  test('when no stored credentials exist, then an error is thrown', async () => {
     const sut = AuthService.instance;
 
     const readUserStub = vi.spyOn(ConfigService.instance, 'readUser').mockResolvedValue(undefined);
@@ -141,7 +141,7 @@ describe('Auth service', () => {
     expect(readUserStub).toHaveBeenCalledOnce();
   });
 
-  it('should throw an error when auth token is missing', async () => {
+  test('when the session token is missing from stored credentials, then an error is thrown', async () => {
     const sut = AuthService.instance;
 
     const readUserStub = vi.spyOn(ConfigService.instance, 'readUser').mockResolvedValue({
@@ -159,7 +159,7 @@ describe('Auth service', () => {
     expect(readUserStub).toHaveBeenCalledOnce();
   });
 
-  it('should throw an error when mnemonic is invalid', async () => {
+  test('when the recovery phrase is invalid, then an error is thrown', async () => {
     const sut = AuthService.instance;
 
     const mockToken = {
@@ -187,7 +187,7 @@ describe('Auth service', () => {
     expect(validateMnemonicStub).toHaveBeenCalledWith(UserCredentialsFixture.user.mnemonic);
   });
 
-  it('should throw an error when token has expired', async () => {
+  test('when the session token has expired, then an error is thrown', async () => {
     const sut = AuthService.instance;
 
     const mockToken = {
@@ -215,7 +215,7 @@ describe('Auth service', () => {
     expect(validateMnemonicStub).toHaveBeenCalledWith(UserCredentialsFixture.user.mnemonic);
   });
 
-  it('should refresh tokens when they are going to expire soon', async () => {
+  test('when the session token is about to expire, then it is refreshed automatically', async () => {
     const sut = AuthService.instance;
 
     const mockToken = {
@@ -240,7 +240,7 @@ describe('Auth service', () => {
     expect(refreshTokensStub).toHaveBeenCalledOnce();
   });
 
-  it('should clear and throw exception when exception is thrown while refreshing user token', async () => {
+  test('when the token refresh fails, then stored credentials are cleared and an error is thrown', async () => {
     const sut = AuthService.instance;
 
     const mockToken = {

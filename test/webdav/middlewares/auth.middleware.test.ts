@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest';
+import { describe, expect, test, vi, beforeEach } from 'vitest';
 import { AuthMiddleware } from '../../../src/webdav/middewares/auth.middleware';
 import { createWebDavRequestFixture, createWebDavResponseFixture } from '../../fixtures/webdav.fixture';
 import { UserCredentialsFixture } from '../../fixtures/login.fixture';
@@ -12,7 +12,7 @@ describe('Auth middleware', () => {
     CacheService.instance.clearCaches();
   });
 
-  it('should return 401 when the user is not authenticated', async () => {
+  test('when the user is not authenticated, then the server returns an unauthorized status', async () => {
     const req = createWebDavRequestFixture({});
     const res = createWebDavResponseFixture({
       status: vi.fn().mockReturnValue({ send: vi.fn() }),
@@ -39,7 +39,7 @@ describe('Auth middleware', () => {
     );
   });
 
-  it('should call next and cache the result when the user is authenticated', async () => {
+  test('when the user is authenticated, then the middleware proceeds and caches the result', async () => {
     const req = createWebDavRequestFixture({});
     const res = createWebDavResponseFixture({});
     const next = vi.fn();
@@ -56,7 +56,7 @@ describe('Auth middleware', () => {
     expect(cached).toEqual(UserCredentialsFixture);
   });
 
-  it('should not call getAuthDetails when the auth details are cached', async () => {
+  test('when authentication details are already cached, then the middleware skips re-fetching', async () => {
     const req = createWebDavRequestFixture({});
     const res = createWebDavResponseFixture({});
     const next = vi.fn();

@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, test, vi } from 'vitest';
 import { StreamUtils } from '../../src/utils/stream.utils';
 import { createReadStream, readFileSync, WriteStream } from 'node:fs';
 import path from 'node:path';
@@ -6,7 +6,7 @@ import path from 'node:path';
 describe('Stream utils', () => {
   const fileWithContent = path.join(process.cwd(), 'test/fixtures/test-content.fixture.txt');
 
-  it('When a ReadStream is given, should return a ReadableStream', async () => {
+  test('when a readable Node stream is given, then a web ReadableStream is returned', async () => {
     const content = readFileSync(fileWithContent, 'utf-8');
 
     const readStream = createReadStream(fileWithContent);
@@ -19,7 +19,7 @@ describe('Stream utils', () => {
     expect(Buffer.from(read.value as Uint8Array).toString('utf-8')).to.be.equal(content);
   });
 
-  it('When a WriteStream is given, should return a WritableStream', async () => {
+  test('when a writable Node stream is given, then a web WritableStream is returned', async () => {
     const writeStub = vi.fn();
     // @ts-expect-error - We only mock the properties we need
     const writeStream: WriteStream = {

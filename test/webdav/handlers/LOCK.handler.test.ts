@@ -1,9 +1,9 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, test, vi } from 'vitest';
 import { LOCKRequestHandler } from '../../../src/webdav/handlers/LOCK.handler';
 import { createWebDavRequestFixture, createWebDavResponseFixture } from '../../fixtures/webdav.fixture';
 
 describe('LOCK request handler', () => {
-  it('should return 200 with a valid lock token header and content type', async () => {
+  test('when a lock request is made, then the server responds with a valid lock token', async () => {
     const requestHandler = new LOCKRequestHandler();
 
     const request = createWebDavRequestFixture({
@@ -33,7 +33,7 @@ describe('LOCK request handler', () => {
     expect(sendSpy.mock.calls[0]?.[0]).toBe(expectedXml);
   });
 
-  it('should include default depth 0 and timeout in the XML response body', async () => {
+  test('when no depth or timeout are specified, then the server uses default values in the response', async () => {
     const requestHandler = new LOCKRequestHandler();
 
     const request = createWebDavRequestFixture({
@@ -57,7 +57,7 @@ describe('LOCK request handler', () => {
     expect(sendSpy.mock.calls[0]?.[0]).toBe(expectedXml);
   });
 
-  it('should use the depth and timeout from the request headers', async () => {
+  test('when depth and timeout headers are provided, then the server reflects them in the response', async () => {
     const requestHandler = new LOCKRequestHandler();
 
     const request = createWebDavRequestFixture({
@@ -85,7 +85,7 @@ describe('LOCK request handler', () => {
     expect(sendSpy.mock.calls[0]?.[0]).toBe(expectedXml);
   });
 
-  it('should generate a unique lock token on each request', async () => {
+  test('when multiple lock requests are made, then each receives a unique token', async () => {
     const requestHandler = new LOCKRequestHandler();
 
     const request = createWebDavRequestFixture({
@@ -106,7 +106,7 @@ describe('LOCK request handler', () => {
     expect(token1).not.toBe(token2);
   });
 
-  it('should echo back the owner from the request body', async () => {
+  test('when the request includes an owner, then the server echoes it back', async () => {
     const requestHandler = new LOCKRequestHandler();
 
     const request = createWebDavRequestFixture({
@@ -135,7 +135,7 @@ describe('LOCK request handler', () => {
     expect(sendSpy.mock.calls[0]?.[0]).toBe(expectedXml);
   });
 
-  it('should handle request body without owner gracefully', async () => {
+  test('when the request body does not contain an owner, then the server still responds successfully', async () => {
     const requestHandler = new LOCKRequestHandler();
 
     const request = createWebDavRequestFixture({
@@ -160,7 +160,7 @@ describe('LOCK request handler', () => {
     expect(sendSpy.mock.calls[0]?.[0]).toBe(expectedXml);
   });
 
-  it('should return valid DAV: XML structure', async () => {
+  test('when a lock request is made, then the server returns a valid XML structure', async () => {
     const requestHandler = new LOCKRequestHandler();
 
     const request = createWebDavRequestFixture({

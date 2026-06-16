@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 import { fail } from 'node:assert';
 import { DELETERequestHandler } from '../../../src/webdav/handlers/DELETE.handler';
 import {
@@ -22,7 +22,7 @@ describe('DELETE request handler', () => {
     vi.spyOn(ConfigService.instance, 'readWebdavConfig').mockResolvedValue(getWebdavConfigMock());
   });
 
-  it('When the item does not exist, it should reply with a 404 error', async () => {
+  test('when the requested item does not exist, then the server responds with a not found error', async () => {
     const requestHandler = new DELETERequestHandler();
 
     const requestedFileResource: WebDavRequestedResource = getRequestedFileResource();
@@ -51,7 +51,7 @@ describe('DELETE request handler', () => {
     expect(getAndSearchItemFromResourceStub).toHaveBeenCalledOnce();
   });
 
-  it('When the file exists, then it should reply with a 204 response', async () => {
+  test('when a file is deleted, then the server confirms the deletion', async () => {
     const requestHandler = new DELETERequestHandler();
     const requestedFileResource: WebDavRequestedResource = getRequestedFileResource();
     const request = createWebDavRequestFixture({
@@ -79,7 +79,7 @@ describe('DELETE request handler', () => {
     expect(removeItemsStub).toHaveBeenCalledWith(mockFile);
   });
 
-  it('When folder exists, then it should reply with a 204 response', async () => {
+  test('when a folder is deleted, then the server confirms the deletion', async () => {
     const requestHandler = new DELETERequestHandler();
     const requestedFolderResource: WebDavRequestedResource = getRequestedFolderResource();
 

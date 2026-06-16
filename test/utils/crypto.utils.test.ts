@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, test, vi } from 'vitest';
 import crypto from 'node:crypto';
 import { CryptoUtils } from '../../src/utils/crypto.utils';
 import { ConfigService } from '../../src/services/config.service';
@@ -11,7 +11,7 @@ describe('Crypto utils', () => {
     salt: crypto.randomBytes(64).toString('hex'),
   };
 
-  it('When Magic IV or Magic Salt are missing should throw an error', () => {
+  test('when encryption settings are missing, then an error is thrown', () => {
     try {
       CryptoUtils.getAesInit();
       fail('Expected function to throw an error, but it did not.');
@@ -20,7 +20,7 @@ describe('Crypto utils', () => {
     }
   });
 
-  it('When aes information is required, then it is read from the config service', async () => {
+  test('when encryption settings are requested, then they are retrieved from storage', async () => {
     const configServiceInstancespyOn = vi.spyOn(ConfigService.instance, 'get');
     configServiceInstancespyOn.mockReturnValueOnce(aesInit.iv);
     configServiceInstancespyOn.mockReturnValueOnce(aesInit.salt);

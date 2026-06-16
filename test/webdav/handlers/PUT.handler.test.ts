@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 import {
   createWebDavRequestFixture,
   createWebDavResponseFixture,
@@ -33,7 +33,7 @@ describe('PUT request handler', () => {
     sut = new PUTRequestHandler();
   });
 
-  it('should upload an empty file when the content-length request is 0', async () => {
+  test('when an empty file is uploaded, then the server creates it without uploading content', async () => {
     const requestedFileResource: WebDavRequestedResource = getRequestedFileResource();
     const requestedParentFolderResource: WebDavRequestedResource = getRequestedFolderResource({
       parentFolder: '/',
@@ -84,7 +84,7 @@ describe('PUT request handler', () => {
     expect(createDriveFileStub).toHaveBeenCalledOnce();
   });
 
-  it('should upload the file to the folder when the Drive destination folder is found', async () => {
+  test('when a file is uploaded to an existing folder, then the server stores it', async () => {
     const requestedFileResource: WebDavRequestedResource = getRequestedFileResource();
     const requestedParentFolderResource: WebDavRequestedResource = getRequestedFolderResource({
       parentFolder: '/',
@@ -131,7 +131,7 @@ describe('PUT request handler', () => {
     expect(createDriveFileStub).toHaveBeenCalledOnce();
   });
 
-  it('it should upload and replace the file to the folder when the file already exists', async () => {
+  test('when a file already exists at the destination, then the server replaces it', async () => {
     const requestedFileResource: WebDavRequestedResource = getRequestedFileResource();
     const requestedParentFolderResource: WebDavRequestedResource = getRequestedFolderResource({
       parentFolder: '/',

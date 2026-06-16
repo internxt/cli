@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 import { fail } from 'node:assert';
 import { WebDavFolderService } from '../../../src/services/webdav/webdav-folder.service';
 import { DriveFolderService } from '../../../src/services/drive/drive-folder.service';
@@ -21,6 +21,10 @@ describe('WebDavFolderService', () => {
       protocol: 'https',
       host: 'localhost',
       timeoutMinutes: 5,
+      customAuth: false,
+      username: '',
+      password: '',
+      deleteFilesPermanently: false,
     });
   };
 
@@ -37,8 +41,8 @@ describe('WebDavFolderService', () => {
     sut = WebDavFolderService.instance;
   });
 
-  describe('createParentPathOrThrow', () => {
-    it('should throw ConflictError when createFullPath is disabled ', async () => {
+  describe('creating parent folders', () => {
+    test('when the full path creation is disabled, then a conflict error is thrown', async () => {
       mockWebdavConfig(false);
 
       try {
@@ -52,7 +56,7 @@ describe('WebDavFolderService', () => {
       }
     });
 
-    it('should create a single folder at root level when path has one segment', async () => {
+    test('when the path has a single segment, then a single folder is created at the root level', async () => {
       const createdFolder = newFolderItem({ name: 'backup', uuid: 'backup-uuid' });
 
       mockWebdavConfig(true);
@@ -70,7 +74,7 @@ describe('WebDavFolderService', () => {
       });
     });
 
-    it('should return existing folder without creating when folder already exists', async () => {
+    test('when the folder already exists, then the existing folder is returned without creating a new one', async () => {
       const existingFolder = newFolderItem({ name: 'backup', uuid: 'backup-uuid' });
 
       mockWebdavConfig(true);
@@ -85,7 +89,7 @@ describe('WebDavFolderService', () => {
       expect(createFolderSpy).not.toHaveBeenCalled();
     });
 
-    it('should recursively create nested folders when path has multiple segments', async () => {
+    test('when the path has multiple segments, then nested folders are created recursively', async () => {
       const backupFolder = newFolderItem({ name: 'backup', uuid: 'backup-uuid' });
       const folder1 = newFolderItem({ name: 'folder1', uuid: 'folder1-uuid' });
       const subfolder = newFolderItem({ name: 'subfolder', uuid: 'subfolder-uuid' });
@@ -125,8 +129,8 @@ describe('WebDavFolderService', () => {
     });
   });
 
-  describe('createFolder', () => {
-    it('it should wait 500ms for backend propagation when folder is created', async () => {
+  describe('creating a folder', () => {
+    test('when a folder is created, then the system waits for backend propagation', async () => {
       vi.useFakeTimers();
 
       const folderResponse = newCreateFolderResponse({

@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, test, vi } from 'vitest';
 import crypto from 'node:crypto';
 import { ConfigService } from '../../src/services/config.service';
 import { CryptoService } from '../../src/services/crypto.service';
@@ -7,7 +7,7 @@ import { Keys } from '@internxt/sdk';
 import { KeysService } from '../../src/services/keys.service';
 
 describe('Crypto service', () => {
-  it('When text is encrypted using crypto secret env, then it can be decrypted back', () => {
+  test('when sensitive data is encrypted with the application secret, then it can be decrypted back to its original form', () => {
     const envEndpoint: { key: keyof ConfigKeys; value: string } = {
       key: 'APP_CRYPTO_SECRET',
       value: crypto.randomBytes(16).toString('hex'),
@@ -22,7 +22,7 @@ describe('Crypto service', () => {
     expect(spyConfigService).toHaveBeenCalledWith(envEndpoint.key);
   });
 
-  it('When text is encrypted using crypto secret env, then it can be decrypted back', () => {
+  test('when encrypted data is decrypted with the application secret, then the original content is restored', () => {
     const envEndpoint: { key: keyof ConfigKeys; value: string } = {
       key: 'APP_CRYPTO_SECRET',
       value: crypto.randomBytes(16).toString('hex'),
@@ -37,7 +37,7 @@ describe('Crypto service', () => {
     expect(spyConfigService).toHaveBeenCalledWith(envEndpoint.key);
   });
 
-  it('When a password is hashed using CryptoProvider, then it is hashed successfully', async () => {
+  test('when a password is hashed with the cryptographic provider, then the result matches the expected hash', async () => {
     const envEndpoint: { key: keyof ConfigKeys; value: string } = {
       key: 'APP_CRYPTO_SECRET',
       value: crypto.randomBytes(16).toString('hex'),
@@ -64,7 +64,7 @@ describe('Crypto service', () => {
     expect(spyConfigService).toHaveBeenCalledWith(envEndpoint.key);
   });
 
-  it('When a password is hashed using passToHash without salt, then it is hashed with a new generated salt', () => {
+  test('when a password is hashed without a provided salt, then a new salt is generated automatically', () => {
     const password = crypto.randomBytes(16).toString('hex');
 
     const hashedPassword = CryptoService.instance.passToHash({ password });
@@ -73,7 +73,7 @@ describe('Crypto service', () => {
     expect(hashedPassword.salt.length).to.be.equal(32);
   });
 
-  it('When auth keys are generated using CryptoProvider, then they are generated using KeysService', async () => {
+  test('when encryption keys are generated, then they include public and private key components', async () => {
     const password = crypto.randomBytes(8).toString('hex');
     const keysReturned = {
       privateKeyArmored: crypto.randomBytes(16).toString('hex'),
@@ -111,7 +111,7 @@ describe('Crypto service', () => {
    *
    * We migrated from CryptoJS to node:crypto. This test ensures that the new implementation works the same as the old one.
    */
-  it('The node:crypto works the same as CryptoJS library', () => {
+  test('when using the native cryptography module, then the results match the legacy library behavior', () => {
     /*
     const password = {
       value: crypto.randomBytes(16).toString('hex'),

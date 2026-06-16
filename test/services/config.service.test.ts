@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
 import { ConfigService } from '../../src/services/config.service';
@@ -42,7 +42,7 @@ describe('Config service', () => {
     vi.spyOn(CacheService.instance, 'set').mockImplementation(() => {});
   });
 
-  it('should return the value when an env property is requested', async () => {
+  test('when an environment variable is requested, then its value is returned', async () => {
     const envKey = 'APP_CRYPTO_SECRET';
     const envValue = crypto.randomBytes(8).toString('hex');
     process.env[envKey] = envValue;
@@ -51,7 +51,7 @@ describe('Config service', () => {
     expect(newEnvValue).to.be.equal(envValue);
   });
 
-  it('should throw an error when an env property has no value', async () => {
+  test('when an environment variable has no value set, then an error is thrown', async () => {
     const envKey = 'APP_CRYPTO_SECRET';
     process.env = {};
 
@@ -64,7 +64,7 @@ describe('Config service', () => {
     }
   });
 
-  it('should write credentials encrypted to a temp file and rename atomically when saveUser is called', async () => {
+  test('when user credentials are saved, then they are encrypted and written to a temporary file before being renamed', async () => {
     const userCredentials: LoginCredentials = UserCredentialsFixture;
     const stringCredentials = JSON.stringify(userCredentials);
     const encryptedUserCredentials = CryptoService.instance.encryptText(stringCredentials);
@@ -80,7 +80,7 @@ describe('Config service', () => {
     expect(renameStub).toHaveBeenCalledWith(tempPath, CREDENTIALS_FILE);
   });
 
-  it('should read and decrypt credentials from file when readUser is called', async () => {
+  test('when stored credentials are read, then they are decrypted and returned', async () => {
     const userCredentials: LoginCredentials = UserCredentialsFixture;
     const stringCredentials = JSON.stringify(userCredentials);
     const encryptedUserCredentials = CryptoService.instance.encryptText(stringCredentials);
@@ -94,7 +94,7 @@ describe('Config service', () => {
     expect(configServiceStub).toHaveBeenCalledWith(encryptedUserCredentials);
   });
 
-  it('should return undefined when credentials file does not exist', async () => {
+  test('when the credentials file does not exist, then undefined is returned', async () => {
     const fsStub = vi.spyOn(fs, 'readFile').mockRejectedValue(new Error());
     const configServiceStub = vi.spyOn(CryptoService.instance, 'decryptText');
 
@@ -104,7 +104,7 @@ describe('Config service', () => {
     expect(configServiceStub).not.toHaveBeenCalled();
   });
 
-  it('should clear credentials from file when clearUser is called', async () => {
+  test('when stored credentials are cleared, then the file content is wiped', async () => {
     const writeFileStub = vi.spyOn(fs, 'writeFile').mockResolvedValue();
     const readFileStub = vi.spyOn(fs, 'readFile').mockResolvedValue('');
     const existFileStub = vi
@@ -121,7 +121,7 @@ describe('Config service', () => {
     expect(credentialsFileContent).to.be.equal('');
   });
 
-  it('should not throw exception when user credentials are cleared and the file is already empty', async () => {
+  test('when the credentials file is already empty, then clearing does not throw an error', async () => {
     const statStub = vi
       .spyOn(fs, 'stat')
       // @ts-expect-error - We stub the stat method partially
@@ -134,7 +134,7 @@ describe('Config service', () => {
     expect(writeFileStub).not.toHaveBeenCalled();
   });
 
-  it('should not throw exception when user credentials are cleared and the file does not exist', async () => {
+  test('when the credentials file does not exist, then clearing does not throw an error', async () => {
     const fileNotFoundError = new Error('File not found');
     Object.assign(fileNotFoundError, { code: 'ENOENT' });
 
@@ -147,7 +147,7 @@ describe('Config service', () => {
     expect(writeFileStub).not.toHaveBeenCalled();
   });
 
-  it('should create the webdav certs directory when it does not exist', async () => {
+  test('when the certificates directory does not exist, then it is created', async () => {
     vi.spyOn(fs, 'access').mockRejectedValue(new Error());
 
     const stubMkdir = vi.spyOn(fs, 'mkdir').mockResolvedValue('');
@@ -157,7 +157,7 @@ describe('Config service', () => {
     expect(stubMkdir).toHaveBeenCalledWith(WEBDAV_SSL_CERTS_DIR);
   });
 
-  it('should write webdav config to a temp file and rename atomically when saveWebdavConfig is called', async () => {
+  test('when the WebDAV configuration is saved, then it is written to a temporary file before being renamed', async () => {
     const webdavConfig: WebdavConfig = getWebdavConfigMock();
     const stringConfig = JSON.stringify(webdavConfig);
     const tempPath = WEBDAV_CONFIGS_FILE + '.tmp';
@@ -172,7 +172,7 @@ describe('Config service', () => {
     expect(renameStub).toHaveBeenCalledWith(tempPath, WEBDAV_CONFIGS_FILE);
   });
 
-  it('should read webdav config from file and cache it when readWebdavConfig is called', async () => {
+  test('when the WebDAV configuration is read from storage, then it is cached in memory', async () => {
     const webdavConfig: WebdavConfig = getWebdavConfigMock();
     const stringConfig = JSON.stringify(webdavConfig);
 
@@ -185,7 +185,7 @@ describe('Config service', () => {
     expect(cacheSetSpy).toHaveBeenCalledWith(CacheService.WEBDAV_CONFIG_CACHE_KEY, webdavConfig);
   });
 
-  it('should return cached webdav config without reading file when cache hits', async () => {
+  test('when the WebDAV configuration is already cached, then it is returned without reading storage', async () => {
     const webdavConfig: WebdavConfig = getWebdavConfigMock();
     vi.spyOn(CacheService.instance, 'get').mockReturnValue(webdavConfig);
     const fsStub = vi.spyOn(fs, 'readFile');
@@ -195,7 +195,7 @@ describe('Config service', () => {
     expect(fsStub).not.toHaveBeenCalled();
   });
 
-  it('should return default config when webdav config file is empty', async () => {
+  test('when the WebDAV configuration file is empty, then default values are used', async () => {
     const fsStub = vi.spyOn(fs, 'readFile').mockResolvedValue('');
 
     const webdavConfigResult = await ConfigService.instance.readWebdavConfig();
@@ -203,7 +203,7 @@ describe('Config service', () => {
     expect(fsStub).toHaveBeenCalledWith(WEBDAV_CONFIGS_FILE, 'utf8');
   });
 
-  it('should return default config when readWebdavConfig throws an error', async () => {
+  test('when reading the WebDAV configuration fails, then default values are used', async () => {
     const fsStub = vi.spyOn(fs, 'readFile').mockRejectedValue(new Error());
 
     const webdavConfigResult = await ConfigService.instance.readWebdavConfig();
@@ -211,7 +211,7 @@ describe('Config service', () => {
     expect(fsStub).toHaveBeenCalledWith(WEBDAV_CONFIGS_FILE, 'utf8');
   });
 
-  it('should default to true when webdav config exists but createFullPath property is missing', async () => {
+  test('when the WebDAV configuration is missing the directory creation setting, then it defaults to enabled', async () => {
     const partialWebdavConfig = {
       host: '192.168.1.1',
       port: '8080',
@@ -229,7 +229,7 @@ describe('Config service', () => {
     expect(fsStub).toHaveBeenCalledWith(WEBDAV_CONFIGS_FILE, 'utf8');
   });
 
-  it('shoud return false when webdav config has createFullPath explicitly set to false', async () => {
+  test('when the directory creation option is explicitly disabled in the WebDAV configuration, then it is returned as disabled', async () => {
     const webdavConfig = {
       host: '192.168.1.1',
       port: '8080',
@@ -246,7 +246,7 @@ describe('Config service', () => {
     expect(fsStub).toHaveBeenCalledWith(WEBDAV_CONFIGS_FILE, 'utf8');
   });
 
-  it('should return true when webdav config has createFullPath explicitly set to true', async () => {
+  test('when the directory creation option is explicitly enabled in the WebDAV configuration, then it is returned as enabled', async () => {
     const webdavConfig = {
       host: '192.168.1.1',
       port: '8080',

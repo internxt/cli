@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, test, vi } from 'vitest';
 import { DownloadService } from '../../../src/services/network/download.service';
 import { Readable } from 'node:stream';
 import axios from 'axios';
@@ -6,7 +6,7 @@ import axios from 'axios';
 describe('Download Service', () => {
   const sut = DownloadService.instance;
 
-  it('When a file is downloaded, should return a ReadableStream', async () => {
+  test('when a file is downloaded, then a readable stream is returned', async () => {
     const fileContent = Buffer.from('file-content');
     const readableContent = new Readable({
       read() {
@@ -25,7 +25,7 @@ describe('Download Service', () => {
     expect(read.value).to.deep.equal(fileContent);
   });
 
-  it('When a file is downloaded, progress should be reported', async () => {
+  test('when a file is downloaded, then progress is reported', async () => {
     const fileContent = Buffer.from('file-content');
     const options = {
       progressCallback: vi.fn(),

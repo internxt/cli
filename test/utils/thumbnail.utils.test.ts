@@ -1,9 +1,9 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, test } from 'vitest';
 import { ThumbnailUtils } from '../../src/utils/thumbnail.utils';
 
 describe('Thumbnail Utils tests', () => {
   describe('isFileThumbnailable', () => {
-    it('should return true for valid image extensions', () => {
+    test('when a valid image extension is given, then true is returned', () => {
       expect(ThumbnailUtils.isFileThumbnailable('jpg')).toBe(true);
       expect(ThumbnailUtils.isFileThumbnailable('jpeg')).toBe(true);
       expect(ThumbnailUtils.isFileThumbnailable('png')).toBe(true);
@@ -13,20 +13,20 @@ describe('Thumbnail Utils tests', () => {
       expect(ThumbnailUtils.isFileThumbnailable('tiff')).toBe(true);
     });
 
-    it('should return true regardless of case', () => {
+    test('when an extension has mixed case, then true is returned', () => {
       expect(ThumbnailUtils.isFileThumbnailable('JPG')).toBe(true);
       expect(ThumbnailUtils.isFileThumbnailable('PNG')).toBe(true);
       expect(ThumbnailUtils.isFileThumbnailable('Webp')).toBe(true);
       expect(ThumbnailUtils.isFileThumbnailable('GIF')).toBe(true);
     });
 
-    it('should handle whitespace correctly', () => {
+    test('when an extension has surrounding whitespace, then true is returned', () => {
       expect(ThumbnailUtils.isFileThumbnailable(' jpg ')).toBe(true);
       expect(ThumbnailUtils.isFileThumbnailable('  png  ')).toBe(true);
       expect(ThumbnailUtils.isFileThumbnailable('\tgif\t')).toBe(true);
     });
 
-    it('should return false for non-thumbnailable extensions', () => {
+    test('when a non-thumbnailable extension is given, then false is returned', () => {
       expect(ThumbnailUtils.isFileThumbnailable('pdf')).toBe(false);
       expect(ThumbnailUtils.isFileThumbnailable('doc')).toBe(false);
       expect(ThumbnailUtils.isFileThumbnailable('txt')).toBe(false);
@@ -36,36 +36,36 @@ describe('Thumbnail Utils tests', () => {
       expect(ThumbnailUtils.isFileThumbnailable('heic')).toBe(false);
     });
 
-    it('should return false for empty strings', () => {
+    test('when an empty or blank string is given, then false is returned', () => {
       expect(ThumbnailUtils.isFileThumbnailable('')).toBe(false);
       expect(ThumbnailUtils.isFileThumbnailable('   ')).toBe(false);
       expect(ThumbnailUtils.isFileThumbnailable('\t\n')).toBe(false);
     });
 
-    it('should return false for invalid input', () => {
+    test('when an invalid extension is given, then false is returned', () => {
       expect(ThumbnailUtils.isFileThumbnailable('unknown')).toBe(false);
       expect(ThumbnailUtils.isFileThumbnailable('jpgg')).toBe(false);
     });
   });
 
   describe('isPDFThumbnailable', () => {
-    it('should return true for pdf extension', () => {
+    test('when a pdf extension is given, then true is returned', () => {
       expect(ThumbnailUtils.isPDFThumbnailable('pdf')).toBe(true);
     });
 
-    it('should return true regardless of case', () => {
+    test('when an extension has mixed case, then true is returned', () => {
       expect(ThumbnailUtils.isPDFThumbnailable('PDF')).toBe(true);
       expect(ThumbnailUtils.isPDFThumbnailable('Pdf')).toBe(true);
       expect(ThumbnailUtils.isPDFThumbnailable('pDf')).toBe(true);
     });
 
-    it('should handle whitespace correctly', () => {
+    test('when an extension has surrounding whitespace, then true is returned', () => {
       expect(ThumbnailUtils.isPDFThumbnailable(' pdf ')).toBe(true);
       expect(ThumbnailUtils.isPDFThumbnailable('  PDF  ')).toBe(true);
       expect(ThumbnailUtils.isPDFThumbnailable('\tpdf\n')).toBe(true);
     });
 
-    it('should return false for non-pdf extensions', () => {
+    test('when a non-pdf extension is given, then false is returned', () => {
       expect(ThumbnailUtils.isPDFThumbnailable('jpg')).toBe(false);
       expect(ThumbnailUtils.isPDFThumbnailable('png')).toBe(false);
       expect(ThumbnailUtils.isPDFThumbnailable('doc')).toBe(false);
@@ -73,20 +73,20 @@ describe('Thumbnail Utils tests', () => {
       expect(ThumbnailUtils.isPDFThumbnailable('txt')).toBe(false);
     });
 
-    it('should return false for empty strings', () => {
+    test('when an empty or blank string is given, then false is returned', () => {
       expect(ThumbnailUtils.isPDFThumbnailable('')).toBe(false);
       expect(ThumbnailUtils.isPDFThumbnailable('   ')).toBe(false);
       expect(ThumbnailUtils.isPDFThumbnailable('\t\n')).toBe(false);
     });
 
-    it('should return false for invalid input', () => {
+    test('when an invalid extension is given, then false is returned', () => {
       expect(ThumbnailUtils.isPDFThumbnailable('pdff')).toBe(false);
       expect(ThumbnailUtils.isPDFThumbnailable('pd')).toBe(false);
     });
   });
 
   describe('isImageThumbnailable', () => {
-    it('should return true for all thumbnailable image extensions', () => {
+    test('when a thumbnailable image extension is given, then true is returned', () => {
       expect(ThumbnailUtils.isImageThumbnailable('jpg')).toBe(true);
       expect(ThumbnailUtils.isImageThumbnailable('jpeg')).toBe(true);
       expect(ThumbnailUtils.isImageThumbnailable('png')).toBe(true);
@@ -96,20 +96,20 @@ describe('Thumbnail Utils tests', () => {
       expect(ThumbnailUtils.isImageThumbnailable('tiff')).toBe(true);
     });
 
-    it('should return true regardless of case', () => {
+    test('when an extension has mixed case, then true is returned', () => {
       expect(ThumbnailUtils.isImageThumbnailable('JPG')).toBe(true);
       expect(ThumbnailUtils.isImageThumbnailable('PNG')).toBe(true);
       expect(ThumbnailUtils.isImageThumbnailable('GIF')).toBe(true);
       expect(ThumbnailUtils.isImageThumbnailable('Jpeg')).toBe(true);
     });
 
-    it('should handle whitespace correctly', () => {
+    test('when an extension has surrounding whitespace, then true is returned', () => {
       expect(ThumbnailUtils.isImageThumbnailable(' jpg ')).toBe(true);
       expect(ThumbnailUtils.isImageThumbnailable('  png  ')).toBe(true);
       expect(ThumbnailUtils.isImageThumbnailable('\twebp\n')).toBe(true);
     });
 
-    it('should return false for non-thumbnailable image formats', () => {
+    test('when a non-thumbnailable image format is given, then false is returned', () => {
       expect(ThumbnailUtils.isImageThumbnailable('bmp')).toBe(false);
       expect(ThumbnailUtils.isImageThumbnailable('heic')).toBe(false);
       expect(ThumbnailUtils.isImageThumbnailable('raw')).toBe(false);
@@ -118,7 +118,7 @@ describe('Thumbnail Utils tests', () => {
       expect(ThumbnailUtils.isImageThumbnailable('eps')).toBe(false);
     });
 
-    it('should return false for non-image extensions', () => {
+    test('when a non-image extension is given, then false is returned', () => {
       expect(ThumbnailUtils.isImageThumbnailable('pdf')).toBe(false);
       expect(ThumbnailUtils.isImageThumbnailable('doc')).toBe(false);
       expect(ThumbnailUtils.isImageThumbnailable('txt')).toBe(false);
@@ -126,13 +126,13 @@ describe('Thumbnail Utils tests', () => {
       expect(ThumbnailUtils.isImageThumbnailable('mp3')).toBe(false);
     });
 
-    it('should return false for empty strings', () => {
+    test('when an empty or blank string is given, then false is returned', () => {
       expect(ThumbnailUtils.isImageThumbnailable('')).toBe(false);
       expect(ThumbnailUtils.isImageThumbnailable('   ')).toBe(false);
       expect(ThumbnailUtils.isImageThumbnailable('\t\n')).toBe(false);
     });
 
-    it('should return false for invalid input', () => {
+    test('when an invalid extension is given, then false is returned', () => {
       expect(ThumbnailUtils.isImageThumbnailable('jpgg')).toBe(false);
       expect(ThumbnailUtils.isImageThumbnailable('unknown')).toBe(false);
     });

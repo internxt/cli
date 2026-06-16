@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, test, vi } from 'vitest';
 import crypto from 'node:crypto';
 import { Auth, Drive, Network } from '@internxt/sdk';
 import { Trash } from '@internxt/sdk/dist/drive';
@@ -16,7 +16,7 @@ describe('SDKManager service', () => {
     clientVersion: crypto.randomBytes(16).toString('hex'),
   };
 
-  it('When SDKManager ApiSecurityFixture is requested, then it is returned from static property', () => {
+  test('when the security configuration is requested after initialization, then it is returned from the stored settings', () => {
     const ApiSecurityFixture: SdkManagerApiSecurity = {
       token: crypto.randomBytes(16).toString('hex'),
       retryOptions: {
@@ -28,7 +28,7 @@ describe('SDKManager service', () => {
     expect(SdkManager.getApiSecurity()).to.be.deep.equal(ApiSecurityFixture);
   });
 
-  it('When SDKManager ApiSecurityFixture is requested but it is not started, then an error is thrown', () => {
+  test('when the security configuration is requested before initialization, then an error is thrown', () => {
     try {
       SdkManager.getApiSecurity();
       fail('Expected function to throw an error, but it did not.');
@@ -37,7 +37,7 @@ describe('SDKManager service', () => {
     }
   });
 
-  it('When SDKManager is cleaned, then ApiSecurityFixture property is cleaned', () => {
+  test('when the SDK manager is reset, then the stored security configuration is cleared', () => {
     SdkManager.init(ApiSecurityFixture);
     SdkManager.clean();
     try {
@@ -50,7 +50,7 @@ describe('SDKManager service', () => {
     expect(apiSecurityResponse).to.be.equal(undefined);
   });
 
-  it('When getAppDetails is requested, then it is generated using packageJson values', () => {
+  test('when application details are requested, then they are generated from the package information', () => {
     const expectedAppdetails = {
       clientName: packageJson.clientName,
       clientVersion: packageJson.version,
@@ -63,7 +63,7 @@ describe('SDKManager service', () => {
     expect(expectedAppdetails).to.be.deep.equal(appDetailsResponse);
   });
 
-  it('When Auth client is requested, then it returns the sdk that uses the new API endpoint', () => {
+  test('when an authentication client is requested, then it is configured with the API endpoint from environment', () => {
     const envEndpoint: { key: keyof ConfigKeys; value: string } = {
       key: 'DRIVE_NEW_API_URL',
       value: 'test/new-api',
@@ -83,7 +83,7 @@ describe('SDKManager service', () => {
     expect(auth).to.be.deep.equal(authClient);
   });
 
-  it('When Users client is requested, then it is generated using internxt sdk', () => {
+  test('when a users client is requested, then it is configured with the API endpoint from environment', () => {
     const envEndpoint: { key: keyof ConfigKeys; value: string } = {
       key: 'DRIVE_NEW_API_URL',
       value: 'test/api',
@@ -103,7 +103,7 @@ describe('SDKManager service', () => {
     expect(newClient).to.be.deep.equal(client);
   });
 
-  it('When Storage client is requested, then it is generated using internxt sdk', () => {
+  test('when a storage client is requested, then it is configured with the API endpoint from environment', () => {
     const envEndpoint: { key: keyof ConfigKeys; value: string } = {
       key: 'DRIVE_NEW_API_URL',
       value: 'test/api',
@@ -123,7 +123,7 @@ describe('SDKManager service', () => {
     expect(newClient).to.be.deep.equal(client);
   });
 
-  it('When Trash client is requested, then it is generated using internxt sdk', () => {
+  test('when a trash client is requested, then it is configured with the API endpoint from environment', () => {
     const envEndpoint: { key: keyof ConfigKeys; value: string } = {
       key: 'DRIVE_NEW_API_URL',
       value: 'test/api',
@@ -143,7 +143,7 @@ describe('SDKManager service', () => {
     expect(newClient).to.be.deep.equal(client);
   });
 
-  it('When Share client is requested, then it is generated using internxt sdk', () => {
+  test('when a share client is requested, then it is configured with the API endpoint from environment', () => {
     const envEndpoint: { key: keyof ConfigKeys; value: string } = {
       key: 'DRIVE_NEW_API_URL',
       value: 'test/api',
@@ -163,7 +163,7 @@ describe('SDKManager service', () => {
     expect(newClient).to.be.deep.equal(client);
   });
 
-  it('When Network client is requested, then it is generated using internxt sdk', () => {
+  test('when a network client is requested, then it is configured with the network endpoint from environment', () => {
     const envEndpoint: { key: keyof ConfigKeys; value: string } = {
       key: 'NETWORK_URL',
       value: 'test/network',

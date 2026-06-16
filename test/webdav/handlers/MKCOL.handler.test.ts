@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 import { MKCOLRequestHandler } from '../../../src/webdav/handlers/MKCOL.handler';
 import {
   createWebDavRequestFixture,
@@ -22,7 +22,7 @@ describe('MKCOL request handler', () => {
     vi.spyOn(AuthService.instance, 'getAuthDetails').mockResolvedValue(UserCredentialsFixture);
   });
 
-  it('should wait 500ms for backend propagation before returning 201 when a folder is created', async () => {
+  test('when a folder is created, then the server waits for propagation before confirming', async () => {
     const requestedFolderResource: WebDavRequestedResource = getRequestedFolderResource({
       parentFolder: '/test',
       folderName: 'FolderA',
@@ -53,7 +53,7 @@ describe('MKCOL request handler', () => {
     expect(endTime - startTime).toBeGreaterThanOrEqual(500);
   });
 
-  it('When a WebDav client sends a MKCOL request, it should reply with a 201 if success', async () => {
+  test('when a folder creation request succeeds, then the server confirms with a success status', async () => {
     const requestedFolderResource: WebDavRequestedResource = getRequestedFolderResource({
       parentFolder: '/test',
       folderName: 'FolderA',

@@ -1,4 +1,4 @@
-import { beforeEach, describe, it, vi, expect } from 'vitest';
+import { beforeEach, describe, test, vi, expect } from 'vitest';
 import { UploadFacade } from '../../../../src/services/network/upload/upload-facade.service';
 import { CLIUtils } from '../../../../src/utils/cli.utils';
 import { logger } from '../../../../src/utils/logger.utils';
@@ -11,7 +11,7 @@ import { AsyncUtils } from '../../../../src/utils/async.utils';
 import { UserFixture } from '../../../fixtures/auth.fixture';
 import { getNetworkOptionsMock } from '../../../fixtures/webdav.fixture';
 
-describe('UploadFacade', () => {
+describe('Upload Facade', () => {
   let sut: UploadFacade;
 
   const mockNetworkOptions = getNetworkOptionsMock();
@@ -45,12 +45,12 @@ describe('UploadFacade', () => {
     vi.spyOn(logger, 'info').mockImplementation(vi.fn());
   });
 
-  describe('uploadFolder', () => {
+  describe('uploading a folder', () => {
     const localPath = '/local/test-folder';
     const destinationFolderUuid = 'dest-uuid';
     const onProgress = vi.fn();
 
-    it('should throw an error if createFolders returns an empty map', async () => {
+    test('when folder creation returns no results, then an error is thrown', async () => {
       vi.spyOn(LocalFilesystemService.instance, 'scanLocalDirectory').mockResolvedValue({
         folders: [createFileSystemNodeFixture({ type: 'folder', name: 'test', relativePath: 'test' })],
         files: [],
@@ -76,7 +76,7 @@ describe('UploadFacade', () => {
       expect(UploadFileService.instance.uploadFilesConcurrently).not.toHaveBeenCalled();
     });
 
-    it('should properly handle the upload of folder and the creation of file and return proper result', async () => {
+    test('when a folder is uploaded with files, then the correct result is returned', async () => {
       const reporter = vi.fn();
       const result = await sut.uploadFolder({
         localPath,
@@ -99,7 +99,7 @@ describe('UploadFacade', () => {
       );
     });
 
-    it('should report progress correctly during upload', async () => {
+    test('when uploading, then progress is reported correctly', async () => {
       const folderMap = new Map([[folderName, 'folder-uuid-123']]);
 
       vi.spyOn(UploadFolderService.instance, 'createFolders').mockImplementation(
@@ -134,7 +134,7 @@ describe('UploadFacade', () => {
       expect(onProgress).toHaveBeenNthCalledWith(2, { percentage: 100 });
     });
 
-    it('should wait 500ms between folder creation and file upload to prevent backend indexing issues', async () => {
+    test('when folders are created before uploading files, then the system waits to prevent indexing issues', async () => {
       vi.useFakeTimers();
 
       vi.spyOn(UploadFolderService.instance, 'createFolders').mockResolvedValue(folderMap);
