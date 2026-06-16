@@ -1,7 +1,7 @@
 import { WebDavMethodHandler, WebDavRequestedResource } from '../../types/webdav.types';
 import { XMLUtils } from '../../utils/xml.utils';
 import { DriveFileItem, DriveFolderItem } from '../../types/drive.types';
-import { DriveItem } from '../../services/database/drive-item/drive-item.domain';
+import { DriveItemBD } from '../../services/database/drive-item/drive-item.domain';
 import { DriveItemRepository } from '../../services/database/drive-item/drive-item.repository';
 import { DriveFolderService } from '../../services/drive/drive-folder.service';
 import { FormatUtils } from '../../utils/format.utils';
@@ -93,7 +93,7 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
     const folderContent = await DriveFolderService.instance.getFolderContent(folderUuid);
 
     const xmlNodes: object[] = [];
-    const cachedItems: DriveItem[] = [];
+    const cachedItems: DriveItemBD[] = [];
 
     for (const folder of folderContent.folders) {
       const folderRelativePath = WebDavUtils.joinURL(relativePath, folder.plainName, '/');
@@ -117,7 +117,7 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
       );
 
       cachedItems.push(
-        new DriveItem({
+        new DriveItemBD({
           uuid: folder.uuid,
           path: folderRelativePath,
           type: 'folder',
@@ -155,7 +155,7 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
       );
 
       cachedItems.push(
-        new DriveItem({
+        new DriveItemBD({
           uuid: file.uuid,
           path: fileRelativePath,
           type: 'file',

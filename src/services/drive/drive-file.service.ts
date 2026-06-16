@@ -71,6 +71,19 @@ export class DriveFileService {
     return driveFileItem;
   };
 
+  public getFileMetadataByPath = async (path: string): Promise<DriveFileItem> => {
+    const storageClient = SdkManager.instance.getStorage();
+
+    const fileMetadata = await storageClient.getFileByPath(path);
+
+    if (fileMetadata?.status !== FileStatus.EXISTS) {
+      throw new NotFoundError(`File with path ${path} not found`);
+    }
+    const driveFileItem = DriveUtils.driveFileMetaToItem(fileMetadata);
+
+    return driveFileItem;
+  };
+
   public moveFile = async (uuid: string, payload: StorageTypes.MoveFileUuidPayload): Promise<StorageTypes.FileMeta> => {
     const storageClient = SdkManager.instance.getStorage();
     const fileMeta = await storageClient.moveFileByUuid(uuid, payload);

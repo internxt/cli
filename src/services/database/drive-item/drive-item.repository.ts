@@ -1,6 +1,6 @@
 import { ErrorUtils } from '../../../utils/errors.utils';
 import { DatabaseService } from '../database.service';
-import { DriveItem } from './drive-item.domain';
+import { DriveItemBD } from './drive-item.domain';
 import { DriveItemModel } from './drive-item.model';
 
 export class DriveItemRepository {
@@ -8,7 +8,7 @@ export class DriveItemRepository {
 
   private readonly repository = DatabaseService.instance.dataSource.getRepository(DriveItemModel);
 
-  public createOrUpdate = async (items: DriveItemModel[]): Promise<DriveItem[] | undefined> => {
+  public createOrUpdate = async (items: DriveItemModel[]): Promise<DriveItemBD[] | undefined> => {
     try {
       const uuids = items.map((i) => i.uuid);
       const paths = items.map((i) => i.path);
@@ -31,7 +31,7 @@ export class DriveItemRepository {
         }
       }
 
-      return items.map((item) => new DriveItem(item));
+      return items.map((item) => new DriveItemBD(item));
     } catch (error) {
       ErrorUtils.report(error, { createOrUpdate: items });
     }
@@ -53,34 +53,34 @@ export class DriveItemRepository {
     }
   };
 
-  public getByUuid = async (uuid: string): Promise<DriveItem | undefined> => {
+  public getByUuid = async (uuid: string): Promise<DriveItemBD | undefined> => {
     try {
       const item = await this.repository.findOneBy({ uuid });
       if (!item) {
         return;
       }
-      return new DriveItem(item);
+      return new DriveItemBD(item);
     } catch (error) {
       ErrorUtils.report(error, { getByUuid: uuid });
     }
   };
 
-  public getByPath = async (path: string): Promise<DriveItem | undefined> => {
+  public getByPath = async (path: string): Promise<DriveItemBD | undefined> => {
     try {
       const item = await this.repository.findOneBy({ path });
       if (!item) {
         return;
       }
-      return new DriveItem(item);
+      return new DriveItemBD(item);
     } catch (error) {
       ErrorUtils.report(error, { getByPath: path });
     }
   };
 
-  public getAll = async (): Promise<DriveItem[]> => {
+  public getAll = async (): Promise<DriveItemBD[]> => {
     try {
       const items = await this.repository.find();
-      return items.map((item) => new DriveItem(item));
+      return items.map((item) => new DriveItemBD(item));
     } catch (error) {
       ErrorUtils.report(error, { getAll: true });
       return [];

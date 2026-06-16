@@ -28,6 +28,16 @@ export class DriveFolderService {
     return folderItem;
   };
 
+  public getFolderMetaByPath = async (path: string): Promise<DriveFolderItem> => {
+    const storageClient = SdkManager.instance.getStorage();
+    const folderMeta = await storageClient.getFolderByPath(path);
+    const folderItem = DriveUtils.driveFolderMetaToItem(folderMeta);
+    if (folderItem.status !== FileStatus.EXISTS) {
+      throw new NotFoundError(`Folder with uuid ${folderItem.uuid} not found at path: ${path}`);
+    }
+    return folderItem;
+  };
+
   public getFolderContent = async (folderUuid: string) => {
     const folders = await this.getFolderSubfolders(folderUuid);
     const files = await this.getFolderSubfiles(folderUuid);

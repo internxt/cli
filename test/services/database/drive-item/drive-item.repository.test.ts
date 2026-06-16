@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { DriveItemRepository } from '../../../../src/services/database/drive-item/drive-item.repository';
-import { DriveItem } from '../../../../src/services/database/drive-item/drive-item.domain';
+import { DriveItemBD } from '../../../../src/services/database/drive-item/drive-item.domain';
 
 describe('DriveItemRepository', () => {
   it('should create and retrieve an item via createOrUpdate', async () => {
@@ -11,7 +11,7 @@ describe('DriveItemRepository', () => {
       createdAt: new Date(),
       updatedAt: new Date(),
     };
-    const expected = new DriveItem(mockItem);
+    const expected = new DriveItemBD(mockItem);
     vi.spyOn(DriveItemRepository.instance, 'createOrUpdate').mockResolvedValue([expected]);
     vi.spyOn(DriveItemRepository.instance, 'getByPath').mockResolvedValue(expected);
 
@@ -31,9 +31,9 @@ describe('DriveItemRepository', () => {
     ];
     const createOrUpdateSpy = vi
       .spyOn(DriveItemRepository.instance, 'createOrUpdate')
-      .mockResolvedValueOnce(items.map((i) => new DriveItem(i)))
-      .mockResolvedValueOnce(updatedItems.map((i) => new DriveItem(i)));
-    vi.spyOn(DriveItemRepository.instance, 'getByPath').mockResolvedValue(new DriveItem(updatedItems[0]));
+      .mockResolvedValueOnce(items.map((i) => new DriveItemBD(i)))
+      .mockResolvedValueOnce(updatedItems.map((i) => new DriveItemBD(i)));
+    vi.spyOn(DriveItemRepository.instance, 'getByPath').mockResolvedValue(new DriveItemBD(updatedItems[0]));
 
     await DriveItemRepository.instance.createOrUpdate(items);
     await DriveItemRepository.instance.createOrUpdate(updatedItems);
@@ -44,7 +44,7 @@ describe('DriveItemRepository', () => {
   });
 
   it('should retrieve an item by uuid', async () => {
-    const driveItem = new DriveItem({
+    const driveItem = new DriveItemBD({
       uuid: 'uuid-1',
       path: '/folder/',
       type: 'folder',
@@ -72,8 +72,20 @@ describe('DriveItemRepository', () => {
 
   it('should delete items by uuids', async () => {
     const allItems = [
-      new DriveItem({ uuid: 'uuid-1', path: '/file1.txt', type: 'file', createdAt: new Date(), updatedAt: new Date() }),
-      new DriveItem({ uuid: 'uuid-2', path: '/file2.txt', type: 'file', createdAt: new Date(), updatedAt: new Date() }),
+      new DriveItemBD({
+        uuid: 'uuid-1',
+        path: '/file1.txt',
+        type: 'file',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }),
+      new DriveItemBD({
+        uuid: 'uuid-2',
+        path: '/file2.txt',
+        type: 'file',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }),
     ];
     vi.spyOn(DriveItemRepository.instance, 'delete').mockResolvedValue(undefined);
     vi.spyOn(DriveItemRepository.instance, 'getAll').mockResolvedValue([allItems[1]]);
@@ -86,8 +98,20 @@ describe('DriveItemRepository', () => {
 
   it('should return all items', async () => {
     const allItems = [
-      new DriveItem({ uuid: 'uuid-1', path: '/file1.txt', type: 'file', createdAt: new Date(), updatedAt: new Date() }),
-      new DriveItem({ uuid: 'uuid-2', path: '/file2.txt', type: 'file', createdAt: new Date(), updatedAt: new Date() }),
+      new DriveItemBD({
+        uuid: 'uuid-1',
+        path: '/file1.txt',
+        type: 'file',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }),
+      new DriveItemBD({
+        uuid: 'uuid-2',
+        path: '/file2.txt',
+        type: 'file',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }),
     ];
     vi.spyOn(DriveItemRepository.instance, 'getAll').mockResolvedValue(allItems);
 
@@ -103,9 +127,9 @@ describe('DriveItemRepository', () => {
       { uuid: 'uuid-2', path: '/same/path.txt', type: 'file' as const, createdAt: new Date(), updatedAt: new Date() },
     ];
     vi.spyOn(DriveItemRepository.instance, 'createOrUpdate')
-      .mockResolvedValueOnce(items.map((i) => new DriveItem(i)))
-      .mockResolvedValueOnce(updatedItems.map((i) => new DriveItem(i)));
-    vi.spyOn(DriveItemRepository.instance, 'getByPath').mockResolvedValue(new DriveItem(updatedItems[0]));
+      .mockResolvedValueOnce(items.map((i) => new DriveItemBD(i)))
+      .mockResolvedValueOnce(updatedItems.map((i) => new DriveItemBD(i)));
+    vi.spyOn(DriveItemRepository.instance, 'getByPath').mockResolvedValue(new DriveItemBD(updatedItems[0]));
 
     await DriveItemRepository.instance.createOrUpdate(items);
     await DriveItemRepository.instance.createOrUpdate(updatedItems);
@@ -118,7 +142,13 @@ describe('DriveItemRepository', () => {
     const updatedPath = '/renamed.txt';
     vi.spyOn(DriveItemRepository.instance, 'updateByUuid').mockResolvedValue(undefined);
     vi.spyOn(DriveItemRepository.instance, 'getByUuid').mockResolvedValue(
-      new DriveItem({ uuid: 'uuid-1', path: updatedPath, type: 'file', createdAt: new Date(), updatedAt: new Date() }),
+      new DriveItemBD({
+        uuid: 'uuid-1',
+        path: updatedPath,
+        type: 'file',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }),
     );
 
     await DriveItemRepository.instance.updateByUuid('uuid-1', { path: updatedPath });
@@ -128,7 +158,7 @@ describe('DriveItemRepository', () => {
   });
 
   it('should return DriveItem instances from all methods', async () => {
-    const driveItem = new DriveItem({
+    const driveItem = new DriveItemBD({
       uuid: 'uuid-1',
       path: '/file.txt',
       type: 'file',
@@ -138,7 +168,7 @@ describe('DriveItemRepository', () => {
     vi.spyOn(DriveItemRepository.instance, 'getByPath').mockResolvedValue(driveItem);
 
     const item = await DriveItemRepository.instance.getByPath('/file.txt');
-    expect(item).toBeInstanceOf(DriveItem);
+    expect(item).toBeInstanceOf(DriveItemBD);
     expect(item?.toJSON).toBeDefined();
   });
 });

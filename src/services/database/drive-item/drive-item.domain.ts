@@ -1,6 +1,6 @@
 import { DriveItemAttributes } from './drive-item.attributes';
 
-export class DriveItem implements DriveItemAttributes {
+export class DriveItemBD implements DriveItemAttributes {
   uuid: string;
   path: string;
   type: 'file' | 'folder';
