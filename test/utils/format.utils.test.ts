@@ -1,16 +1,16 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, test } from 'vitest';
 import { randomInt } from 'node:crypto';
 import { FormatUtils } from '../../src/utils/format.utils';
 import { UsageService } from '../../src/services/usage.service';
 
 describe('Format utils', () => {
-  it('should return a formatted date for WebDav when providing a date', () => {
+  test('when a date is provided, then a formatted date string is returned', () => {
     const date = new Date('2021-10-10T10:10:10Z');
     const result = FormatUtils.formatDateForWebDav(date);
     expect(result).to.be.equal('Sun, 10 Oct 2021 10:10:10 GMT');
   });
 
-  it('should return a formatted human readable size when providing a size', () => {
+  test('when a file size is provided, then a human-readable size string is returned', () => {
     const value = randomInt(1, 500);
     const expectedSizes = [
       {
@@ -56,7 +56,7 @@ describe('Format utils', () => {
     });
   });
 
-  it('should return a formatted human readable size with decimals when providing a size', () => {
+  test('when a file size with decimals is provided, then a human-readable size string is returned', () => {
     const expectedSizes = [
       {
         value: 1.5 * Math.pow(1024, 1),
@@ -85,7 +85,7 @@ describe('Format utils', () => {
     });
   });
 
-  it('should return a formatted human readable limit when providing a limit', () => {
+  test('when a storage limit is provided, then a human-readable limit string is returned', () => {
     const limit = randomInt(100000000000000);
     const expectedLimits = [
       {

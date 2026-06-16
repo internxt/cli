@@ -1,12 +1,12 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, expect, test, vi } from 'vitest';
 import { DatabaseService } from '../../../src/services/database/database.service';
 import { DriveItemModel } from '../../../src/services/database/drive-item/drive-item.model';
 import { ConfigService } from '../../../src/services/config.service';
 import { DRIVE_SQLITE_FILE } from '../../../src/constants/configs';
 
-describe('DatabaseService', () => {
+describe('Database Service', () => {
   describe('dataSource configuration', () => {
-    it('should configure sqljs when NODE_ENV is test', () => {
+    test('when the environment is set to test, then the in-memory database is configured', () => {
       const configServiceInstancespyOn = vi.spyOn(ConfigService.instance, 'get');
       configServiceInstancespyOn.mockReturnValueOnce('test');
 
@@ -18,7 +18,7 @@ describe('DatabaseService', () => {
       expect(configServiceInstancespyOn).toHaveBeenCalledWith('NODE_ENV', false);
     });
 
-    it('should configure better-sqlite3 when NODE_ENV is not test', () => {
+    test('when the environment is not test, then a file-based database is configured', () => {
       const configServiceInstancespyOn = vi.spyOn(ConfigService.instance, 'get');
       configServiceInstancespyOn.mockReturnValueOnce('production');
 
@@ -33,7 +33,7 @@ describe('DatabaseService', () => {
   });
 
   describe('Integration scenarios', () => {
-    it('should handle initialize, clear, and destroy sequence', async () => {
+    test('when the database is initialized, cleared, and destroyed, then the sequence completes successfully', async () => {
       const configServiceInstancespyOn = vi.spyOn(ConfigService.instance, 'get');
       configServiceInstancespyOn.mockReturnValueOnce('test');
 

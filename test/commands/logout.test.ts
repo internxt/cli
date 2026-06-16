@@ -1,11 +1,11 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, test, vi } from 'vitest';
 import { ConfigService } from '../../src/services/config.service';
 import { UserCredentialsFixture } from '../fixtures/login.fixture';
 import Logout from '../../src/commands/logout';
 import { AuthService } from '../../src/services/auth.service';
 
 describe('Logout Command', () => {
-  it('When user is logged out, then it returns false', async () => {
+  test('When user is logged out, then it returns false', async () => {
     const readUserSpy = vi.spyOn(ConfigService.instance, 'readUser').mockResolvedValue(undefined);
     const networkLogout = vi.spyOn(AuthService.instance, 'logout').mockRejectedValue(new Error());
     const clearUserSpy = vi.spyOn(ConfigService.instance, 'clearUser').mockRejectedValue(new Error());
@@ -21,7 +21,7 @@ describe('Logout Command', () => {
     expect(clearUserSpy).not.toHaveBeenCalled();
   });
 
-  it('When user is logged in, then the current user logged out', async () => {
+  test('When user is logged in, then the user is logged out', async () => {
     const readUserSpy = vi.spyOn(ConfigService.instance, 'readUser').mockResolvedValue(UserCredentialsFixture);
     const networkLogout = vi.spyOn(AuthService.instance, 'logout').mockResolvedValue();
     const clearUserSpy = vi.spyOn(ConfigService.instance, 'clearUser').mockResolvedValue();

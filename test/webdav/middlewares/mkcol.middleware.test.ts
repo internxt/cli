@@ -1,11 +1,11 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, test, vi } from 'vitest';
 import { createWebDavRequestFixture, createWebDavResponseFixture } from '../../fixtures/webdav.fixture';
 import { MkcolMiddleware } from '../../../src/webdav/middewares/mkcol.middleware';
 import { fail } from 'node:assert';
 import { UnsupportedMediaTypeError } from '../../../src/utils/errors.utils';
 
 describe('MKCOL middleware', () => {
-  it('When MKCOL content is application/xml, then it should call next', () => {
+  test('when the request content type is XML, then the middleware allows the request to proceed', () => {
     const req = createWebDavRequestFixture({
       method: 'MKCOL',
       url: '/anypath',
@@ -19,7 +19,7 @@ describe('MKCOL middleware', () => {
     expect(next).toHaveBeenCalledExactlyOnceWith();
   });
 
-  it('When MKCOL content is text/xml, then it should call next', () => {
+  test('when the request content type is text XML, then the middleware allows the request to proceed', () => {
     const req = createWebDavRequestFixture({
       method: 'MKCOL',
       url: '/anypath',
@@ -33,7 +33,7 @@ describe('MKCOL middleware', () => {
     expect(next).toHaveBeenCalledExactlyOnceWith();
   });
 
-  it('When MKCOL content is not XML, then it should call next with error', async () => {
+  test('when the request content type is not XML, then the middleware rejects the request', async () => {
     const req = createWebDavRequestFixture({
       method: 'MKCOL',
       url: '/anypath',
@@ -50,7 +50,7 @@ describe('MKCOL middleware', () => {
     }
   });
 
-  it('When MKCOL has body content, then it should call next with error', async () => {
+  test('when the request has a body, then the middleware rejects the request', async () => {
     const req = createWebDavRequestFixture({
       method: 'MKCOL',
       url: '/anypath',

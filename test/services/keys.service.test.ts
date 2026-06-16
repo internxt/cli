@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, test, vi } from 'vitest';
 import crypto from 'node:crypto';
 import * as openpgp from 'openpgp';
 import { KeysService } from '../../src/services/keys.service';
@@ -13,7 +13,7 @@ describe('Keys service', () => {
     salt: crypto.randomBytes(64).toString('hex'),
   };
 
-  it('When message is encrypted with private key & password, then it can be decrypted using same data', async () => {
+  test('when a private key is encrypted with a password, then it can be decrypted with the same password', async () => {
     const plainPrivateKey = crypto.randomBytes(16).toString('hex');
     const password = crypto.randomBytes(8).toString('hex');
 
@@ -27,7 +27,7 @@ describe('Keys service', () => {
     expect(decryptedPrivateKey).to.be.equal(plainPrivateKey);
   });
 
-  it('When new pgp keys are required, then it generates them from the openpgp library', async () => {
+  test('when new encryption keys are needed, then they are generated using the cryptography library', async () => {
     interface KeyPair {
       privateKey: openpgp.PrivateKey;
       publicKey: openpgp.PublicKey;

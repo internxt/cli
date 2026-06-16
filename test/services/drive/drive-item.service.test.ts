@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, test, vi } from 'vitest';
 import { DriveItemService } from '../../../src/services/drive/drive-item.service';
 import { DriveItemRepository } from '../../../src/services/database/drive-item/drive-item.repository';
 import { DriveItemBD } from '../../../src/services/database/drive-item/drive-item.domain';
@@ -7,11 +7,11 @@ import { DriveFolderService } from '../../../src/services/drive/drive-folder.ser
 import { newFileItem, newFolderItem } from '../../fixtures/drive.fixture';
 import { NotFoundError } from '../../../src/utils/errors.utils';
 
-describe('DriveItemService', () => {
+describe('Drive Item Service', () => {
   const sut = DriveItemService.instance;
 
-  describe('getFileByPath', () => {
-    it('should return file from cache when cached and API succeeds', async () => {
+  describe('getting a file by path', () => {
+    test('when the file is in cache and the API responds, then the cached file is returned', async () => {
       const path = '/test/file.txt';
       const cachedItem = new DriveItemBD({
         uuid: 'cached-uuid',
@@ -32,7 +32,7 @@ describe('DriveItemService', () => {
       expect(createOrUpdateSpy).toHaveBeenCalled();
     });
 
-    it('should throw NotFoundError when cached file status is not EXISTS', async () => {
+    test('when the cached file is no longer available on the server, then a not found error is thrown', async () => {
       const path = '/test/file.txt';
       const cachedItem = new DriveItemBD({
         uuid: 'cached-uuid',
@@ -54,7 +54,7 @@ describe('DriveItemService', () => {
       expect(deleteSpy).toHaveBeenCalledWith(['cached-uuid']);
     });
 
-    it('should fallback to path lookup when cached API call throws and path succeeds', async () => {
+    test('when the cached lookup fails but the path lookup succeeds, then the file is resolved via the path', async () => {
       const path = '/test/file.txt';
       const cachedItem = new DriveItemBD({
         uuid: 'cached-uuid',
@@ -80,7 +80,7 @@ describe('DriveItemService', () => {
       expect(createOrUpdateSpy).toHaveBeenCalled();
     });
 
-    it('should throw NotFoundError when cache and fallback both fail', async () => {
+    test('when both cache and path lookup fail, then a not found error is thrown', async () => {
       const path = '/test/file.txt';
       const cachedItem = new DriveItemBD({
         uuid: 'cached-uuid',
@@ -97,7 +97,7 @@ describe('DriveItemService', () => {
       await expect(sut.getFileByPath(path)).rejects.toThrow('File not found at path');
     });
 
-    it('should cache and return file from path lookup when no cache exists', async () => {
+    test('when there is no cached file and the path lookup succeeds, then the file is cached and returned', async () => {
       const path = '/test/file.txt';
       vi.spyOn(DriveItemRepository.instance, 'getByPath').mockResolvedValue(undefined);
 
@@ -111,7 +111,7 @@ describe('DriveItemService', () => {
       expect(createOrUpdateSpy).toHaveBeenCalled();
     });
 
-    it('should throw NotFoundError when path lookup fails with no cache', async () => {
+    test('when there is no cache and the path lookup fails, then a not found error is thrown', async () => {
       const path = '/test/nonexistent.txt';
       vi.spyOn(DriveItemRepository.instance, 'getByPath').mockResolvedValue(undefined);
       vi.spyOn(DriveFileService.instance, 'getFileMetadataByPath').mockRejectedValue(new Error('Not found'));
@@ -119,7 +119,7 @@ describe('DriveItemService', () => {
       await expect(sut.getFileByPath(path)).rejects.toThrow('File not found at path');
     });
 
-    it('should throw NotFoundError when path lookup returns non-EXISTS status', async () => {
+    test('when the path lookup returns a non-existing status, then a not found error is thrown', async () => {
       const path = '/test/file.txt';
       vi.spyOn(DriveItemRepository.instance, 'getByPath').mockResolvedValue(undefined);
       vi.spyOn(DriveFileService.instance, 'getFileMetadataByPath').mockRejectedValue(
@@ -130,8 +130,8 @@ describe('DriveItemService', () => {
     });
   });
 
-  describe('getFolderByPath', () => {
-    it('should return folder from cache when cached and API succeeds', async () => {
+  describe('getting a folder by path', () => {
+    test('when the folder is in cache and the API responds, then the cached folder is returned', async () => {
       const path = '/test/folder/';
       const cachedItem = new DriveItemBD({
         uuid: 'cached-uuid',
@@ -152,7 +152,7 @@ describe('DriveItemService', () => {
       expect(createOrUpdateSpy).toHaveBeenCalled();
     });
 
-    it('should throw NotFoundError when cached folder status is not EXISTS', async () => {
+    test('when the cached folder is no longer available on the server, then a not found error is thrown', async () => {
       const path = '/test/folder/';
       const cachedItem = new DriveItemBD({
         uuid: 'cached-uuid',
@@ -174,7 +174,7 @@ describe('DriveItemService', () => {
       expect(deleteSpy).toHaveBeenCalledWith(['cached-uuid']);
     });
 
-    it('should fallback to path lookup when cached folder API throws and path succeeds', async () => {
+    test('when the cached lookup fails but the path lookup succeeds, then the folder is resolved via the path', async () => {
       const path = '/test/folder/';
       const cachedItem = new DriveItemBD({
         uuid: 'cached-uuid',
@@ -200,7 +200,7 @@ describe('DriveItemService', () => {
       expect(createOrUpdateSpy).toHaveBeenCalled();
     });
 
-    it('should throw NotFoundError when folder cache and fallback both fail', async () => {
+    test('when both cache and path lookup fail, then a not found error is thrown', async () => {
       const path = '/test/folder/';
       const cachedItem = new DriveItemBD({
         uuid: 'cached-uuid',
@@ -217,7 +217,7 @@ describe('DriveItemService', () => {
       await expect(sut.getFolderByPath(path)).rejects.toThrow('Folder not found at path');
     });
 
-    it('should cache and return folder from path lookup when no cache exists', async () => {
+    test('when there is no cached folder and the path lookup succeeds, then the folder is cached and returned', async () => {
       const path = '/test/folder/';
       vi.spyOn(DriveItemRepository.instance, 'getByPath').mockResolvedValue(undefined);
 
@@ -231,7 +231,7 @@ describe('DriveItemService', () => {
       expect(createOrUpdateSpy).toHaveBeenCalled();
     });
 
-    it('should throw NotFoundError when folder path lookup fails with no cache', async () => {
+    test('when there is no cache and the path lookup fails, then a not found error is thrown', async () => {
       const path = '/test/nonexistent/';
       vi.spyOn(DriveItemRepository.instance, 'getByPath').mockResolvedValue(undefined);
       vi.spyOn(DriveFolderService.instance, 'getFolderMetaByPath').mockRejectedValue(new Error('Not found'));
@@ -239,7 +239,7 @@ describe('DriveItemService', () => {
       await expect(sut.getFolderByPath(path)).rejects.toThrow('Folder not found at path');
     });
 
-    it('should throw NotFoundError when folder path lookup returns non-EXISTS status', async () => {
+    test('when the path lookup returns a non-existing status, then a not found error is thrown', async () => {
       const path = '/test/folder/';
       vi.spyOn(DriveItemRepository.instance, 'getByPath').mockResolvedValue(undefined);
       vi.spyOn(DriveFolderService.instance, 'getFolderMetaByPath').mockRejectedValue(

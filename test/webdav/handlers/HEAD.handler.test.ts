@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 import { HEADRequestHandler } from '../../../src/webdav/handlers/HEAD.handler';
 import {
   createWebDavRequestFixture,
@@ -19,7 +19,7 @@ describe('HEAD request handler', () => {
     sut = new HEADRequestHandler();
   });
 
-  it('When a folder is requested, it should reply with a 200', async () => {
+  test('when a folder is requested, then the server responds with a success status', async () => {
     const requestedFolderResource: WebDavRequestedResource = getRequestedFolderResource();
     const request = createWebDavRequestFixture({
       method: 'HEAD',
@@ -44,7 +44,7 @@ describe('HEAD request handler', () => {
     expect(getFolderMetadataStub).toHaveBeenCalledOnce();
   });
 
-  it('When a file is requested, it should reply with a 200 with the correct headers', async () => {
+  test('when a file is requested, then the server responds with the correct metadata headers', async () => {
     const requestedFileResource: WebDavRequestedResource = getRequestedFileResource();
 
     const request = createWebDavRequestFixture({
@@ -72,7 +72,7 @@ describe('HEAD request handler', () => {
     expect(getFileMetadataStub).toHaveBeenCalledOnce();
   });
 
-  it('When a file is requested with range-request, it should reply with a 200 with the correct headers', async () => {
+  test('when a file is requested with a range constraint, then the server responds with the adjusted metadata', async () => {
     const requestedFileResource: WebDavRequestedResource = getRequestedFileResource();
 
     const mockSize = randomInt(500, 10000);

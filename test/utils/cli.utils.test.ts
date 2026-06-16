@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, MockInstance } from 'vitest';
+import { describe, test, expect, vi, beforeEach, MockInstance } from 'vitest';
 import { ux } from '@oclif/core';
 import { CLIUtils, LogReporter } from '../../src/utils/cli.utils';
 import { Direction } from 'node:readline';
@@ -65,47 +65,47 @@ describe('CliUtils', () => {
   });
 
   describe('clearPreviousLine', () => {
-    it('should move cursor up and clear line when jsonFlag is false', () => {
+    test('when json output is disabled, then the previous line is cleared', () => {
       CLIUtils.clearPreviousLine(false);
       expect(stdoutWrite).toHaveBeenCalledWith('\x1b[1A');
       expect(stdoutClear).toHaveBeenCalledWith(0);
     });
 
-    it('should not call stdout methods when jsonFlag is true', () => {
+    test('when json output is enabled, then the previous line is not cleared', () => {
       CLIUtils.clearPreviousLine(true);
       expect(stdoutWrite).not.toHaveBeenCalled();
       expect(stdoutClear).not.toHaveBeenCalled();
     });
 
-    it('should not throw when no flags provided', () => {
+    test('when no flags are provided, then no error is thrown', () => {
       expect(() => CLIUtils.clearPreviousLine()).not.toThrow();
       expect(stdoutWrite).toHaveBeenCalled();
     });
   });
 
   describe('warning, error, success, log', () => {
-    it('warning should call reporter with colored warning', () => {
+    test('when a warning is reported, then the message is formatted and passed to the reporter', () => {
       vi.spyOn(ux, 'colorize').mockImplementation(vi.fn((color: string | undefined, text: string) => text));
       CLIUtils.warning(reporter, 'Test');
       expect(ux.colorize).toHaveBeenCalledWith('#a67805', '⚠ Warning: Test');
       expect(reporter).toHaveBeenCalledWith('⚠ Warning: Test');
     });
 
-    it('error should call reporter with colored error', () => {
+    test('when an error is reported, then the message is formatted and passed to the reporter', () => {
       vi.spyOn(ux, 'colorize').mockImplementation(vi.fn((color: string | undefined, text: string) => text));
       CLIUtils.error(reporter, 'Test');
       expect(ux.colorize).toHaveBeenCalledWith('red', '⚠ Error: Test');
       expect(reporter).toHaveBeenCalledWith('⚠ Error: Test');
     });
 
-    it('success should call reporter with colored success', () => {
+    test('when a success is reported, then the message is formatted and passed to the reporter', () => {
       vi.spyOn(ux, 'colorize').mockImplementation(vi.fn((color: string | undefined, text: string) => text));
       CLIUtils.success(reporter, 'Test');
       expect(ux.colorize).toHaveBeenCalledWith('green', '✓ Test');
       expect(reporter).toHaveBeenCalledWith('✓ Test');
     });
 
-    it('log should call reporter with message', () => {
+    test('when a log message is reported, then it is passed to the reporter', () => {
       vi.spyOn(ux, 'colorize').mockImplementation(vi.fn((color: string | undefined, text: string) => text));
       CLIUtils.log(reporter, 'Hello');
       expect(reporter).toHaveBeenCalledWith('Hello');
@@ -113,7 +113,7 @@ describe('CliUtils', () => {
   });
 
   describe('consoleLog', () => {
-    it('consoleLog should print to console', () => {
+    test('when logging to console, then the message is printed', () => {
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
       CLIUtils.consoleLog('Hi');
       expect(consoleSpy).toHaveBeenCalledWith('Hi');
@@ -122,7 +122,7 @@ describe('CliUtils', () => {
   });
 
   describe('doing, done, failed', () => {
-    it('doing should start ux action when jsonFlag is false', () => {
+    test('when json output is disabled, then a spinner action is started', () => {
       vi.spyOn(ux.action, 'start').mockImplementation(
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         vi.fn((action: string, status?: string, opts?: Options) => {}),
@@ -131,7 +131,7 @@ describe('CliUtils', () => {
       expect(ux.action.start).toHaveBeenCalledWith('Working', undefined, {});
     });
 
-    it('doing should not call when jsonFlag is true', () => {
+    test('when json output is enabled, then no spinner action is started', () => {
       vi.spyOn(ux.action, 'start').mockImplementation(
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         vi.fn((action: string, status?: string, opts?: Options) => {}),
@@ -140,7 +140,7 @@ describe('CliUtils', () => {
       expect(ux.action.start).not.toHaveBeenCalled();
     });
 
-    it('done should stop ux action with colored done when running', () => {
+    test('when an action is running, then it is marked as done', () => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       vi.spyOn(ux.action, 'stop').mockImplementation(vi.fn((msg?: string) => {}));
       vi.spyOn(ux.action, 'running', 'get').mockReturnValue(true);
@@ -148,7 +148,7 @@ describe('CliUtils', () => {
       expect(ux.action.stop).toHaveBeenCalledWith('done ✓');
     });
 
-    it('done should not stop action when jsonFlag is true', () => {
+    test('when json output is enabled, then the action is not stopped', () => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       vi.spyOn(ux.action, 'stop').mockImplementation(vi.fn((msg?: string) => {}));
       vi.spyOn(ux.action, 'running', 'get').mockReturnValue(true);
@@ -156,7 +156,7 @@ describe('CliUtils', () => {
       expect(ux.action.stop).not.toHaveBeenCalled();
     });
 
-    it('failed should stop ux action with colored failed when running', () => {
+    test('when an action is running, then it is marked as failed', () => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       vi.spyOn(ux.action, 'stop').mockImplementation(vi.fn((msg?: string) => {}));
       vi.spyOn(ux.action, 'running', 'get').mockReturnValue(true);
@@ -164,7 +164,7 @@ describe('CliUtils', () => {
       expect(ux.action.stop).toHaveBeenCalledWith('failed ✕');
     });
 
-    it('failed should not stop when jsonFlag is true', () => {
+    test('when json output is enabled, then the action is not marked as failed', () => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       vi.spyOn(ux.action, 'stop').mockImplementation(vi.fn((msg?: string) => {}));
       vi.spyOn(ux.action, 'running', 'get').mockReturnValue(true);
@@ -174,7 +174,7 @@ describe('CliUtils', () => {
   });
 
   describe('prepareNetwork', () => {
-    it('should properly create a networkFacade instance and return it', async () => {
+    test('when preparing the network, then a configured network instance is returned', async () => {
       vi.spyOn(CLIUtils, 'getNetworkCreds').mockResolvedValue({
         bucket: mockLoginUserDetails.bucket,
         credentials: {
@@ -202,7 +202,7 @@ describe('CliUtils', () => {
   });
 
   describe('timer', () => {
-    it('should measure elapsed time correctly', () => {
+    test('when time passes, then the elapsed time is measured correctly', () => {
       vi.useFakeTimers();
       const timer = CLIUtils.timer();
       vi.advanceTimersByTime(1500);
@@ -211,7 +211,7 @@ describe('CliUtils', () => {
       vi.useRealTimers();
     });
 
-    it('should measure zero time when stopped immediately', () => {
+    test('when stopped immediately, then the elapsed time is zero', () => {
       vi.useFakeTimers();
       const timer = CLIUtils.timer();
       const elapsed = timer.stop();
@@ -219,7 +219,7 @@ describe('CliUtils', () => {
       vi.useRealTimers();
     });
 
-    it('should handle multiple timers independently', () => {
+    test('when multiple timers are running, then they each measure independently', () => {
       vi.useFakeTimers();
       const timer1 = CLIUtils.timer();
       vi.advanceTimersByTime(500);
@@ -234,79 +234,79 @@ describe('CliUtils', () => {
   });
 
   describe('formatDuration', () => {
-    it('should format seconds correctly', () => {
+    test('when formatting seconds, then the duration is displayed correctly', () => {
       expect(CLIUtils.formatDuration(5000)).toBe('00:00:05.000');
     });
 
-    it('should format minutes and seconds correctly', () => {
+    test('when formatting minutes and seconds, then the duration is displayed correctly', () => {
       expect(CLIUtils.formatDuration(125000)).toBe('00:02:05.000');
     });
 
-    it('should format hours, minutes, and seconds correctly', () => {
+    test('when formatting hours, minutes, and seconds, then the duration is displayed correctly', () => {
       expect(CLIUtils.formatDuration(3665000)).toBe('01:01:05.000');
     });
 
-    it('should format zero milliseconds', () => {
+    test('when formatting zero milliseconds, then the duration is zero', () => {
       expect(CLIUtils.formatDuration(0)).toBe('00:00:00.000');
     });
 
-    it('should handle milliseconds less than a second', () => {
+    test('when formatting less than a second, then the duration is displayed correctly', () => {
       expect(CLIUtils.formatDuration(999)).toBe('00:00:00.999');
     });
 
-    it('should handle large durations', () => {
+    test('when formatting large durations, then the duration is displayed correctly', () => {
       expect(CLIUtils.formatDuration(86400000)).toBe('24:00:00.000');
     });
 
-    it('should pad single digits with zeros', () => {
+    test('when formatting durations, then single digits are padded with zeros', () => {
       expect(CLIUtils.formatDuration(3661000)).toBe('01:01:01.000');
     });
 
-    it('should handle negative values gracefully', () => {
+    test('when a negative value is given, then zero is returned', () => {
       expect(CLIUtils.formatDuration(-5000)).toBe('00:00:00.000');
     });
 
-    it('should format milliseconds correctly', () => {
+    test('when formatting milliseconds, then the duration is displayed correctly', () => {
       expect(CLIUtils.formatDuration(1234)).toBe('00:00:01.234');
     });
 
-    it('should pad milliseconds with zeros', () => {
+    test('when formatting milliseconds, then they are padded with zeros', () => {
       expect(CLIUtils.formatDuration(5001)).toBe('00:00:05.001');
     });
   });
 
   describe('calculateThroughputMBps', () => {
-    it('should calculate throughput in MB/s correctly', () => {
+    test('when calculating throughput, then the value in MB/s is correct', () => {
       const throughput = CLIUtils.calculateThroughputMBps(10485760, 1000);
       expect(throughput).toBe(10);
     });
 
-    it('should handle zero bytes', () => {
+    test('when zero bytes are transferred, then the throughput is zero', () => {
       const throughput = CLIUtils.calculateThroughputMBps(0, 1000);
       expect(throughput).toBe(0);
     });
 
-    it('should handle fractional throughput', () => {
+    test('when calculating throughput, then fractional values are handled', () => {
       const throughput = CLIUtils.calculateThroughputMBps(5242880, 2000);
       expect(throughput).toBe(2.5);
     });
 
-    it('should handle very small time values', () => {
+    test('when the time is very small, then the throughput is calculated correctly', () => {
       const throughput = CLIUtils.calculateThroughputMBps(1048576, 100);
       expect(throughput).toBe(10);
     });
 
-    it('should handle large byte values', () => {
+    test('when large amounts of data are transferred, then the throughput is calculated correctly', () => {
       const throughput = CLIUtils.calculateThroughputMBps(104857600, 10000);
       expect(throughput).toBe(10);
     });
 
-    it('should handle negative bytes gracefully', () => {
+    test('when negative bytes are given, then the throughput is zero', () => {
       const throughput = CLIUtils.calculateThroughputMBps(-1048576, 1000);
       expect(throughput).toBe(0);
     });
 
-    it('should handle negative time gracefully', () => {
+    test('when negative time is given, then the throughput is zero', () => {
       const throughput = CLIUtils.calculateThroughputMBps(1048576, -1000);
       expect(throughput).toBe(0);
     });

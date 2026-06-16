@@ -1,10 +1,10 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, test, vi } from 'vitest';
 import pm2 from 'pm2';
 import { PM2Utils } from '../../src/utils/pm2.utils';
 import { fail } from 'node:assert';
 
 describe('PM2 utils', () => {
-  it('When connecting, should connect to PM2 daemon', async () => {
+  test('when connecting to the process manager, then the connection is established', async () => {
     // @ts-expect-error - The error callback does not include an error
     const connectStub = vi.spyOn(pm2, 'connect').mockImplementation((callback) => callback());
 
@@ -12,7 +12,7 @@ describe('PM2 utils', () => {
     expect(connectStub).toHaveBeenCalledOnce();
   });
 
-  it('When connecting, and daemon is not available, should reject', async () => {
+  test('when connecting and the process manager is not available, then the connection is rejected', async () => {
     const error = new Error('Failed to connect');
     // @ts-expect-error - The error callback does not include an error
     vi.spyOn(pm2, 'connect').mockImplementation((callback) => callback(error));
@@ -24,21 +24,21 @@ describe('PM2 utils', () => {
     }
   });
 
-  it('When killing the WebDav server, should delete the process', async () => {
+  test('when stopping the WebDAV server, then the server process is deleted', async () => {
     // @ts-expect-error - The error callback does not include an error
     const deleteStub = vi.spyOn(pm2, 'delete').mockImplementation((_, callback) => callback());
     await PM2Utils.killWebDavServer();
     expect(deleteStub).toHaveBeenCalledOnce();
   });
 
-  it('When getting server process status, should return online status when WebDav server is running', async () => {
+  test('when the WebDAV server is running, then the status is reported as online', async () => {
     // @ts-expect-error - The error callback does not include an error
     vi.spyOn(pm2, 'describe').mockImplementation((_, callback) => callback(null, [{ pm2_env: { status: 'online' } }]));
     const status = await PM2Utils.webdavServerStatus();
     expect(status.status).to.be.equal('online');
   });
 
-  it('When getting server process status, should return offline status when WebDav server is not running', async () => {
+  test('when the WebDAV server is not running, then the status is reported as offline', async () => {
     // @ts-expect-error - The error callback does not include an error
     vi.spyOn(pm2, 'describe').mockImplementation((_, callback) => callback(null, []));
 
@@ -46,14 +46,14 @@ describe('PM2 utils', () => {
     expect(status.status).to.be.equal('offline');
   });
 
-  it('When starting the WebDav server process, should start the WebDav server', async () => {
+  test('when starting the WebDAV server, then the server process is started', async () => {
     // @ts-expect-error - The error callback does not include an error
     const startStub = vi.spyOn(pm2, 'start').mockImplementation((_, callback) => callback());
     await PM2Utils.startWebDavServer();
     expect(startStub).toHaveBeenCalledOnce();
   });
 
-  it('When starting the WebDav server process, should reject when failing to start the WebDav server', async () => {
+  test('when starting the WebDAV server fails, then an error is returned', async () => {
     const error = new Error('Failed to start server');
     // @ts-expect-error - The error callback does not include an error
     vi.spyOn(pm2, 'start').mockImplementation((_, callback) => callback(error));

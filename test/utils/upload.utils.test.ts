@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 import { Readable } from 'node:stream';
 import { UploadUtils } from '../../src/utils/upload.utils';
 import { UsageService } from '../../src/services/usage.service';
@@ -13,19 +13,19 @@ describe('UploadUtils', () => {
   });
 
   describe('checkUploadSizeLimits', () => {
-    it('should not throw when fetchLimits returns no maxUploadFileSize and size is under 100GB', async () => {
+    test('when no upload limit is set and the file is under 100GB, then no error is thrown', async () => {
       vi.spyOn(UsageService.instance, 'fetchLimits').mockResolvedValue(undefined as never);
 
       await expect(UploadUtils.checkUploadSizeLimits(5 * 1024 * 1024 * 1024)).resolves.toBeUndefined();
     });
 
-    it('should not throw when fetchLimits returns null', async () => {
+    test('when the upload limit is unavailable, then no error is thrown', async () => {
       vi.spyOn(UsageService.instance, 'fetchLimits').mockResolvedValue(null as never);
 
       await expect(UploadUtils.checkUploadSizeLimits(5 * 1024 * 1024 * 1024)).resolves.toBeUndefined();
     });
 
-    it('should not throw when size is below the account upload limit', async () => {
+    test('when the file size is below the account upload limit, then no error is thrown', async () => {
       vi.spyOn(UsageService.instance, 'fetchLimits').mockResolvedValue({
         maxUploadFileSize: 8 * 1024 * 1024 * 1024,
         versioning: { enabled: false, maxFileSize: 0, retentionDays: 0, maxVersions: 0 },
@@ -34,7 +34,7 @@ describe('UploadUtils', () => {
       await expect(UploadUtils.checkUploadSizeLimits(5 * 1024 * 1024 * 1024)).resolves.toBeUndefined();
     });
 
-    it('should throw when size exceeds the account upload limit', async () => {
+    test('when the file size exceeds the account upload limit, then an error is thrown', async () => {
       const limitBytes = 10 * 1024 * 1024 * 1024;
       const sizeBytes = 15 * 1024 * 1024 * 1024;
       vi.spyOn(UsageService.instance, 'fetchLimits').mockResolvedValue({
@@ -48,7 +48,7 @@ describe('UploadUtils', () => {
       );
     });
 
-    it('should not throw when size equals the account upload limit', async () => {
+    test('when the file size equals the account upload limit, then no error is thrown', async () => {
       const limitBytes = 10 * 1024 * 1024 * 1024;
       vi.spyOn(UsageService.instance, 'fetchLimits').mockResolvedValue({
         maxUploadFileSize: limitBytes,
@@ -58,7 +58,7 @@ describe('UploadUtils', () => {
       await expect(UploadUtils.checkUploadSizeLimits(limitBytes)).resolves.toBeUndefined();
     });
 
-    it('should throw when size exceeds 100GB even if no account limit is set', async () => {
+    test('when the file exceeds 100GB and no account limit is set, then an error is thrown', async () => {
       vi.spyOn(UsageService.instance, 'fetchLimits').mockResolvedValue(undefined as never);
 
       await expect(UploadUtils.checkUploadSizeLimits(101 * 1024 * 1024 * 1024)).rejects.toThrow(
@@ -66,7 +66,7 @@ describe('UploadUtils', () => {
       );
     });
 
-    it('should throw when size > 100GB', async () => {
+    test('when the file exceeds 100GB, then an error is thrown', async () => {
       vi.spyOn(UsageService.instance, 'fetchLimits').mockResolvedValue({
         maxUploadFileSize: 200 * 1024 * 1024 * 1024,
         versioning: { enabled: false, maxFileSize: 0, retentionDays: 0, maxVersions: 0 },
@@ -77,7 +77,7 @@ describe('UploadUtils', () => {
       );
     });
 
-    it('should use the account limit when it is below the default limit', async () => {
+    test('when the account limit is lower than the default, then the account limit is enforced', async () => {
       const limitBytes = 8 * 1024 * 1024 * 1024;
       vi.spyOn(UsageService.instance, 'fetchLimits').mockResolvedValue({
         maxUploadFileSize: limitBytes,
@@ -92,7 +92,7 @@ describe('UploadUtils', () => {
   });
 
   describe('prepareUploadStreams', () => {
-    it('should return the original stream and no thumbnail when file type is not thumbnailable', () => {
+    test('when the file type does not support thumbnails, then the original stream is returned without a thumbnail', () => {
       vi.spyOn(ThumbnailUtils, 'isFileThumbnailable').mockReturnValue(false);
       const readable = Readable.from(['test']);
 
@@ -103,7 +103,7 @@ describe('UploadUtils', () => {
       expect(result.isThumbnailable).toBe(false);
     });
 
-    it('should return a piped stream and a BufferStream when file type is thumbnailable', () => {
+    test('when the file type supports thumbnails, then a piped stream and thumbnail stream are returned', () => {
       vi.spyOn(ThumbnailUtils, 'isFileThumbnailable').mockReturnValue(true);
       const readable = Readable.from(['test-data']);
 
@@ -117,7 +117,7 @@ describe('UploadUtils', () => {
   });
 
   describe('getTimings', () => {
-    it('should calculate total time as the sum of all timings', () => {
+    test('when calculating upload timing, then the total time is the sum of all stages', () => {
       vi.spyOn(CLIUtils, 'calculateThroughputMBps').mockReturnValue(5);
       vi.spyOn(CLIUtils, 'formatDuration').mockReturnValue('00:00:01.000');
 
@@ -130,7 +130,7 @@ describe('UploadUtils', () => {
       expect(result.totalTime).toBe(3500);
     });
 
-    it('should call calculateThroughputMBps with size and networkUpload time', () => {
+    test('when calculating throughput, then the size and upload time are used', () => {
       const calculateThroughputSpy = vi.spyOn(CLIUtils, 'calculateThroughputMBps').mockReturnValue(2.5);
       vi.spyOn(CLIUtils, 'formatDuration').mockReturnValue('00:00:01.000');
 
@@ -143,7 +143,7 @@ describe('UploadUtils', () => {
       expect(calculateThroughputSpy).toHaveBeenCalledWith(1024 * 1024 * 5, 2000);
     });
 
-    it('should return throughputMBps from calculateThroughputMBps', () => {
+    test('when calculating throughput, then the speed in MB/s is returned', () => {
       vi.spyOn(CLIUtils, 'calculateThroughputMBps').mockReturnValue(12.34);
       vi.spyOn(CLIUtils, 'formatDuration').mockReturnValue('00:00:01.000');
 
@@ -156,7 +156,7 @@ describe('UploadUtils', () => {
       expect(result.throughputMBps).toBe(12.34);
     });
 
-    it('should build a timing breakdown string with formatted durations', () => {
+    test('when calculating timing, then a detailed breakdown string is built', () => {
       vi.spyOn(CLIUtils, 'calculateThroughputMBps').mockReturnValue(10);
       vi.spyOn(CLIUtils, 'formatDuration').mockImplementation((ms: number) => `formatted-${ms}`);
 
@@ -173,7 +173,7 @@ describe('UploadUtils', () => {
       );
     });
 
-    it('should handle all-zero timings', () => {
+    test('when all timing values are zero, then the totals are zero', () => {
       vi.spyOn(CLIUtils, 'calculateThroughputMBps').mockReturnValue(0);
       vi.spyOn(CLIUtils, 'formatDuration').mockReturnValue('00:00:00.000');
 

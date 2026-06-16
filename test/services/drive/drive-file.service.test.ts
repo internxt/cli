@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 import { DriveFileService } from '../../../src/services/drive/drive-file.service';
 import { SdkManager } from '../../../src/services/sdk-manager.service';
 import Storage, { DriveFileData, EncryptionVersion } from '@internxt/sdk/dist/drive/storage/types';
@@ -16,7 +16,7 @@ describe('Drive file Service', () => {
     vi.spyOn(ConfigService.instance, 'saveUser').mockResolvedValue(undefined);
   });
 
-  it('When a file is created, should be created successfully', async () => {
+  test('when a file entry is created, then it is created successfully', async () => {
     const payload: Storage.FileEntryByUuid = {
       plainName: 'example.txt',
       type: 'txt',
@@ -49,7 +49,7 @@ describe('Drive file Service', () => {
     expect(result.folderUuid).to.be.equal(payload.folderUuid);
   });
 
-  it('When we want to obtain a file metadata, should return it successfully', async () => {
+  test('when file metadata is requested, then it is returned successfully', async () => {
     const fakeFileData: DriveFileData = {
       uuid: randomUUID(),
       bucket: CommonFixture.createObjectId(),

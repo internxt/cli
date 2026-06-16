@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, test, vi } from 'vitest';
 import { ConfigService } from '../../src/services/config.service';
 import { UserCredentialsFixture, UserLoginFixture } from '../fixtures/login.fixture';
 import { fail } from 'node:assert';
@@ -7,7 +7,7 @@ import { AuthService } from '../../src/services/auth.service';
 import { CLIUtils, NoFlagProvidedError } from '../../src/utils/cli.utils';
 
 describe('Login Command', () => {
-  it('When user logs in with non-interactive and no email, then it throws error', async () => {
+  test('When user logs in with non-interactive and no email, then it throws error', async () => {
     const getValueFromFlagsSpy = vi
       .spyOn(CLIUtils, 'getValueFromFlag')
       .mockRejectedValueOnce(new NoFlagProvidedError('email')) // email
@@ -32,7 +32,7 @@ describe('Login Command', () => {
     expect(saveUserSpy).not.toHaveBeenCalled();
   });
 
-  it('When user logs in with non-interactive and no password, then it throws error', async () => {
+  test('When user logs in with non-interactive and no password, then it throws error', async () => {
     const getValueFromFlagsSpy = vi
       .spyOn(CLIUtils, 'getValueFromFlag')
       .mockResolvedValueOnce(UserLoginFixture.email) // email
@@ -57,7 +57,7 @@ describe('Login Command', () => {
     expect(saveUserSpy).not.toHaveBeenCalled();
   });
 
-  it('When user logs in with non-interactive and no two factor code, then it throws error', async () => {
+  test('When user logs in with non-interactive and no two factor code, then it throws error', async () => {
     const getValueFromFlagsSpy = vi
       .spyOn(CLIUtils, 'getValueFromFlag')
       .mockResolvedValueOnce(UserLoginFixture.email) // email
@@ -86,7 +86,7 @@ describe('Login Command', () => {
     expect(saveUserSpy).not.toHaveBeenCalled();
   });
 
-  it('When two factor is not needed, then it saves and returns the credentials', async () => {
+  test('When two factor is not needed, then it saves and returns the credentials', async () => {
     const getValueFromFlagsSpy = vi
       .spyOn(CLIUtils, 'getValueFromFlag')
       .mockResolvedValueOnce(UserLoginFixture.email) // email
@@ -112,7 +112,7 @@ describe('Login Command', () => {
     expect(saveUserSpy).toHaveBeenCalledOnce();
   });
 
-  it('When two factor is needed, then it saves and returns the credentials', async () => {
+  test('When two factor is needed, then it saves and returns the credentials', async () => {
     const getValueFromFlagsSpy = vi
       .spyOn(CLIUtils, 'getValueFromFlag')
       .mockResolvedValueOnce(UserLoginFixture.email) // email

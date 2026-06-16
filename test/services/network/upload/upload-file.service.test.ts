@@ -1,4 +1,4 @@
-import { beforeEach, describe, it, vi, expect } from 'vitest';
+import { beforeEach, describe, test, vi, expect } from 'vitest';
 import { UploadFileService } from '../../../../src/services/network/upload/upload-file.service';
 import { NetworkFacade } from '../../../../src/services/network/network-facade.service';
 import { DriveFileService } from '../../../../src/services/drive/drive-file.service';
@@ -24,7 +24,7 @@ vi.mock('fs/promises', () => ({
   stat: vi.fn(),
 }));
 
-describe('UploadFileService', () => {
+describe('Upload File Service', () => {
   let sut: UploadFileService;
   const mockFile = newFileItem({ fileId: 'mock-uploaded-file-id' });
 
@@ -46,12 +46,12 @@ describe('UploadFileService', () => {
     vi.spyOn(DriveFileService.instance, 'createFile').mockResolvedValue(mockFile);
   });
 
-  describe('uploadFilesConcurrently', () => {
+  describe('uploading files concurrently', () => {
     const bucket = 'test-bucket';
     const destinationFolderUuid = 'dest-uuid';
     const folderMap = new Map<string, string>();
 
-    it('should properly return the total amount of bytes uploaded once finished with the uploads', async () => {
+    test('when all files finish uploading, then the total bytes uploaded is returned', async () => {
       const files = [
         createFileSystemNodeFixture({ type: 'file', name: 'file1.txt', relativePath: 'file1.txt', size: 100 }),
         createFileSystemNodeFixture({ type: 'file', name: 'file2.txt', relativePath: 'file2.txt', size: 200 }),
@@ -78,7 +78,7 @@ describe('UploadFileService', () => {
       uploadFileWithRetrySpy.mockRestore();
     });
 
-    it('should properly upload files in arrays of max 10', async () => {
+    test('when there are more than ten files to upload, then they are processed in batches', async () => {
       const files = Array.from({ length: 12 }, (_, i) =>
         createFileSystemNodeFixture({
           type: 'file',
@@ -116,7 +116,7 @@ describe('UploadFileService', () => {
       concurrencyArraySpy.mockRestore();
     });
 
-    it('should properly emit progress and update the currentProgress object', async () => {
+    test('when files are uploaded, then progress is emitted and updated', async () => {
       const files = [
         createFileSystemNodeFixture({ type: 'file', name: 'file1.txt', relativePath: 'file1.txt', size: 500 }),
         createFileSystemNodeFixture({ type: 'file', name: 'file2.txt', relativePath: 'file2.txt', size: 1000 }),
@@ -143,7 +143,7 @@ describe('UploadFileService', () => {
       uploadFileWithRetrySpy.mockRestore();
     });
 
-    it('should skip files when parent folder is not found in folderMap', async () => {
+    test('when a parent folder is not found, then the file is skipped', async () => {
       const bucket = 'test-bucket';
       const destinationFolderUuid = 'dest-uuid';
       const folderMap = new Map<string, string>();
@@ -183,11 +183,11 @@ describe('UploadFileService', () => {
     });
   });
 
-  describe('uploadFileWithRetry', () => {
+  describe('uploading a file with retry', () => {
     const bucket = 'test-bucket';
     const destinationFolderUuid = 'dest-uuid';
 
-    it('should properly create a file and return the created file', async () => {
+    test('when a file is uploaded, then the created file entry is returned', async () => {
       const file = createFileSystemNodeFixture({
         type: 'file',
         name: 'test',
@@ -226,7 +226,7 @@ describe('UploadFileService', () => {
       );
     });
 
-    it('should retry a maximum of 2 retries (3 total attempts) if an exception is thrown while uploading', async () => {
+    test('when an error occurs during upload, then up to three attempts are made', async () => {
       vi.useFakeTimers();
       const file = createFileSystemNodeFixture({
         type: 'file',
@@ -263,7 +263,7 @@ describe('UploadFileService', () => {
       vi.useRealTimers();
     });
 
-    it('should upload empty files and return the created file', async () => {
+    test('when an empty file is uploaded, then the file entry is still created', async () => {
       const file = createFileSystemNodeFixture({
         type: 'file',
         name: 'empty',
@@ -299,7 +299,7 @@ describe('UploadFileService', () => {
       );
     });
 
-    it('should call tryUploadThumbnail when bufferStream is present', async () => {
+    test('when a thumbnailable file is uploaded, then a thumbnail is generated', async () => {
       const mockBufferStream = { getBuffer: vi.fn() };
       vi.spyOn(ThumbnailService.instance, 'createFileStreamWithBuffer').mockReturnValue({
         fileStream: createMockReadStream() as ReturnType<typeof createReadStream>,
@@ -334,7 +334,7 @@ describe('UploadFileService', () => {
       });
     });
 
-    it('should return null when file already exists', async () => {
+    test('when the file already exists, then null is returned', async () => {
       vi.spyOn(ErrorUtils, 'isAlreadyExistsError').mockReturnValue(true);
       vi.mocked(mockNetworkFacade.uploadFile).mockRejectedValue(new Error('File already exists'));
 
@@ -358,7 +358,7 @@ describe('UploadFileService', () => {
       expect(logger.info).toHaveBeenCalledWith('File duplicate.txt already exists, skipping...');
     });
 
-    it('should return null after max retries exceeded', async () => {
+    test('when all upload attempts fail, then null is returned', async () => {
       vi.useFakeTimers();
       const file = createFileSystemNodeFixture({
         type: 'file',

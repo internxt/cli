@@ -1,9 +1,9 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, test, vi } from 'vitest';
 import { UNLOCKRequestHandler } from '../../../src/webdav/handlers/UNLOCK.handler';
 import { createWebDavRequestFixture, createWebDavResponseFixture } from '../../fixtures/webdav.fixture';
 
 describe('UNLOCK request handler', () => {
-  it('should return 204 when a valid lock token is provided', async () => {
+  test('when a valid lock token is provided, then the server releases the lock', async () => {
     const requestHandler = new UNLOCKRequestHandler();
 
     const request = createWebDavRequestFixture({
@@ -22,7 +22,7 @@ describe('UNLOCK request handler', () => {
     expect(response.status).toHaveBeenCalledWith(204);
   });
 
-  it('should return 204 even when no lock token header is provided', async () => {
+  test('when no lock token is provided, then the server still releases the lock', async () => {
     const requestHandler = new UNLOCKRequestHandler();
 
     const request = createWebDavRequestFixture({

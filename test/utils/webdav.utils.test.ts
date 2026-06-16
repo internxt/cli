@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, test, vi } from 'vitest';
 import { WebDavUtils } from '../../src/utils/webdav.utils';
 import { WebDavRequestedResource } from '../../src/types/webdav.types';
 import { newFileItem, newFolderItem } from '../fixtures/drive.fixture';
@@ -10,19 +10,19 @@ import { getWebdavConfigMock } from '../fixtures/webdav.fixture';
 
 describe('Webdav utils', () => {
   describe('joinURL', () => {
-    it('When a list of path components are given, then it should generate a correct href', () => {
+    test('when path components are given, then a correct URL is generated', () => {
       const href = WebDavUtils.joinURL('/path', 'to', 'file');
       expect(href).to.be.equal('/path/to/file');
     });
 
-    it('When a list of path components are given, then it should remove incorrect characters', () => {
+    test('when path components contain trailing slashes, then they are handled correctly', () => {
       const href = WebDavUtils.joinURL('/path', 'to', 'folder/');
       expect(href).to.be.equal('/path/to/folder/');
     });
   });
 
   describe('removeHostFromURL', () => {
-    it('When a list of path components are given, then it should generate a correct href', () => {
+    test('when a URL with a host is given, then the host is removed', () => {
       expect(WebDavUtils.removeHostFromURL('https://test.com/folder1')).to.be.equal('/folder1');
       expect(WebDavUtils.removeHostFromURL('http://test.com/folder1')).to.be.equal('/folder1');
       expect(WebDavUtils.removeHostFromURL('test.com/folder1')).to.be.equal('/folder1');
@@ -34,7 +34,7 @@ describe('Webdav utils', () => {
   });
 
   describe('getRequestedResource', () => {
-    it('When folder url is given, then it should generate the requested resource', async () => {
+    test('when a folder URL is given, then the requested resource is created', async () => {
       const requestURL = '/url/to/folder/';
       const resource = await WebDavUtils.getRequestedResource(requestURL);
       expect(resource).to.deep.equal({
@@ -51,7 +51,7 @@ describe('Webdav utils', () => {
       });
     });
 
-    it('When file url is given, then it should generate the requested resource', async () => {
+    test('when a file URL is given, then the requested resource is created', async () => {
       const requestURL = '/url/to/test.png';
       const resource = await WebDavUtils.getRequestedResource(requestURL);
       expect(resource).to.deep.equal({
@@ -95,7 +95,7 @@ describe('Webdav utils', () => {
       },
     };
 
-    it('When folder resource is looked by its path, then it is returned', async () => {
+    test('when a folder is looked up by path, then it is returned', async () => {
       const expectedFolder = newFolderItem();
       const findFolderStub = vi.spyOn(DriveItemService.instance, 'getFolderByPath').mockResolvedValue(expectedFolder);
       const findFileStub = vi.spyOn(DriveItemService.instance, 'getFileByPath').mockRejectedValue(new Error());
@@ -106,7 +106,7 @@ describe('Webdav utils', () => {
       expect(findFileStub).not.toHaveBeenCalled();
     });
 
-    it('When folder is not found, then it returns undefined', async () => {
+    test('when a folder is not found, then undefined is returned', async () => {
       const findFolderStub = vi
         .spyOn(DriveItemService.instance, 'getFolderByPath')
         .mockRejectedValue(new Error('Folder not found'));
@@ -116,7 +116,7 @@ describe('Webdav utils', () => {
       expect(item).toBeUndefined();
     });
 
-    it('When file resource is looked by its path, then it is returned', async () => {
+    test('when a file is looked up by path, then it is returned', async () => {
       const expectedFile = newFileItem();
       const findFileStub = vi.spyOn(DriveItemService.instance, 'getFileByPath').mockResolvedValue(expectedFile);
       const findFolderStub = vi.spyOn(DriveItemService.instance, 'getFolderByPath').mockRejectedValue(new Error());
@@ -129,7 +129,7 @@ describe('Webdav utils', () => {
   });
 
   describe('getDriveFileFromResource', () => {
-    it('When the file exists, then it should return the file item', async () => {
+    test('when the file exists, then the file item is returned', async () => {
       const expectedFile = newFileItem();
       vi.spyOn(DriveItemService.instance, 'getFileByPath').mockResolvedValue(expectedFile);
 
@@ -138,7 +138,7 @@ describe('Webdav utils', () => {
       expect(result).toBe(expectedFile);
     });
 
-    it('When the file does not exist, then it should return undefined', async () => {
+    test('when the file does not exist, then undefined is returned', async () => {
       vi.spyOn(DriveItemService.instance, 'getFileByPath').mockRejectedValue(new Error('Not found'));
 
       const result = await WebDavUtils.getDriveFileFromResource('/path/to/nonexistent.txt');
@@ -148,7 +148,7 @@ describe('Webdav utils', () => {
   });
 
   describe('getDriveFolderFromResource', () => {
-    it('When the folder exists, then it should return the folder item', async () => {
+    test('when the folder exists, then the folder item is returned', async () => {
       const expectedFolder = newFolderItem();
       vi.spyOn(DriveItemService.instance, 'getFolderByPath').mockResolvedValue(expectedFolder);
 
@@ -157,7 +157,7 @@ describe('Webdav utils', () => {
       expect(result).toBe(expectedFolder);
     });
 
-    it('When the folder does not exist, then it should return undefined', async () => {
+    test('when the folder does not exist, then undefined is returned', async () => {
       vi.spyOn(DriveItemService.instance, 'getFolderByPath').mockRejectedValue(new Error('Not found'));
 
       const result = await WebDavUtils.getDriveFolderFromResource('/path/to/nonexistent/');
@@ -167,7 +167,7 @@ describe('Webdav utils', () => {
   });
 
   describe('deleteOrTrashItem', () => {
-    it('should delete file permanently and clear cache when deleteFilesPermanently is true', async () => {
+    test('when permanent deletion is enabled for files, then files are deleted permanently and cache is cleared', async () => {
       const fileItem = newFileItem();
       vi.spyOn(ConfigService.instance, 'readWebdavConfig').mockResolvedValue(
         getWebdavConfigMock({ deleteFilesPermanently: true }),
@@ -183,7 +183,7 @@ describe('Webdav utils', () => {
       expect(deleteCacheSpy).toHaveBeenCalledWith([fileItem.uuid]);
     });
 
-    it('should delete folder permanently and clear cache when deleteFilesPermanently is true', async () => {
+    test('when permanent deletion is enabled for folders, then folders are deleted permanently and cache is cleared', async () => {
       const folderItem = newFolderItem();
       vi.spyOn(ConfigService.instance, 'readWebdavConfig').mockResolvedValue(
         getWebdavConfigMock({ deleteFilesPermanently: true }),
@@ -199,7 +199,7 @@ describe('Webdav utils', () => {
       expect(deleteCacheSpy).toHaveBeenCalledWith([folderItem.uuid]);
     });
 
-    it('When deleteFilesPermanently is false for a file, then it should trash the file and clear cache', async () => {
+    test('when permanent deletion is disabled for files, then files are trashed and cache is cleared', async () => {
       const fileItem = newFileItem();
       vi.spyOn(ConfigService.instance, 'readWebdavConfig').mockResolvedValue(
         getWebdavConfigMock({ deleteFilesPermanently: false }),
@@ -217,7 +217,7 @@ describe('Webdav utils', () => {
       expect(deleteCacheSpy).toHaveBeenCalledWith([fileItem.uuid]);
     });
 
-    it('should trash folder and clear cache when deleteFilesPermanently is false', async () => {
+    test('when permanent deletion is disabled for folders, then folders are trashed and cache is cleared', async () => {
       const folderItem = newFolderItem();
       vi.spyOn(ConfigService.instance, 'readWebdavConfig').mockResolvedValue(
         getWebdavConfigMock({ deleteFilesPermanently: false }),

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 import { randomUUID } from 'node:crypto';
 import { Storage } from '@internxt/sdk/dist/drive';
 import { DriveFolderService } from '../../../src/services/drive/drive-folder.service';
@@ -9,7 +9,7 @@ import { CreateFolderResponse, FetchPaginatedFile, FetchPaginatedFolder } from '
 import { ConfigService } from '../../../src/services/config.service';
 import { UserCredentialsFixture } from '../../fixtures/login.fixture';
 
-describe('Drive folder Service', () => {
+describe('Drive Folder Service', () => {
   const sut = DriveFolderService.instance;
 
   beforeEach(() => {
@@ -17,7 +17,7 @@ describe('Drive folder Service', () => {
     vi.spyOn(ConfigService.instance, 'saveUser').mockResolvedValue(undefined);
   });
 
-  it('When folder metadata is requested by UUID, it is aquired successfully', async () => {
+  test('when folder metadata is requested by its identifier, then it is acquired successfully', async () => {
     const expectedFolderMeta = newFolderMeta();
     const expectedFolderItem = DriveUtils.driveFolderMetaToItem(expectedFolderMeta);
 
@@ -30,7 +30,7 @@ describe('Drive folder Service', () => {
     expect(spy).toHaveBeenCalledWith(expectedFolderMeta.uuid);
   });
 
-  it('When folder metadata is requested by ID, it is aquired successfully', async () => {
+  test('when folder metadata is requested by its internal identifier, then it is acquired successfully', async () => {
     const expectedFolderMeta = newFolderMeta();
     const expectedFolderItem = DriveUtils.driveFolderMetaToItem(expectedFolderMeta);
 
@@ -43,7 +43,7 @@ describe('Drive folder Service', () => {
     expect(spy).toHaveBeenCalledWith(expectedFolderMeta.id);
   });
 
-  it('When folder content is requested, then all its subfolders and subfiles are returned', async () => {
+  test('when folder content is requested, then all its subfolders and subfiles are returned', async () => {
     const parentUuid = randomUUID();
     const subContentFixture = generateSubcontent(parentUuid, 112, 117); //112 subfolders and 117 subfiles
     const requestCancelerMock = { cancel: () => {} };
@@ -81,7 +81,7 @@ describe('Drive folder Service', () => {
     expect(subContentFixture).to.deep.equal(resultContent);
   });
 
-  it('When a folder is created, the new folder and a request canceler are returned', async () => {
+  test('when a folder is created, then the new folder and a request canceler are returned', async () => {
     const newFolderResponse = newCreateFolderResponse();
 
     vi.spyOn(Storage.prototype, 'createFolderByUuid').mockReturnValue([

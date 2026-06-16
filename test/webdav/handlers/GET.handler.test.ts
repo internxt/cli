@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 import { fail } from 'node:assert';
 import {
   createWebDavRequestFixture,
@@ -33,7 +33,7 @@ describe('GET request handler', () => {
     sut = new GETRequestHandler();
   });
 
-  it('should throw a NotFoundError when the Drive file is not found', async () => {
+  test('when the requested file is not found, then the server returns an error', async () => {
     const requestedFileResource: WebDavRequestedResource = getRequestedFileResource();
 
     const request = createWebDavRequestFixture({
@@ -62,7 +62,7 @@ describe('GET request handler', () => {
     expect(getFileMetadataStub).toHaveBeenCalledOnce();
   });
 
-  it('should write a response with the content when a file is requested', async () => {
+  test('when a file is requested, then the server responds with its content', async () => {
     const requestedFileResource: WebDavRequestedResource = getRequestedFileResource();
 
     const request = createWebDavRequestFixture({
@@ -105,7 +105,7 @@ describe('GET request handler', () => {
     );
   });
 
-  it('should write a response with the ranged content when a file is requested with Range', async () => {
+  test('when a file is requested with a specific range, then the server responds with only that portion', async () => {
     const requestedFileResource: WebDavRequestedResource = getRequestedFileResource();
 
     const mockSize = randomInt(500, 10000);
@@ -160,7 +160,7 @@ describe('GET request handler', () => {
     );
   });
 
-  it('should write a response with no content when an empty file is requested', async () => {
+  test('when an empty file is requested, then the server responds with no content', async () => {
     const requestedFileResource: WebDavRequestedResource = getRequestedFileResource();
 
     const request = createWebDavRequestFixture({

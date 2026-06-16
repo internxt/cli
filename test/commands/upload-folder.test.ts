@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, MockInstance, vi } from 'vitest';
+import { beforeEach, describe, expect, test, MockInstance, vi } from 'vitest';
 import UploadFolder from '../../src/commands/upload-folder';
 import { LoginCredentials } from '../../src/types/command.types';
 import { ValidationService } from '../../src/services/validation.service';
@@ -37,7 +37,7 @@ describe('Upload Folder Command', () => {
     vi.spyOn(AsyncUtils, 'sleep').mockResolvedValue(undefined);
   });
 
-  it('should call UploadFacade when user uploads a folder with valid path', async () => {
+  test('when user uploads a folder with a valid path, then the upload process completes successfully', async () => {
     await UploadFolder.run(['--folder=/valid/folder/path']);
 
     expect(configReadUserSpy).toHaveBeenCalledTimes(2);
@@ -53,7 +53,7 @@ describe('Upload Folder Command', () => {
     expect(cliSuccessSpy).toHaveBeenCalledOnce();
   });
 
-  it('should use provided destination folder UUID when destination flag is passed', async () => {
+  test('when a destination folder is specified, then the folder is uploaded to the chosen destination', async () => {
     const customDestinationId = 'custom-folder-uuid-123';
 
     const getDestinationFolderUuidSpy = vi
@@ -73,7 +73,7 @@ describe('Upload Folder Command', () => {
     expect(cliSuccessSpy).toHaveBeenCalledOnce();
   });
 
-  it('should default to user.rootFolderId when no destination is passed', async () => {
+  test('when no destination folder is specified, then the folder is uploaded to the default location', async () => {
     await UploadFolder.run(['--folder=/valid/folder/path']);
 
     expect(UploadFacadeSpy).toHaveBeenCalledWith(
@@ -83,7 +83,7 @@ describe('Upload Folder Command', () => {
     );
   });
 
-  it('should call CLIUtils.success with proper message when upload succeeds', async () => {
+  test('when upload succeeds, then a success message with upload time and link is displayed', async () => {
     const cliSuccessSpy = vi.spyOn(CLIUtils, 'success').mockImplementation(() => {});
 
     await UploadFolder.run(['--folder=/valid/folder/path']);
@@ -99,7 +99,7 @@ describe('Upload Folder Command', () => {
     );
   });
 
-  it('should throw an error when user does not provide a valid path', async () => {
+  test('when the folder path is invalid, then an error is shown', async () => {
     const validateDirectoryExistsSpy = vi
       .spyOn(ValidationService.instance, 'validateDirectoryExists')
       .mockResolvedValue(false);
@@ -117,7 +117,7 @@ describe('Upload Folder Command', () => {
     expect(UploadFacadeSpy).not.toHaveBeenCalled();
   });
 
-  it('should throw an error when user does not have credentials', async () => {
+  test('when user is not logged in, then an error is shown', async () => {
     const readUserSpy = vi.spyOn(ConfigService.instance, 'readUser').mockResolvedValue(undefined);
 
     const result = UploadFolder.run(['--folder=/some/folder/path']);
@@ -132,7 +132,7 @@ describe('Upload Folder Command', () => {
   });
 
   describe('Folder path resolution (getFolderPath)', () => {
-    it('should prompt user for folder path in interactive mode when --folder flag is not provided', async () => {
+    test('when no folder path is given in interactive mode, then the user is prompted for one', async () => {
       const getValueFromFlagSpy = vi.spyOn(CLIUtils, 'getValueFromFlag').mockResolvedValue('/prompted/folder/path');
 
       await UploadFolder.run([]);
@@ -157,7 +157,7 @@ describe('Upload Folder Command', () => {
       );
     });
 
-    it('should throw NoFlagProvidedError in non-interactive mode when --folder flag is not provided', async () => {
+    test('when no folder path is given in non-interactive mode, then an error is shown', async () => {
       const getValueFromFlagSpy = vi
         .spyOn(CLIUtils, 'getValueFromFlag')
         .mockRejectedValue(new NoFlagProvidedError('folder'));
@@ -187,7 +187,7 @@ describe('Upload Folder Command', () => {
       expect(UploadFacadeSpy).not.toHaveBeenCalled();
     });
 
-    it('should use folder path from --folder flag when provided', async () => {
+    test('when a folder path is provided via the folder flag, then that path is used for the upload', async () => {
       await UploadFolder.run(['--folder=/explicit/folder/path']);
 
       expect(validateDirectoryExistsSpy).toHaveBeenCalledWith('/explicit/folder/path');

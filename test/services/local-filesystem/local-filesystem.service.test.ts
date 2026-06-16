@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi, MockedFunction } from 'vitest';
+import { beforeEach, describe, expect, test, vi, MockedFunction } from 'vitest';
 import { LocalFilesystemService } from '../../../src/services/local-filesystem/local-filesystem.service';
 import { Dirent, promises, Stats } from 'node:fs';
 import { logger } from '../../../src/utils/logger.utils';
@@ -36,8 +36,8 @@ describe('Local Filesystem Service', () => {
     mockReaddir.mockResolvedValue([]);
   });
 
-  describe('scanRecursive', () => {
-    it('should handle a single file', async () => {
+  describe('scanning recursively', () => {
+    test('when scanning a single file, then it is processed correctly', async () => {
       mockStat.mockResolvedValue(createMockStats(true, 100));
 
       const folders: FileSystemNode[] = [];
@@ -49,7 +49,7 @@ describe('Local Filesystem Service', () => {
       expect(folders).toHaveLength(0);
     });
 
-    it('should handle an empty directory', async () => {
+    test('when scanning an empty directory, then it is processed correctly', async () => {
       mockStat.mockResolvedValue(createMockStats(false, 0));
       mockReaddir.mockResolvedValue([]);
 
@@ -66,7 +66,7 @@ describe('Local Filesystem Service', () => {
       expect(files).toHaveLength(0);
     });
 
-    it('should handle a directory with files', async () => {
+    test('when scanning a directory with files, then they are all processed correctly', async () => {
       mockStat
         .mockResolvedValueOnce(createMockStats(false, 0))
         .mockResolvedValueOnce(createMockStats(true, 50))
@@ -83,7 +83,7 @@ describe('Local Filesystem Service', () => {
       expect(files).toHaveLength(2);
     });
 
-    it('should skip symbolic links', async () => {
+    test('when a symbolic link is encountered, then it is skipped', async () => {
       mockStat.mockResolvedValueOnce(createMockStats(false, 0)).mockResolvedValueOnce(createMockStats(true, 100));
       mockReaddir.mockResolvedValueOnce([createMockDirent('symlink', true), createMockDirent('file.txt', false)]);
 
@@ -95,7 +95,7 @@ describe('Local Filesystem Service', () => {
       expect(files).toHaveLength(1);
     });
 
-    it('should handle errors gracefully', async () => {
+    test('when a permission error occurs, then it is handled gracefully', async () => {
       mockStat.mockRejectedValue(new Error('Permission denied'));
 
       const folders: FileSystemNode[] = [];
@@ -106,7 +106,7 @@ describe('Local Filesystem Service', () => {
       expect(logger.warn).toHaveBeenCalledWith(expect.stringContaining('Permission denied'));
     });
 
-    it('should handle nested directories', async () => {
+    test('when scanning nested directories, then they are all processed correctly', async () => {
       mockStat
         .mockResolvedValueOnce(createMockStats(false, 0))
         .mockResolvedValueOnce(createMockStats(false, 0))
@@ -125,7 +125,7 @@ describe('Local Filesystem Service', () => {
       expect(folders).toHaveLength(2);
       expect(files).toHaveLength(1);
     });
-    it('should properly skip empty files', async () => {
+    test('when an empty file is encountered, then it is skipped', async () => {
       mockStat
         .mockResolvedValueOnce(createMockStats(false, 0))
         .mockResolvedValueOnce(createMockStats(true, 0))
@@ -140,8 +140,8 @@ describe('Local Filesystem Service', () => {
       expect(files).toHaveLength(1);
     });
   });
-  describe('scanLocalDirectory', () => {
-    it('should scan a directory and return complete results', async () => {
+  describe('scanning a local directory', () => {
+    test('when a directory is scanned, then complete results are returned', async () => {
       mockStat.mockResolvedValueOnce(createMockStats(false, 0)).mockResolvedValueOnce(createMockStats(true, 100));
 
       mockReaddir.mockResolvedValueOnce([createMockDirent('file.txt', false)]);

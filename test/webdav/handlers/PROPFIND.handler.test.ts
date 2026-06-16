@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 import { PROPFINDRequestHandler } from '../../../src/webdav/handlers/PROPFIND.handler';
 import { DriveFolderService } from '../../../src/services/drive/drive-folder.service';
 import { DriveItemService } from '../../../src/services/drive/drive-item.service';
@@ -36,7 +36,7 @@ describe('PROPFIND request handler', () => {
     sut = new PROPFINDRequestHandler();
   });
 
-  it('should return the correct XML when root folder exists and is empty', async () => {
+  test('when the root folder is empty, then the server returns the correct folder properties', async () => {
     const requestedFolderResource: WebDavRequestedResource = getRequestedFolderResource({
       parentFolder: '/',
       folderName: '',
@@ -73,7 +73,6 @@ describe('PROPFIND request handler', () => {
     await sut.handle(request, response);
     expect(response.status).toHaveBeenCalledWith(207);
     expect(response.send).toHaveBeenCalledWith(
-      // eslint-disable-next-line max-len
       `<?xml version="1.0" encoding="utf-8" ?><D:multistatus xmlns:D="DAV:"><D:response><D:href>${XMLUtils.encodeWebDavUri('/')}</D:href><D:propstat><D:status>HTTP/1.1 200 OK</D:status><D:prop><D:getcontenttype>application/octet-stream</D:getcontenttype><x1:lastmodified xmlns:x1="SAR:">${FormatUtils.formatDateForWebDav(folderFixture.updatedAt)}</x1:lastmodified><x2:executable xmlns:x2="http://apache.org/dav/props/">F</x2:executable><x3:Win32FileAttributes xmlns:x3="urn:schemas-microsoft-com:">00000030</x3:Win32FileAttributes><D:quota-available-bytes>${spaceLimitFixture - usageFixture}</D:quota-available-bytes><D:quota-used-bytes>${usageFixture}</D:quota-used-bytes><D:resourcetype><D:collection/></D:resourcetype></D:prop></D:propstat></D:response></D:multistatus>`,
     );
     expect(getRequestedResourceStub).toHaveBeenCalledOnce();
@@ -83,7 +82,7 @@ describe('PROPFIND request handler', () => {
     expect(spaceLimitStub).toHaveBeenCalledOnce();
   });
 
-  it('should not cache folder content items when root folder is empty', async () => {
+  test('when the root folder has no content, then the server does not cache any items', async () => {
     const requestedFolderResource = getRequestedFolderResource({
       parentFolder: '/',
       folderName: '',
@@ -113,7 +112,7 @@ describe('PROPFIND request handler', () => {
     expect(createOrUpdateSpy).not.toHaveBeenCalled();
   });
 
-  it('should return the correct XML with child items when root folder has content', async () => {
+  test('when the root folder contains items, then the server returns them in the response', async () => {
     const requestedFolderResource: WebDavRequestedResource = getRequestedFolderResource({
       parentFolder: '/',
       folderName: '',
@@ -155,7 +154,6 @@ describe('PROPFIND request handler', () => {
     await sut.handle(request, response);
     expect(response.status).toHaveBeenCalledWith(207);
     expect(response.send).toHaveBeenCalledWith(
-      // eslint-disable-next-line max-len
       `<?xml version="1.0" encoding="utf-8" ?><D:multistatus xmlns:D="DAV:"><D:response><D:href>${XMLUtils.encodeWebDavUri('/')}</D:href><D:propstat><D:status>HTTP/1.1 200 OK</D:status><D:prop><D:getcontenttype>application/octet-stream</D:getcontenttype><x1:lastmodified xmlns:x1="SAR:">${FormatUtils.formatDateForWebDav(folderFixture.updatedAt)}</x1:lastmodified><x2:executable xmlns:x2="http://apache.org/dav/props/">F</x2:executable><x3:Win32FileAttributes xmlns:x3="urn:schemas-microsoft-com:">00000030</x3:Win32FileAttributes><D:quota-available-bytes>${spaceLimitFixture - usageFixture}</D:quota-available-bytes><D:quota-used-bytes>${usageFixture}</D:quota-used-bytes><D:resourcetype><D:collection/></D:resourcetype></D:prop></D:propstat></D:response><D:response><D:href>${XMLUtils.encodeWebDavUri(`/${paginatedFolder1.plainName}/`)}</D:href><D:propstat><D:status>HTTP/1.1 200 OK</D:status><D:prop><D:displayname>${paginatedFolder1.plainName}</D:displayname><D:getlastmodified>${FormatUtils.formatDateForWebDav(paginatedFolder1.updatedAt)}</D:getlastmodified><D:getcontentlength>0</D:getcontentlength><D:resourcetype><D:collection/></D:resourcetype></D:prop></D:propstat></D:response></D:multistatus>`,
     );
     expect(getRequestedResourceStub).toHaveBeenCalledOnce();
@@ -165,7 +163,7 @@ describe('PROPFIND request handler', () => {
     expect(spaceLimitStub).toHaveBeenCalledOnce();
   });
 
-  it('should cache child items via createOrUpdate when root folder has content', async () => {
+  test('when the root folder contains items, then the server caches them for future requests', async () => {
     const requestedFolderResource = getRequestedFolderResource({
       parentFolder: '/',
       folderName: '',
@@ -200,7 +198,7 @@ describe('PROPFIND request handler', () => {
     );
   });
 
-  it('should return the correct XML for a file', async () => {
+  test('when a file is requested, then the server returns its properties', async () => {
     const requestedFileResource: WebDavRequestedResource = getRequestedFileResource({
       parentFolder: '/',
       fileName: 'file',
@@ -234,7 +232,6 @@ describe('PROPFIND request handler', () => {
     await sut.handle(request, response);
     expect(response.status).toHaveBeenCalledWith(207);
     expect(response.send).toHaveBeenCalledWith(
-      // eslint-disable-next-line max-len
       `<?xml version="1.0" encoding="utf-8" ?><D:multistatus xmlns:D="DAV:"><D:response><D:href>${XMLUtils.encodeWebDavUri(requestedFileResource.url)}</D:href><D:propstat><D:status>HTTP/1.1 200 OK</D:status><D:prop><D:resourcetype></D:resourcetype><D:getetag>&quot;${etagFixture}&quot;</D:getetag><D:displayname>${fileFixture.name + '.' + fileFixture.type}</D:displayname><D:getcontenttype>${mimeFixture}</D:getcontenttype><D:getlastmodified>${FormatUtils.formatDateForWebDav(fileFixture.modificationTime)}</D:getlastmodified><D:getcontentlength>${fileFixture.size}</D:getcontentlength></D:prop></D:propstat></D:response></D:multistatus>`,
     );
     expect(getRequestedResourceStub).toHaveBeenCalledOnce();
@@ -243,7 +240,7 @@ describe('PROPFIND request handler', () => {
     expect(mimeLookupStub).toHaveBeenCalledOnce();
   });
 
-  it('should return the correct XML for a folder', async () => {
+  test('when a folder is requested, then the server returns its properties', async () => {
     const requestedFolderResource: WebDavRequestedResource = getRequestedFolderResource({
       parentFolder: '/',
       folderName: 'folder_a',
@@ -280,7 +277,7 @@ describe('PROPFIND request handler', () => {
     expect(getFolderContentStub).toHaveBeenCalledOnce();
   });
 
-  it('should cache child items when folder has content', async () => {
+  test('when a folder contains items, then the server caches them for future requests', async () => {
     const requestedFolderResource = getRequestedFolderResource({
       parentFolder: '/',
       folderName: 'folder_a',
@@ -313,7 +310,7 @@ describe('PROPFIND request handler', () => {
     );
   });
 
-  it('should return a 404 empty response when folder does not exist', async () => {
+  test('when a folder does not exist, then the server responds with a not found status', async () => {
     const requestedFolderResource: WebDavRequestedResource = getRequestedFolderResource({
       parentFolder: '/',
       folderName: 'folder_a',

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 import {
   createWebDavRequestFixture,
   createWebDavResponseFixture,
@@ -20,7 +20,7 @@ describe('MOVE request handler', () => {
     sut = new MOVERequestHandler();
   });
 
-  it('should throw when no destination header is provided', async () => {
+  test('when no destination is specified, then the server returns an error', async () => {
     const request = createWebDavRequestFixture({
       method: 'MOVE',
       url: '/source/file.txt',
@@ -30,7 +30,7 @@ describe('MOVE request handler', () => {
     await expect(sut.handle(request, response)).rejects.toThrow('Destination folder not received');
   });
 
-  it('should throw when the source resource is not found', async () => {
+  test('when the source item is not found, then the server returns an error', async () => {
     const request = createWebDavRequestFixture({
       method: 'MOVE',
       url: '/source/file.txt',
@@ -46,7 +46,7 @@ describe('MOVE request handler', () => {
     await expect(sut.handle(request, response)).rejects.toThrow('Resource not found on Internxt Drive');
   });
 
-  it('should rename a folder when destination is in the same directory', async () => {
+  test('when a folder is moved within the same directory, then the server renames it', async () => {
     const folderItem = newFolderItem({ uuid: 'folder-uuid' });
     const request = createWebDavRequestFixture({
       method: 'MOVE',
@@ -74,7 +74,7 @@ describe('MOVE request handler', () => {
     expect(response.status).toHaveBeenCalledWith(204);
   });
 
-  it('should rename a file when destination is in the same directory', async () => {
+  test('when a file is moved within the same directory, then the server renames it', async () => {
     const fileItem = newFileItem({ uuid: 'file-uuid' });
     const request = createWebDavRequestFixture({
       method: 'MOVE',
@@ -104,7 +104,7 @@ describe('MOVE request handler', () => {
     expect(response.status).toHaveBeenCalledWith(204);
   });
 
-  it('should move a folder to a different directory', async () => {
+  test('when a folder is moved to a different directory, then the server processes the move', async () => {
     const folderItem = newFolderItem({ uuid: 'folder-uuid' });
     const destFolderItem = newFolderItem({ uuid: 'dest-folder-uuid' });
     const request = createWebDavRequestFixture({
@@ -137,7 +137,7 @@ describe('MOVE request handler', () => {
     expect(response.status).toHaveBeenCalledWith(204);
   });
 
-  it('should move a file to a different directory', async () => {
+  test('when a file is moved to a different directory, then the server processes the move', async () => {
     const fileItem = newFileItem({ uuid: 'file-uuid' });
     const destFolderItem = newFolderItem({ uuid: 'dest-folder-uuid' });
     const request = createWebDavRequestFixture({

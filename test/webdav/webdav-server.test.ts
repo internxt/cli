@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, test, vi } from 'vitest';
 import express from 'express';
 import { randomBytes } from 'node:crypto';
 import http from 'http';
@@ -11,7 +11,7 @@ import { UserCredentialsFixture } from '../fixtures/login.fixture';
 import { getWebdavConfigMock } from '../fixtures/webdav.fixture';
 
 describe('WebDav server', () => {
-  it('When the WebDav server is started with https, it should generate self-signed certificates', async () => {
+  test('when the server is started over a secure connection, then it generates security certificates', async () => {
     const webdavConfig: WebdavConfig = getWebdavConfigMock({ protocol: 'https' });
     const sslSelfSigned = {
       private: randomBytes(8).toString('hex'),
@@ -44,7 +44,7 @@ describe('WebDav server', () => {
     expect(createHTTPServerStub).not.toHaveBeenCalled();
   });
 
-  it('When the WebDav server is started with http, it should run http', async () => {
+  test('when the server is started over a standard connection, then it uses a regular HTTP server', async () => {
     const webdavConfig: WebdavConfig = getWebdavConfigMock({ protocol: 'http' });
 
     vi.spyOn(ConfigService.instance, 'readWebdavConfig').mockResolvedValue(webdavConfig);

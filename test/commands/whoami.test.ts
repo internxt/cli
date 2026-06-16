@@ -1,11 +1,11 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, test, vi } from 'vitest';
 import { ConfigService } from '../../src/services/config.service';
 import { UserCredentialsFixture } from '../fixtures/login.fixture';
 import Whoami from '../../src/commands/whoami';
 import { ValidationService } from '../../src/services/validation.service';
 
 describe('Whoami Command', () => {
-  it('When user is logged out, then it returns false', async () => {
+  test('When user is logged out, then it returns false', async () => {
     const readUserSpy = vi.spyOn(ConfigService.instance, 'readUser').mockResolvedValue(undefined);
     const clearUserSpy = vi.spyOn(ConfigService.instance, 'clearUser').mockRejectedValue(new Error());
     const validateTokensSpy = vi
@@ -25,7 +25,7 @@ describe('Whoami Command', () => {
     expect(validateMnemonicSpy).not.toHaveBeenCalled();
   });
 
-  it('When user is logged in with expired credentials, then it returns the user credentials', async () => {
+  test('When user is logged in with expired credentials, then it returns the user credentials', async () => {
     const readUserSpy = vi.spyOn(ConfigService.instance, 'readUser').mockResolvedValue(UserCredentialsFixture);
     const clearUserSpy = vi.spyOn(ConfigService.instance, 'clearUser').mockResolvedValue();
     const validateTokensSpy = vi
@@ -45,7 +45,7 @@ describe('Whoami Command', () => {
     expect(validateMnemonicSpy).toHaveBeenCalledOnce();
   });
 
-  it('When user is logged in with valid credentials, then it returns the user credentials', async () => {
+  test('When user is logged in with valid credentials, then it returns the user credentials', async () => {
     const readUserSpy = vi.spyOn(ConfigService.instance, 'readUser').mockResolvedValue(UserCredentialsFixture);
     const clearUserSpy = vi.spyOn(ConfigService.instance, 'clearUser').mockResolvedValue();
     const validateTokensSpy = vi
