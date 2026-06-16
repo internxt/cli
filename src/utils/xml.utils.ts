@@ -1,4 +1,5 @@
-import { XMLParser, XMLBuilder, X2jOptions, XmlBuilderOptions } from 'fast-xml-parser';
+import { XMLParser, X2jOptions, XmlBuilderOptions } from 'fast-xml-parser';
+import XMLBuilder from 'fast-xml-builder';
 
 export class XMLUtils {
   static readonly DEFAULT_NAMESPACE_LETTER = 'D';
