@@ -8,8 +8,8 @@ COPY . .
 COPY .env.template .env
 COPY .npmrc.template .npmrc
 
-RUN yarn install
-RUN yarn build
+RUN npm install
+RUN npm run build
 
 RUN chmod +x /app/docker/entrypoint.sh
 RUN chmod +x /app/docker/health_check.sh

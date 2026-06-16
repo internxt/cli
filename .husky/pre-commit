@@ -1,4 +1,4 @@
 
-yarn run test:unit
-yarn run lint
-yarn lint-staged
+npm run test:unit
+npm run lint
+npx lint-staged
