@@ -1,0 +1,9 @@
+.direnv
+.env
+.git
+.npmrc
+coverage
+dist
+node_modules
+oclif.manifest.json
+tsconfig.tsbuildinfo

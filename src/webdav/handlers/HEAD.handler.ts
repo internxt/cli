@@ -4,6 +4,7 @@ import { WebDavUtils } from '../../utils/webdav.utils';
 import { webdavLogger } from '../../utils/logger.utils';
 import { NetworkUtils } from '../../utils/network.utils';
 import { NotFoundError } from '../../utils/errors.utils';
+import { WebDavFastPathService } from '../../services/webdav/webdav-fast-path.service';
 
 export class HEADRequestHandler implements WebDavMethodHandler {
   handle = async (req: Request, res: Response) => {
@@ -11,7 +12,7 @@ export class HEADRequestHandler implements WebDavMethodHandler {
 
     webdavLogger.info(`[HEAD] Request received for item at ${resource.url}`);
 
-    const driveItem = await WebDavUtils.getDriveItemFromResource(resource);
+    const driveItem = await WebDavFastPathService.instance.getItemFromResource(resource);
 
     if (!driveItem) {
       throw new NotFoundError(`Resource not found on Internxt Drive at ${resource.url}`);

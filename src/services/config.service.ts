@@ -16,6 +16,7 @@ import {
   WEBDAV_DEFAULT_CUSTOM_AUTH,
   WEBDAV_SSL_CERTS_DIR,
   WEBDAV_DEFAULT_DELETE_FILES_PERMANENTLY,
+  WEBDAV_DEFAULT_HYPER_BACKUP_MODE,
 } from '../constants/configs';
 import { CacheService } from './cache.service';
 
@@ -112,6 +113,7 @@ export class ConfigService {
         username: configs?.username ?? '',
         password: configs?.password ?? '',
         deleteFilesPermanently: configs?.deleteFilesPermanently ?? WEBDAV_DEFAULT_DELETE_FILES_PERMANENTLY,
+        hyperBackupMode: configs?.hyperBackupMode ?? WEBDAV_DEFAULT_HYPER_BACKUP_MODE,
       };
       CacheService.instance.set(CacheService.WEBDAV_CONFIG_CACHE_KEY, webdavConfig);
       return webdavConfig;
@@ -126,6 +128,7 @@ export class ConfigService {
         username: '',
         password: '',
         deleteFilesPermanently: WEBDAV_DEFAULT_DELETE_FILES_PERMANENTLY,
+        hyperBackupMode: WEBDAV_DEFAULT_HYPER_BACKUP_MODE,
       };
     }
   };

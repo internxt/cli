@@ -6,6 +6,7 @@ import { WebDavUtils } from '../../utils/webdav.utils';
 import { AsyncUtils } from '../../utils/async.utils';
 import { AuthService } from '../../services/auth.service';
 import { DriveUtils } from '../../utils/drive.utils';
+import { WebDavFastPathService } from './webdav-fast-path.service';
 
 export class WebDavFolderService {
   public static readonly instance: WebDavFolderService = new WebDavFolderService();
@@ -61,10 +62,16 @@ export class WebDavFolderService {
 
     const newPath = WebDavUtils.joinURL(accumulatedPath, currentFolderName);
     const folderPath = WebDavUtils.normalizeFolderPath(newPath);
+    const hyperBackupMode = await WebDavFastPathService.instance.isEnabled();
 
     const folder =
-      (await this.getDriveFolderItemFromPath(folderPath)) ??
+      (hyperBackupMode
+        ? await WebDavFastPathService.instance.getFolderFromPath(folderPath)
+        : await this.getDriveFolderItemFromPath(folderPath)) ??
       (await this.createFolder({ folderName: currentFolderName, parentFolderUuid }));
+    if (hyperBackupMode) {
+      WebDavFastPathService.instance.registerCreatedFolder(folderPath, folder);
+    }
 
     if (rest.length === 0) {
       return folder;

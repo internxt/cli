@@ -74,13 +74,30 @@ export default class WebDAVConfig extends Command {
       default: undefined,
       allowNo: true,
     }),
+    hyperBackupMode: Flags.boolean({
+      description: 'Enables Synology Hyper Backup compatibility and performance shortcuts.',
+      required: false,
+      default: undefined,
+      allowNo: true,
+    }),
   };
   static readonly enableJsonFlag = true;
 
   public run = async () => {
     const { flags } = await this.parse(WebDAVConfig);
-    const { host, port, https, http, timeout, createFullPath, customAuth, username, password, deleteFilesPermanently } =
-      flags;
+    const {
+      host,
+      port,
+      https,
+      http,
+      timeout,
+      createFullPath,
+      customAuth,
+      username,
+      password,
+      deleteFilesPermanently,
+      hyperBackupMode,
+    } = flags;
     const nonInteractive = flags['non-interactive'];
 
     const webdavConfig = await ConfigService.instance.readWebdavConfig();
@@ -128,6 +145,9 @@ export default class WebDAVConfig extends Command {
 
     if (deleteFilesPermanently !== undefined) {
       webdavConfig['deleteFilesPermanently'] = deleteFilesPermanently;
+    }
+    if (hyperBackupMode !== undefined) {
+      webdavConfig['hyperBackupMode'] = hyperBackupMode;
     }
 
     await ConfigService.instance.saveWebdavConfig(webdavConfig);

@@ -12,8 +12,19 @@ import { WebDavFolderService } from '../../services/webdav/webdav-folder.service
 import { ThumbnailService } from '../../services/thumbnail.service';
 import { FormatUtils } from '../../utils/format.utils';
 import { UploadUtils } from '../../utils/upload.utils';
+import { WebDavFastPathService } from '../../services/webdav/webdav-fast-path.service';
 
 export class PUTRequestHandler implements WebDavMethodHandler {
+  private readonly isHyperBackupZeroBytePlaceholder = (
+    resource: Awaited<ReturnType<typeof WebDavUtils.getRequestedResource>>,
+    contentLength: number,
+    hyperBackupMode: boolean,
+  ): boolean => {
+    if (!hyperBackupMode || contentLength !== 0) return false;
+
+    return /\/Pool\/.+\/[^/]+\.(bucket|index)\.\d+$/.test(resource.url);
+  };
+
   handle = async (req: Request, res: Response) => {
     let contentLength = Number(req.headers['content-length']);
     if (!contentLength || Number.isNaN(contentLength) || contentLength <= 0) {
@@ -23,6 +34,16 @@ export class PUTRequestHandler implements WebDavMethodHandler {
     await UploadUtils.checkUploadSizeLimits(contentLength);
 
     const resource = await WebDavUtils.getRequestedResource(req.url);
+    const hyperBackupMode = await WebDavFastPathService.instance.isEnabled();
+
+    if (this.isHyperBackupZeroBytePlaceholder(resource, contentLength, hyperBackupMode)) {
+      webdavLogger.info(
+        `[PUT] Hyper Backup zero-byte placeholder acknowledged without Internxt upload: ${resource.url}`,
+      );
+      res.status(201).send();
+      return;
+    }
+
     webdavLogger.info(`[PUT] Request received for file at ${resource.url}`);
     webdavLogger.info(
       `[PUT] Uploading '${resource.name}' (${FormatUtils.humanFileSize(contentLength)}) to '${resource.parentPath}'`,
@@ -35,14 +56,16 @@ export class PUTRequestHandler implements WebDavMethodHandler {
     };
 
     const parentDriveFolderItem =
-      (await WebDavFolderService.instance.getDriveFolderItemFromPath(resource.parentPath)) ??
+      (hyperBackupMode
+        ? await WebDavFastPathService.instance.getFolderFromPath(resource.parentPath)
+        : await WebDavFolderService.instance.getDriveFolderItemFromPath(resource.parentPath)) ??
       (await WebDavFolderService.instance.createParentPathOrThrow(resource.parentPath));
 
     let isReplacement = false;
 
     // If the file already exists, the WebDAV specification states that 'PUT /…/file' should replace it.
     // http://www.webdav.org/specs/rfc4918.html#put-resources
-    const driveFileItem = await WebDavUtils.getDriveItemFromResource(resource);
+    const driveFileItem = await WebDavFastPathService.instance.getItemFromResource(resource);
     if (driveFileItem && driveFileItem.status === 'EXISTS') {
       if (driveFileItem.itemType === 'folder') {
         webdavLogger.info('[PUT] ❌ A folder exists on the cloud with the same name.');
@@ -52,11 +75,13 @@ export class PUTRequestHandler implements WebDavMethodHandler {
       webdavLogger.info(
         `[PUT] File '${resource.name}' already exists in '${resource.path.dir}', it will be replaced...`,
       );
-      try {
-        await WebDavUtils.deleteOrTrashItem(driveFileItem);
-        await DriveItemRepository.instance.delete([driveFileItem.uuid]);
-      } catch {
-        //noop
+      if (!hyperBackupMode) {
+        try {
+          await WebDavUtils.deleteOrTrashItem(driveFileItem);
+          await DriveItemRepository.instance.delete([driveFileItem.uuid]);
+        } catch {
+          // noop
+        }
       }
     }
 
@@ -104,7 +129,7 @@ export class PUTRequestHandler implements WebDavMethodHandler {
     }
 
     const driveTimer = CLIUtils.timer();
-    const file = await DriveFileService.instance.createFile({
+    const filePayload = {
       plainName: resource.path.name,
       type: fileType,
       size: contentLength,
@@ -112,8 +137,31 @@ export class PUTRequestHandler implements WebDavMethodHandler {
       fileId,
       bucket,
       encryptVersion: EncryptionVersion.Aes03,
-    });
+    };
+
+    let file;
+    if (hyperBackupMode && driveFileItem?.itemType === 'file' && contentLength > 0) {
+      try {
+        file = await DriveFileService.instance.replaceFile(driveFileItem.uuid, filePayload);
+      } catch (error) {
+        webdavLogger.warn(
+          `[PUT] Fast replace failed for '${resource.url}', falling back to delete and create: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+        );
+        await WebDavUtils.deleteOrTrashItem(driveFileItem);
+        await DriveItemRepository.instance.delete([driveFileItem.uuid]);
+        file = await DriveFileService.instance.createFile(filePayload);
+      }
+    } else {
+      if (hyperBackupMode && driveFileItem?.itemType === 'file') {
+        await WebDavUtils.deleteOrTrashItem(driveFileItem);
+        await DriveItemRepository.instance.delete([driveFileItem.uuid]);
+      }
+      file = await DriveFileService.instance.createFile(filePayload);
+    }
     timings.driveUpload = driveTimer.stop();
+    WebDavFastPathService.instance.registerCreatedFile(resource.url, file);
 
     await DriveItemRepository.instance.createOrUpdate([
       {
