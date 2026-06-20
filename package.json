@@ -91,7 +91,7 @@
     "vitest-mock-express": "^2.2.0"
   },
   "optionalDependencies": {
-    "sharp": "0.35.1"
+    "sharp": "0.35.2"
   },
   "engines": {
     "node": "^22.13.0 || >=24.11.0"
