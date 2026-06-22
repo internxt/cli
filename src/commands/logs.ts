@@ -7,7 +7,9 @@ export default class Logs extends Command {
   static readonly description = 'Displays the Internxt CLI logs directory path';
   static readonly aliases = [];
   static readonly examples = ['<%= config.bin %> <%= command.id %>'];
-  static readonly flags = {};
+  static readonly flags = {
+    ...CLIUtils.CommonFlags,
+  };
   static readonly enableJsonFlag = true;
 
   public run = async () => {
@@ -23,6 +25,7 @@ export default class Logs extends Command {
       command: this.id,
       logReporter: this.log.bind(this),
       jsonFlag: flags['json'],
+      debugMode: flags['debug'],
     });
     this.exit(1);
   };

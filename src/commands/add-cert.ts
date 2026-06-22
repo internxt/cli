@@ -10,7 +10,9 @@ export default class AddCert extends Command {
   static readonly description = 'Add a self-signed certificate to the trusted store for macOS, Linux, and Windows.';
   static readonly aliases = ['add:cert'];
   static readonly examples = ['<%= config.bin %> <%= command.id %>'];
-  static readonly flags = {};
+  static readonly flags = {
+    ...CLIUtils.CommonFlags,
+  };
   static readonly enableJsonFlag = true;
 
   public run = async () => {
@@ -42,6 +44,7 @@ export default class AddCert extends Command {
       command: this.id,
       logReporter: this.log.bind(this),
       jsonFlag: flags['json'],
+      debugMode: flags['debug'],
     });
     this.exit(1);
   };

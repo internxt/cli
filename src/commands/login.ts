@@ -13,6 +13,7 @@ export default class Login extends Command {
   static readonly aliases = [];
   static readonly examples = ['<%= config.bin %> <%= command.id %>'];
   static readonly flags = {
+    ...CLIUtils.CommonFlags,
     host: Flags.string({
       char: 'h',
       aliases: ['host'],
@@ -69,6 +70,7 @@ export default class Login extends Command {
       command: this.id,
       logReporter: this.log.bind(this),
       jsonFlag: flags['json'],
+      debugMode: flags['debug'],
     });
     this.exit(1);
   };

@@ -124,7 +124,13 @@ Add a self-signed certificate to the trusted store for macOS, Linux, and Windows
 
 ```
 USAGE
-  $ internxt add-cert [--json]
+  $ internxt add-cert [--json] [-x] [--debug]
+
+HELPER FLAGS
+  -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
+                         not request input through the console and will throw errors directly.
+      --debug            [env: INXT_DEBUG] Enables debug mode. When enabled, the CLI will print debug messages to the
+                         console.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -147,7 +153,13 @@ Add a self-signed certificate to the trusted store for macOS, Linux, and Windows
 
 ```
 USAGE
-  $ internxt add cert [--json]
+  $ internxt add cert [--json] [-x] [--debug]
+
+HELPER FLAGS
+  -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
+                         not request input through the console and will throw errors directly.
+      --debug            [env: INXT_DEBUG] Enables debug mode. When enabled, the CLI will print debug messages to the
+                         console.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -516,7 +528,7 @@ Logs into your Internxt account using the web-based login flow. A temporary loca
 
 ```
 USAGE
-  $ internxt login [--json] [-h <value>] [-p <value>]
+  $ internxt login [--json] [-x] [--debug] [-h <value>] [-p <value>]
 
 FLAGS
   -h, --host=<value>  [env: INXT_LOGIN_SERVER_HOST] IP address of the machine where the CLI is running. If you are
@@ -524,6 +536,12 @@ FLAGS
                       running the CLI. Defaults to 127.0.0.1.
   -p, --port=<value>  [env: INXT_LOGIN_SERVER_PORT] Port used by the temporary local server to handle the login
                       callback. If not specified, a random available port will be used automatically.
+
+HELPER FLAGS
+  -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
+                         not request input through the console and will throw errors directly.
+      --debug            [env: INXT_DEBUG] Enables debug mode. When enabled, the CLI will print debug messages to the
+                         console.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -578,7 +596,13 @@ Logs out the current internxt user that is logged into the Internxt CLI.
 
 ```
 USAGE
-  $ internxt logout [--json]
+  $ internxt logout [--json] [-x] [--debug]
+
+HELPER FLAGS
+  -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
+                         not request input through the console and will throw errors directly.
+      --debug            [env: INXT_DEBUG] Enables debug mode. When enabled, the CLI will print debug messages to the
+                         console.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -598,7 +622,13 @@ Displays the Internxt CLI logs directory path
 
 ```
 USAGE
-  $ internxt logs [--json]
+  $ internxt logs [--json] [-x] [--debug]
+
+HELPER FLAGS
+  -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
+                         not request input through the console and will throw errors directly.
+      --debug            [env: INXT_DEBUG] Enables debug mode. When enabled, the CLI will print debug messages to the
+                         console.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -974,10 +1004,16 @@ Lists the content of the trash.
 
 ```
 USAGE
-  $ internxt trash-list [--json] [-e]
+  $ internxt trash-list [--json] [-x] [--debug] [-e]
 
 FLAGS
   -e, --extended  Displays additional information in the trash list.
+
+HELPER FLAGS
+  -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
+                         not request input through the console and will throw errors directly.
+      --debug            [env: INXT_DEBUG] Enables debug mode. When enabled, the CLI will print debug messages to the
+                         console.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -1156,10 +1192,16 @@ Lists the content of the trash.
 
 ```
 USAGE
-  $ internxt trash list [--json] [-e]
+  $ internxt trash list [--json] [-x] [--debug] [-e]
 
 FLAGS
   -e, --extended  Displays additional information in the trash list.
+
+HELPER FLAGS
+  -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
+                         not request input through the console and will throw errors directly.
+      --debug            [env: INXT_DEBUG] Enables debug mode. When enabled, the CLI will print debug messages to the
+                         console.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -1370,7 +1412,13 @@ Start, stop, restart or get the status of the Internxt CLI WebDAV server
 
 ```
 USAGE
-  $ internxt webdav ACTION [--json]
+  $ internxt webdav ACTION [--json] [-x] [--debug]
+
+HELPER FLAGS
+  -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
+                         not request input through the console and will throw errors directly.
+      --debug            [env: INXT_DEBUG] Enables debug mode. When enabled, the CLI will print debug messages to the
+                         console.
 
 GLOBAL FLAGS
   --json  Format output as json.
@@ -1435,7 +1483,13 @@ Display the current user logged into the Internxt CLI.
 
 ```
 USAGE
-  $ internxt whoami [--json]
+  $ internxt whoami [--json] [-x] [--debug]
+
+HELPER FLAGS
+  -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
+                         not request input through the console and will throw errors directly.
+      --debug            [env: INXT_DEBUG] Enables debug mode. When enabled, the CLI will print debug messages to the
+                         console.
 
 GLOBAL FLAGS
   --json  Format output as json.

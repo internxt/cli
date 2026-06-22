@@ -252,11 +252,13 @@ export class CLIUtils {
     logReporter,
     command,
     jsonFlag,
+    debugMode,
   }: {
     error: Error | AppError | AxiosResponseError;
     command?: string;
     logReporter: LogReporter;
     jsonFlag?: boolean;
+    debugMode?: boolean;
   }) => {
     let message: string | undefined;
     let requestId: string | undefined;
@@ -268,13 +270,13 @@ export class CLIUtils {
 
     if ('data' in error) {
       const errorData = error.data as { message?: string };
-      if (errorData.message && errorData.message.trim().length > 0) {
+      if (typeof errorData.message === 'string' && errorData.message?.trim?.().length > 0) {
         message = errorData.message;
       }
     }
 
     if (!message) {
-      if ('message' in error && error.message.trim().length > 0) {
+      if ('message' in error && typeof error.message === 'string' && error.message?.trim?.().length > 0) {
         message = error.message;
       } else {
         message = JSON.stringify(error);
@@ -282,10 +284,24 @@ export class CLIUtils {
     }
 
     CLIUtils.failed(jsonFlag);
+
+    const jsonLog: { success: boolean; message: string; command?: string; requestId?: string } = {
+      success: false,
+      message,
+      command,
+    };
+    if (requestId) {
+      jsonLog.requestId = requestId;
+    }
+    if (command) {
+      jsonLog.command = command;
+    }
     if (jsonFlag) {
-      CLIUtils.consoleLog(JSON.stringify({ success: false, message, requestId }));
+      CLIUtils.consoleLog(JSON.stringify(jsonLog));
     } else {
-      ErrorUtils.report(error, { command, requestId });
+      if (debugMode) {
+        ErrorUtils.report(error);
+      }
       CLIUtils.error(logReporter, message + (requestId ? ` (requestId: ${requestId})` : ''));
     }
   };
