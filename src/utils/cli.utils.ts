@@ -260,7 +260,7 @@ export class CLIUtils {
     jsonFlag?: boolean;
     debugMode?: boolean;
   }) => {
-    let message: string | undefined;
+    let message = '';
     let requestId: string | undefined;
     if ('requestId' in error) {
       requestId = error.requestId;
@@ -268,19 +268,21 @@ export class CLIUtils {
       requestId = error.xRequestId;
     }
 
+    if ('message' in error && typeof error.message === 'string' && error.message?.trim?.().length > 0) {
+      message = error.message;
+    }
+
     if ('data' in error) {
-      const errorData = error.data as { message?: string };
+      const errorData = error.data as { message?: string | Array<string> };
       if (typeof errorData.message === 'string' && errorData.message?.trim?.().length > 0) {
-        message = errorData.message;
+        message += ' [' + errorData.message + ']';
+      } else if (Array.isArray(errorData.message) && errorData.message.length > 0) {
+        message += ' [' + errorData.message.join(', ') + ']';
       }
     }
 
-    if (!message) {
-      if ('message' in error && typeof error.message === 'string' && error.message?.trim?.().length > 0) {
-        message = error.message;
-      } else {
-        message = JSON.stringify(error);
-      }
+    if (message.length === 0) {
+      message = JSON.stringify(error);
     }
 
     CLIUtils.failed(jsonFlag);
