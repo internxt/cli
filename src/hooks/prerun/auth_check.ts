@@ -20,6 +20,7 @@ const CommandsToSkip = [Whoami, Login, LoginLegacy, Logout, Logs, Webdav, WebDAV
 const hook: Hook<'prerun'> = async function (opts) {
   const { Command, argv } = opts;
   const jsonFlag = argv.includes('--json');
+  const debugFlag = argv.includes('--debug');
 
   const commandsToSkipNames = CommandsToSkip.map((command) => command.name?.toLowerCase()).filter(Boolean);
   const commandsToSkipIds = CommandsToSkip.map((command) => command.id?.toLowerCase()).filter(Boolean);
@@ -42,6 +43,7 @@ const hook: Hook<'prerun'> = async function (opts) {
         command: Command.id,
         logReporter: this.log.bind(this),
         jsonFlag,
+        debugMode: debugFlag,
       });
       opts.context.exit(1);
     }

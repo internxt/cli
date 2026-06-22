@@ -10,7 +10,9 @@ export default class Whoami extends Command {
   static readonly description = 'Display the current user logged into the Internxt CLI.';
   static readonly aliases = [];
   static readonly examples = ['<%= config.bin %> <%= command.id %>'];
-  static readonly flags = {};
+  static readonly flags = {
+    ...CLIUtils.CommonFlags,
+  };
   static readonly enableJsonFlag = true;
 
   public run = async () => {
@@ -53,6 +55,7 @@ export default class Whoami extends Command {
       command: this.id,
       logReporter: this.log.bind(this),
       jsonFlag: flags['json'],
+      debugMode: flags['debug'],
     });
     this.exit(1);
   };

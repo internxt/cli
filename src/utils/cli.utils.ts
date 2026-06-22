@@ -252,13 +252,15 @@ export class CLIUtils {
     logReporter,
     command,
     jsonFlag,
+    debugMode,
   }: {
     error: Error | AppError | AxiosResponseError;
     command?: string;
     logReporter: LogReporter;
     jsonFlag?: boolean;
+    debugMode?: boolean;
   }) => {
-    let message: string | undefined;
+    let message = '';
     let requestId: string | undefined;
     if ('requestId' in error) {
       requestId = error.requestId;
@@ -266,26 +268,42 @@ export class CLIUtils {
       requestId = error.xRequestId;
     }
 
+    if ('message' in error && typeof error.message === 'string' && error.message?.trim?.().length > 0) {
+      message = error.message;
+    }
+
     if ('data' in error) {
-      const errorData = error.data as { message?: string };
-      if (errorData.message && errorData.message.trim().length > 0) {
-        message = errorData.message;
+      const errorData = error.data as { message?: string | Array<string> };
+      if (typeof errorData.message === 'string' && errorData.message?.trim?.().length > 0) {
+        message += ' [' + errorData.message + ']';
+      } else if (Array.isArray(errorData.message) && errorData.message.length > 0) {
+        message += ' [' + errorData.message.join(', ') + ']';
       }
     }
 
-    if (!message) {
-      if ('message' in error && error.message.trim().length > 0) {
-        message = error.message;
-      } else {
-        message = JSON.stringify(error);
-      }
+    if (message.length === 0) {
+      message = JSON.stringify(error);
     }
 
     CLIUtils.failed(jsonFlag);
+
+    const jsonLog: { success: boolean; message: string; command?: string; requestId?: string } = {
+      success: false,
+      message,
+      command,
+    };
+    if (requestId) {
+      jsonLog.requestId = requestId;
+    }
+    if (command) {
+      jsonLog.command = command;
+    }
     if (jsonFlag) {
-      CLIUtils.consoleLog(JSON.stringify({ success: false, message, requestId }));
+      CLIUtils.consoleLog(JSON.stringify(jsonLog));
     } else {
-      ErrorUtils.report(error, { command, requestId });
+      if (debugMode) {
+        ErrorUtils.report(error);
+      }
       CLIUtils.error(logReporter, message + (requestId ? ` (requestId: ${requestId})` : ''));
     }
   };

@@ -20,7 +20,9 @@ export default class Webdav extends Command {
     '<%= config.bin %> <%= command.id %> restart',
     '<%= config.bin %> <%= command.id %> status',
   ];
-  static readonly flags = {};
+  static readonly flags = {
+    ...CLIUtils.CommonFlags,
+  };
   static readonly enableJsonFlag = true;
 
   public run = async () => {
@@ -76,6 +78,7 @@ export default class Webdav extends Command {
       command: this.id,
       logReporter: this.log.bind(this),
       jsonFlag: flags['json'],
+      debugMode: flags['debug'],
     });
     this.exit(1);
   };

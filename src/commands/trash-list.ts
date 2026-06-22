@@ -12,6 +12,7 @@ export default class TrashList extends Command {
   static readonly aliases = ['trash:list'];
   static readonly examples = ['<%= config.bin %> <%= command.id %>'];
   static readonly flags = {
+    ...CLIUtils.CommonFlags,
     extended: Flags.boolean({
       char: 'e',
       description: 'Displays additional information in the trash list.',
@@ -68,6 +69,7 @@ export default class TrashList extends Command {
       command: this.id,
       logReporter: this.log.bind(this),
       jsonFlag: flags['json'],
+      debugMode: flags['debug'],
     });
     this.exit(1);
   };
