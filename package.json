@@ -59,7 +59,7 @@
     "open": "11.0.0",
     "openpgp": "6.3.1",
     "otpauth": "9.5.1",
-    "pm2": "7.0.1",
+    "pm2": "7.0.3",
     "range-parser": "1.2.1",
     "selfsigned": "5.5.0",
     "tty-table": "5.0.0",
