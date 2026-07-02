@@ -17,6 +17,7 @@ import {
   WEBDAV_DEFAULT_CUSTOM_AUTH,
   WEBDAV_SSL_CERTS_DIR,
   WEBDAV_DEFAULT_DELETE_FILES_PERMANENTLY,
+  WEBDAV_DEFAULT_HYPER_BACKUP_MODE,
 } from '../../src/constants/configs';
 import { getWebdavConfigMock } from '../fixtures/webdav.fixture';
 import { CacheService } from '../../src/services/cache.service';
@@ -34,6 +35,7 @@ describe('Config service', () => {
     username: '',
     password: '',
     deleteFilesPermanently: WEBDAV_DEFAULT_DELETE_FILES_PERMANENTLY,
+    hyperBackupMode: WEBDAV_DEFAULT_HYPER_BACKUP_MODE,
   };
 
   beforeEach(() => {

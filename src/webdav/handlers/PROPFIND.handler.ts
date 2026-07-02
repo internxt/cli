@@ -3,7 +3,6 @@ import { XMLUtils } from '../../utils/xml.utils';
 import { DriveFileItem, DriveFolderItem } from '../../types/drive.types';
 import { DriveItemBD } from '../../services/database/drive-item/drive-item.domain';
 import { DriveItemRepository } from '../../services/database/drive-item/drive-item.repository';
-import { DriveFolderService } from '../../services/drive/drive-folder.service';
 import { FormatUtils } from '../../utils/format.utils';
 import { Request, Response } from 'express';
 import { randomUUID } from 'node:crypto';
@@ -11,13 +10,16 @@ import mime from 'mime-types';
 import { WebDavUtils } from '../../utils/webdav.utils';
 import { webdavLogger } from '../../utils/logger.utils';
 import { UsageService } from '../../services/usage.service';
+import { WebDavFastPathService } from '../../services/webdav/webdav-fast-path.service';
 
 export class PROPFINDRequestHandler implements WebDavMethodHandler {
+  private static readonly SYNOLOGY_LOCK_KEEPALIVE_STALE_MS = 10 * 60 * 1000;
+
   handle = async (req: Request, res: Response) => {
     const resource = await WebDavUtils.getRequestedResource(req.url);
     webdavLogger.info(`[PROPFIND] Request received for item at ${resource.url}`);
 
-    const driveItem = await WebDavUtils.getDriveItemFromResource(resource);
+    const driveItem = await WebDavFastPathService.instance.getItemFromResource(resource);
 
     if (!driveItem) {
       res.status(404).send();
@@ -90,25 +92,26 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
   };
 
   private readonly getFolderChildsXMLNode = async (relativePath: string, folderUuid: string) => {
-    const folderContent = await DriveFolderService.instance.getFolderContent(folderUuid);
+    const folderContent = await WebDavFastPathService.instance.getFolderContent(relativePath, folderUuid);
+    const files = await this.filterStaleSynologyLockKeepAliveFiles(relativePath, folderContent.files);
 
     const xmlNodes: object[] = [];
     const cachedItems: DriveItemBD[] = [];
 
     for (const folder of folderContent.folders) {
-      const folderRelativePath = WebDavUtils.joinURL(relativePath, folder.plainName, '/');
+      const folderRelativePath = WebDavUtils.joinURL(relativePath, folder.name, '/');
 
       xmlNodes.push(
         this.driveFolderItemToXMLNode(
           {
             itemType: 'folder',
-            name: folder.plainName,
+            name: folder.name,
             bucket: folder.bucket,
-            status: folder.deleted || folder.removed ? 'TRASHED' : 'EXISTS',
-            createdAt: new Date(folder.createdAt),
-            updatedAt: new Date(folder.updatedAt),
-            creationTime: new Date(folder.creationTime),
-            modificationTime: new Date(folder.modificationTime),
+            status: folder.status,
+            createdAt: folder.createdAt,
+            updatedAt: folder.updatedAt,
+            creationTime: folder.creationTime,
+            modificationTime: folder.modificationTime,
             uuid: folder.uuid,
             parentUuid: folder.parentUuid,
           },
@@ -127,17 +130,14 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
       );
     }
 
-    for (const file of folderContent.files) {
-      const fileRelativePath = WebDavUtils.joinURL(
-        relativePath,
-        file.type ? `${file.plainName}.${file.type}` : file.plainName,
-      );
+    for (const file of files) {
+      const fileRelativePath = WebDavUtils.joinURL(relativePath, this.getFileDisplayName(file));
 
       xmlNodes.push(
         this.driveFileItemToXMLNode(
           {
             itemType: 'file',
-            name: file.plainName,
+            name: file.name,
             bucket: file.bucket,
             fileId: file.fileId,
             uuid: file.uuid,
@@ -145,10 +145,10 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
             status: file.status,
             folderUuid: file.folderUuid,
             size: Number(file.size),
-            creationTime: new Date(file.creationTime),
-            modificationTime: new Date(file.modificationTime),
-            createdAt: new Date(file.createdAt),
-            updatedAt: new Date(file.updatedAt),
+            creationTime: file.creationTime,
+            modificationTime: file.modificationTime,
+            createdAt: file.createdAt,
+            updatedAt: file.updatedAt,
           },
           fileRelativePath,
         ),
@@ -159,7 +159,7 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
           uuid: file.uuid,
           path: fileRelativePath,
           type: 'file',
-          createdAt: new Date(file.createdAt),
+          createdAt: file.createdAt,
           updatedAt: new Date(),
         }),
       );
@@ -170,6 +170,64 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
     }
 
     return xmlNodes;
+  };
+
+  private readonly filterStaleSynologyLockKeepAliveFiles = async (
+    relativePath: string,
+    files: DriveFileItem[],
+  ): Promise<DriveFileItem[]> => {
+    if (!(await WebDavFastPathService.instance.isEnabled())) return files;
+    if (!/\/Control\/lock\/?$/.test(relativePath)) return files;
+
+    const lockFiles = files.filter((file) => this.isSynologyLockKeepAliveFile(file));
+    if (lockFiles.length === 0) return files;
+
+    const newestLock = lockFiles.reduce((newest, file) =>
+      this.getFileModifiedTime(file) > this.getFileModifiedTime(newest) ? file : newest,
+    );
+    const now = Date.now();
+    const staleLocks = new Set(
+      lockFiles
+        .filter((file) => {
+          const isOlderDuplicate = file.uuid !== newestLock.uuid;
+          const isExpired =
+            now - this.getFileModifiedTime(file) > PROPFINDRequestHandler.SYNOLOGY_LOCK_KEEPALIVE_STALE_MS;
+          return isOlderDuplicate || isExpired;
+        })
+        .map((file) => file.uuid),
+    );
+
+    if (staleLocks.size === 0) return files;
+
+    for (const file of files) {
+      if (!staleLocks.has(file.uuid)) continue;
+
+      const lockPath = WebDavUtils.joinURL(relativePath, this.getFileDisplayName(file));
+      webdavLogger.warn(`[PROPFIND] Hiding and deleting stale Synology lock keepalive file at ${lockPath}`);
+      void WebDavUtils.deleteOrTrashItem(file)
+        .then(() => WebDavFastPathService.instance.invalidateResource(lockPath))
+        .catch((error) =>
+          webdavLogger.warn(
+            `[PROPFIND] Failed to delete stale Synology lock keepalive file at ${lockPath}: ${
+              error instanceof Error ? error.message : String(error)
+            }`,
+          ),
+        );
+    }
+
+    return files.filter((file) => !staleLocks.has(file.uuid));
+  };
+
+  private readonly isSynologyLockKeepAliveFile = (file: DriveFileItem): boolean => {
+    return file.size === 0 && this.getFileDisplayName(file).startsWith('lock_keep_alive.@writer_version_');
+  };
+
+  private readonly getFileDisplayName = (file: DriveFileItem): string => {
+    return file.type ? `${file.name}.${file.type}` : file.name;
+  };
+
+  private readonly getFileModifiedTime = (file: DriveFileItem): number => {
+    return (file.modificationTime ?? file.updatedAt ?? file.createdAt).getTime();
   };
 
   private readonly driveFolderRootStatsToXMLNode = async (

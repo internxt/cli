@@ -31,6 +31,31 @@ export class DriveFileService {
     return driveFileItem;
   };
 
+  public replaceFile = async (uuid: string, payload: StorageTypes.FileEntryByUuid): Promise<DriveFileItem> => {
+    const storageClient = SdkManager.instance.getStorage();
+    const driveFile = await storageClient.replaceFile(uuid, {
+      fileId: payload.fileId ?? '',
+      size: payload.size,
+    });
+
+    const driveFileItem: DriveFileItem = {
+      itemType: 'file',
+      name: driveFile.plainName ?? driveFile.name,
+      uuid: driveFile.uuid,
+      size: driveFile.size,
+      bucket: driveFile.bucket,
+      createdAt: new Date(driveFile.createdAt),
+      updatedAt: new Date(driveFile.updatedAt),
+      fileId: driveFile.fileId ?? null,
+      type: driveFile.type ?? null,
+      status: driveFile.status as DriveFileItem['status'],
+      folderUuid: driveFile.folderUuid,
+      creationTime: new Date(driveFile.creationTime ?? driveFile.createdAt),
+      modificationTime: new Date(driveFile.modificationTime ?? driveFile.updatedAt),
+    };
+    return driveFileItem;
+  };
+
   private readonly createDriveFileEntry = async (
     payload: StorageTypes.FileEntryByUuid,
   ): Promise<StorageTypes.DriveFileData> => {

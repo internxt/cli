@@ -7,13 +7,16 @@ import { webdavLogger } from '../../utils/logger.utils';
 import { NetworkUtils } from '../../utils/network.utils';
 import { NotValidFileIdError } from '../../types/command.types';
 import { CLIUtils } from '../../utils/cli.utils';
+import { WebDavFastPathService } from '../../services/webdav/webdav-fast-path.service';
 
 export class GETRequestHandler implements WebDavMethodHandler {
   handle = async (req: Request, res: Response) => {
     const resource = await WebDavUtils.getRequestedResource(req.url);
 
     webdavLogger.info(`[GET] Request received item at ${resource.url}`);
-    const driveFile = await WebDavUtils.getDriveFileFromResource(resource.url);
+    const metadataLookupTimer = CLIUtils.timer();
+    const driveFile = await WebDavFastPathService.instance.getFileFromPath(resource.url);
+    const metadataLookupTime = metadataLookupTimer.stop();
 
     if (!driveFile) {
       throw new NotFoundError(
@@ -21,10 +24,11 @@ export class GETRequestHandler implements WebDavMethodHandler {
       );
     }
 
-    webdavLogger.info(`[GET] [${driveFile.uuid}] Found Drive File`);
+    webdavLogger.info(`[GET] [${driveFile.uuid}] Found Drive File in ${CLIUtils.formatDuration(metadataLookupTime)}`);
 
+    const authTimer = CLIUtils.timer();
     const { user } = await AuthService.instance.getAuthDetails();
-    webdavLogger.info(`[GET] [${driveFile.uuid}] Network ready for download`);
+    webdavLogger.info(`[GET] [${driveFile.uuid}] Auth details ready in ${CLIUtils.formatDuration(authTimer.stop())}`);
 
     res.header('Content-Type', 'application/octet-stream');
 
@@ -56,8 +60,13 @@ export class GETRequestHandler implements WebDavMethodHandler {
         throw new NotValidFileIdError();
       }
 
+      const networkTimer = CLIUtils.timer();
       const { networkFacade, bucket, mnemonic } = await CLIUtils.prepareNetwork(user);
+      webdavLogger.info(
+        `[GET] [${driveFile.uuid}] Network ready for download in ${CLIUtils.formatDuration(networkTimer.stop())}`,
+      );
 
+      const prepareDownloadTimer = CLIUtils.timer();
       const [executeDownload] = await networkFacade.downloadToStream(
         bucket,
         mnemonic,
@@ -66,7 +75,11 @@ export class GETRequestHandler implements WebDavMethodHandler {
         writable,
         rangeOptions,
       );
-      webdavLogger.info(`[GET] [${driveFile.uuid}] Download prepared, executing...`);
+      webdavLogger.info(
+        `[GET] [${driveFile.uuid}] Download prepared in ${CLIUtils.formatDuration(
+          prepareDownloadTimer.stop(),
+        )}, executing...`,
+      );
 
       /**
        * If the client doesn't receive a 200 status code, the download can be aborted.
@@ -75,8 +88,13 @@ export class GETRequestHandler implements WebDavMethodHandler {
        */
       res.status(200);
 
+      const executeDownloadTimer = CLIUtils.timer();
       await executeDownload;
-      webdavLogger.info(`[GET] [${driveFile.uuid}] ✅ Download ready, replying to client`);
+      webdavLogger.info(
+        `[GET] [${driveFile.uuid}] ✅ Download ready in ${CLIUtils.formatDuration(
+          executeDownloadTimer.stop(),
+        )}, replying to client`,
+      );
     } else {
       webdavLogger.info(`[GET] [${driveFile.uuid}] File is empty, replying to client with no content`);
       res.header('Content-length', '0');

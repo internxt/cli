@@ -57,10 +57,13 @@ if [ "$deleteFilesPermanently" = "true" ] || [ "$deleteFilesPermanently" = "1" ]
   WEBDAV_ARGS="$WEBDAV_ARGS -d"
 fi
 
+hyperBackupMode=$(echo "$WEBDAV_HYPER_BACKUP_MODE" | tr '[:upper:]' '[:lower:]')
+if [ "$hyperBackupMode" = "true" ] || [ "$hyperBackupMode" = "1" ] || [ "$hyperBackupMode" = "yes" ] || [ "$hyperBackupMode" = "y" ]; then
+  echo "Enabling WebDAV Hyper Backup mode"
+  WEBDAV_ARGS="$WEBDAV_ARGS --hyperBackupMode"
+fi
+
 internxt webdav-config $WEBDAV_ARGS
 
-internxt webdav enable
-
 mkdir -p /root/.internxt-cli/logs
-touch /root/.internxt-cli/logs/internxt-webdav-combined.log
-tail -f /root/.internxt-cli/logs/internxt-webdav-combined.log
+exec node /app/dist/webdav/index.js

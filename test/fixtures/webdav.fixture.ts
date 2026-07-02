@@ -9,7 +9,11 @@ import { UserFixture } from './auth.fixture';
 import { NetworkFacade } from '../../src/services/network/network-facade.service';
 import { NetworkOptions } from '../../src/types/network.types';
 import { WebdavConfig } from '../../src/types/command.types';
-import { WEBDAV_DEFAULT_CUSTOM_AUTH, WEBDAV_DEFAULT_DELETE_FILES_PERMANENTLY } from '../../src/constants/configs';
+import {
+  WEBDAV_DEFAULT_CUSTOM_AUTH,
+  WEBDAV_DEFAULT_DELETE_FILES_PERMANENTLY,
+  WEBDAV_DEFAULT_HYPER_BACKUP_MODE,
+} from '../../src/constants/configs';
 import { randomInt } from 'node:crypto';
 
 export const createWebDavRequestFixture = <T extends object>(request: T): T & Request => {
@@ -107,6 +111,7 @@ export const getWebdavConfigMock = (attributes?: Partial<WebdavConfig>): WebdavC
     username: '',
     password: '',
     deleteFilesPermanently: WEBDAV_DEFAULT_DELETE_FILES_PERMANENTLY,
+    hyperBackupMode: WEBDAV_DEFAULT_HYPER_BACKUP_MODE,
   };
   return { ...config, ...attributes };
 };
