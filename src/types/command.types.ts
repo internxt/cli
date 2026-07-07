@@ -215,6 +215,7 @@ export interface PaginatedItem {
   type: string;
   id: string;
   size: string;
+  created: string;
   modified: string;
 }
 

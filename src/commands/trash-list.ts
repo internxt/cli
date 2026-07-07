@@ -36,7 +36,8 @@ export default class TrashList extends Command {
           name: folder.plainName,
           id: folder.uuid,
           size: '-',
-          modified: FormatUtils.formatDate(folder.updatedAt),
+          created: FormatUtils.formatDate(folder.creationTime ?? folder.createdAt),
+          modified: FormatUtils.formatDate(folder.modificationTime ?? folder.updatedAt),
         };
       }),
       ...files.map((file) => {
@@ -45,7 +46,8 @@ export default class TrashList extends Command {
           name: file.type && file.type.length > 0 ? `${file.plainName}.${file.type}` : file.plainName,
           id: file.uuid,
           size: FormatUtils.humanFileSize(Number(file.size)),
-          modified: FormatUtils.formatDate(file.updatedAt),
+          created: FormatUtils.formatDate(file.creationTime ?? file.createdAt),
+          modified: FormatUtils.formatDate(file.modificationTime ?? file.updatedAt),
         };
       }),
     ];
@@ -55,7 +57,11 @@ export default class TrashList extends Command {
       { value: 'id', alias: 'Id' },
     ];
     if (flags.extended) {
-      headers.push({ value: 'modified', alias: 'Modified' }, { value: 'size', alias: 'Size' });
+      headers.push(
+        { value: 'created', alias: 'Created' },
+        { value: 'modified', alias: 'Modified' },
+        { value: 'size', alias: 'Size' },
+      );
     }
     CLIUtils.table(this.log.bind(this), headers, allItems);
 
