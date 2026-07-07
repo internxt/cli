@@ -24,6 +24,8 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
       return;
     }
 
+    res.set('Content-Type', 'application/xml; charset="utf-8"');
+
     switch (driveItem.itemType) {
       case 'file': {
         const fileMetaXML = await this.getFileMetaXML(resource, driveItem);
@@ -184,7 +186,8 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
       [XMLUtils.addDefaultNamespace('propstat')]: {
         [XMLUtils.addDefaultNamespace('status')]: 'HTTP/1.1 200 OK',
         [XMLUtils.addDefaultNamespace('prop')]: {
-          [XMLUtils.addDefaultNamespace('getcontenttype')]: 'application/octet-stream',
+          [XMLUtils.addDefaultNamespace('getcontenttype')]: 'httpd/unix-directory',
+          [XMLUtils.addDefaultNamespace('getetag')]: '"' + randomUUID().replaceAll('-', '') + '"',
           'x1:lastmodified': {
             '#text': FormatUtils.formatDateForWebDav(driveFolderItem.updatedAt),
             '@_xmlns:x1': 'SAR:',
@@ -219,6 +222,8 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
           [XMLUtils.addDefaultNamespace('displayname')]: displayName,
           [XMLUtils.addDefaultNamespace('getlastmodified')]: FormatUtils.formatDateForWebDav(driveFolderItem.updatedAt),
           [XMLUtils.addDefaultNamespace('getcontentlength')]: 0,
+          [XMLUtils.addDefaultNamespace('getcontenttype')]: 'httpd/unix-directory',
+          [XMLUtils.addDefaultNamespace('getetag')]: '"' + randomUUID().replaceAll('-', '') + '"',
           [XMLUtils.addDefaultNamespace('resourcetype')]: {
             [XMLUtils.addDefaultNamespace('collection')]: '',
           },

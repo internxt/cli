@@ -32,6 +32,7 @@ export class HEADRequestHandler implements WebDavMethodHandler {
       }
 
       res.header('Content-Type', 'application/octet-stream');
+      res.header('Accept-Ranges', 'bytes');
       res.header('Content-length', contentLength.toString());
     }
 
