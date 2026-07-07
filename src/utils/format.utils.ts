@@ -11,11 +11,15 @@ export class FormatUtils {
   };
 
   static readonly formatDate = (date: string | Date) => {
-    return dayjs(date).format('D MMMM, YYYY [at] HH:mm');
+    const d = dayjs(date);
+    return d.isValid() ? d.format('D MMMM, YYYY [at] HH:mm') : '-';
   };
 
   static readonly formatDateForWebDav = (date: string | Date) => {
-    return dayjs.utc(date).format('ddd, DD MMM YYYY HH:mm:ss [GMT]');
+    const d = dayjs.utc(date);
+    return d.isValid()
+      ? d.format('ddd, DD MMM YYYY HH:mm:ss [GMT]')
+      : dayjs.utc().format('ddd, DD MMM YYYY HH:mm:ss [GMT]');
   };
 
   static readonly formatLimit = (limit: number): string => {
