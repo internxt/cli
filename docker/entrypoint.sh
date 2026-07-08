@@ -82,34 +82,49 @@ webdav_enable
 mkdir -p /root/.internxt-cli/logs
 touch /root/.internxt-cli/logs/internxt-webdav-combined.log
 
-# Keep-alive loop: periodically verify session and re-authenticate if needed
+# Stream the WebDAV server log to the container's stdout in the background.
+tail -f /root/.internxt-cli/logs/internxt-webdav-combined.log &
+
+# Keep-alive loop (runs in the foreground, as PID 1): periodically verify the
+# session and WebDAV server, and re-authenticate if needed.
+# WEBDAV_KEEPALIVE_ENABLED controls what happens on failure: when enabled (default),
+# it self-heals by re-authenticating.
+# When disabled, checks still run, but instead of self-healing, this process
+# exits on failure so that Docker's restart policy (e.g. --restart unless-stopped)
+# can recover the container with a clean login.
 set +e
-KEEPALIVE_INTERVAL="${WEBDAV_KEEPALIVE_INTERVAL:-1800}"
+KEEPALIVE_INTERVAL=1800
 
-keepalive() {
-  while true; do
-    sleep "$KEEPALIVE_INTERVAL"
+keepaliveEnabled=$(echo "$WEBDAV_KEEPALIVE_ENABLED" | tr '[:upper:]' '[:lower:]')
+if [ -z "$WEBDAV_KEEPALIVE_ENABLED" ] || [ "$keepaliveEnabled" = "true" ] || [ "$keepaliveEnabled" = "1" ] || [ "$keepaliveEnabled" = "yes" ] || [ "$keepaliveEnabled" = "y" ]; then
+  AUTO_HEAL=true
+else
+  AUTO_HEAL=false
+fi
 
-    if ! session_alive; then
+while true; do
+  sleep "$KEEPALIVE_INTERVAL"
+
+  if ! session_alive; then
+    if [ "$AUTO_HEAL" = true ]; then
       echo "[keepalive] Session expired. Re-authenticating..."
       login
       webdav_enable
       echo "[keepalive] Session restored."
+    else
+      echo "[keepalive] ERROR: Session expired and WEBDAV_KEEPALIVE_ENABLED=false (auto-renewal disabled). Stopping container so it can be restarted."
+      exit 1
     fi
+  fi
 
-    if ! webdav_online; then
+  if ! webdav_online; then
+    if [ "$AUTO_HEAL" = true ]; then
       echo "[keepalive] WebDAV server is not online. Re-enabling..."
       webdav_enable
       echo "[keepalive] WebDAV server re-enabled."
+    else
+      echo "[keepalive] ERROR: WebDAV server is not online and WEBDAV_KEEPALIVE_ENABLED=false (auto-renewal disabled). Stopping container so it can be restarted."
+      exit 1
     fi
-  done
-}
-
-# Run keep-alive in background, appending to the same log tail follows.
-if [ "$KEEPALIVE_INTERVAL" -eq 0 ] 2>/dev/null; then
-  echo "[keepalive] WEBDAV_KEEPALIVE_INTERVAL is 0, periodic checks disabled." >> /root/.internxt-cli/logs/internxt-webdav-combined.log
-else
-  keepalive >> /root/.internxt-cli/logs/internxt-webdav-combined.log 2>&1 &
-fi
-
-exec tail -f /root/.internxt-cli/logs/internxt-webdav-combined.log
+  fi
+done
