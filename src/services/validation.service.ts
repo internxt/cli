@@ -72,7 +72,7 @@ export class ValidationService {
   /**
    * Checks token expiration status.
    * @param expirationTimestamp - Unix timestamp in seconds
-   * @returns Object indicating if token is expired or needs refresh (within 2 days)
+   * @returns Object indicating if token is expired or needs refresh (within 1 day)
    */
   public checkTokenExpiration = (
     expirationTimestamp: number,
@@ -80,13 +80,13 @@ export class ValidationService {
     expired: boolean;
     refreshRequired: boolean;
   } => {
-    const TWO_DAYS_IN_SECONDS = 2 * 24 * 60 * 60;
+    const ONE_DAY_IN_SECONDS = 24 * 60 * 60;
     const currentTime = Math.floor(Date.now() / 1000);
     const remainingSeconds = expirationTimestamp - currentTime;
 
     return {
       expired: remainingSeconds <= 0,
-      refreshRequired: remainingSeconds > 0 && remainingSeconds <= TWO_DAYS_IN_SECONDS,
+      refreshRequired: remainingSeconds > 0 && remainingSeconds <= ONE_DAY_IN_SECONDS,
     };
   };
 

@@ -130,23 +130,23 @@ describe('Validation Service', () => {
       expect(result.refreshRequired).to.be.equal(false);
     });
 
-    test('when the token expires within one day, then it is not yet expired but requires refresh', () => {
+    test('when the token expires in twelve hours, then it is not yet expired but requires refresh', () => {
+      const twelveHoursFromNow = Math.floor(Date.now() / 1000) + 12 * 60 * 60;
+      const result = ValidationService.instance.checkTokenExpiration(twelveHoursFromNow);
+      expect(result.expired).to.be.equal(false);
+      expect(result.refreshRequired).to.be.equal(true);
+    });
+
+    test('when the token expires in exactly one day, then it is not yet expired but requires refresh', () => {
       const oneDayFromNow = Math.floor(Date.now() / 1000) + 24 * 60 * 60;
       const result = ValidationService.instance.checkTokenExpiration(oneDayFromNow);
       expect(result.expired).to.be.equal(false);
       expect(result.refreshRequired).to.be.equal(true);
     });
 
-    test('when the token expires in exactly two days, then it is not yet expired but requires refresh', () => {
-      const twoDaysFromNow = Math.floor(Date.now() / 1000) + 2 * 24 * 60 * 60;
-      const result = ValidationService.instance.checkTokenExpiration(twoDaysFromNow);
-      expect(result.expired).to.be.equal(false);
-      expect(result.refreshRequired).to.be.equal(true);
-    });
-
-    test('when the token expires in more than two days, then it is not expired and does not require refresh', () => {
-      const twoDaysPlusOneSecond = Math.floor(Date.now() / 1000) + 2 * 24 * 60 * 60 + 1;
-      const result = ValidationService.instance.checkTokenExpiration(twoDaysPlusOneSecond);
+    test('when the token expires in more than one day, then it is not expired and does not require refresh', () => {
+      const oneDayPlusOneSecond = Math.floor(Date.now() / 1000) + 24 * 60 * 60 + 1;
+      const result = ValidationService.instance.checkTokenExpiration(oneDayPlusOneSecond);
       expect(result.expired).to.be.equal(false);
       expect(result.refreshRequired).to.be.equal(false);
     });
