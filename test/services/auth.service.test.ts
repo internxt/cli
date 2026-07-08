@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 import crypto from 'node:crypto';
+import { TokenStatus } from '@internxt/lib';
 import { Auth, LoginDetails, SecurityDetails } from '@internxt/sdk';
 import { AuthService } from '../../src/services/auth.service';
 import { CryptoService } from '../../src/services/crypto.service';
@@ -104,19 +105,13 @@ describe('Auth service', () => {
     const sut = AuthService.instance;
 
     const loginCreds: LoginCredentials = UserCredentialsFixture;
-    const mockToken = {
-      isValid: true,
-      expiration: {
-        expired: false,
-        refreshRequired: false,
-      },
-    };
+    const mockTokenStatus = TokenStatus.VALID;
 
     vi.spyOn(ConfigService.instance, 'readUser').mockResolvedValue(loginCreds);
 
     const validateTokensStub = vi
       .spyOn(ValidationService.instance, 'validateTokenAndCheckExpiration')
-      .mockImplementationOnce(() => mockToken);
+      .mockImplementationOnce(() => mockTokenStatus);
     const validateMnemonicStub = vi.spyOn(ValidationService.instance, 'validateMnemonic').mockReturnValue(true);
 
     const result = await sut.getAuthDetails();
@@ -162,18 +157,12 @@ describe('Auth service', () => {
   test('when the recovery phrase is invalid, then an error is thrown', async () => {
     const sut = AuthService.instance;
 
-    const mockToken = {
-      isValid: true,
-      expiration: {
-        expired: false,
-        refreshRequired: false,
-      },
-    };
+    const mockTokenStatus = TokenStatus.VALID;
 
     const authStub = vi.spyOn(ConfigService.instance, 'readUser').mockResolvedValue(UserCredentialsFixture);
     const validateTokensStub = vi
       .spyOn(ValidationService.instance, 'validateTokenAndCheckExpiration')
-      .mockImplementationOnce(() => mockToken);
+      .mockImplementationOnce(() => mockTokenStatus);
     const validateMnemonicStub = vi.spyOn(ValidationService.instance, 'validateMnemonic').mockReturnValue(false);
 
     try {
@@ -190,18 +179,12 @@ describe('Auth service', () => {
   test('when the session token has expired, then an error is thrown', async () => {
     const sut = AuthService.instance;
 
-    const mockToken = {
-      isValid: true,
-      expiration: {
-        expired: true,
-        refreshRequired: false,
-      },
-    };
+    const mockTokenStatus = TokenStatus.EXPIRED;
 
     const authStub = vi.spyOn(ConfigService.instance, 'readUser').mockResolvedValue(UserCredentialsFixture);
     const validateTokensStub = vi
       .spyOn(ValidationService.instance, 'validateTokenAndCheckExpiration')
-      .mockImplementationOnce(() => mockToken);
+      .mockImplementationOnce(() => mockTokenStatus);
     const validateMnemonicStub = vi.spyOn(ValidationService.instance, 'validateMnemonic').mockReturnValue(true);
 
     try {
@@ -218,18 +201,12 @@ describe('Auth service', () => {
   test('when the session token is about to expire, then it is refreshed automatically', async () => {
     const sut = AuthService.instance;
 
-    const mockToken = {
-      isValid: true,
-      expiration: {
-        expired: false,
-        refreshRequired: true,
-      },
-    };
+    const mockTokenStatus = TokenStatus.REFRESH_REQUIRED;
 
     const authStub = vi.spyOn(ConfigService.instance, 'readUser').mockResolvedValue(UserCredentialsFixture);
     const validateTokensStub = vi
       .spyOn(ValidationService.instance, 'validateTokenAndCheckExpiration')
-      .mockImplementationOnce(() => mockToken);
+      .mockImplementationOnce(() => mockTokenStatus);
     const validateMnemonicStub = vi.spyOn(ValidationService.instance, 'validateMnemonic').mockReturnValue(true);
     const refreshTokensStub = vi.spyOn(sut, 'refreshUserToken').mockResolvedValue(UserCredentialsFixture);
 
@@ -243,18 +220,14 @@ describe('Auth service', () => {
   test('when the token refresh fails, then stored credentials are cleared and an error is thrown', async () => {
     const sut = AuthService.instance;
 
-    const mockToken = {
-      isValid: true,
-      expiration: {
-        expired: false,
-        refreshRequired: true,
-      },
-    };
+    const mockTokenStatus = TokenStatus.REFRESH_REQUIRED;
 
     const oldTokenError = new Error('Old token version detected');
 
     vi.spyOn(ConfigService.instance, 'readUser').mockResolvedValue(UserCredentialsFixture);
-    vi.spyOn(ValidationService.instance, 'validateTokenAndCheckExpiration').mockImplementationOnce(() => mockToken);
+    vi.spyOn(ValidationService.instance, 'validateTokenAndCheckExpiration').mockImplementationOnce(
+      () => mockTokenStatus,
+    );
     vi.spyOn(ValidationService.instance, 'validateMnemonic').mockReturnValue(true);
     const refreshTokenStub = vi.spyOn(sut, 'refreshUserToken').mockRejectedValue(oldTokenError);
     const clearUserStub = vi.spyOn(ConfigService.instance, 'clearUser').mockResolvedValue();

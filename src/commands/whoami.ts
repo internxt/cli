@@ -4,6 +4,7 @@ import { ConfigService } from '../services/config.service';
 import { ValidationService } from '../services/validation.service';
 import { LoginCredentials } from '../types/command.types';
 import { AuthService } from '../services/auth.service';
+import { TokenStatus } from '@internxt/lib';
 
 export default class Whoami extends Command {
   static readonly args = {};
@@ -64,10 +65,12 @@ export default class Whoami extends Command {
     if (!(loginCreds?.token && loginCreds?.user?.mnemonic)) {
       return { valid: false, refreshRequired: false };
     }
-    const tokenDetails = ValidationService.instance.validateTokenAndCheckExpiration(loginCreds.token);
+    const tokenStatus = ValidationService.instance.validateTokenAndCheckExpiration(loginCreds.token);
     const goodMnemonic = ValidationService.instance.validateMnemonic(loginCreds.user.mnemonic);
-    const goodToken = tokenDetails.isValid && !tokenDetails.expiration.expired;
 
-    return { valid: goodToken && goodMnemonic, refreshRequired: tokenDetails.expiration.refreshRequired };
+    const isRefreshRequired = tokenStatus === TokenStatus.REFRESH_REQUIRED;
+    const isTokenValid = tokenStatus === TokenStatus.VALID || isRefreshRequired;
+
+    return { valid: isTokenValid && goodMnemonic, refreshRequired: isRefreshRequired };
   };
 }

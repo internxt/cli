@@ -1,4 +1,4 @@
-import { auth } from '@internxt/lib';
+import { auth, TokenStatus } from '@internxt/lib';
 import { validateMnemonic } from 'bip39';
 import fs from 'node:fs/promises';
 
@@ -51,63 +51,7 @@ export class ValidationService {
     }
   };
 
-  /**
-   * Validates JWT token structure and parses the expiration claim.
-   * Does not verify signature or issuer.
-   * @returns Expiration timestamp in seconds, or null if invalid structure
-   */
-  public validateJwtAndCheckExpiration = (token?: string): number | null => {
-    if (!token || typeof token !== 'string' || token.split('.').length !== 3) {
-      return null;
-    }
-
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      return typeof payload.exp === 'number' ? payload.exp : null;
-    } catch {
-      return null;
-    }
-  };
-
-  /**
-   * Checks token expiration status.
-   * @param expirationTimestamp - Unix timestamp in seconds
-   * @returns Object indicating if token is expired or needs refresh (within 1 day)
-   */
-  public checkTokenExpiration = (
-    expirationTimestamp: number,
-  ): {
-    expired: boolean;
-    refreshRequired: boolean;
-  } => {
-    const ONE_DAY_IN_SECONDS = 24 * 60 * 60;
-    const currentTime = Math.floor(Date.now() / 1000);
-    const remainingSeconds = expirationTimestamp - currentTime;
-
-    return {
-      expired: remainingSeconds <= 0,
-      refreshRequired: remainingSeconds > 0 && remainingSeconds <= ONE_DAY_IN_SECONDS,
-    };
-  };
-
-  /**
-   * Combined validation and expiration check for convenience.
-   * For the original combined behavior, use this method.
-   * For more granular control, use parseJwtExpiration + checkTokenExpiration separately.
-   */
-  public validateTokenAndCheckExpiration = (
-    token?: string,
-  ): {
-    isValid: boolean;
-    expiration: {
-      expired: boolean;
-      refreshRequired: boolean;
-    };
-  } => {
-    const expiration = this.validateJwtAndCheckExpiration(token);
-    return {
-      isValid: expiration !== null,
-      expiration: expiration ? this.checkTokenExpiration(expiration) : { expired: true, refreshRequired: false },
-    };
+  public validateTokenAndCheckExpiration = (token: string): TokenStatus => {
+    return auth.validateTokenAndCheckExpiration(token);
   };
 }

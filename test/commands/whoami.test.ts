@@ -1,4 +1,5 @@
 import { describe, expect, test, vi } from 'vitest';
+import { TokenStatus } from '@internxt/lib';
 import { ConfigService } from '../../src/services/config.service';
 import { UserCredentialsFixture } from '../fixtures/login.fixture';
 import Whoami from '../../src/commands/whoami';
@@ -30,7 +31,7 @@ describe('Whoami Command', () => {
     const clearUserSpy = vi.spyOn(ConfigService.instance, 'clearUser').mockResolvedValue();
     const validateTokensSpy = vi
       .spyOn(ValidationService.instance, 'validateTokenAndCheckExpiration')
-      .mockReturnValueOnce({ expiration: { expired: true, refreshRequired: false }, isValid: true });
+      .mockReturnValueOnce(TokenStatus.EXPIRED);
     const validateMnemonicSpy = vi.spyOn(ValidationService.instance, 'validateMnemonic').mockReturnValue(true);
 
     const message = 'Your session has expired. You have been logged out. Please log in again.';
@@ -50,7 +51,7 @@ describe('Whoami Command', () => {
     const clearUserSpy = vi.spyOn(ConfigService.instance, 'clearUser').mockResolvedValue();
     const validateTokensSpy = vi
       .spyOn(ValidationService.instance, 'validateTokenAndCheckExpiration')
-      .mockReturnValueOnce({ expiration: { expired: false, refreshRequired: false }, isValid: true });
+      .mockReturnValueOnce(TokenStatus.VALID);
     const validateMnemonicSpy = vi.spyOn(ValidationService.instance, 'validateMnemonic').mockReturnValue(true);
 
     const message = `You are logged in as: ${UserCredentialsFixture.user.email}.`;
