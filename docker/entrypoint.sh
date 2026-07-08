@@ -2,13 +2,37 @@
 
 set -e
 
+login() {
+  echo "[login] Logging into your account [$INXT_USER]..."
+  internxt login-legacy $LOGIN_ARGS
+
+  if [ -n "$INXT_WORKSPACE_ID" ]; then
+    echo "[login] Switching to workspace: $INXT_WORKSPACE_ID"
+    internxt workspaces use -i="$INXT_WORKSPACE_ID"
+  fi
+}
+
+webdav_enable() {
+  internxt webdav enable
+}
+
+session_alive() {
+  WHOAMI_OUTPUT=$(internxt whoami --json 2>/dev/null || true)
+  WHOAMI_EMAIL=$(echo "$WHOAMI_OUTPUT" | jq -r '.login.user.email // empty')
+  [ "$WHOAMI_EMAIL" = "$INXT_USER" ]
+}
+
+webdav_online() {
+  STATUS_OUTPUT=$(internxt webdav status --json 2>/dev/null || true)
+  WEBDAV_STATUS=$(echo "$STATUS_OUTPUT" | jq -r '.message | split(" ") | last // empty')
+  [ "$WEBDAV_STATUS" = "online" ]
+}
+
+
 if [ -z "$INXT_USER" ] || [ -z "$INXT_PASSWORD" ]; then
   echo "Error: INXT_USER and INXT_PASSWORD environment variables must be set."
   exit 1
 fi
-
-
-echo "Logging into your account [$INXT_USER] using legacy authentication..."
 
 LOGIN_ARGS="-x -e=$INXT_USER -p=$INXT_PASSWORD"
 
@@ -20,13 +44,7 @@ elif [ -n "$INXT_TWOFACTORCODE" ]; then
   LOGIN_ARGS="$LOGIN_ARGS -w=$INXT_TWOFACTORCODE"
 fi
 
-internxt login-legacy $LOGIN_ARGS
-
-if [ -n "$INXT_WORKSPACE_ID" ]; then
-  echo "Switching to workspace: $INXT_WORKSPACE_ID"
-  internxt workspaces use -i="$INXT_WORKSPACE_ID"
-fi
-
+login
 
 WEBDAV_ARGS="-l=0.0.0.0"
 
@@ -59,8 +77,39 @@ fi
 
 internxt webdav-config $WEBDAV_ARGS
 
-internxt webdav enable
+webdav_enable
 
 mkdir -p /root/.internxt-cli/logs
 touch /root/.internxt-cli/logs/internxt-webdav-combined.log
-tail -f /root/.internxt-cli/logs/internxt-webdav-combined.log
+
+# Keep-alive loop: periodically verify session and re-authenticate if needed
+set +e
+KEEPALIVE_INTERVAL="${WEBDAV_KEEPALIVE_INTERVAL:-1800}"
+
+keepalive() {
+  while true; do
+    sleep "$KEEPALIVE_INTERVAL"
+
+    if ! session_alive; then
+      echo "[keepalive] Session expired. Re-authenticating..."
+      login
+      webdav_enable
+      echo "[keepalive] Session restored."
+    fi
+
+    if ! webdav_online; then
+      echo "[keepalive] WebDAV server is not online. Re-enabling..."
+      webdav_enable
+      echo "[keepalive] WebDAV server re-enabled."
+    fi
+  done
+}
+
+# Run keep-alive in background, appending to the same log tail follows.
+if [ "$KEEPALIVE_INTERVAL" -eq 0 ] 2>/dev/null; then
+  echo "[keepalive] WEBDAV_KEEPALIVE_INTERVAL is 0, periodic checks disabled." >> /root/.internxt-cli/logs/internxt-webdav-combined.log
+else
+  keepalive >> /root/.internxt-cli/logs/internxt-webdav-combined.log 2>&1 &
+fi
+
+exec tail -f /root/.internxt-cli/logs/internxt-webdav-combined.log
