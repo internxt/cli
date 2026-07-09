@@ -12,6 +12,7 @@ import { WebDavUtils } from '../../../src/utils/webdav.utils';
 import { AuthService } from '../../../src/services/auth.service';
 import { UserCredentialsFixture } from '../../fixtures/login.fixture';
 import { WebDavFolderService } from '../../../src/services/webdav/webdav-folder.service';
+import { MethodNotAllowed } from '../../../src/utils/errors.utils';
 
 describe('MKCOL request handler', () => {
   let sut: MKCOLRequestHandler;
@@ -91,5 +92,32 @@ describe('MKCOL request handler', () => {
       folderName: requestedFolderResource.path.base,
       parentFolderUuid: parentFolder.uuid,
     });
+  });
+
+  test('when the folder already exists, then the server rejects the request with a 405 error', async () => {
+    const requestedFolderResource: WebDavRequestedResource = getRequestedFolderResource({
+      parentFolder: '/test',
+      folderName: 'FolderA',
+    });
+    const request = createWebDavRequestFixture({
+      method: 'MKCOL',
+      url: requestedFolderResource.url,
+      user: UserSettingsFixture,
+    });
+    const response = createWebDavResponseFixture({
+      status: vi.fn().mockReturnValue({ send: vi.fn() }),
+    });
+
+    const parentFolder = newFolderItem({ name: 'test', uuid: 'parent-uuid' });
+    const existingFolder = newFolderItem({ name: 'FolderA', uuid: 'existing-folder-uuid' });
+
+    vi.spyOn(WebDavUtils, 'getRequestedResource').mockResolvedValue(requestedFolderResource);
+    vi.spyOn(WebDavFolderService.instance, 'getDriveFolderItemFromPath').mockResolvedValue(parentFolder);
+    vi.spyOn(WebDavUtils, 'getDriveFolderFromResource').mockResolvedValue(existingFolder);
+    const createFolderStub = vi.spyOn(WebDavFolderService.instance, 'createFolder');
+
+    await expect(sut.handle(request, response)).rejects.toThrow(MethodNotAllowed);
+    expect(createFolderStub).not.toHaveBeenCalled();
+    expect(response.status).not.toHaveBeenCalled();
   });
 });

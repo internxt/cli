@@ -6,6 +6,7 @@ import { webdavLogger } from '../../utils/logger.utils';
 import { XMLUtils } from '../../utils/xml.utils';
 import { WebDavFolderService } from '../../services/webdav/webdav-folder.service';
 import { AsyncUtils } from '../../utils/async.utils';
+import { MethodNotAllowed } from '../../utils/errors.utils';
 
 export class MKCOLRequestHandler implements WebDavMethodHandler {
   handle = async (req: Request, res: Response) => {
@@ -22,9 +23,10 @@ export class MKCOLRequestHandler implements WebDavMethodHandler {
     const folderAlreadyExists = !!driveFolderItem;
 
     if (folderAlreadyExists) {
-      webdavLogger.info(`[MKCOL] Folder '${resource.url}' already exists, ignoring the creation request`);
-      res.status(200).send(XMLUtils.toWebDavXML({}, {}));
-      return;
+      webdavLogger.info(`[MKCOL] Folder '${resource.url}' already exists, throwing 405 error`);
+      // RFC 4918: MKCOL on an existing resource must fail with 405. Clients like
+      // QNAP HBS may abort the whole job when they receive a 2xx here.
+      throw new MethodNotAllowed('Folder already exists');
     }
 
     const newFolder = await WebDavFolderService.instance.createFolder({
