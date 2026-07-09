@@ -30,13 +30,15 @@ export class WebDavServer {
   constructor(private readonly app: Express) {}
 
   private readonly registerStartMiddlewares = (configs: WebdavConfig) => {
-    this.app.use(WebDAVAuthMiddleware(configs));
-    this.app.use(AuthMiddleware());
+    // The logger must run before the auth middlewares, otherwise rejected
+    // requests (401) may leave no trace in the WebDAV log.
     this.app.use(
       RequestLoggerMiddleware({
         enable: true,
       }),
     );
+    this.app.use(WebDAVAuthMiddleware(configs));
+    this.app.use(AuthMiddleware());
     this.app.use(bodyParser.text({ type: ['application/xml', 'text/xml'] }));
     this.app.use(MkcolMiddleware);
   };
