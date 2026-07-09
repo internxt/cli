@@ -4,6 +4,7 @@ import { DriveFileItem, DriveFolderItem } from '../../types/drive.types';
 import { DriveItemBD } from '../../services/database/drive-item/drive-item.domain';
 import { DriveItemRepository } from '../../services/database/drive-item/drive-item.repository';
 import { DriveFolderService } from '../../services/drive/drive-folder.service';
+import { DriveUtils } from '../../utils/drive.utils';
 import { FormatUtils } from '../../utils/format.utils';
 import { Request, Response } from 'express';
 import { randomUUID } from 'node:crypto';
@@ -146,7 +147,7 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
             type: file.type,
             status: file.status,
             folderUuid: file.folderUuid,
-            size: Number(file.size),
+            size: DriveUtils.parseFileSize(file.size),
             creationTime: new Date(file.creationTime),
             modificationTime: new Date(file.modificationTime),
             createdAt: new Date(file.createdAt),

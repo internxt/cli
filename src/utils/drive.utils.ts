@@ -2,13 +2,20 @@ import { FileMeta, FolderMeta, CreateFolderResponse, FileStatus } from '@internx
 import { DriveFileItem, DriveFolderItem } from '../types/drive.types';
 
 export class DriveUtils {
+  // WebDAV clients parse getcontentlength/Content-Length as an integer, a literal
+  // "NaN" in the response breaks them, so any non-numeric size degrades to 0.
+  static parseFileSize(size: string | number): number {
+    const parsed = Number(size);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+
   static driveFileMetaToItem(fileMeta: FileMeta): DriveFileItem {
     return {
       itemType: 'file',
       uuid: fileMeta.uuid ?? '',
       status: fileMeta.status,
       folderUuid: fileMeta.folderUuid,
-      size: Number(fileMeta.size),
+      size: DriveUtils.parseFileSize(fileMeta.size),
       name: fileMeta.plainName ?? fileMeta.name,
       bucket: fileMeta.bucket,
       createdAt: new Date(fileMeta.createdAt),
