@@ -93,7 +93,7 @@ tail -f /root/.internxt-cli/logs/internxt-webdav-combined.log &
 # exits on failure so that Docker's restart policy (e.g. --restart unless-stopped)
 # can recover the container with a clean login.
 set +e
-KEEPALIVE_INTERVAL=1800
+KEEPALIVE_INTERVAL=30
 
 keepaliveEnabled=$(echo "$WEBDAV_KEEPALIVE_ENABLED" | tr '[:upper:]' '[:lower:]')
 if [ -z "$WEBDAV_KEEPALIVE_ENABLED" ] || [ "$keepaliveEnabled" = "true" ] || [ "$keepaliveEnabled" = "1" ] || [ "$keepaliveEnabled" = "yes" ] || [ "$keepaliveEnabled" = "y" ]; then

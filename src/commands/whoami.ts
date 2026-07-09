@@ -17,6 +17,7 @@ export default class Whoami extends Command {
   static readonly enableJsonFlag = true;
 
   public run = async () => {
+    await this.parse(Whoami);
     const userCredentials = await ConfigService.instance.readUser();
     if (!userCredentials) {
       const message = 'You are not logged in.';
