@@ -1,5 +1,5 @@
 import { describe, expect, test, vi } from 'vitest';
-import { auth } from '@internxt/lib';
+import { auth, TokenStatus } from '@internxt/lib';
 import { randomInt, randomUUID } from 'node:crypto';
 import { UserFixture } from '../fixtures/auth.fixture';
 import { ValidationService } from '../../src/services/validation.service';
@@ -68,5 +68,83 @@ describe('Validation Service', () => {
     expect(ValidationService.instance.validateStringIsNotEmpty('\n')).to.be.equal(false);
     expect(ValidationService.instance.validateStringIsNotEmpty('\t')).to.be.equal(false);
     expect(ValidationService.instance.validateStringIsNotEmpty('\t\n')).to.be.equal(false);
+  });
+
+  describe('validateTokenAndCheckExpiration', () => {
+    const nowInSeconds = () => Math.floor(Date.now() / 1000);
+    const ONE_HOUR_IN_SECONDS = 60 * 60;
+    // The library decodes the payload with Buffer.from(..., 'base64') which
+    // handles both standard and URL-safe base64 after character substitution.
+    const encodeSegment = (payload: object): string => Buffer.from(JSON.stringify(payload)).toString('base64');
+    const createToken = (payload: object): string =>
+      [encodeSegment({ alg: 'RS256', typ: 'JWT' }), encodeSegment(payload), 'signature'].join('.');
+
+    test('when a token expires far in the future and most of its lifetime remains, then it is VALID', () => {
+      const token = createToken({ exp: nowInSeconds() + 24 * ONE_HOUR_IN_SECONDS, iat: nowInSeconds() });
+      expect(ValidationService.instance.validateTokenAndCheckExpiration(token)).to.be.equal(TokenStatus.VALID);
+    });
+
+    test('when more than half of the token lifetime has elapsed, then it is REFRESH_REQUIRED', () => {
+      const token = createToken({
+        exp: nowInSeconds() + ONE_HOUR_IN_SECONDS,
+        iat: nowInSeconds() - 2 * ONE_HOUR_IN_SECONDS,
+      });
+      expect(ValidationService.instance.validateTokenAndCheckExpiration(token)).to.be.equal(
+        TokenStatus.REFRESH_REQUIRED,
+      );
+    });
+
+    test('when the expiration timestamp is in the past, then it is EXPIRED', () => {
+      const token = createToken({
+        exp: nowInSeconds() - ONE_HOUR_IN_SECONDS,
+        iat: nowInSeconds() - 3 * ONE_HOUR_IN_SECONDS,
+      });
+      expect(ValidationService.instance.validateTokenAndCheckExpiration(token)).to.be.equal(TokenStatus.EXPIRED);
+    });
+
+    test('when the token has no iat claim, then a fixed six-hour refresh margin applies', () => {
+      const farFromExpiring = createToken({ exp: nowInSeconds() + 7 * ONE_HOUR_IN_SECONDS });
+      expect(ValidationService.instance.validateTokenAndCheckExpiration(farFromExpiring)).to.be.equal(
+        TokenStatus.VALID,
+      );
+
+      const closeToExpiring = createToken({ exp: nowInSeconds() + 5 * ONE_HOUR_IN_SECONDS });
+      expect(ValidationService.instance.validateTokenAndCheckExpiration(closeToExpiring)).to.be.equal(
+        TokenStatus.REFRESH_REQUIRED,
+      );
+    });
+
+    test('when a token is malformed or unparseable, then it is INVALID', () => {
+      expect(ValidationService.instance.validateTokenAndCheckExpiration('')).to.be.equal(TokenStatus.INVALID);
+      expect(ValidationService.instance.validateTokenAndCheckExpiration('not-a-token')).to.be.equal(
+        TokenStatus.INVALID,
+      );
+      expect(ValidationService.instance.validateTokenAndCheckExpiration('only.twosegments')).to.be.equal(
+        TokenStatus.INVALID,
+      );
+      expect(
+        ValidationService.instance.validateTokenAndCheckExpiration('header.!!!not-base64!!!.signature'),
+      ).to.be.equal(TokenStatus.INVALID);
+      const notJsonPayload = ['header', Buffer.from('plain text').toString('base64'), 'signature'].join('.');
+      expect(ValidationService.instance.validateTokenAndCheckExpiration(notJsonPayload)).to.be.equal(
+        TokenStatus.INVALID,
+      );
+    });
+
+    test('when the payload has no numeric exp claim, then it is INVALID', () => {
+      const missingExp = createToken({ iat: nowInSeconds() });
+      expect(ValidationService.instance.validateTokenAndCheckExpiration(missingExp)).to.be.equal(TokenStatus.INVALID);
+
+      const nonNumericExp = createToken({ exp: 'tomorrow', iat: nowInSeconds() });
+      expect(ValidationService.instance.validateTokenAndCheckExpiration(nonNumericExp)).to.be.equal(
+        TokenStatus.INVALID,
+      );
+    });
+
+    test('when the payload encoding contains base64url-specific characters, then it is correctly decoded', () => {
+      const base64UrlToken =
+        'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjQxMDI0NDQ4MDAsImlhdCI6MTU3NzgzNjgwMCwic3ViIjoiw7_DvsO9In0.signature';
+      expect(ValidationService.instance.validateTokenAndCheckExpiration(base64UrlToken)).to.be.equal(TokenStatus.VALID);
+    });
   });
 });
