@@ -27,6 +27,7 @@ export class GETRequestHandler implements WebDavMethodHandler {
     webdavLogger.info(`[GET] [${driveFile.uuid}] Network ready for download`);
 
     res.header('Content-Type', 'application/octet-stream');
+    res.header('Accept-Ranges', 'bytes');
 
     const fileSize = driveFile.size ?? 0;
 

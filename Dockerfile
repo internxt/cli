@@ -9,6 +9,8 @@ COPY .env.template .env
 COPY .npmrc.template .npmrc
 
 RUN npm install
+RUN npm approve-scripts --all
+RUN npm rebuild
 RUN npm run build
 
 RUN chmod +x /app/docker/entrypoint.sh

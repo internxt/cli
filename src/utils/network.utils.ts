@@ -102,9 +102,9 @@ export class NetworkUtils {
         throw new Error(`Unkwnown Range-Request type "${parsed.type}". ${JSON.stringify(rangeOptions)}`);
       }
     } else if (parsed === -1) {
-      throw new Error(`Malformed Range-Request. ${JSON.stringify(rangeOptions)}`);
-    } else if (parsed === -2) {
       throw new Error(`Unsatisfiable Range-Request. ${JSON.stringify(rangeOptions)}`);
+    } else if (parsed === -2) {
+      throw new Error(`Malformed Range-Request. ${JSON.stringify(rangeOptions)}`);
     } else {
       throw new Error(`Unknown error from Range-Request. ${JSON.stringify(rangeOptions)}`);
     }

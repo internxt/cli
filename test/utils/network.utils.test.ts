@@ -170,14 +170,14 @@ describe('Network utils', () => {
       NetworkUtils.parseRangeHeader({ range: 'range', totalFileSize });
       fail('Expected function to throw an error, but it did not.');
     } catch (error) {
-      expect((error as Error).message).to.contain('Unsatisfiable Range-Request.');
+      expect((error as Error).message).to.contain('Malformed Range-Request.');
     }
 
     try {
       NetworkUtils.parseRangeHeader({ range: 'whatever-range', totalFileSize });
       fail('Expected function to throw an error, but it did not.');
     } catch (error) {
-      expect((error as Error).message).to.contain('Unsatisfiable Range-Request.');
+      expect((error as Error).message).to.contain('Malformed Range-Request.');
     }
 
     try {
@@ -185,6 +185,13 @@ describe('Network utils', () => {
       fail('Expected function to throw an error, but it did not.');
     } catch (error) {
       expect((error as Error).message).to.contain('Malformed Range-Request.');
+    }
+
+    try {
+      NetworkUtils.parseRangeHeader({ range: 'bytes=999999-1000005', totalFileSize });
+      fail('Expected function to throw an error, but it did not.');
+    } catch (error) {
+      expect((error as Error).message).to.contain('Unsatisfiable Range-Request.');
     }
 
     try {

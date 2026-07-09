@@ -27,6 +27,7 @@ services:
       WEBDAV_USERNAME: ""                 # (Optional) Custom username for WebDAV authentication
       WEBDAV_PASSWORD: ""                 # (Optional) Custom password for WebDAV authentication
       WEBDAV_DELETE_FILES_PERMANENTLY: "" # (Optional) Delete files permanently. Set to 'true' to enable
+      WEBDAV_KEEPALIVE_ENABLED: ""        # (Optional) Auto-renew the session/WebDAV server on failure. Defaults to 'true'. Set to 'false' to stop the container on failure instead
     ports:
       - "127.0.0.1:3005:3005" # Map container port to host. Change if WEBDAV_PORT is customized
 ```
@@ -54,6 +55,7 @@ docker run -d \
   -e WEBDAV_USERNAME="" \
   -e WEBDAV_PASSWORD="" \
   -e WEBDAV_DELETE_FILES_PERMANENTLY="" \
+  -e WEBDAV_KEEPALIVE_ENABLED="" \
   -p 127.0.0.1:3005:3005 \
   internxt/webdav:latest
 ```
@@ -94,6 +96,7 @@ You can also run the `internxt/webdav` image directly on popular NAS devices lik
 | `WEBDAV_USERNAME`                 | ❌ No    | Username for custom WebDAV authentication. Required if `WEBDAV_CUSTOM_AUTH` is enabled.        |
 | `WEBDAV_PASSWORD`                 | ❌ No    | Password for custom WebDAV authentication. Required if `WEBDAV_CUSTOM_AUTH` is enabled.        |
 | `WEBDAV_DELETE_FILES_PERMANENTLY` | ❌ No    | Delete files permanently instead of moving them to trash. Set to `true`to enable.              |
+| `WEBDAV_KEEPALIVE_ENABLED`        | ❌ No    | Whether the session/WebDAV server is auto-renewed on failure. Session and WebDAV status are checked every 30 min. Defaults to `true`. Set to `false` to stop the container instead of re-authenticating, so it can be recovered by Docker's restart policy (e.g. `restart: unless-stopped`). |
 
 ---
 

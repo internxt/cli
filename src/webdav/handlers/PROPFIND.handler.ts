@@ -4,6 +4,7 @@ import { DriveFileItem, DriveFolderItem } from '../../types/drive.types';
 import { DriveItemBD } from '../../services/database/drive-item/drive-item.domain';
 import { DriveItemRepository } from '../../services/database/drive-item/drive-item.repository';
 import { DriveFolderService } from '../../services/drive/drive-folder.service';
+import { DriveUtils } from '../../utils/drive.utils';
 import { FormatUtils } from '../../utils/format.utils';
 import { Request, Response } from 'express';
 import { randomUUID } from 'node:crypto';
@@ -23,6 +24,8 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
       res.status(404).send();
       return;
     }
+
+    res.set('Content-Type', 'application/xml; charset="utf-8"');
 
     switch (driveItem.itemType) {
       case 'file': {
@@ -144,7 +147,7 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
             type: file.type,
             status: file.status,
             folderUuid: file.folderUuid,
-            size: Number(file.size),
+            size: DriveUtils.parseFileSize(file.size),
             creationTime: new Date(file.creationTime),
             modificationTime: new Date(file.modificationTime),
             createdAt: new Date(file.createdAt),
@@ -184,7 +187,8 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
       [XMLUtils.addDefaultNamespace('propstat')]: {
         [XMLUtils.addDefaultNamespace('status')]: 'HTTP/1.1 200 OK',
         [XMLUtils.addDefaultNamespace('prop')]: {
-          [XMLUtils.addDefaultNamespace('getcontenttype')]: 'application/octet-stream',
+          [XMLUtils.addDefaultNamespace('getcontenttype')]: 'httpd/unix-directory',
+          [XMLUtils.addDefaultNamespace('getetag')]: '"' + randomUUID().replaceAll('-', '') + '"',
           'x1:lastmodified': {
             '#text': FormatUtils.formatDateForWebDav(driveFolderItem.updatedAt),
             '@_xmlns:x1': 'SAR:',
@@ -219,6 +223,8 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
           [XMLUtils.addDefaultNamespace('displayname')]: displayName,
           [XMLUtils.addDefaultNamespace('getlastmodified')]: FormatUtils.formatDateForWebDav(driveFolderItem.updatedAt),
           [XMLUtils.addDefaultNamespace('getcontentlength')]: 0,
+          [XMLUtils.addDefaultNamespace('getcontenttype')]: 'httpd/unix-directory',
+          [XMLUtils.addDefaultNamespace('getetag')]: '"' + randomUUID().replaceAll('-', '') + '"',
           [XMLUtils.addDefaultNamespace('resourcetype')]: {
             [XMLUtils.addDefaultNamespace('collection')]: '',
           },

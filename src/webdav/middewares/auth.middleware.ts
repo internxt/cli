@@ -39,6 +39,7 @@ export const AuthMiddleware = (): RequestHandler => {
           {},
           'error',
         );
+        res.set('WWW-Authenticate', 'Basic realm="Internxt WebDAV"');
         res.status(401).send(errorBodyXML);
       }
     })();

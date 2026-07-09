@@ -1,5 +1,5 @@
 import { describe, expect, test, vi } from 'vitest';
-import { auth } from '@internxt/lib';
+import { auth, TokenStatus } from '@internxt/lib';
 import { randomInt, randomUUID } from 'node:crypto';
 import { UserFixture } from '../fixtures/auth.fixture';
 import { ValidationService } from '../../src/services/validation.service';
@@ -69,142 +69,82 @@ describe('Validation Service', () => {
     expect(ValidationService.instance.validateStringIsNotEmpty('\t')).to.be.equal(false);
     expect(ValidationService.instance.validateStringIsNotEmpty('\t\n')).to.be.equal(false);
   });
-  describe('parseJwtExpiration', () => {
-    test('when the token is not provided, then null is returned', () => {
-      expect(ValidationService.instance.validateJwtAndCheckExpiration(undefined)).to.be.equal(null);
-    });
-
-    test('when the token is an empty string, then null is returned', () => {
-      expect(ValidationService.instance.validateJwtAndCheckExpiration('')).to.be.equal(null);
-    });
-
-    test('when the token does not have the expected format, then null is returned', () => {
-      expect(ValidationService.instance.validateJwtAndCheckExpiration('invalid')).to.be.equal(null);
-      expect(ValidationService.instance.validateJwtAndCheckExpiration('invalid.token')).to.be.equal(null);
-    });
-
-    test('when the token payload is not valid base64 encoding, then null is returned', () => {
-      const invalidToken = 'header.!!!invalid_base64!!!.signature';
-      expect(ValidationService.instance.validateJwtAndCheckExpiration(invalidToken)).to.be.equal(null);
-    });
-
-    test('when the token does not contain an expiration claim, then null is returned', () => {
-      const payload = btoa(JSON.stringify({ sub: 'user123' }));
-      const token = `header.${payload}.signature`;
-      expect(ValidationService.instance.validateJwtAndCheckExpiration(token)).to.be.equal(null);
-    });
-
-    test('when the token expiration value is not a number, then null is returned', () => {
-      const payload = btoa(JSON.stringify({ exp: 'not-a-number' }));
-      const token = `header.${payload}.signature`;
-      expect(ValidationService.instance.validateJwtAndCheckExpiration(token)).to.be.equal(null);
-    });
-
-    test('when the token has a valid structure with expiration, then the expiration timestamp is returned', () => {
-      const expiration = Math.floor(Date.now() / 1000) + 3600; // 1 hour from now
-      const payload = btoa(JSON.stringify({ exp: expiration, sub: 'user123' }));
-      const token = `header.${payload}.signature`;
-      expect(ValidationService.instance.validateJwtAndCheckExpiration(token)).to.be.equal(expiration);
-    });
-  });
-
-  describe('checkTokenExpiration', () => {
-    test('when the token expired more than two days ago, then it is expired and cannot be refreshed', () => {
-      const threeDaysAgo = Math.floor(Date.now() / 1000) - 3 * 24 * 60 * 60;
-      const result = ValidationService.instance.checkTokenExpiration(threeDaysAgo);
-      expect(result.expired).to.be.equal(true);
-      expect(result.refreshRequired).to.be.equal(false);
-    });
-
-    test('when the token expired one second ago, then it is expired and cannot be refreshed', () => {
-      const oneSecondAgo = Math.floor(Date.now() / 1000) - 1;
-      const result = ValidationService.instance.checkTokenExpiration(oneSecondAgo);
-      expect(result.expired).to.be.equal(true);
-      expect(result.refreshRequired).to.be.equal(false);
-    });
-
-    test('when the token expires at the current moment, then it is considered expired', () => {
-      const now = Math.floor(Date.now() / 1000);
-      const result = ValidationService.instance.checkTokenExpiration(now);
-      expect(result.expired).to.be.equal(true);
-      expect(result.refreshRequired).to.be.equal(false);
-    });
-
-    test('when the token expires within one day, then it is not yet expired but requires refresh', () => {
-      const oneDayFromNow = Math.floor(Date.now() / 1000) + 24 * 60 * 60;
-      const result = ValidationService.instance.checkTokenExpiration(oneDayFromNow);
-      expect(result.expired).to.be.equal(false);
-      expect(result.refreshRequired).to.be.equal(true);
-    });
-
-    test('when the token expires in exactly two days, then it is not yet expired but requires refresh', () => {
-      const twoDaysFromNow = Math.floor(Date.now() / 1000) + 2 * 24 * 60 * 60;
-      const result = ValidationService.instance.checkTokenExpiration(twoDaysFromNow);
-      expect(result.expired).to.be.equal(false);
-      expect(result.refreshRequired).to.be.equal(true);
-    });
-
-    test('when the token expires in more than two days, then it is not expired and does not require refresh', () => {
-      const twoDaysPlusOneSecond = Math.floor(Date.now() / 1000) + 2 * 24 * 60 * 60 + 1;
-      const result = ValidationService.instance.checkTokenExpiration(twoDaysPlusOneSecond);
-      expect(result.expired).to.be.equal(false);
-      expect(result.refreshRequired).to.be.equal(false);
-    });
-
-    test('when the token expires in thirty days, then it is not expired and does not require refresh', () => {
-      const thirtyDaysFromNow = Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60;
-      const result = ValidationService.instance.checkTokenExpiration(thirtyDaysFromNow);
-      expect(result.expired).to.be.equal(false);
-      expect(result.refreshRequired).to.be.equal(false);
-    });
-  });
 
   describe('validateTokenAndCheckExpiration', () => {
-    test('when the token is not provided, then it is invalid and marked as expired', () => {
-      const result = ValidationService.instance.validateTokenAndCheckExpiration(undefined);
-      expect(result.isValid).to.be.equal(false);
-      expect(result.expiration.expired).to.be.equal(true);
-      expect(result.expiration.refreshRequired).to.be.equal(false);
+    const nowInSeconds = () => Math.floor(Date.now() / 1000);
+    const ONE_HOUR_IN_SECONDS = 60 * 60;
+    // The library decodes the payload with Buffer.from(..., 'base64') which
+    // handles both standard and URL-safe base64 after character substitution.
+    const encodeSegment = (payload: object): string => Buffer.from(JSON.stringify(payload)).toString('base64');
+    const createToken = (payload: object): string =>
+      [encodeSegment({ alg: 'RS256', typ: 'JWT' }), encodeSegment(payload), 'signature'].join('.');
+
+    test('when a token expires far in the future and most of its lifetime remains, then it is VALID', () => {
+      const token = createToken({ exp: nowInSeconds() + 24 * ONE_HOUR_IN_SECONDS, iat: nowInSeconds() });
+      expect(ValidationService.instance.validateTokenAndCheckExpiration(token)).to.be.equal(TokenStatus.VALID);
     });
 
-    test('when the token is malformed, then it is invalid and marked as expired', () => {
-      const result = ValidationService.instance.validateTokenAndCheckExpiration('invalid.token');
-      expect(result.isValid).to.be.equal(false);
-      expect(result.expiration.expired).to.be.equal(true);
-      expect(result.expiration.refreshRequired).to.be.equal(false);
+    test('when more than half of the token lifetime has elapsed, then it is REFRESH_REQUIRED', () => {
+      const token = createToken({
+        exp: nowInSeconds() + ONE_HOUR_IN_SECONDS,
+        iat: nowInSeconds() - 2 * ONE_HOUR_IN_SECONDS,
+      });
+      expect(ValidationService.instance.validateTokenAndCheckExpiration(token)).to.be.equal(
+        TokenStatus.REFRESH_REQUIRED,
+      );
     });
 
-    test('when the token is structurally valid but has expired, then it is marked as valid but expired', () => {
-      const expiration = Math.floor(Date.now() / 1000) - 3600; // 1 hour ago
-      const payload = btoa(JSON.stringify({ exp: expiration }));
-      const token = `header.${payload}.signature`;
-
-      const result = ValidationService.instance.validateTokenAndCheckExpiration(token);
-      expect(result.isValid).to.be.equal(true);
-      expect(result.expiration.expired).to.be.equal(true);
-      expect(result.expiration.refreshRequired).to.be.equal(false);
+    test('when the expiration timestamp is in the past, then it is EXPIRED', () => {
+      const token = createToken({
+        exp: nowInSeconds() - ONE_HOUR_IN_SECONDS,
+        iat: nowInSeconds() - 3 * ONE_HOUR_IN_SECONDS,
+      });
+      expect(ValidationService.instance.validateTokenAndCheckExpiration(token)).to.be.equal(TokenStatus.EXPIRED);
     });
 
-    test('when the token is valid and expires within one day, then it is valid and requires refresh', () => {
-      const expiration = Math.floor(Date.now() / 1000) + 24 * 60 * 60; // 1 day from now
-      const payload = btoa(JSON.stringify({ exp: expiration }));
-      const token = `header.${payload}.signature`;
+    test('when the token has no iat claim, then a fixed six-hour refresh margin applies', () => {
+      const farFromExpiring = createToken({ exp: nowInSeconds() + 7 * ONE_HOUR_IN_SECONDS });
+      expect(ValidationService.instance.validateTokenAndCheckExpiration(farFromExpiring)).to.be.equal(
+        TokenStatus.VALID,
+      );
 
-      const result = ValidationService.instance.validateTokenAndCheckExpiration(token);
-      expect(result.isValid).to.be.equal(true);
-      expect(result.expiration.expired).to.be.equal(false);
-      expect(result.expiration.refreshRequired).to.be.equal(true);
+      const closeToExpiring = createToken({ exp: nowInSeconds() + 5 * ONE_HOUR_IN_SECONDS });
+      expect(ValidationService.instance.validateTokenAndCheckExpiration(closeToExpiring)).to.be.equal(
+        TokenStatus.REFRESH_REQUIRED,
+      );
     });
 
-    test('when the token is valid and expires in thirty days, then it is valid with no action needed', () => {
-      const expiration = Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60; // 30 days from now
-      const payload = btoa(JSON.stringify({ exp: expiration }));
-      const token = `header.${payload}.signature`;
+    test('when a token is malformed or unparseable, then it is INVALID', () => {
+      expect(ValidationService.instance.validateTokenAndCheckExpiration('')).to.be.equal(TokenStatus.INVALID);
+      expect(ValidationService.instance.validateTokenAndCheckExpiration('not-a-token')).to.be.equal(
+        TokenStatus.INVALID,
+      );
+      expect(ValidationService.instance.validateTokenAndCheckExpiration('only.twosegments')).to.be.equal(
+        TokenStatus.INVALID,
+      );
+      expect(
+        ValidationService.instance.validateTokenAndCheckExpiration('header.!!!not-base64!!!.signature'),
+      ).to.be.equal(TokenStatus.INVALID);
+      const notJsonPayload = ['header', Buffer.from('plain text').toString('base64'), 'signature'].join('.');
+      expect(ValidationService.instance.validateTokenAndCheckExpiration(notJsonPayload)).to.be.equal(
+        TokenStatus.INVALID,
+      );
+    });
 
-      const result = ValidationService.instance.validateTokenAndCheckExpiration(token);
-      expect(result.isValid).to.be.equal(true);
-      expect(result.expiration.expired).to.be.equal(false);
-      expect(result.expiration.refreshRequired).to.be.equal(false);
+    test('when the payload has no numeric exp claim, then it is INVALID', () => {
+      const missingExp = createToken({ iat: nowInSeconds() });
+      expect(ValidationService.instance.validateTokenAndCheckExpiration(missingExp)).to.be.equal(TokenStatus.INVALID);
+
+      const nonNumericExp = createToken({ exp: 'tomorrow', iat: nowInSeconds() });
+      expect(ValidationService.instance.validateTokenAndCheckExpiration(nonNumericExp)).to.be.equal(
+        TokenStatus.INVALID,
+      );
+    });
+
+    test('when the payload encoding contains base64url-specific characters, then it is correctly decoded', () => {
+      const base64UrlToken =
+        'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjQxMDI0NDQ4MDAsImlhdCI6MTU3NzgzNjgwMCwic3ViIjoiw7_DvsO9In0.signature';
+      expect(ValidationService.instance.validateTokenAndCheckExpiration(base64UrlToken)).to.be.equal(TokenStatus.VALID);
     });
   });
 });

@@ -12,6 +12,7 @@ import {
 } from '../types/command.types';
 import { ValidationService } from './validation.service';
 import { WorkspaceService } from './drive/workspace.service';
+import { TokenStatus } from '@internxt/lib';
 
 export class AuthService {
   public static readonly instance: AuthService = new AuthService();
@@ -85,19 +86,19 @@ export class AuthService {
       throw new MissingCredentialsError();
     }
 
-    const tokenDetails = ValidationService.instance.validateTokenAndCheckExpiration(loginCreds.token);
+    const tokenStatus = ValidationService.instance.validateTokenAndCheckExpiration(loginCreds.token);
     const isValidMnemonic = ValidationService.instance.validateMnemonic(loginCreds.user.mnemonic);
 
-    if (!tokenDetails.isValid || !isValidMnemonic) {
+    if (tokenStatus === TokenStatus.INVALID || !isValidMnemonic) {
       throw new InvalidCredentialsError();
     }
-    if (tokenDetails.expiration.expired) {
+    if (tokenStatus === TokenStatus.EXPIRED) {
       throw new ExpiredCredentialsError();
     }
 
     let credentialsChanged = false;
 
-    if (tokenDetails.expiration.refreshRequired) {
+    if (tokenStatus === TokenStatus.REFRESH_REQUIRED) {
       try {
         loginCreds = await this.refreshUserToken(
           loginCreds.token,
@@ -180,16 +181,15 @@ export class AuthService {
     if (loginCreds.workspace?.workspaceCredentials && loginCreds.workspace?.workspaceData) {
       const workspaceToken = loginCreds.workspace.workspaceCredentials.token;
       const workspaceUuid = loginCreds.workspace.workspaceCredentials.id;
-      const workspaceTokenDetails = ValidationService.instance.validateTokenAndCheckExpiration(workspaceToken);
+      const workspaceTokenStatus = ValidationService.instance.validateTokenAndCheckExpiration(workspaceToken);
 
-      if (!workspaceTokenDetails.isValid) {
+      if (workspaceTokenStatus === TokenStatus.VALID) {
+        return loginCreds.workspace;
+      } else if (workspaceTokenStatus === TokenStatus.INVALID) {
         throw new InvalidCredentialsError();
-      }
-      if (workspaceTokenDetails.expiration.expired) {
+      } else if (workspaceTokenStatus === TokenStatus.EXPIRED) {
         throw new ExpiredCredentialsError();
-      }
-
-      if (workspaceTokenDetails.expiration.refreshRequired) {
+      } else if (workspaceTokenStatus === TokenStatus.REFRESH_REQUIRED) {
         SdkManager.init({ token: loginCreds.token, workspaceToken: loginCreds.workspace.workspaceCredentials.token });
         const workspaceCredentials = await WorkspaceService.instance.getWorkspaceCredentials(workspaceUuid);
         // TODO [PB-5788] Refresh workspace data when workspace token requires refresh
@@ -197,8 +197,6 @@ export class AuthService {
           workspaceCredentials,
           workspaceData: loginCreds.workspace.workspaceData,
         };
-      } else {
-        return loginCreds.workspace;
       }
     }
   };

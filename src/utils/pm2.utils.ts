@@ -2,14 +2,7 @@ import path from 'node:path';
 import pm2 from 'pm2';
 
 export type WebDavProcessStatus =
-  | 'online'
-  | 'stopping'
-  | 'stopped'
-  | 'launching'
-  | 'errored'
-  | 'one-launch-status'
-  | 'offline'
-  | 'unknown';
+  'online' | 'stopping' | 'stopped' | 'launching' | 'errored' | 'one-launch-status' | 'offline' | 'unknown';
 
 export class PM2Utils {
   private static readonly WEBDAV_APP_NAME = 'Internxt CLI WebDav';

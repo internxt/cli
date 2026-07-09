@@ -49,5 +49,6 @@ const sendUnauthorizedError = (res: Response, message: string) => {
     'error',
   );
 
+  res.set('WWW-Authenticate', 'Basic realm="Internxt WebDAV"');
   res.status(401).send(errorBodyXML);
 };
