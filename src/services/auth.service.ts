@@ -107,7 +107,9 @@ export class AuthService {
         );
         credentialsChanged = true;
       } catch (error) {
-        await ConfigService.instance.clearUser();
+        if (this.shouldClearUserAfterRefreshError(error)) {
+          await ConfigService.instance.clearUser();
+        }
         throw error;
       }
     }
@@ -124,6 +126,38 @@ export class AuthService {
       await ConfigService.instance.saveUser(loginCreds);
     }
     return loginCreds;
+  };
+
+  private readonly shouldClearUserAfterRefreshError = (error: unknown): boolean => {
+    if (error instanceof InvalidCredentialsError || error instanceof ExpiredCredentialsError) {
+      return true;
+    }
+
+    const status = this.getHttpStatusFromError(error);
+    if (status === undefined) {
+      return false;
+    }
+
+    return status >= 400 && status < 500 && status !== 408 && status !== 429;
+  };
+
+  private readonly getHttpStatusFromError = (error: unknown): number | undefined => {
+    if (typeof error !== 'object' || error === null) {
+      return undefined;
+    }
+
+    const response = 'response' in error ? (error as { response?: { status?: unknown } }).response : undefined;
+    if (typeof response?.status === 'number') {
+      return response.status;
+    }
+
+    const status = 'status' in error ? (error as { status?: unknown }).status : undefined;
+    if (typeof status === 'number') {
+      return status;
+    }
+
+    const statusCode = 'statusCode' in error ? (error as { statusCode?: unknown }).statusCode : undefined;
+    return typeof statusCode === 'number' ? statusCode : undefined;
   };
 
   /**
