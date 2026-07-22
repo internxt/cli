@@ -6,13 +6,14 @@ import { WebDavUtils } from '../../utils/webdav.utils';
 import { AsyncUtils } from '../../utils/async.utils';
 import { AuthService } from '../../services/auth.service';
 import { DriveUtils } from '../../utils/drive.utils';
+import { WebDavCacheService } from './webdav-cache.service';
 
 export class WebDavFolderService {
   public static readonly instance: WebDavFolderService = new WebDavFolderService();
 
   public getDriveFolderItemFromPath = async (path: string): Promise<DriveFolderItem | undefined> => {
     const { url } = await WebDavUtils.getRequestedResource(path, false);
-    return await WebDavUtils.getDriveFolderFromResource(url);
+    return await WebDavCacheService.instance.getFolderFromPath(url);
   };
 
   public createFolder = async ({
@@ -65,6 +66,7 @@ export class WebDavFolderService {
     const folder =
       (await this.getDriveFolderItemFromPath(folderPath)) ??
       (await this.createFolder({ folderName: currentFolderName, parentFolderUuid }));
+    WebDavCacheService.instance.registerFolder(folderPath, folder);
 
     if (rest.length === 0) {
       return folder;

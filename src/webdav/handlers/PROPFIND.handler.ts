@@ -3,8 +3,6 @@ import { XMLUtils } from '../../utils/xml.utils';
 import { DriveFileItem, DriveFolderItem } from '../../types/drive.types';
 import { DriveItemBD } from '../../services/database/drive-item/drive-item.domain';
 import { DriveItemRepository } from '../../services/database/drive-item/drive-item.repository';
-import { DriveFolderService } from '../../services/drive/drive-folder.service';
-import { DriveUtils } from '../../utils/drive.utils';
 import { FormatUtils } from '../../utils/format.utils';
 import { Request, Response } from 'express';
 import { randomUUID } from 'node:crypto';
@@ -12,13 +10,14 @@ import mime from 'mime-types';
 import { WebDavUtils } from '../../utils/webdav.utils';
 import { webdavLogger } from '../../utils/logger.utils';
 import { UsageService } from '../../services/usage.service';
+import { WebDavCacheService } from '../../services/webdav/webdav-cache.service';
 
 export class PROPFINDRequestHandler implements WebDavMethodHandler {
   handle = async (req: Request, res: Response) => {
     const resource = await WebDavUtils.getRequestedResource(req.url);
     webdavLogger.info(`[PROPFIND] Request received for item at ${resource.url}`);
 
-    const driveItem = await WebDavUtils.getDriveItemFromResource(resource);
+    const driveItem = await WebDavCacheService.instance.getItemFromResource(resource);
 
     if (!driveItem) {
       res.status(404).send();
@@ -93,31 +92,15 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
   };
 
   private readonly getFolderChildsXMLNode = async (relativePath: string, folderUuid: string) => {
-    const folderContent = await DriveFolderService.instance.getFolderContent(folderUuid);
+    const folderContent = await WebDavCacheService.instance.getFolderContent(relativePath, folderUuid);
 
     const xmlNodes: object[] = [];
     const cachedItems: DriveItemBD[] = [];
 
     for (const folder of folderContent.folders) {
-      const folderRelativePath = WebDavUtils.joinURL(relativePath, folder.plainName, '/');
+      const folderRelativePath = WebDavUtils.joinURL(relativePath, folder.name, '/');
 
-      xmlNodes.push(
-        this.driveFolderItemToXMLNode(
-          {
-            itemType: 'folder',
-            name: folder.plainName,
-            bucket: folder.bucket,
-            status: folder.deleted || folder.removed ? 'TRASHED' : 'EXISTS',
-            createdAt: new Date(folder.createdAt),
-            updatedAt: new Date(folder.updatedAt),
-            creationTime: new Date(folder.creationTime),
-            modificationTime: new Date(folder.modificationTime),
-            uuid: folder.uuid,
-            parentUuid: folder.parentUuid,
-          },
-          folderRelativePath,
-        ),
-      );
+      xmlNodes.push(this.driveFolderItemToXMLNode(folder, folderRelativePath));
 
       cachedItems.push(
         new DriveItemBD({
@@ -131,31 +114,9 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
     }
 
     for (const file of folderContent.files) {
-      const fileRelativePath = WebDavUtils.joinURL(
-        relativePath,
-        file.type ? `${file.plainName}.${file.type}` : file.plainName,
-      );
+      const fileRelativePath = WebDavUtils.joinURL(relativePath, file.type ? `${file.name}.${file.type}` : file.name);
 
-      xmlNodes.push(
-        this.driveFileItemToXMLNode(
-          {
-            itemType: 'file',
-            name: file.plainName,
-            bucket: file.bucket,
-            fileId: file.fileId,
-            uuid: file.uuid,
-            type: file.type,
-            status: file.status,
-            folderUuid: file.folderUuid,
-            size: DriveUtils.parseFileSize(file.size),
-            creationTime: new Date(file.creationTime),
-            modificationTime: new Date(file.modificationTime),
-            createdAt: new Date(file.createdAt),
-            updatedAt: new Date(file.updatedAt),
-          },
-          fileRelativePath,
-        ),
-      );
+      xmlNodes.push(this.driveFileItemToXMLNode(file, fileRelativePath));
 
       cachedItems.push(
         new DriveItemBD({

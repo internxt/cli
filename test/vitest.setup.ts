@@ -1,4 +1,5 @@
-import { vi } from 'vitest';
+import { beforeEach, vi } from 'vitest';
+import { WebDavCacheService } from '../src/services/webdav/webdav-cache.service';
 
 vi.mock('../src/utils/logger.utils', () => ({
   logger: {
@@ -14,3 +15,7 @@ vi.mock('../src/utils/logger.utils', () => ({
     debug: vi.fn(),
   },
 }));
+
+beforeEach(() => {
+  WebDavCacheService.instance.clear();
+});

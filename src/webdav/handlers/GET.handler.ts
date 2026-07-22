@@ -7,13 +7,14 @@ import { webdavLogger } from '../../utils/logger.utils';
 import { NetworkUtils } from '../../utils/network.utils';
 import { NotValidFileIdError } from '../../types/command.types';
 import { CLIUtils } from '../../utils/cli.utils';
+import { WebDavCacheService } from '../../services/webdav/webdav-cache.service';
 
 export class GETRequestHandler implements WebDavMethodHandler {
   handle = async (req: Request, res: Response) => {
     const resource = await WebDavUtils.getRequestedResource(req.url);
 
     webdavLogger.info(`[GET] Request received item at ${resource.url}`);
-    const driveFile = await WebDavUtils.getDriveFileFromResource(resource.url);
+    const driveFile = await WebDavCacheService.instance.getFileFromPath(resource.url);
 
     if (!driveFile) {
       throw new NotFoundError(

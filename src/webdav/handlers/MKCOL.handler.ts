@@ -7,6 +7,7 @@ import { XMLUtils } from '../../utils/xml.utils';
 import { WebDavFolderService } from '../../services/webdav/webdav-folder.service';
 import { AsyncUtils } from '../../utils/async.utils';
 import { MethodNotAllowed } from '../../utils/errors.utils';
+import { WebDavCacheService } from '../../services/webdav/webdav-cache.service';
 
 export class MKCOLRequestHandler implements WebDavMethodHandler {
   handle = async (req: Request, res: Response) => {
@@ -15,10 +16,10 @@ export class MKCOLRequestHandler implements WebDavMethodHandler {
     webdavLogger.info(`[MKCOL] Request received for folder at ${resource.url}`);
 
     const parentDriveFolderItem =
-      (await WebDavFolderService.instance.getDriveFolderItemFromPath(resource.parentPath)) ??
+      (await WebDavCacheService.instance.getFolderFromPath(resource.parentPath)) ??
       (await WebDavFolderService.instance.createParentPathOrThrow(resource.parentPath));
 
-    const driveFolderItem = await WebDavUtils.getDriveFolderFromResource(resource.url);
+    const driveFolderItem = await WebDavCacheService.instance.getFolderFromPath(resource.url);
 
     const folderAlreadyExists = !!driveFolderItem;
 
@@ -45,6 +46,7 @@ export class MKCOLRequestHandler implements WebDavMethodHandler {
         updatedAt: new Date(),
       },
     ]);
+    WebDavCacheService.instance.registerFolder(resource.url, newFolder);
 
     // This aims to prevent this issue: https://inxt.atlassian.net/browse/PB-1446
     await AsyncUtils.sleep(500);

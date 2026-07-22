@@ -12,6 +12,7 @@ import { WebDavFolderService } from '../../services/webdav/webdav-folder.service
 import { ThumbnailService } from '../../services/thumbnail.service';
 import { FormatUtils } from '../../utils/format.utils';
 import { UploadUtils } from '../../utils/upload.utils';
+import { WebDavCacheService } from '../../services/webdav/webdav-cache.service';
 
 export class PUTRequestHandler implements WebDavMethodHandler {
   handle = async (req: Request, res: Response) => {
@@ -42,7 +43,7 @@ export class PUTRequestHandler implements WebDavMethodHandler {
 
     // If the file already exists, the WebDAV specification states that 'PUT /…/file' should replace it.
     // http://www.webdav.org/specs/rfc4918.html#put-resources
-    const driveFileItem = await WebDavUtils.getDriveItemFromResource(resource);
+    const driveFileItem = await WebDavCacheService.instance.getItemFromResource(resource);
     if (driveFileItem && driveFileItem.status === 'EXISTS') {
       if (driveFileItem.itemType === 'folder') {
         webdavLogger.info('[PUT] ❌ A folder exists on the cloud with the same name.');
@@ -55,6 +56,7 @@ export class PUTRequestHandler implements WebDavMethodHandler {
       try {
         await WebDavUtils.deleteOrTrashItem(driveFileItem);
         await DriveItemRepository.instance.delete([driveFileItem.uuid]);
+        WebDavCacheService.instance.invalidateResource(resource.url);
       } catch {
         //noop
       }
@@ -124,6 +126,7 @@ export class PUTRequestHandler implements WebDavMethodHandler {
         updatedAt: new Date(),
       },
     ]);
+    WebDavCacheService.instance.registerFile(resource.url, file);
 
     const thumbnailTimer = CLIUtils.timer();
     await ThumbnailService.instance.tryUploadThumbnail({

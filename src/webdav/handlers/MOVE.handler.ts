@@ -7,6 +7,7 @@ import { NotFoundError } from '../../utils/errors.utils';
 import { webdavLogger } from '../../utils/logger.utils';
 import { WebDavUtils } from '../../utils/webdav.utils';
 import { WebDavFolderService } from '../../services/webdav/webdav-folder.service';
+import { WebDavCacheService } from '../../services/webdav/webdav-cache.service';
 
 export class MOVERequestHandler implements WebDavMethodHandler {
   handle = async (req: Request, res: Response) => {
@@ -23,7 +24,7 @@ export class MOVERequestHandler implements WebDavMethodHandler {
 
     webdavLogger.info('[MOVE] Destination resource found', { destinationResource });
 
-    const originalDriveItem = await WebDavUtils.getDriveItemFromResource(resource);
+    const originalDriveItem = await WebDavCacheService.instance.getItemFromResource(resource);
 
     if (!originalDriveItem) {
       throw new NotFoundError(`Resource not found on Internxt Drive at ${resource.url}`);
@@ -89,6 +90,8 @@ export class MOVERequestHandler implements WebDavMethodHandler {
         updatedAt: new Date(),
       },
     ]);
+    WebDavCacheService.instance.invalidateResource(resource.url);
+    WebDavCacheService.instance.invalidateResource(destinationResource.url);
 
     res.status(204).send();
   };
