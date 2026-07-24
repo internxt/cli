@@ -1,4 +1,5 @@
 import path from 'node:path';
+import { createHash } from 'node:crypto';
 import { WebDavRequestedResource } from '../types/webdav.types';
 import { DriveFileItem, DriveFolderItem, DriveItem } from '../types/drive.types';
 import { DriveItemService } from '../services/drive/drive-item.service';
@@ -108,5 +109,22 @@ export class WebDavUtils {
       webdavLogger.info(`[DELETE] [${driveItem.uuid}] ${type} trashed successfully`);
     }
     await DriveItemRepository.instance.delete([driveItem.uuid]);
+  }
+
+  static generateETag(parts: Array<string | number | Date | null | undefined>): string {
+    const normalized = parts.map((part) => (part instanceof Date ? part.getTime() : (part ?? '')));
+    const hash = createHash('sha256').update(normalized.join('|')).digest('hex');
+    return `"${hash}"`;
+  }
+
+  static getItemETag(driveItem: DriveFileItem | DriveFolderItem): string {
+    return this.generateETag([
+      driveItem.uuid,
+      driveItem.itemType === 'file' ? driveItem.size : undefined,
+      driveItem.createdAt,
+      driveItem.updatedAt,
+      driveItem.creationTime,
+      driveItem.modificationTime,
+    ]);
   }
 }
