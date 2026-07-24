@@ -128,7 +128,7 @@ export class PUTRequestHandler implements WebDavMethodHandler {
     const thumbnailTimer = CLIUtils.timer();
     await ThumbnailService.instance.tryUploadThumbnail({
       fileUuid: file.uuid,
-      bufferStream: thumbnailStream,
+      input: thumbnailStream?.getBuffer(),
       fileType,
       bucket,
       networkFacade,

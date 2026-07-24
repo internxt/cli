@@ -1,28 +1,80 @@
-import { describe, expect, test } from 'vitest';
-import { BufferStream } from '../../src/utils/stream.utils';
+import { afterEach, describe, expect, test, vi } from 'vitest';
 import { ThumbnailService } from '../../src/services/thumbnail.service';
-import path from 'node:path';
-import { Readable } from 'node:stream';
+import { NetworkFacade } from '../../src/services/network/network-facade.service';
 
 describe('Thumbnail Service tests', () => {
-  const testFilePath = path.join(process.cwd(), 'test/fixtures/test-content.fixture.txt');
+  const networkFacade = {} as NetworkFacade;
 
-  describe('createFileStreamWithBuffer', () => {
-    test('when the file has a supported image type, then a buffer stream and file stream are created', () => {
-      const result = ThumbnailService.instance.createFileStreamWithBuffer({ path: testFilePath, fileType: 'png' });
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
 
-      expect(result.bufferStream).toBeDefined();
-      expect(result.bufferStream).toBeInstanceOf(BufferStream);
-      expect(result.fileStream).toBeDefined();
-      expect(result.fileStream).toBeInstanceOf(Readable);
+  describe('tryUploadThumbnail', () => {
+    test('when an input is provided and the size is greater than zero, then the thumbnail is uploaded', async () => {
+      const uploadThumbnailSpy = vi.spyOn(ThumbnailService.instance, 'uploadThumbnail').mockResolvedValue(undefined);
+
+      await ThumbnailService.instance.tryUploadThumbnail({
+        input: '/path/to/image.png',
+        fileType: 'png',
+        bucket: 'bucket-id',
+        fileUuid: 'file-uuid',
+        networkFacade,
+        size: 1024,
+      });
+
+      expect(uploadThumbnailSpy).toHaveBeenCalledWith(
+        '/path/to/image.png',
+        'png',
+        'bucket-id',
+        'file-uuid',
+        networkFacade,
+        1024,
+      );
     });
 
-    test('when the file has an unsupported type, then only a file stream is created without buffering', () => {
-      const result = ThumbnailService.instance.createFileStreamWithBuffer({ path: testFilePath, fileType: 'txt' });
+    test('when no input is provided, then no thumbnail is uploaded', async () => {
+      const uploadThumbnailSpy = vi.spyOn(ThumbnailService.instance, 'uploadThumbnail').mockResolvedValue(undefined);
 
-      expect(result.bufferStream).toBeUndefined();
-      expect(result.fileStream).toBeDefined();
-      expect(result.fileStream).toBeInstanceOf(Readable);
+      await ThumbnailService.instance.tryUploadThumbnail({
+        input: undefined,
+        fileType: 'png',
+        bucket: 'bucket-id',
+        fileUuid: 'file-uuid',
+        networkFacade,
+        size: 1024,
+      });
+
+      expect(uploadThumbnailSpy).not.toHaveBeenCalled();
+    });
+
+    test('when the size is zero, then no thumbnail is uploaded', async () => {
+      const uploadThumbnailSpy = vi.spyOn(ThumbnailService.instance, 'uploadThumbnail').mockResolvedValue(undefined);
+
+      await ThumbnailService.instance.tryUploadThumbnail({
+        input: '/path/to/image.png',
+        fileType: 'png',
+        bucket: 'bucket-id',
+        fileUuid: 'file-uuid',
+        networkFacade,
+        size: 0,
+      });
+
+      expect(uploadThumbnailSpy).not.toHaveBeenCalled();
+    });
+
+    test('when the thumbnail upload fails, then the error is swallowed', async () => {
+      vi.spyOn(ThumbnailService.instance, 'uploadThumbnail').mockRejectedValue(new Error('upload failed'));
+
+      await expect(
+        ThumbnailService.instance.tryUploadThumbnail({
+          input: '/path/to/image.png',
+          fileType: 'png',
+          bucket: 'bucket-id',
+          fileUuid: 'file-uuid',
+          networkFacade,
+          size: 1024,
+        }),
+      ).resolves.toBeUndefined();
     });
   });
 });

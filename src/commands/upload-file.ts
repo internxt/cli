@@ -11,7 +11,6 @@ import { EncryptionVersion } from '@internxt/sdk/dist/drive/storage/types';
 import { ThumbnailService } from '../services/thumbnail.service';
 import { AuthService } from '../services/auth.service';
 import { UploadUtils } from '../utils/upload.utils';
-import { BufferStream } from '../utils/stream.utils';
 
 export default class UploadFile extends Command {
   static readonly args = {};
@@ -81,14 +80,11 @@ export default class UploadFile extends Command {
     progressBar?.start(100, 0);
 
     let fileId: string | undefined;
-    let thumbnailStream: BufferStream | undefined;
     const fileSize = stats.size ?? 0;
 
     if (fileSize > 0) {
       // Upload file to the Network
       const readStream = createReadStream(filePath);
-      const preparedStreams = UploadUtils.prepareUploadStreams(readStream, fileType);
-      thumbnailStream = preparedStreams.thumbnailStream;
 
       const progressCallback = (progress: number) => {
         progressBar?.update(progress * 100 * 0.99);
@@ -97,7 +93,7 @@ export default class UploadFile extends Command {
       const abortable = new AbortController();
 
       fileId = await networkFacade.uploadFile({
-        from: preparedStreams.fileStream,
+        from: readStream,
         size: fileSize,
         bucketId: bucket,
         progressCallback,
@@ -128,7 +124,7 @@ export default class UploadFile extends Command {
 
     const thumbnailTimer = CLIUtils.timer();
     await ThumbnailService.instance.tryUploadThumbnail({
-      bufferStream: thumbnailStream,
+      input: filePath,
       fileType,
       bucket,
       fileUuid: createdDriveFile.uuid,
