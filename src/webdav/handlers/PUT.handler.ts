@@ -150,6 +150,7 @@ export class PUTRequestHandler implements WebDavMethodHandler {
         `after ${CLIUtils.formatDuration(totalTime)}`,
     );
 
+    res.header('ETag', WebDavUtils.getItemETag(file));
     res.status(statusCode).send();
   };
 }
