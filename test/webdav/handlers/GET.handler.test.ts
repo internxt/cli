@@ -92,6 +92,7 @@ describe('GET request handler', () => {
     expect(response.status).toHaveBeenCalledWith(200);
     expect(response.header).toHaveBeenCalledWith('Content-length', mockFile.size.toString());
     expect(response.header).toHaveBeenCalledWith('Content-Type', 'application/octet-stream');
+    expect(response.header).toHaveBeenCalledWith('ETag', WebDavUtils.getItemETag(mockFile));
     expect(getRequestedResourceStub).toHaveBeenCalledOnce();
     expect(getFileMetadataStub).toHaveBeenCalledOnce();
     expect(authDetailsStub).toHaveBeenCalledOnce();
@@ -147,6 +148,7 @@ describe('GET request handler', () => {
     expect(response.status).toHaveBeenCalledWith(200);
     expect(response.header).toHaveBeenCalledWith('Content-length', (mockSize - rangeStart).toString());
     expect(response.header).toHaveBeenCalledWith('Content-Type', 'application/octet-stream');
+    expect(response.header).toHaveBeenCalledWith('ETag', WebDavUtils.getItemETag(mockFile));
     expect(getRequestedResourceStub).toHaveBeenCalledOnce();
     expect(getFileMetadataStub).toHaveBeenCalledOnce();
     expect(authDetailsStub).toHaveBeenCalledOnce();
@@ -190,6 +192,7 @@ describe('GET request handler', () => {
     expect(response.status).toHaveBeenCalledWith(200);
     expect(response.header).toHaveBeenCalledWith('Content-length', Number(0).toString());
     expect(response.header).toHaveBeenCalledWith('Content-Type', 'application/octet-stream');
+    expect(response.header).toHaveBeenCalledWith('ETag', WebDavUtils.getItemETag(mockFile));
     expect(getRequestedResourceStub).toHaveBeenCalledOnce();
     expect(getFileMetadataStub).toHaveBeenCalledOnce();
     expect(authDetailsStub).toHaveBeenCalledOnce();
