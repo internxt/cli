@@ -93,10 +93,10 @@ describe('UploadUtils', () => {
 
   describe('prepareUploadStreams', () => {
     test('when the file type does not support thumbnails, then the original stream is returned without a thumbnail', () => {
-      vi.spyOn(ThumbnailUtils, 'isFileThumbnailable').mockReturnValue(false);
+      vi.spyOn(ThumbnailUtils, 'isImageThumbnailable').mockReturnValue(false);
       const readable = Readable.from(['test']);
 
-      const result = UploadUtils.prepareUploadStreams(readable, 'pdf');
+      const result = UploadUtils.prepareUploadStreams(readable, 'pdf', 1024);
 
       expect(result.fileStream).toBe(readable);
       expect(result.thumbnailStream).toBeUndefined();
@@ -104,15 +104,36 @@ describe('UploadUtils', () => {
     });
 
     test('when the file type supports thumbnails, then a piped stream and thumbnail stream are returned', () => {
-      vi.spyOn(ThumbnailUtils, 'isFileThumbnailable').mockReturnValue(true);
+      vi.spyOn(ThumbnailUtils, 'isImageThumbnailable').mockReturnValue(true);
       const readable = Readable.from(['test-data']);
 
-      const result = UploadUtils.prepareUploadStreams(readable, 'jpg');
+      const result = UploadUtils.prepareUploadStreams(readable, 'jpg', 1024);
 
       expect(result.fileStream).not.toBe(readable);
       expect(result.fileStream).toBeInstanceOf(Readable);
       expect(result.thumbnailStream).toBeInstanceOf(BufferStream);
       expect(result.isThumbnailable).toBe(true);
+    });
+
+    test('when the file exceeds the max thumbnailable size, then no thumbnail stream is created', () => {
+      const readable = Readable.from(['test-data']);
+      const size = ThumbnailUtils.MAX_IMAGE_THUMBNAILABLE_SIZE_IN_BYTES + 1;
+
+      const result = UploadUtils.prepareUploadStreams(readable, 'jpg', size);
+
+      expect(result.fileStream).toBe(readable);
+      expect(result.thumbnailStream).toBeUndefined();
+      expect(result.isThumbnailable).toBe(false);
+    });
+
+    test('when the file size is zero, then no thumbnail stream is created', () => {
+      const readable = Readable.from([]);
+
+      const result = UploadUtils.prepareUploadStreams(readable, 'jpg', 0);
+
+      expect(result.fileStream).toBe(readable);
+      expect(result.thumbnailStream).toBeUndefined();
+      expect(result.isThumbnailable).toBe(false);
     });
   });
 

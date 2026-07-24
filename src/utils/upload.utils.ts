@@ -25,12 +25,13 @@ export class UploadUtils {
   static readonly prepareUploadStreams = (
     readable: Readable,
     fileType: string,
+    size: number,
   ): {
     fileStream: Readable;
     thumbnailStream: BufferStream | undefined;
     isThumbnailable: boolean;
   } => {
-    const isThumbnailable = ThumbnailUtils.isFileThumbnailable(fileType);
+    const isThumbnailable = ThumbnailUtils.isImageThumbnailable(fileType, size);
     if (!isThumbnailable) {
       return { fileStream: readable, thumbnailStream: undefined, isThumbnailable };
     }

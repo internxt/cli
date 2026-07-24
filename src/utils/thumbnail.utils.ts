@@ -17,9 +17,6 @@ const imageExtensions: FileExtensionMap = {
   raw: ['raw', 'cr2', 'nef', 'orf', 'sr2'],
   webp: ['webp'],
 };
-const pdfExtensions: FileExtensionMap = {
-  pdf: ['pdf'],
-};
 const thumbnailableImageExtension: Set<string> = new Set([
   ...imageExtensions['jpg'],
   ...imageExtensions['png'],
@@ -27,22 +24,14 @@ const thumbnailableImageExtension: Set<string> = new Set([
   ...imageExtensions['gif'],
   ...imageExtensions['tiff'],
 ]);
-const thumbnailablePdfExtension: Set<string> = new Set(pdfExtensions['pdf']);
-const thumbnailableExtension: Set<string> = new Set(thumbnailableImageExtension);
 
 export class ThumbnailUtils {
-  static readonly MAX_IMAGE_THUMBNAILABLE_SIZE_IN_MB = 500 * 1024 * 1024;
-
-  static readonly isFileThumbnailable = (fileType: string) => {
-    return fileType.trim().length > 0 && thumbnailableExtension.has(fileType.trim().toLowerCase());
-  };
-
-  static readonly isPDFThumbnailable = (fileType: string) => {
-    return fileType.trim().length > 0 && thumbnailablePdfExtension.has(fileType.trim().toLowerCase());
-  };
+  static readonly MAX_IMAGE_THUMBNAILABLE_SIZE_IN_BYTES = 128 * 1024 * 1024;
 
   static readonly isImageThumbnailable = (fileType: string, size: number) => {
-    if (size > ThumbnailUtils.MAX_IMAGE_THUMBNAILABLE_SIZE_IN_MB) return false;
+    if (size <= 0 || size > ThumbnailUtils.MAX_IMAGE_THUMBNAILABLE_SIZE_IN_BYTES) {
+      return false;
+    }
     return fileType.trim().length > 0 && thumbnailableImageExtension.has(fileType.trim().toLowerCase());
   };
 }
