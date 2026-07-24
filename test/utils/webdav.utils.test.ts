@@ -178,8 +178,8 @@ describe('Webdav utils', () => {
     test('when the parts are wrapped in quotes, then a quoted etag is returned', () => {
       const etag = WebDavUtils.generateETag(['uuid-1']);
 
-      expect(etag.startsWith('"')).to.be.true;
-      expect(etag.endsWith('"')).to.be.true;
+      expect(etag.startsWith('"')).toBe(true);
+      expect(etag.endsWith('"')).toBe(true);
     });
 
     test('when any part differs, then a different etag is generated', () => {
