@@ -111,8 +111,8 @@ export class WebDavUtils {
     await DriveItemRepository.instance.delete([driveItem.uuid]);
   }
 
-  static generateETag(parts: Array<string | number | Date | null | undefined>): string {
-    const normalized = parts.map((part) => (part instanceof Date ? part.getTime() : (part ?? '')));
+  static generateETag(parts: Array<string | number | null | undefined>): string {
+    const normalized = parts.map((part) => part ?? '-');
     const hash = createHash('sha256').update(normalized.join('|')).digest('hex');
     return `"${hash}"`;
   }
@@ -121,10 +121,10 @@ export class WebDavUtils {
     return this.generateETag([
       driveItem.uuid,
       driveItem.itemType === 'file' ? driveItem.size : undefined,
-      driveItem.createdAt,
-      driveItem.updatedAt,
-      driveItem.creationTime,
-      driveItem.modificationTime,
+      driveItem.createdAt.getTime(),
+      driveItem.updatedAt.getTime(),
+      driveItem.creationTime.getTime(),
+      driveItem.modificationTime.getTime(),
     ]);
   }
 }

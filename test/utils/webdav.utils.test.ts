@@ -169,8 +169,8 @@ describe('Webdav utils', () => {
   describe('generateETag', () => {
     test('when the same parts are given, then the same etag is generated', () => {
       const date = new Date('2024-03-04T15:11:01.000Z');
-      const etag1 = WebDavUtils.generateETag(['uuid-1', 100, date]);
-      const etag2 = WebDavUtils.generateETag(['uuid-1', 100, date]);
+      const etag1 = WebDavUtils.generateETag(['uuid-1', 100, date.getTime()]);
+      const etag2 = WebDavUtils.generateETag(['uuid-1', 100, date.getTime()]);
 
       expect(etag1).to.be.equal(etag2);
     });
@@ -184,16 +184,18 @@ describe('Webdav utils', () => {
 
     test('when any part differs, then a different etag is generated', () => {
       const date = new Date('2024-03-04T15:11:01.000Z');
-      const baseEtag = WebDavUtils.generateETag(['uuid-1', 100, date]);
+      const baseEtag = WebDavUtils.generateETag(['uuid-1', 100, date.getTime()]);
 
-      expect(WebDavUtils.generateETag(['uuid-2', 100, date])).to.not.be.equal(baseEtag);
-      expect(WebDavUtils.generateETag(['uuid-1', 200, date])).to.not.be.equal(baseEtag);
-      expect(WebDavUtils.generateETag(['uuid-1', 100, new Date('2024-03-04T15:11:02.000Z')])).to.not.be.equal(baseEtag);
+      expect(WebDavUtils.generateETag(['uuid-2', 100, date.getTime()])).to.not.be.equal(baseEtag);
+      expect(WebDavUtils.generateETag(['uuid-1', 200, date.getTime()])).to.not.be.equal(baseEtag);
+      expect(WebDavUtils.generateETag(['uuid-1', 100, new Date('2024-03-04T15:11:02.000Z').getTime()])).to.not.be.equal(
+        baseEtag,
+      );
     });
 
     test('when a Date is given, then it is normalized using its timestamp', () => {
       const date = new Date('2024-03-04T15:11:01.000Z');
-      const etagFromDate = WebDavUtils.generateETag(['uuid-1', date]);
+      const etagFromDate = WebDavUtils.generateETag(['uuid-1', date.getTime()]);
       const etagFromTimestamp = WebDavUtils.generateETag(['uuid-1', date.getTime()]);
 
       expect(etagFromDate).to.be.equal(etagFromTimestamp);
