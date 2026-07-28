@@ -13,7 +13,6 @@ import {
   createProgressFixtures,
 } from './upload.service.helpers';
 import { newFileItem } from '../../../fixtures/drive.fixture';
-import { ThumbnailUtils } from '../../../../src/utils/thumbnail.utils';
 import { ThumbnailService } from '../../../../src/services/thumbnail.service';
 
 vi.mock('fs', () => ({
@@ -37,12 +36,7 @@ describe('Upload File Service', () => {
     vi.mocked(stat).mockResolvedValue(createMockStats(1024) as Awaited<ReturnType<typeof stat>>);
     vi.mocked(createReadStream).mockReturnValue(createMockReadStream() as ReturnType<typeof createReadStream>);
     vi.spyOn(ErrorUtils, 'isAlreadyExistsError').mockReturnValue(false);
-    vi.spyOn(ThumbnailUtils, 'isFileThumbnailable').mockReturnValue(false);
     vi.spyOn(ThumbnailService.instance, 'tryUploadThumbnail').mockResolvedValue(undefined);
-    vi.spyOn(ThumbnailService.instance, 'createFileStreamWithBuffer').mockReturnValue({
-      fileStream: createMockReadStream() as ReturnType<typeof createReadStream>,
-      bufferStream: undefined,
-    });
     vi.spyOn(DriveFileService.instance, 'createFile').mockResolvedValue(mockFile);
   });
 
@@ -300,14 +294,6 @@ describe('Upload File Service', () => {
     });
 
     test('when a thumbnailable file is uploaded, then a thumbnail is generated', async () => {
-      const mockBufferStream = { getBuffer: vi.fn() };
-      vi.spyOn(ThumbnailService.instance, 'createFileStreamWithBuffer').mockReturnValue({
-        fileStream: createMockReadStream() as ReturnType<typeof createReadStream>,
-        bufferStream: mockBufferStream as unknown as ReturnType<
-          typeof ThumbnailService.instance.createFileStreamWithBuffer
-        >['bufferStream'],
-      });
-
       const file = createFileSystemNodeFixture({
         type: 'file',
         name: 'image.png',
@@ -325,7 +311,7 @@ describe('Upload File Service', () => {
       });
 
       expect(ThumbnailService.instance.tryUploadThumbnail).toHaveBeenCalledWith({
-        bufferStream: mockBufferStream,
+        input: file.absolutePath,
         fileType: 'png',
         bucket,
         fileUuid: mockFile.uuid,

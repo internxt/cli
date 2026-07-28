@@ -19,6 +19,8 @@ export class HEADRequestHandler implements WebDavMethodHandler {
 
     webdavLogger.info(`[HEAD] [${driveItem.uuid}] Found Drive item`);
 
+    res.header('ETag', WebDavUtils.getItemETag(driveItem));
+
     if (driveItem.itemType === 'file') {
       const range = req.headers['range'];
       const rangeOptions = NetworkUtils.parseRangeHeader({

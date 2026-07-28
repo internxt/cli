@@ -166,6 +166,84 @@ describe('Webdav utils', () => {
     });
   });
 
+  describe('generateETag', () => {
+    test('when the same parts are given, then the same etag is generated', () => {
+      const date = new Date('2024-03-04T15:11:01.000Z');
+      const etag1 = WebDavUtils.generateETag(['uuid-1', 100, date.getTime()]);
+      const etag2 = WebDavUtils.generateETag(['uuid-1', 100, date.getTime()]);
+
+      expect(etag1).to.be.equal(etag2);
+    });
+
+    test('that etag is wrapped with double quotes', () => {
+      const etag = WebDavUtils.generateETag(['uuid-1']);
+
+      expect(etag.startsWith('"')).toBe(true);
+      expect(etag.endsWith('"')).toBe(true);
+    });
+
+    test('when any part differs, then a different etag is generated', () => {
+      const date = new Date('2024-03-04T15:11:01.000Z');
+      const baseEtag = WebDavUtils.generateETag(['uuid-1', 100, date.getTime()]);
+
+      expect(WebDavUtils.generateETag(['uuid-2', 100, date.getTime()])).to.not.be.equal(baseEtag);
+      expect(WebDavUtils.generateETag(['uuid-1', 200, date.getTime()])).to.not.be.equal(baseEtag);
+      expect(WebDavUtils.generateETag(['uuid-1', 100, new Date('2024-03-04T15:11:02.000Z').getTime()])).to.not.be.equal(
+        baseEtag,
+      );
+    });
+
+    test('when a Date is given, then it is normalized using its timestamp', () => {
+      const date = new Date('2024-03-04T15:11:01.000Z');
+      const etagFromDate = WebDavUtils.generateETag(['uuid-1', date.getTime()]);
+      const etagFromTimestamp = WebDavUtils.generateETag(['uuid-1', date.getTime()]);
+
+      expect(etagFromDate).to.be.equal(etagFromTimestamp);
+    });
+
+    test('when null or undefined parts are given, then they are treated as equal empty values', () => {
+      const etagFromNull = WebDavUtils.generateETag(['uuid-1', null]);
+      const etagFromUndefined = WebDavUtils.generateETag(['uuid-1', undefined]);
+
+      expect(etagFromNull).to.be.equal(etagFromUndefined);
+    });
+  });
+
+  describe('getItemETag', () => {
+    test('when the same file is given, then the same etag is generated', () => {
+      const fileItem = newFileItem();
+
+      expect(WebDavUtils.getItemETag(fileItem)).to.be.equal(WebDavUtils.getItemETag(fileItem));
+    });
+
+    test('when a file changes size, then the etag changes', () => {
+      const fileItem = newFileItem({ size: 100 });
+      const resizedFileItem = { ...fileItem, size: 200 };
+
+      expect(WebDavUtils.getItemETag(resizedFileItem)).to.not.be.equal(WebDavUtils.getItemETag(fileItem));
+    });
+
+    test('when a file changes modificationTime, then the etag changes', () => {
+      const fileItem = newFileItem({ modificationTime: new Date('2024-01-01T00:00:00.000Z') });
+      const touchedFileItem = { ...fileItem, modificationTime: new Date('2024-02-02T00:00:00.000Z') };
+
+      expect(WebDavUtils.getItemETag(touchedFileItem)).to.not.be.equal(WebDavUtils.getItemETag(fileItem));
+    });
+
+    test('when two folders share uuid and dates, then they get the same etag regardless of size', () => {
+      const folderItem = newFolderItem();
+
+      expect(WebDavUtils.getItemETag(folderItem)).to.be.equal(WebDavUtils.getItemETag({ ...folderItem }));
+    });
+
+    test('when two items have different uuids, then they get different etags', () => {
+      const fileItem = newFileItem({ uuid: 'uuid-1' });
+      const otherFileItem = { ...fileItem, uuid: 'uuid-2' };
+
+      expect(WebDavUtils.getItemETag(fileItem)).to.not.be.equal(WebDavUtils.getItemETag(otherFileItem));
+    });
+  });
+
   describe('deleteOrTrashItem', () => {
     test('when permanent deletion is enabled for files, then files are deleted permanently and cache is cleared', async () => {
       const fileItem = newFileItem();

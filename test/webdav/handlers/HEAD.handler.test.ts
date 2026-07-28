@@ -40,6 +40,7 @@ describe('HEAD request handler', () => {
 
     await sut.handle(request, response);
     expect(response.status).toHaveBeenCalledWith(200);
+    expect(response.header).toHaveBeenCalledWith('ETag', WebDavUtils.getItemETag(mockFolder));
     expect(getRequestedResourceStub).toHaveBeenCalledOnce();
     expect(getFolderMetadataStub).toHaveBeenCalledOnce();
   });
@@ -68,6 +69,7 @@ describe('HEAD request handler', () => {
     expect(response.status).toHaveBeenCalledWith(200);
     expect(response.header).toHaveBeenCalledWith('Content-Type', 'application/octet-stream');
     expect(response.header).toHaveBeenCalledWith('Content-length', mockFile.size.toString());
+    expect(response.header).toHaveBeenCalledWith('ETag', WebDavUtils.getItemETag(mockFile));
     expect(getRequestedResourceStub).toHaveBeenCalledOnce();
     expect(getFileMetadataStub).toHaveBeenCalledOnce();
   });
@@ -100,6 +102,7 @@ describe('HEAD request handler', () => {
     expect(response.status).toHaveBeenCalledWith(200);
     expect(response.header).toHaveBeenCalledWith('Content-length', (mockSize - rangeStart).toString());
     expect(response.header).toHaveBeenCalledWith('Content-Type', 'application/octet-stream');
+    expect(response.header).toHaveBeenCalledWith('ETag', WebDavUtils.getItemETag(mockFile));
     expect(getRequestedResourceStub).toHaveBeenCalledOnce();
     expect(getFileMetadataStub).toHaveBeenCalledOnce();
   });

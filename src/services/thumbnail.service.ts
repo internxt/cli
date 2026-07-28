@@ -1,10 +1,8 @@
 import { Readable } from 'node:stream';
-import { createReadStream } from 'node:fs';
 import { DriveFileService } from './drive/drive-file.service';
 import { StorageTypes } from '@internxt/sdk/dist/drive';
 import { NetworkFacade } from './network/network-facade.service';
 import { ThumbnailConfig, ThumbnailUtils } from '../utils/thumbnail.utils';
-import { BufferStream } from '../utils/stream.utils';
 import { ErrorUtils } from '../utils/errors.utils';
 import { AsyncUtils } from '../utils/async.utils';
 
@@ -26,7 +24,7 @@ export class ThumbnailService {
   private static readonly MAX_THUMBNAIL_TIMEOUT = 30000;
 
   public uploadThumbnail = async (
-    fileContent: Buffer,
+    input: string | Buffer,
     fileType: string,
     userBucket: string,
     file_id: string,
@@ -35,7 +33,7 @@ export class ThumbnailService {
   ): Promise<StorageTypes.Thumbnail | undefined> => {
     let thumbnailBuffer: Buffer | undefined;
     if (ThumbnailUtils.isImageThumbnailable(fileType, fileSize)) {
-      thumbnailBuffer = await this.getThumbnailFromImageBuffer(fileContent);
+      thumbnailBuffer = await this.generateThumbnail(input);
     }
     if (thumbnailBuffer) {
       const size = thumbnailBuffer.length;
@@ -61,10 +59,10 @@ export class ThumbnailService {
     }
   };
 
-  private readonly getThumbnailFromImageBuffer = async (buffer: Buffer): Promise<Buffer | undefined> => {
+  private readonly generateThumbnail = async (input: string | Buffer): Promise<Buffer | undefined> => {
     const sharp = await getSharp();
     if (sharp) {
-      return sharp(buffer, { failOn: 'none' })
+      return sharp(input, { failOn: 'none' })
         .resize({
           height: ThumbnailConfig.MaxHeight,
           width: ThumbnailConfig.MaxWidth,
@@ -78,14 +76,14 @@ export class ThumbnailService {
   };
 
   public tryUploadThumbnail = async ({
-    bufferStream,
+    input,
     fileType,
     bucket,
     fileUuid,
     networkFacade,
     size,
   }: {
-    bufferStream?: BufferStream;
+    input?: string | Buffer;
     fileType: string;
     bucket: string;
     fileUuid: string;
@@ -93,10 +91,9 @@ export class ThumbnailService {
     size: number;
   }) => {
     try {
-      const thumbnailBuffer = bufferStream?.getBuffer();
-      if (thumbnailBuffer && size > 0) {
+      if (input && size > 0) {
         await AsyncUtils.withTimeout(
-          ThumbnailService.instance.uploadThumbnail(thumbnailBuffer, fileType, bucket, fileUuid, networkFacade, size),
+          ThumbnailService.instance.uploadThumbnail(input, fileType, bucket, fileUuid, networkFacade, size),
           ThumbnailService.MAX_THUMBNAIL_TIMEOUT,
           'Thumbnail upload timeout',
         );
@@ -104,26 +101,5 @@ export class ThumbnailService {
     } catch (error) {
       ErrorUtils.report(error);
     }
-  };
-
-  public createFileStreamWithBuffer = ({
-    path,
-    fileType,
-  }: {
-    path: string;
-    fileType: string;
-  }): {
-    bufferStream?: BufferStream;
-    fileStream: Readable;
-  } => {
-    const readable: Readable = createReadStream(path);
-    if (ThumbnailUtils.isFileThumbnailable(fileType)) {
-      const bufferStream = new BufferStream();
-      return {
-        bufferStream,
-        fileStream: readable.pipe(bufferStream),
-      };
-    }
-    return { fileStream: readable };
   };
 }

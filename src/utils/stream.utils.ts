@@ -67,16 +67,15 @@ export class StreamUtils {
 }
 
 export class BufferStream extends Transform {
-  public buffer: Buffer | null;
+  private chunks: Buffer[];
 
   constructor(opts?: TransformOptions) {
     super(opts);
-    this.buffer = null;
+    this.chunks = [];
   }
 
   _transform(chunk: Buffer, _: BufferEncoding, callback: TransformCallback) {
-    const currentBuffer = this.buffer ?? Buffer.alloc(0);
-    this.buffer = Buffer.concat([currentBuffer, chunk]);
+    this.chunks.push(chunk);
     callback(null, chunk);
   }
 
@@ -85,10 +84,11 @@ export class BufferStream extends Transform {
   }
 
   reset() {
-    this.buffer = null;
+    this.chunks = [];
   }
 
-  getBuffer(): Buffer | null {
-    return this.buffer;
+  getBuffer(): Buffer | undefined {
+    if (this.chunks.length === 0) return undefined;
+    return Buffer.concat(this.chunks);
   }
 }

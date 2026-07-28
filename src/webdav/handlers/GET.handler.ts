@@ -28,6 +28,7 @@ export class GETRequestHandler implements WebDavMethodHandler {
 
     res.header('Content-Type', 'application/octet-stream');
     res.header('Accept-Ranges', 'bytes');
+    res.header('ETag', WebDavUtils.getItemETag(driveFile));
 
     const fileSize = driveFile.size ?? 0;
 
@@ -57,10 +58,10 @@ export class GETRequestHandler implements WebDavMethodHandler {
         throw new NotValidFileIdError();
       }
 
-      const { networkFacade, bucket, mnemonic } = await CLIUtils.prepareNetwork(user);
+      const { networkFacade, mnemonic } = await CLIUtils.prepareNetwork(user);
 
       const [executeDownload] = await networkFacade.downloadToStream(
-        bucket,
+        driveFile.bucket,
         mnemonic,
         driveFile.fileId,
         contentLength,

@@ -57,7 +57,7 @@ export class PUTRequestHandler implements WebDavMethodHandler {
     const { user } = await AuthService.instance.getAuthDetails();
     const fileType = resource.path.ext.replace('.', '');
 
-    const { fileStream, thumbnailStream } = UploadUtils.prepareUploadStreams(req, fileType);
+    const { fileStream, thumbnailStream } = UploadUtils.prepareUploadStreams(req, fileType, contentLength);
 
     const { networkFacade, bucket } = await CLIUtils.prepareNetwork(user);
 
@@ -144,7 +144,7 @@ export class PUTRequestHandler implements WebDavMethodHandler {
     const thumbnailTimer = CLIUtils.timer();
     await ThumbnailService.instance.tryUploadThumbnail({
       fileUuid: file.uuid,
-      bufferStream: thumbnailStream,
+      input: thumbnailStream?.getBuffer(),
       fileType,
       bucket,
       networkFacade,
@@ -166,6 +166,7 @@ export class PUTRequestHandler implements WebDavMethodHandler {
         `after ${CLIUtils.formatDuration(totalTime)}`,
     );
 
+    res.header('ETag', WebDavUtils.getItemETag(file));
     res.status(statusCode).send();
   };
 }
