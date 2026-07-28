@@ -28,6 +28,7 @@ export class GETRequestHandler implements WebDavMethodHandler {
 
     res.header('Content-Type', 'application/octet-stream');
     res.header('Accept-Ranges', 'bytes');
+    res.header('ETag', WebDavUtils.getItemETag(driveFile));
 
     const fileSize = driveFile.size ?? 0;
 

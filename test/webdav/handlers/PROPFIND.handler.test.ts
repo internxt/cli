@@ -15,19 +15,14 @@ import { FormatUtils } from '../../../src/utils/format.utils';
 import { WebDavRequestedResource } from '../../../src/types/webdav.types';
 import { WebDavUtils } from '../../../src/utils/webdav.utils';
 import mime from 'mime-types';
-import crypto, { randomUUID } from 'node:crypto';
+import crypto from 'node:crypto';
 import { UsageService } from '../../../src/services/usage.service';
 import { XMLUtils } from '../../../src/utils/xml.utils';
+import { DriveFileItem, DriveFolderItem } from '../../../src/types/drive.types';
 
-vi.mock('node:crypto', async () => {
-  const actual = await vi.importActual<typeof import('node:crypto')>('node:crypto');
-  return {
-    ...(actual as object),
-    randomUUID: vi.fn().mockImplementation(actual.randomUUID),
-  };
-});
-
-const randomUUIDStub = vi.mocked(randomUUID);
+const getExpectedETag = (item: DriveFileItem | DriveFolderItem): string => {
+  return WebDavUtils.getItemETag(item).replaceAll('"', '');
+};
 
 describe('PROPFIND request handler', () => {
   let sut: PROPFINDRequestHandler;
@@ -57,11 +52,8 @@ describe('PROPFIND request handler', () => {
     });
     const usageFixture = crypto.randomInt(2000000000);
     const spaceLimitFixture = crypto.randomInt(2000000000);
-    const uuidFixture = 'test-test-test-test-test';
-    const etagFixture = uuidFixture.replaceAll('-', '');
+    const etagFixture = getExpectedETag(folderFixture);
 
-    randomUUIDStub.mockClear();
-    randomUUIDStub.mockImplementation(() => uuidFixture);
     const getRequestedResourceStub = vi
       .spyOn(WebDavUtils, 'getRequestedResource')
       .mockResolvedValue(requestedFolderResource);
@@ -141,11 +133,16 @@ describe('PROPFIND request handler', () => {
     });
     const usageFixture = crypto.randomInt(2000000000);
     const spaceLimitFixture = crypto.randomInt(2000000000);
-    const uuidFixture = 'test-test-test-test-test';
-    const etagFixture = uuidFixture.replaceAll('-', '');
-
-    randomUUIDStub.mockClear();
-    randomUUIDStub.mockImplementation(() => uuidFixture);
+    const etagFixture = getExpectedETag(folderFixture);
+    const childEtagFixture = getExpectedETag(
+      newFolderItem({
+        uuid: paginatedFolder1.uuid,
+        createdAt: new Date(paginatedFolder1.createdAt),
+        updatedAt: new Date(paginatedFolder1.updatedAt),
+        creationTime: new Date(paginatedFolder1.creationTime),
+        modificationTime: new Date(paginatedFolder1.modificationTime),
+      }),
+    );
 
     const getRequestedResourceStub = vi
       .spyOn(WebDavUtils, 'getRequestedResource')
@@ -163,7 +160,7 @@ describe('PROPFIND request handler', () => {
     await sut.handle(request, response);
     expect(response.status).toHaveBeenCalledWith(207);
     expect(response.send).toHaveBeenCalledWith(
-      `<?xml version="1.0" encoding="utf-8" ?><D:multistatus xmlns:D="DAV:"><D:response><D:href>${XMLUtils.encodeWebDavUri('/')}</D:href><D:propstat><D:status>HTTP/1.1 200 OK</D:status><D:prop><D:getcontenttype>httpd/unix-directory</D:getcontenttype><D:getetag>&quot;${etagFixture}&quot;</D:getetag><x1:lastmodified xmlns:x1="SAR:">${FormatUtils.formatDateForWebDav(folderFixture.updatedAt)}</x1:lastmodified><x2:executable xmlns:x2="http://apache.org/dav/props/">F</x2:executable><x3:Win32FileAttributes xmlns:x3="urn:schemas-microsoft-com:">00000030</x3:Win32FileAttributes><D:quota-available-bytes>${spaceLimitFixture - usageFixture}</D:quota-available-bytes><D:quota-used-bytes>${usageFixture}</D:quota-used-bytes><D:resourcetype><D:collection/></D:resourcetype></D:prop></D:propstat></D:response><D:response><D:href>${XMLUtils.encodeWebDavUri(`/${paginatedFolder1.plainName}/`)}</D:href><D:propstat><D:status>HTTP/1.1 200 OK</D:status><D:prop><D:displayname>${paginatedFolder1.plainName}</D:displayname><D:getlastmodified>${FormatUtils.formatDateForWebDav(paginatedFolder1.updatedAt)}</D:getlastmodified><D:getcontentlength>0</D:getcontentlength><D:getcontenttype>httpd/unix-directory</D:getcontenttype><D:getetag>&quot;${etagFixture}&quot;</D:getetag><D:resourcetype><D:collection/></D:resourcetype></D:prop></D:propstat></D:response></D:multistatus>`,
+      `<?xml version="1.0" encoding="utf-8" ?><D:multistatus xmlns:D="DAV:"><D:response><D:href>${XMLUtils.encodeWebDavUri('/')}</D:href><D:propstat><D:status>HTTP/1.1 200 OK</D:status><D:prop><D:getcontenttype>httpd/unix-directory</D:getcontenttype><D:getetag>&quot;${etagFixture}&quot;</D:getetag><x1:lastmodified xmlns:x1="SAR:">${FormatUtils.formatDateForWebDav(folderFixture.updatedAt)}</x1:lastmodified><x2:executable xmlns:x2="http://apache.org/dav/props/">F</x2:executable><x3:Win32FileAttributes xmlns:x3="urn:schemas-microsoft-com:">00000030</x3:Win32FileAttributes><D:quota-available-bytes>${spaceLimitFixture - usageFixture}</D:quota-available-bytes><D:quota-used-bytes>${usageFixture}</D:quota-used-bytes><D:resourcetype><D:collection/></D:resourcetype></D:prop></D:propstat></D:response><D:response><D:href>${XMLUtils.encodeWebDavUri(`/${paginatedFolder1.plainName}/`)}</D:href><D:propstat><D:status>HTTP/1.1 200 OK</D:status><D:prop><D:displayname>${paginatedFolder1.plainName}</D:displayname><D:getlastmodified>${FormatUtils.formatDateForWebDav(paginatedFolder1.updatedAt)}</D:getlastmodified><D:getcontentlength>0</D:getcontentlength><D:getcontenttype>httpd/unix-directory</D:getcontenttype><D:getetag>&quot;${childEtagFixture}&quot;</D:getetag><D:resourcetype><D:collection/></D:resourcetype></D:prop></D:propstat></D:response></D:multistatus>`,
     );
     expect(getRequestedResourceStub).toHaveBeenCalledOnce();
     expect(getAndSearchItemFromResourceStub).toHaveBeenCalledOnce();
@@ -224,8 +221,7 @@ describe('PROPFIND request handler', () => {
     });
 
     const fileFixture = newFileItem({ name: 'file', type: 'png' });
-    const uuidFixture = 'test-test-test-test-test';
-    const etagFixture = uuidFixture.replaceAll('-', '');
+    const etagFixture = getExpectedETag(fileFixture);
     const mimeFixture = 'image/png';
 
     const getRequestedResourceStub = vi
@@ -234,8 +230,6 @@ describe('PROPFIND request handler', () => {
     const getAndSearchItemFromResourceStub = vi
       .spyOn(WebDavUtils, 'getDriveItemFromResource')
       .mockResolvedValue(fileFixture);
-    randomUUIDStub.mockClear();
-    randomUUIDStub.mockImplementation(() => uuidFixture);
     const mimeLookupStub = vi.spyOn(mime, 'lookup').mockReturnValue(mimeFixture);
 
     await sut.handle(request, response);
@@ -245,7 +239,6 @@ describe('PROPFIND request handler', () => {
     );
     expect(getRequestedResourceStub).toHaveBeenCalledOnce();
     expect(getAndSearchItemFromResourceStub).toHaveBeenCalledOnce();
-    expect(randomUUIDStub).toHaveBeenCalledOnce();
     expect(mimeLookupStub).toHaveBeenCalledOnce();
   });
 

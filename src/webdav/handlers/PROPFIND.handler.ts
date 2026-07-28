@@ -7,7 +7,6 @@ import { DriveFolderService } from '../../services/drive/drive-folder.service';
 import { DriveUtils } from '../../utils/drive.utils';
 import { FormatUtils } from '../../utils/format.utils';
 import { Request, Response } from 'express';
-import { randomUUID } from 'node:crypto';
 import mime from 'mime-types';
 import { WebDavUtils } from '../../utils/webdav.utils';
 import { webdavLogger } from '../../utils/logger.utils';
@@ -188,7 +187,7 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
         [XMLUtils.addDefaultNamespace('status')]: 'HTTP/1.1 200 OK',
         [XMLUtils.addDefaultNamespace('prop')]: {
           [XMLUtils.addDefaultNamespace('getcontenttype')]: 'httpd/unix-directory',
-          [XMLUtils.addDefaultNamespace('getetag')]: '"' + randomUUID().replaceAll('-', '') + '"',
+          [XMLUtils.addDefaultNamespace('getetag')]: WebDavUtils.getItemETag(driveFolderItem),
           'x1:lastmodified': {
             '#text': FormatUtils.formatDateForWebDav(driveFolderItem.updatedAt),
             '@_xmlns:x1': 'SAR:',
@@ -224,7 +223,7 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
           [XMLUtils.addDefaultNamespace('getlastmodified')]: FormatUtils.formatDateForWebDav(driveFolderItem.updatedAt),
           [XMLUtils.addDefaultNamespace('getcontentlength')]: 0,
           [XMLUtils.addDefaultNamespace('getcontenttype')]: 'httpd/unix-directory',
-          [XMLUtils.addDefaultNamespace('getetag')]: '"' + randomUUID().replaceAll('-', '') + '"',
+          [XMLUtils.addDefaultNamespace('getetag')]: WebDavUtils.getItemETag(driveFolderItem),
           [XMLUtils.addDefaultNamespace('resourcetype')]: {
             [XMLUtils.addDefaultNamespace('collection')]: '',
           },
@@ -245,7 +244,7 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
         [XMLUtils.addDefaultNamespace('status')]: 'HTTP/1.1 200 OK',
         [XMLUtils.addDefaultNamespace('prop')]: {
           [XMLUtils.addDefaultNamespace('resourcetype')]: '',
-          [XMLUtils.addDefaultNamespace('getetag')]: '"' + randomUUID().replaceAll('-', '') + '"',
+          [XMLUtils.addDefaultNamespace('getetag')]: WebDavUtils.getItemETag(driveFileItem),
           [XMLUtils.addDefaultNamespace('displayname')]: displayName,
           [XMLUtils.addDefaultNamespace('getcontenttype')]: mime.lookup(displayName) || 'application/octet-stream',
           [XMLUtils.addDefaultNamespace('getlastmodified')]: lastModified,

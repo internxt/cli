@@ -76,6 +76,7 @@ describe('PUT request handler', () => {
 
     await sut.handle(request, response);
     expect(response.status).toHaveBeenCalledWith(201);
+    expect(response.header).toHaveBeenCalledWith('ETag', WebDavUtils.getItemETag(fileFixture));
     expect(getRequestedResourceStub).toHaveBeenCalledTimes(2);
     expect(getAndSearchItemFromResourceStub).toHaveBeenCalledOnce();
     expect(getDriveFolderFromResourceStub).toHaveBeenCalledOnce();
@@ -123,6 +124,7 @@ describe('PUT request handler', () => {
 
     await sut.handle(request, response);
     expect(response.status).toHaveBeenCalledWith(201);
+    expect(response.header).toHaveBeenCalledWith('ETag', WebDavUtils.getItemETag(fileFixture));
     expect(getRequestedResourceStub).toHaveBeenCalledTimes(2);
     expect(getAndSearchItemFromResourceStub).toHaveBeenCalledOnce();
     expect(getDriveFolderFromResourceStub).toHaveBeenCalledOnce();
@@ -172,6 +174,7 @@ describe('PUT request handler', () => {
 
     await sut.handle(request, response);
     expect(response.status).toHaveBeenCalledWith(204);
+    expect(response.header).toHaveBeenCalledWith('ETag', WebDavUtils.getItemETag(fileFixture));
     expect(getRequestedResourceStub).toHaveBeenCalledTimes(2);
     expect(getAndSearchItemFromResourceStub).toHaveBeenCalledOnce();
     expect(getDriveFolderFromResourceStub).toHaveBeenCalledOnce();
