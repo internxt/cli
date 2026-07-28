@@ -52,12 +52,6 @@ export class PUTRequestHandler implements WebDavMethodHandler {
       webdavLogger.info(
         `[PUT] File '${resource.name}' already exists in '${resource.path.dir}', it will be replaced...`,
       );
-      try {
-        await WebDavUtils.deleteOrTrashItem(driveFileItem);
-        await DriveItemRepository.instance.delete([driveFileItem.uuid]);
-      } catch {
-        //noop
-      }
     }
 
     const { user } = await AuthService.instance.getAuthDetails();
@@ -104,7 +98,7 @@ export class PUTRequestHandler implements WebDavMethodHandler {
     }
 
     const driveTimer = CLIUtils.timer();
-    const file = await DriveFileService.instance.createFile({
+    const filePayload = {
       plainName: resource.path.name,
       type: fileType,
       size: contentLength,
@@ -112,7 +106,29 @@ export class PUTRequestHandler implements WebDavMethodHandler {
       fileId,
       bucket,
       encryptVersion: EncryptionVersion.Aes03,
-    });
+    };
+
+    let file;
+    if (driveFileItem?.itemType === 'file' && contentLength > 0) {
+      try {
+        file = await DriveFileService.instance.replaceFile(driveFileItem.uuid, filePayload);
+      } catch (error) {
+        webdavLogger.warn(
+          `[PUT] File replace failed for '${resource.url}', falling back to delete and create: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+        );
+        await WebDavUtils.deleteOrTrashItem(driveFileItem);
+        await DriveItemRepository.instance.delete([driveFileItem.uuid]);
+        file = await DriveFileService.instance.createFile(filePayload);
+      }
+    } else {
+      if (driveFileItem?.itemType === 'file') {
+        await WebDavUtils.deleteOrTrashItem(driveFileItem);
+        await DriveItemRepository.instance.delete([driveFileItem.uuid]);
+      }
+      file = await DriveFileService.instance.createFile(filePayload);
+    }
     timings.driveUpload = driveTimer.stop();
 
     await DriveItemRepository.instance.createOrUpdate([

@@ -168,6 +168,7 @@ describe('PUT request handler', () => {
       .mockResolvedValue(UserCredentialsFixture);
     const uploadStub = vi.spyOn(networkFacade, 'uploadFile').mockResolvedValue('uploaded-file-id');
     const createDriveFileStub = vi.spyOn(DriveFileService.instance, 'createFile').mockResolvedValue(fileFixture);
+    const replaceDriveFileStub = vi.spyOn(DriveFileService.instance, 'replaceFile').mockResolvedValue(fileFixture);
 
     await sut.handle(request, response);
     expect(response.status).toHaveBeenCalledWith(204);
@@ -176,7 +177,16 @@ describe('PUT request handler', () => {
     expect(getDriveFolderFromResourceStub).toHaveBeenCalledOnce();
     expect(getAuthDetailsStub).toHaveBeenCalledOnce();
     expect(uploadStub).toHaveBeenCalledOnce();
-    expect(createDriveFileStub).toHaveBeenCalledOnce();
-    expect(deleteDriveFileStub).toHaveBeenCalledOnce();
+    expect(replaceDriveFileStub).toHaveBeenCalledWith(
+      fileFixture.uuid,
+      expect.objectContaining({
+        fileId: 'uploaded-file-id',
+        folderUuid: folderFixture.uuid,
+        plainName: requestedFileResource.path.name,
+        size: 100,
+      }),
+    );
+    expect(createDriveFileStub).not.toHaveBeenCalled();
+    expect(deleteDriveFileStub).not.toHaveBeenCalled();
   });
 });
