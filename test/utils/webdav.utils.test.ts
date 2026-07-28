@@ -175,7 +175,7 @@ describe('Webdav utils', () => {
       expect(etag1).to.be.equal(etag2);
     });
 
-    test('when the parts are wrapped in quotes, then a quoted etag is returned', () => {
+    test('that etag is wrapped with double quotes', () => {
       const etag = WebDavUtils.generateETag(['uuid-1']);
 
       expect(etag.startsWith('"')).toBe(true);
