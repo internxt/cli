@@ -28,16 +28,17 @@ describe('Keys service', () => {
   });
 
   test('when new encryption keys are needed, then they are generated using the cryptography library', async () => {
-    interface KeyPair {
+    interface PgpGenerationKeys {
       privateKey: openpgp.PrivateKey;
       publicKey: openpgp.PublicKey;
+      revocationCertificate: string;
     }
 
     const pgpKeys = {
       privateKey: crypto.randomBytes(16).toString('hex'),
       publicKey: crypto.randomBytes(16).toString('hex'),
       revocationCertificate: crypto.randomBytes(16).toString('hex'),
-    } as unknown as KeyPair & { revocationCertificate: string };
+    } as unknown as PgpGenerationKeys;
 
     const pgpKeysWithEncrypted = {
       privateKeyArmored: pgpKeys.privateKey,

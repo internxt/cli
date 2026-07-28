@@ -87,9 +87,6 @@ describe('Crypto service', () => {
       .mockResolvedValue(keysReturned);
 
     const expectedKeys: Keys = {
-      privateKeyEncrypted: keysReturned.privateKeyArmoredEncrypted,
-      publicKey: keysReturned.publicKeyArmored,
-      revocationCertificate: keysReturned.revocationCertificate,
       ecc: {
         privateKeyEncrypted: keysReturned.privateKeyArmoredEncrypted,
         publicKey: keysReturned.publicKeyArmored,
