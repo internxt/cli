@@ -217,12 +217,14 @@ describe('Auth service', () => {
     expect(refreshTokensStub).toHaveBeenCalledOnce();
   });
 
-  test('when the token refresh fails, then stored credentials are cleared and an error is thrown', async () => {
+  test('when the token refresh fails with an auth error, then stored credentials are cleared and an error is thrown', async () => {
     const sut = AuthService.instance;
 
     const mockTokenStatus = TokenStatus.REFRESH_REQUIRED;
 
-    const oldTokenError = new Error('Old token version detected');
+    const oldTokenError = Object.assign(new Error('Old token version detected'), {
+      response: { status: 401 },
+    });
 
     vi.spyOn(ConfigService.instance, 'readUser').mockResolvedValue(UserCredentialsFixture);
     vi.spyOn(ValidationService.instance, 'validateTokenAndCheckExpiration').mockImplementationOnce(
@@ -235,5 +237,27 @@ describe('Auth service', () => {
     await expect(() => sut.getAuthDetails()).rejects.toThrow(oldTokenError);
     expect(refreshTokenStub).toHaveBeenCalledOnce();
     expect(clearUserStub).toHaveBeenCalledOnce();
+  });
+
+  test('when the token refresh fails with a retryable server error, then stored credentials are preserved', async () => {
+    const sut = AuthService.instance;
+
+    const mockTokenStatus = TokenStatus.REFRESH_REQUIRED;
+
+    const retryableError = Object.assign(new Error('Service unavailable'), {
+      response: { status: 503 },
+    });
+
+    vi.spyOn(ConfigService.instance, 'readUser').mockResolvedValue(UserCredentialsFixture);
+    vi.spyOn(ValidationService.instance, 'validateTokenAndCheckExpiration').mockImplementationOnce(
+      () => mockTokenStatus,
+    );
+    vi.spyOn(ValidationService.instance, 'validateMnemonic').mockReturnValue(true);
+    const refreshTokenStub = vi.spyOn(sut, 'refreshUserToken').mockRejectedValue(retryableError);
+    const clearUserStub = vi.spyOn(ConfigService.instance, 'clearUser').mockResolvedValue();
+
+    await expect(() => sut.getAuthDetails()).rejects.toThrow(retryableError);
+    expect(refreshTokenStub).toHaveBeenCalledOnce();
+    expect(clearUserStub).not.toHaveBeenCalled();
   });
 });
