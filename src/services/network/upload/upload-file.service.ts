@@ -11,11 +11,11 @@ import { dirname, extname } from 'node:path';
 import { ErrorUtils } from '../../../utils/errors.utils';
 import { stat } from 'node:fs/promises';
 import { EncryptionVersion } from '@internxt/sdk/dist/drive/storage/types';
-import { BufferStream } from '../../../utils/stream.utils';
 import { DriveFileItem } from '../../../types/drive.types';
 import { CLIUtils } from '../../../utils/cli.utils';
 import { ThumbnailService } from '../../thumbnail.service';
 import { FormatUtils } from '../../../utils/format.utils';
+import { createReadStream } from 'node:fs';
 
 export class UploadFileService {
   static readonly instance = new UploadFileService();
@@ -84,7 +84,6 @@ export class UploadFileService {
         const fileType = extname(file.absolutePath).replaceAll('.', '');
 
         let fileId: string | undefined;
-        let thumbnailStream: BufferStream | undefined;
 
         const timings = {
           networkUpload: 0,
@@ -93,16 +92,12 @@ export class UploadFileService {
         };
 
         if (fileSize > 0) {
-          const { fileStream, bufferStream } = ThumbnailService.instance.createFileStreamWithBuffer({
-            path: file.absolutePath,
-            fileType,
-          });
+          const readStream = createReadStream(file.absolutePath);
 
           const uploadTimer = CLIUtils.timer();
-          thumbnailStream = bufferStream;
 
           fileId = await network.uploadFile({
-            from: fileStream,
+            from: readStream,
             size: fileSize,
             bucketId: bucket,
             progressCallback: () => {},
@@ -125,9 +120,9 @@ export class UploadFileService {
         timings.driveUpload = driveTimer.stop();
 
         const thumbnailTimer = CLIUtils.timer();
-        if (thumbnailStream && fileSize > 0) {
+        if (fileSize > 0) {
           await ThumbnailService.instance.tryUploadThumbnail({
-            bufferStream: thumbnailStream,
+            input: file.absolutePath,
             fileType,
             bucket,
             fileUuid: createdDriveFile.uuid,
