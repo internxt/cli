@@ -96,7 +96,7 @@ describe('GET request handler', () => {
     expect(getFileMetadataStub).toHaveBeenCalledOnce();
     expect(authDetailsStub).toHaveBeenCalledOnce();
     expect(downloadStreamStub).toHaveBeenCalledWith(
-      networkOptions.bucket,
+      mockFile.bucket,
       mockAuthDetails.user.mnemonic,
       mockFile.fileId,
       mockFile.size,
@@ -151,7 +151,7 @@ describe('GET request handler', () => {
     expect(getFileMetadataStub).toHaveBeenCalledOnce();
     expect(authDetailsStub).toHaveBeenCalledOnce();
     expect(downloadStreamStub).toHaveBeenCalledWith(
-      networkOptions.bucket,
+      mockFile.bucket,
       mockAuthDetails.user.mnemonic,
       mockFile.fileId,
       mockSize - rangeStart,
