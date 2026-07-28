@@ -18,12 +18,9 @@ export class CryptoService {
       return CryptoService.instance.encryptText(hashObj.hash);
     },
     async generateKeys(password: Password): Promise<Keys> {
-      const { privateKeyArmoredEncrypted, publicKeyArmored, revocationCertificate } =
+      const { privateKeyArmoredEncrypted, publicKeyArmored } =
         await KeysService.instance.generateNewKeysWithEncrypted(password);
       const keys: Keys = {
-        privateKeyEncrypted: privateKeyArmoredEncrypted,
-        publicKey: publicKeyArmored,
-        revocationCertificate: revocationCertificate,
         ecc: {
           privateKeyEncrypted: privateKeyArmoredEncrypted,
           publicKey: publicKeyArmored,
