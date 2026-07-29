@@ -1,8 +1,7 @@
 import { promises } from 'node:fs';
 import { basename, dirname, join, relative, parse } from 'node:path';
-import { FileSystemNode, MAX_CONCURRENT_SCANS, ScanResult } from './local-filesystem.types';
+import { FileSystemNode, ScanResult } from './local-filesystem.types';
 import { logger } from '../../utils/logger.utils';
-import { AsyncUtils } from '../../utils/async.utils';
 
 export class LocalFilesystemService {
   static readonly instance = new LocalFilesystemService();
@@ -53,8 +52,8 @@ export class LocalFilesystemService {
         });
         const entries = await promises.readdir(currentPath, { withFileTypes: true });
         const validEntries = entries.filter((e) => !e.isSymbolicLink());
-        const bytesArray = await AsyncUtils.mapWithConcurrency(validEntries, MAX_CONCURRENT_SCANS, (e) =>
-          this.scanRecursive(join(currentPath, e.name), parentPath, folders, files),
+        const bytesArray = await Promise.all(
+          validEntries.map((e) => this.scanRecursive(join(currentPath, e.name), parentPath, folders, files)),
         );
 
         return bytesArray.reduce((sum, bytes) => sum + bytes, 0);

@@ -12,5 +12,3 @@ export interface ScanResult {
   totalItems: number;
   totalBytes: number;
 }
-
-export const MAX_CONCURRENT_SCANS = 100;
