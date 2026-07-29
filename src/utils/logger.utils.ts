@@ -1,4 +1,4 @@
-import os from 'os';
+import os from 'node:os';
 import winston from 'winston';
 import { INTERNXT_CLI_LOGS_DIR } from '../constants/configs';
 import packageJson from '../../package.json';
