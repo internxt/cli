@@ -1,13 +1,21 @@
+import os from 'node:os';
 import winston from 'winston';
 import { INTERNXT_CLI_LOGS_DIR } from '../constants/configs';
+import packageJson from '../../package.json';
 
 const maxLogSize = 40 * 1024 * 1024;
 const maxLogsFiles = 5;
 
+const environmentMeta = {
+  version: packageJson.version,
+  os: `${os.platform()} ${os.release()} (${os.arch()})`,
+  node: process.version,
+};
+
 export const logger = winston.createLogger({
   level: 'info',
   format: winston.format.combine(winston.format.timestamp(), winston.format.json()),
-  defaultMeta: { service: 'internxt-cli' },
+  defaultMeta: { service: 'internxt-cli', ...environmentMeta },
   transports: [
     new winston.transports.File({
       filename: 'internxt-cli-error.log',
@@ -30,7 +38,7 @@ export const logger = winston.createLogger({
 export const webdavLogger = winston.createLogger({
   level: 'info',
   format: winston.format.combine(winston.format.timestamp(), winston.format.json()),
-  defaultMeta: { service: 'internxt-webdav' },
+  defaultMeta: { service: 'internxt-webdav', ...environmentMeta },
   transports: [
     new winston.transports.File({
       filename: 'internxt-webdav-error.log',
