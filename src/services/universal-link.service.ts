@@ -46,12 +46,7 @@ export class UniversalLinkService {
     return `${loginURL}?${params.toString()}`;
   };
 
-  public loginSSO = async (
-    jsonFlag: boolean,
-    reporter: LogReporter,
-    hostIp = '127.0.0.1',
-    forcedPort = 0,
-  ): Promise<LoginCredentials> => {
+  public loginSSO = async (jsonFlag: boolean, reporter: LogReporter, forcedPort = 0): Promise<LoginCredentials> => {
     return new Promise<LoginCredentials>((resolve, reject) => {
       const server = http.createServer(async (req, res) => {
         if (!req.url) return;
@@ -90,7 +85,7 @@ export class UniversalLinkService {
       server.listen(forcedPort, async () => {
         const { port } = server.address() as AddressInfo;
 
-        const redirectUri = Buffer.from(`http://${hostIp}:${port}/callback`).toString('base64');
+        const redirectUri = Buffer.from(`http://127.0.0.1:${port}/callback`).toString('base64');
         const loginUrl = this.buildLoginUrl(redirectUri);
 
         CLIUtils.log(reporter, 'Opening browser for login...');

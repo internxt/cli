@@ -528,12 +528,9 @@ Logs into your Internxt account using the web-based login flow. A temporary loca
 
 ```
 USAGE
-  $ internxt login [--json] [-x] [--debug] [-h <value>] [-p <value>]
+  $ internxt login [--json] [-x] [--debug] [-p <value>]
 
 FLAGS
-  -h, --host=<value>  [env: INXT_LOGIN_SERVER_HOST] IP address of the machine where the CLI is running. If you are
-                      opening the login page in a browser on another device, set this to the IP address of the machine
-                      running the CLI. Defaults to 127.0.0.1.
   -p, --port=<value>  [env: INXT_LOGIN_SERVER_PORT] Port used by the temporary local server to handle the login
                       callback. If not specified, a random available port will be used automatically.
 

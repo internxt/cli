@@ -14,16 +14,6 @@ export default class Login extends Command {
   static readonly examples = ['<%= config.bin %> <%= command.id %>'];
   static readonly flags = {
     ...CLIUtils.CommonFlags,
-    host: Flags.string({
-      char: 'h',
-      aliases: ['host'],
-      env: 'INXT_LOGIN_SERVER_HOST',
-      description:
-        'IP address of the machine where the CLI is running. ' +
-        'If you are opening the login page in a browser on another device, ' +
-        'set this to the IP address of the machine running the CLI. Defaults to 127.0.0.1.',
-      required: false,
-    }),
     port: Flags.integer({
       char: 'p',
       aliases: ['port'],
@@ -39,12 +29,10 @@ export default class Login extends Command {
   public run = async () => {
     const { flags } = await this.parse(Login);
 
-    const host = flags['host'];
     const port = flags['port'];
     const loginCredentials = await UniversalLinkService.instance.loginSSO(
       flags['json'] ?? false,
       this.log.bind(this),
-      host,
       port,
     );
 
