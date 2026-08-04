@@ -17,15 +17,17 @@ describe('Validation Service', () => {
     expect(ValidationService.instance.validate2FA('123456')).to.be.equal(true);
   });
 
-  test('when a version 4 UUID is validated, then it must follow the expected format', () => {
-    expect(ValidationService.instance.validateUUIDv4('1234567')).to.be.equal(false);
-    expect(ValidationService.instance.validateUUIDv4('loremipsum')).to.be.equal(false);
-    expect(ValidationService.instance.validateUUIDv4('AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA')).to.be.equal(false);
-    expect(ValidationService.instance.validateUUIDv4('11111111-1111-1111-1111-111111111111')).to.be.equal(false);
-    expect(ValidationService.instance.validateUUIDv4('BBBBBBBB-BBBB-4BBB-ABBB-BBBBBBBBBBBB')).to.be.equal(true);
-    expect(ValidationService.instance.validateUUIDv4('22222222-2222-4222-8222-222222222222')).to.be.equal(true);
-    expect(ValidationService.instance.validateUUIDv4('6cd6894a-2996-4729-8a4a-955d5a84c0c7')).to.be.equal(true);
-    expect(ValidationService.instance.validateUUIDv4(randomUUID())).to.be.equal(true);
+  test('when a UUID is validated, then it must follow the expected format regardless of its version', () => {
+    expect(ValidationService.instance.validateUUID('1234567')).to.be.equal(false);
+    expect(ValidationService.instance.validateUUID('loremipsum')).to.be.equal(false);
+    expect(ValidationService.instance.validateUUID('AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA')).to.be.equal(false);
+    expect(ValidationService.instance.validateUUID('11111111-1111-1111-1111-111111111111')).to.be.equal(false);
+    expect(ValidationService.instance.validateUUID('BBBBBBBB-BBBB-4BBB-ABBB-BBBBBBBBBBBB')).to.be.equal(true);
+    expect(ValidationService.instance.validateUUID('22222222-2222-4222-8222-222222222222')).to.be.equal(true);
+    expect(ValidationService.instance.validateUUID('6cd6894a-2996-4729-8a4a-955d5a84c0c7')).to.be.equal(true);
+    expect(ValidationService.instance.validateUUID(randomUUID())).to.be.equal(true);
+    // UUIDv7 (e.g. as issued by the backend for newly created files) must also be accepted
+    expect(ValidationService.instance.validateUUID('017f22e2-79b0-7cc3-98c4-dc0c0c07398f')).to.be.equal(true);
   });
 
   test('when a yes or no input is validated, then it accepts various affirmative and negative forms', () => {
