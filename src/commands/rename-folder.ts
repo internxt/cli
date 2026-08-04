@@ -67,7 +67,7 @@ export default class RenameFolder extends Command {
         },
       },
       {
-        validate: ValidationService.instance.validateUUIDv4,
+        validate: ValidationService.instance.validateUUID,
         error: new NotValidFolderUuidError(),
       },
       this.log.bind(this),

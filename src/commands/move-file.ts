@@ -75,7 +75,7 @@ export default class MoveFile extends Command {
         },
       },
       {
-        validate: ValidationService.instance.validateUUIDv4,
+        validate: ValidationService.instance.validateUUID,
         error: new NotValidFileUuidError(),
       },
       this.log.bind(this),

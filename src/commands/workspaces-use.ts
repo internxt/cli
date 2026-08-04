@@ -101,7 +101,7 @@ export default class WorkspacesUse extends Command {
       },
       {
         validate: (value: string) =>
-          ValidationService.instance.validateUUIDv4(this.extractUuidFromWorkspaceString(value)),
+          ValidationService.instance.validateUUID(this.extractUuidFromWorkspaceString(value)),
         error: new NotValidWorkspaceUuidError(),
       },
       reporter,
