@@ -1281,11 +1281,13 @@ Upload a file to Internxt Drive
 
 ```
 USAGE
-  $ internxt upload-file [--json] [-x] [--debug] [-f <value>] [-i <value>]
+  $ internxt upload-file [--json] [-x] [--debug] [-f <value>] [-i <value>] [-o]
 
 FLAGS
   -f, --file=<value>         The path to the file on your system.
   -i, --destination=<value>  The folder id where the file is going to be uploaded to. Leave empty for the root folder.
+  -o, --overwrite            Overwrite the file if a file with the same name already exists in the cloud destination
+                             folder.
 
 HELPER FLAGS
   -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
@@ -1347,11 +1349,13 @@ Upload a file to Internxt Drive
 
 ```
 USAGE
-  $ internxt upload file [--json] [-x] [--debug] [-f <value>] [-i <value>]
+  $ internxt upload file [--json] [-x] [--debug] [-f <value>] [-i <value>] [-o]
 
 FLAGS
   -f, --file=<value>         The path to the file on your system.
   -i, --destination=<value>  The folder id where the file is going to be uploaded to. Leave empty for the root folder.
+  -o, --overwrite            Overwrite the file if a file with the same name already exists in the cloud destination
+                             folder.
 
 HELPER FLAGS
   -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will

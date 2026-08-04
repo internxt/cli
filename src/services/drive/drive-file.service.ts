@@ -57,6 +57,36 @@ export class DriveFileService {
     return driveFileItem;
   };
 
+  public findExistentFile = async (
+    folderUuid: string,
+    file: StorageTypes.FileStructure,
+  ): Promise<DriveFileItem | undefined> => {
+    const storageClient = SdkManager.instance.getStorage();
+    const { existentFiles } = await storageClient.checkDuplicatedFiles({
+      folderUuid,
+      filesList: [file],
+    });
+
+    const existentFile = existentFiles[0];
+    if (!existentFile) return undefined;
+
+    return {
+      itemType: 'file',
+      name: existentFile.plainName ?? existentFile.name,
+      uuid: existentFile.uuid,
+      size: existentFile.size,
+      bucket: existentFile.bucket,
+      createdAt: new Date(existentFile.createdAt),
+      updatedAt: new Date(existentFile.updatedAt),
+      fileId: existentFile.fileId ?? null,
+      type: existentFile.type ?? null,
+      status: existentFile.status as DriveFileItem['status'],
+      folderUuid: existentFile.folderUuid,
+      creationTime: new Date(existentFile.creationTime ?? existentFile.createdAt),
+      modificationTime: new Date(existentFile.modificationTime ?? existentFile.updatedAt),
+    };
+  };
+
   private readonly createDriveFileEntry = async (
     payload: StorageTypes.FileEntryByUuid,
   ): Promise<StorageTypes.DriveFileData> => {

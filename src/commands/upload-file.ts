@@ -30,6 +30,12 @@ export default class UploadFile extends Command {
       required: false,
       parse: CLIUtils.parseEmpty,
     }),
+    overwrite: Flags.boolean({
+      char: 'o',
+      description: 'Overwrite the file if a file with the same name already exists in the cloud destination folder.',
+      required: false,
+      default: false,
+    }),
   };
   static readonly enableJsonFlag = true;
 
@@ -57,6 +63,13 @@ export default class UploadFile extends Command {
       reporter,
     });
     const destinationFolderUuid = await CLIUtils.fallbackToRootFolderIdIfEmpty(destinationFolderUuidFromFlag);
+
+    const existingFile = flags['overwrite']
+      ? await DriveFileService.instance.findExistentFile(destinationFolderUuid, {
+          plainName: fileInfo.name,
+          type: fileType,
+        })
+      : undefined;
 
     const timings = {
       networkUpload: 0,
@@ -109,7 +122,7 @@ export default class UploadFile extends Command {
 
     // Create the file in Drive
     const driveUploadTimer = CLIUtils.timer();
-    const createdDriveFile = await DriveFileService.instance.createFile({
+    const filePayload = {
       plainName: fileInfo.name,
       type: fileType,
       size: fileSize,
@@ -119,7 +132,10 @@ export default class UploadFile extends Command {
       encryptVersion: EncryptionVersion.Aes03,
       creationTime: stats.birthtime?.toISOString(),
       modificationTime: stats.mtime?.toISOString(),
-    });
+    };
+    const createdDriveFile = existingFile
+      ? await DriveFileService.instance.replaceFile(existingFile.uuid, filePayload)
+      : await DriveFileService.instance.createFile(filePayload);
     timings.driveUpload = driveUploadTimer.stop();
 
     const thumbnailTimer = CLIUtils.timer();
@@ -144,8 +160,9 @@ export default class UploadFile extends Command {
     const workspace = await AuthService.instance.getCurrentWorkspace();
     const workspaceId = workspace?.workspaceData.workspace.id;
 
+    const uploadVerb = existingFile ? 'overwritten' : 'uploaded';
     const message =
-      `File uploaded successfully in ${CLIUtils.formatDuration(totalTime)}, view it at ` +
+      `File ${uploadVerb} successfully in ${CLIUtils.formatDuration(totalTime)}, view it at ` +
       `${ConfigService.instance.get('DRIVE_WEB_URL')}/file/${createdDriveFile.uuid}` +
       `${workspaceId ? `?workspaceid=${workspaceId}` : ''}`;
     CLIUtils.success(reporter, message);
