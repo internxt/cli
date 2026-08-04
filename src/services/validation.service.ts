@@ -1,5 +1,6 @@
 import { auth, TokenStatus } from '@internxt/lib';
 import { validateMnemonic } from 'bip39';
+import { validate as isValidUUID } from 'uuid';
 import fs from 'node:fs/promises';
 
 export class ValidationService {
@@ -17,8 +18,8 @@ export class ValidationService {
     return validateMnemonic(mnemonic);
   };
 
-  public validateUUIDv4 = (uuid: string): boolean => {
-    return /^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i.test(uuid);
+  public validateUUID = (uuid: string): boolean => {
+    return isValidUUID(uuid);
   };
 
   public validateYesOrNoString = (message: string): boolean => {

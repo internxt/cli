@@ -105,7 +105,7 @@ export default class List extends Command {
         },
       },
       {
-        validate: ValidationService.instance.validateUUIDv4,
+        validate: ValidationService.instance.validateUUID,
         error: new NotValidFolderUuidError(),
         canBeEmpty: true,
       },
