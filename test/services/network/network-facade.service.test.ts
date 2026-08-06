@@ -47,6 +47,7 @@ describe('Network Facade Service', () => {
     vi.spyOn(UsageService.instance, 'fetchLimits').mockResolvedValue({
       maxUploadFileSize: null,
       versioning: { enabled: false, maxFileSize: 0, retentionDays: 0, maxVersions: 0 },
+      photosAccess: false,
     });
 
     await sut.uploadFile({
@@ -73,6 +74,7 @@ describe('Network Facade Service', () => {
     vi.spyOn(UsageService.instance, 'fetchLimits').mockResolvedValue({
       maxUploadFileSize: 1024 * 1024,
       versioning: { enabled: false, maxFileSize: 0, retentionDays: 0, maxVersions: 0 },
+      photosAccess: false,
     });
 
     await expect(() =>
@@ -101,6 +103,7 @@ describe('Network Facade Service', () => {
     vi.spyOn(UsageService.instance, 'fetchLimits').mockResolvedValue({
       maxUploadFileSize: null,
       versioning: { enabled: false, maxFileSize: 0, retentionDays: 0, maxVersions: 0 },
+      photosAccess: false,
     });
 
     await expect(() =>
@@ -129,6 +132,7 @@ describe('Network Facade Service', () => {
     vi.spyOn(UsageService.instance, 'fetchLimits').mockResolvedValue({
       maxUploadFileSize: 1024 * 1024 * 1024,
       versioning: { enabled: false, maxFileSize: 0, retentionDays: 0, maxVersions: 0 },
+      photosAccess: false,
     });
 
     await expect(() =>
@@ -157,6 +161,7 @@ describe('Network Facade Service', () => {
     vi.spyOn(UsageService.instance, 'fetchLimits').mockResolvedValue({
       maxUploadFileSize: 100 * 1024 * 1024,
       versioning: { enabled: false, maxFileSize: 0, retentionDays: 0, maxVersions: 0 },
+      photosAccess: false,
     });
 
     await sut.uploadFile({
