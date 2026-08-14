@@ -19,7 +19,7 @@ export interface UploadFolderParams {
   reporter: LogReporter;
 }
 
-export interface UploadProgress {
+interface UploadProgress {
   percentage: number;
   currentFile?: string;
 }

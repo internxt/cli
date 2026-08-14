@@ -89,14 +89,6 @@ export class NotValidFileIdError extends Error {
   }
 }
 
-export class NoRootFolderIdFoundError extends Error {
-  constructor() {
-    super('No root folder id found on your account');
-
-    Object.setPrototypeOf(this, NoRootFolderIdFoundError.prototype);
-  }
-}
-
 export class MissingCredentialsError extends Error {
   constructor() {
     super('Missing credentials, please login first');
