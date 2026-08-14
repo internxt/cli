@@ -1,35 +1,15 @@
 import { describe, expect, test, vi } from 'vitest';
 import { NetworkFacade } from '../../../src/services/network/network-facade.service';
-import { SdkManager } from '../../../src/services/sdk-manager.service';
 import path from 'node:path';
 import { createReadStream } from 'node:fs';
 import { DownloadService } from '../../../src/services/network/download.service';
 import { Readable } from 'node:stream';
 import axios from 'axios';
 import { fail } from 'node:assert';
-import { Environment } from '@internxt/inxt-js';
-import { ConfigService } from '../../../src/services/config.service';
-import { UserFixture } from '../../fixtures/auth.fixture';
 import { UsageService } from '../../../src/services/usage.service';
+import { getEnvironmentMock, getNetworkMock } from '../../fixtures/webdav.fixture';
 
 describe('Network Facade Service', () => {
-  const getNetworkMock = () => {
-    return SdkManager.instance.getNetwork({
-      user: 'user',
-      pass: 'pass',
-    });
-  };
-
-  const getEnvironmentMock = () => {
-    return new Environment({
-      bridgeUser: 'user',
-      bridgePass: 'pass',
-      bridgeUrl: ConfigService.instance.get('NETWORK_URL'),
-      encryptionKey: UserFixture.mnemonic,
-      appDetails: SdkManager.getAppDetails(),
-    });
-  };
-
   test('when a file is uploaded, then the upload functionality is called', async () => {
     const mockEnvironment = {
       upload: vi.fn(),

@@ -4,8 +4,6 @@ import { StorageTypes } from '@internxt/sdk/dist/drive';
 import { DriveFolderItem } from '../../types/drive.types';
 import { DriveUtils } from '../../utils/drive.utils';
 import { RequestCanceler } from '@internxt/sdk/dist/shared/http/types';
-import { AuthService } from '../auth.service';
-import { WorkspaceCredentialsDetails } from '../../types/command.types';
 import { NotFoundError } from '../../utils/errors.utils';
 
 export class DriveFolderService {
@@ -45,86 +43,44 @@ export class DriveFolderService {
   };
 
   public getFolderSubfolders = async (folderUuid: string): Promise<FetchPaginatedFolder[]> => {
-    const currentWorkspace = await AuthService.instance.getCurrentWorkspace();
-    const currentWorkspaceCreds = currentWorkspace?.workspaceCredentials;
-    const folders = await this.getAllSubfolders(currentWorkspaceCreds, folderUuid, 0);
+    const folders = await this.getAllSubfolders(folderUuid, 0);
     return folders;
   };
 
   public getFolderSubfiles = async (folderUuid: string): Promise<FetchPaginatedFile[]> => {
-    const currentWorkspace = await AuthService.instance.getCurrentWorkspace();
-    const currentWorkspaceCreds = currentWorkspace?.workspaceCredentials;
-    const files = await this.getAllSubfiles(currentWorkspaceCreds, folderUuid, 0);
+    const files = await this.getAllSubfiles(folderUuid, 0);
     return files;
   };
 
-  private readonly getAllSubfolders = async (
-    currentWorkspace: WorkspaceCredentialsDetails | undefined,
-    folderUuid: string,
-    offset: number,
-  ): Promise<FetchPaginatedFolder[]> => {
-    let folders: FetchPaginatedFolder[];
-
-    if (currentWorkspace) {
-      const workspaceClient = SdkManager.instance.getWorkspaces();
-      const [workspaceContentPromise] = workspaceClient.getFolders(
-        currentWorkspace.id,
-        folderUuid,
-        offset,
-        50,
-        'plainName',
-        'ASC',
-      );
-      folders = (await workspaceContentPromise).result as unknown as FetchPaginatedFolder[];
-    } else {
-      const storageClient = SdkManager.instance.getStorage();
-      const [personalFolderContentPromise] = storageClient.getFolderFoldersByUuid(
-        folderUuid,
-        offset,
-        50,
-        'plainName',
-        'ASC',
-      );
-      folders = (await personalFolderContentPromise).folders;
-    }
+  private readonly getAllSubfolders = async (folderUuid: string, offset: number): Promise<FetchPaginatedFolder[]> => {
+    const storageClient = SdkManager.instance.getStorage();
+    const [personalFolderContentPromise] = storageClient.getFolderFoldersByUuid(
+      folderUuid,
+      offset,
+      50,
+      'plainName',
+      'ASC',
+    );
+    let folders = (await personalFolderContentPromise).folders;
 
     folders = folders.filter((folder) => folder.status === FileStatus.EXISTS);
 
     if (folders.length > 0) {
-      return folders.concat(await this.getAllSubfolders(currentWorkspace, folderUuid, offset + folders.length));
+      return folders.concat(await this.getAllSubfolders(folderUuid, offset + folders.length));
     } else {
       return folders;
     }
   };
 
-  private readonly getAllSubfiles = async (
-    currentWorkspace: WorkspaceCredentialsDetails | undefined,
-    folderUuid: string,
-    offset: number,
-  ): Promise<FetchPaginatedFile[]> => {
-    let files: FetchPaginatedFile[];
-
-    if (currentWorkspace) {
-      const workspaceClient = SdkManager.instance.getWorkspaces();
-      const [workspaceContentPromise] = workspaceClient.getFiles(
-        currentWorkspace.id,
-        folderUuid,
-        offset,
-        50,
-        'plainName',
-        'ASC',
-      );
-      files = (await workspaceContentPromise).result as unknown as FetchPaginatedFile[];
-    } else {
-      const storageClient = SdkManager.instance.getStorage();
-      const [folderContentPromise] = storageClient.getFolderFilesByUuid(folderUuid, offset, 50, 'plainName', 'ASC');
-      files = (await folderContentPromise).files;
-    }
+  private readonly getAllSubfiles = async (folderUuid: string, offset: number): Promise<FetchPaginatedFile[]> => {
+    const storageClient = SdkManager.instance.getStorage();
+    const [folderContentPromise] = storageClient.getFolderFilesByUuid(folderUuid, offset, 50, 'plainName', 'ASC');
+    let files = (await folderContentPromise).files;
 
     files = files.filter((file) => file.status === FileStatus.EXISTS);
 
     if (files.length > 0) {
-      return files.concat(await this.getAllSubfiles(currentWorkspace, folderUuid, offset + files.length));
+      return files.concat(await this.getAllSubfiles(folderUuid, offset + files.length));
     } else {
       return files;
     }
@@ -150,18 +106,8 @@ export class DriveFolderService {
   public createFolder = async (
     payload: StorageTypes.CreateFolderByUuidPayload,
   ): Promise<[Promise<StorageTypes.CreateFolderResponse>, RequestCanceler]> => {
-    const currentWorkspace = await AuthService.instance.getCurrentWorkspace();
-    if (currentWorkspace) {
-      const workspaceClient = SdkManager.instance.getWorkspaces();
-      return workspaceClient.createFolder({
-        workspaceId: currentWorkspace.workspaceCredentials.id,
-        parentFolderUuid: payload.parentFolderUuid,
-        plainName: payload.plainName,
-      });
-    } else {
-      const storageClient = SdkManager.instance.getStorage();
-      return storageClient.createFolderByUuid(payload);
-    }
+    const storageClient = SdkManager.instance.getStorage();
+    return storageClient.createFolderByUuid(payload);
   };
 
   public renameFolder = async (payload: { folderUuid: string; name: string }): Promise<void> => {

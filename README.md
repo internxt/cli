@@ -111,12 +111,6 @@ USAGE
 * [`internxt webdav ACTION`](#internxt-webdav-action)
 * [`internxt webdav-config`](#internxt-webdav-config)
 * [`internxt whoami`](#internxt-whoami)
-* [`internxt workspaces-list`](#internxt-workspaces-list)
-* [`internxt workspaces-unset`](#internxt-workspaces-unset)
-* [`internxt workspaces-use`](#internxt-workspaces-use)
-* [`internxt workspaces list`](#internxt-workspaces-list)
-* [`internxt workspaces unset`](#internxt-workspaces-unset)
-* [`internxt workspaces use`](#internxt-workspaces-use)
 
 ## `internxt add-cert`
 
@@ -203,7 +197,7 @@ EXAMPLES
   $ internxt autocomplete --refresh-cache
 ```
 
-_See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v3.2.54/src/commands/autocomplete/index.ts)_
+_See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v3.2.56/src/commands/autocomplete/index.ts)_
 
 ## `internxt config`
 
@@ -1503,196 +1497,6 @@ EXAMPLES
 ```
 
 _See code: [src/commands/whoami.ts](https://github.com/internxt/cli/blob/v1.6.8/src/commands/whoami.ts)_
-
-## `internxt workspaces-list`
-
-Get the list of workspaces.
-
-```
-USAGE
-  $ internxt workspaces-list [--json] [-x] [--debug] [-e]
-
-FLAGS
-  -e, --extended  Displays additional information in the list.
-
-HELPER FLAGS
-  -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
-                         not request input through the console and will throw errors directly.
-      --debug            [env: INXT_DEBUG] Enables debug mode. When enabled, the CLI will print debug messages to the
-                         console.
-
-GLOBAL FLAGS
-  --json  Format output as json.
-
-DESCRIPTION
-  Get the list of workspaces.
-
-ALIASES
-  $ internxt workspaces list
-
-EXAMPLES
-  $ internxt workspaces-list
-```
-
-_See code: [src/commands/workspaces-list.ts](https://github.com/internxt/cli/blob/v1.6.8/src/commands/workspaces-list.ts)_
-
-## `internxt workspaces-unset`
-
-Unset the active workspace context for the current user session. Once a workspace is unset, WebDAV and all of the subsequent CLI commands will operate within the personal drive space until it is changed or set again.
-
-```
-USAGE
-  $ internxt workspaces-unset [--json] [-x] [--debug]
-
-HELPER FLAGS
-  -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
-                         not request input through the console and will throw errors directly.
-      --debug            [env: INXT_DEBUG] Enables debug mode. When enabled, the CLI will print debug messages to the
-                         console.
-
-GLOBAL FLAGS
-  --json  Format output as json.
-
-DESCRIPTION
-  Unset the active workspace context for the current user session. Once a workspace is unset, WebDAV and all of the
-  subsequent CLI commands will operate within the personal drive space until it is changed or set again.
-
-ALIASES
-  $ internxt workspaces unset
-
-EXAMPLES
-  $ internxt workspaces-unset
-```
-
-_See code: [src/commands/workspaces-unset.ts](https://github.com/internxt/cli/blob/v1.6.8/src/commands/workspaces-unset.ts)_
-
-## `internxt workspaces-use`
-
-Set the active workspace context for the current user session. Once a workspace is selected, WebDAV and all of the subsequent CLI commands will operate within that workspace until it is changed or unset.
-
-```
-USAGE
-  $ internxt workspaces-use [--json] [-x] [--debug] [-i <value> | -p]
-
-FLAGS
-  -i, --id=<value>  The id of the workspace to activate. Use internxt workspaces list to view your available workspace
-                    ids.
-  -p, --personal    Change to the personal drive space. It unsets the active workspace context for the current user
-                    session.
-
-HELPER FLAGS
-  -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
-                         not request input through the console and will throw errors directly.
-      --debug            [env: INXT_DEBUG] Enables debug mode. When enabled, the CLI will print debug messages to the
-                         console.
-
-GLOBAL FLAGS
-  --json  Format output as json.
-
-DESCRIPTION
-  Set the active workspace context for the current user session. Once a workspace is selected, WebDAV and all of the
-  subsequent CLI commands will operate within that workspace until it is changed or unset.
-
-ALIASES
-  $ internxt workspaces use
-
-EXAMPLES
-  $ internxt workspaces-use
-```
-
-_See code: [src/commands/workspaces-use.ts](https://github.com/internxt/cli/blob/v1.6.8/src/commands/workspaces-use.ts)_
-
-## `internxt workspaces list`
-
-Get the list of workspaces.
-
-```
-USAGE
-  $ internxt workspaces list [--json] [-x] [--debug] [-e]
-
-FLAGS
-  -e, --extended  Displays additional information in the list.
-
-HELPER FLAGS
-  -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
-                         not request input through the console and will throw errors directly.
-      --debug            [env: INXT_DEBUG] Enables debug mode. When enabled, the CLI will print debug messages to the
-                         console.
-
-GLOBAL FLAGS
-  --json  Format output as json.
-
-DESCRIPTION
-  Get the list of workspaces.
-
-ALIASES
-  $ internxt workspaces list
-
-EXAMPLES
-  $ internxt workspaces list
-```
-
-## `internxt workspaces unset`
-
-Unset the active workspace context for the current user session. Once a workspace is unset, WebDAV and all of the subsequent CLI commands will operate within the personal drive space until it is changed or set again.
-
-```
-USAGE
-  $ internxt workspaces unset [--json] [-x] [--debug]
-
-HELPER FLAGS
-  -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
-                         not request input through the console and will throw errors directly.
-      --debug            [env: INXT_DEBUG] Enables debug mode. When enabled, the CLI will print debug messages to the
-                         console.
-
-GLOBAL FLAGS
-  --json  Format output as json.
-
-DESCRIPTION
-  Unset the active workspace context for the current user session. Once a workspace is unset, WebDAV and all of the
-  subsequent CLI commands will operate within the personal drive space until it is changed or set again.
-
-ALIASES
-  $ internxt workspaces unset
-
-EXAMPLES
-  $ internxt workspaces unset
-```
-
-## `internxt workspaces use`
-
-Set the active workspace context for the current user session. Once a workspace is selected, WebDAV and all of the subsequent CLI commands will operate within that workspace until it is changed or unset.
-
-```
-USAGE
-  $ internxt workspaces use [--json] [-x] [--debug] [-i <value> | -p]
-
-FLAGS
-  -i, --id=<value>  The id of the workspace to activate. Use internxt workspaces list to view your available workspace
-                    ids.
-  -p, --personal    Change to the personal drive space. It unsets the active workspace context for the current user
-                    session.
-
-HELPER FLAGS
-  -x, --non-interactive  [env: INXT_NONINTERACTIVE] Prevents the CLI from being interactive. When enabled, the CLI will
-                         not request input through the console and will throw errors directly.
-      --debug            [env: INXT_DEBUG] Enables debug mode. When enabled, the CLI will print debug messages to the
-                         console.
-
-GLOBAL FLAGS
-  --json  Format output as json.
-
-DESCRIPTION
-  Set the active workspace context for the current user session. Once a workspace is selected, WebDAV and all of the
-  subsequent CLI commands will operate within that workspace until it is changed or unset.
-
-ALIASES
-  $ internxt workspaces use
-
-EXAMPLES
-  $ internxt workspaces use
-```
 <!-- commandsstop -->
 
 # Current Limitations

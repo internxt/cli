@@ -5,7 +5,6 @@ import { ConfigService } from '../services/config.service';
 import { ValidationService } from '../services/validation.service';
 import { EmptyFolderNameError, MissingCredentialsError, NotValidFolderUuidError } from '../types/command.types';
 import { AsyncUtils } from '../utils/async.utils';
-import { AuthService } from '../services/auth.service';
 
 export default class CreateFolder extends Command {
   static readonly args = {};
@@ -58,13 +57,9 @@ export default class CreateFolder extends Command {
 
     CLIUtils.done(flags['json']);
 
-    const workspace = await AuthService.instance.getCurrentWorkspace();
-    const workspaceId = workspace?.workspaceData.workspace.id;
-
     const message =
       `Folder ${newFolder.plainName} created successfully, view it at ` +
-      `${ConfigService.instance.get('DRIVE_WEB_URL')}/folder/${newFolder.uuid}` +
-      `${workspaceId ? `?workspaceid=${workspaceId}` : ''}`;
+      `${ConfigService.instance.get('DRIVE_WEB_URL')}/folder/${newFolder.uuid}`;
     CLIUtils.success(this.log.bind(this), message);
     return { success: true, message, folder: newFolder };
   };

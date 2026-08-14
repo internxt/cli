@@ -17,8 +17,8 @@ const init = async () => {
   await DatabaseService.instance.initialize();
   await DatabaseService.instance.clear();
 
-  const { token, workspace } = await AuthService.instance.getAuthDetails();
-  SdkManager.init({ token, workspaceToken: workspace?.workspaceCredentials.token });
+  const { token } = await AuthService.instance.getAuthDetails();
+  SdkManager.init({ token });
 
   new WebDavServer(express())
     .start()

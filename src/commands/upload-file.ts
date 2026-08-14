@@ -9,7 +9,6 @@ import { MissingCredentialsError, NotValidFileError } from '../types/command.typ
 import { ValidationService } from '../services/validation.service';
 import { EncryptionVersion } from '@internxt/sdk/dist/drive/storage/types';
 import { ThumbnailService } from '../services/thumbnail.service';
-import { AuthService } from '../services/auth.service';
 import { UploadUtils } from '../utils/upload.utils';
 
 export default class UploadFile extends Command {
@@ -157,14 +156,10 @@ export default class UploadFile extends Command {
     if (flags['debug']) {
       CLIUtils.log(reporter, timingBreakdown);
     }
-    const workspace = await AuthService.instance.getCurrentWorkspace();
-    const workspaceId = workspace?.workspaceData.workspace.id;
-
     const uploadVerb = existingFile ? 'overwritten' : 'uploaded';
     const message =
       `File ${uploadVerb} successfully in ${CLIUtils.formatDuration(totalTime)}, view it at ` +
-      `${ConfigService.instance.get('DRIVE_WEB_URL')}/file/${createdDriveFile.uuid}` +
-      `${workspaceId ? `?workspaceid=${workspaceId}` : ''}`;
+      `${ConfigService.instance.get('DRIVE_WEB_URL')}/file/${createdDriveFile.uuid}`;
     CLIUtils.success(reporter, message);
     return {
       success: true,

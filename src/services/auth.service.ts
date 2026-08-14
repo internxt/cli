@@ -8,10 +8,8 @@ import {
   InvalidCredentialsError,
   LoginCredentials,
   MissingCredentialsError,
-  Workspace,
 } from '../types/command.types';
 import { ValidationService } from './validation.service';
-import { WorkspaceService } from './drive/workspace.service';
 import { TokenStatus } from '@internxt/lib';
 
 export class AuthService {
@@ -114,13 +112,7 @@ export class AuthService {
       }
     }
 
-    const workspaceCreds = await this.refreshWorkspaceCredentials(loginCreds);
-    if (workspaceCreds !== loginCreds.workspace) {
-      credentialsChanged = true;
-    }
-    loginCreds.workspace = workspaceCreds;
-
-    SdkManager.init({ token: loginCreds.token, workspaceToken: workspaceCreds?.workspaceCredentials.token });
+    SdkManager.init({ token: loginCreds.token });
 
     if (credentialsChanged) {
       await ConfigService.instance.saveUser(loginCreds);
@@ -204,51 +196,12 @@ export class AuthService {
     return newLoginCreds;
   };
 
-  /**
-   * Returns the workspace details and refreshes them if needed
-   *
-   * @returns The workspace details and the renewed auth token
-   * @throws {InvalidCredentialsError} When the workspace token is invalid
-   * @throws {ExpiredCredentialsError} When the workspace token has expired
-   */
-  public refreshWorkspaceCredentials = async (loginCreds: LoginCredentials): Promise<Workspace | undefined> => {
-    if (loginCreds.workspace?.workspaceCredentials && loginCreds.workspace?.workspaceData) {
-      const workspaceToken = loginCreds.workspace.workspaceCredentials.token;
-      const workspaceUuid = loginCreds.workspace.workspaceCredentials.id;
-      const workspaceTokenStatus = ValidationService.instance.validateTokenAndCheckExpiration(workspaceToken);
-
-      if (workspaceTokenStatus === TokenStatus.VALID) {
-        return loginCreds.workspace;
-      } else if (workspaceTokenStatus === TokenStatus.INVALID) {
-        throw new InvalidCredentialsError();
-      } else if (workspaceTokenStatus === TokenStatus.EXPIRED) {
-        throw new ExpiredCredentialsError();
-      } else if (workspaceTokenStatus === TokenStatus.REFRESH_REQUIRED) {
-        SdkManager.init({ token: loginCreds.token, workspaceToken: loginCreds.workspace.workspaceCredentials.token });
-        const workspaceCredentials = await WorkspaceService.instance.getWorkspaceCredentials(workspaceUuid);
-        // TODO [PB-5788] Refresh workspace data when workspace token requires refresh
-        return {
-          workspaceCredentials,
-          workspaceData: loginCreds.workspace.workspaceData,
-        };
-      }
-    }
-  };
-
-  public getCurrentWorkspace = async (): Promise<Workspace | undefined> => {
-    const loginCreds = await ConfigService.instance.readUser();
-    if (!loginCreds?.token || !loginCreds?.user?.mnemonic) {
-      throw new MissingCredentialsError();
-    }
-    return loginCreds.workspace;
-  };
-
   public getCurrentRootFolder = async (): Promise<string> => {
     const loginCreds = await ConfigService.instance.readUser();
     if (!loginCreds?.token || !loginCreds?.user?.mnemonic) {
       throw new MissingCredentialsError();
     }
-    return loginCreds.workspace?.workspaceData?.workspaceUser?.rootFolderId ?? loginCreds.user.rootFolderId;
+    return loginCreds.user.rootFolderId;
   };
 
   /**

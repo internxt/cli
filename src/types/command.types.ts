@@ -1,6 +1,3 @@
-import { WorkspaceData } from '@internxt/sdk/dist/workspaces';
-import { NetworkCredentials } from './network.types';
-
 export interface LoginUserDetails {
   userId: string;
   uuid: string;
@@ -27,23 +24,9 @@ export interface LoginUserDetails {
   emailVerified: boolean;
 }
 
-export interface WorkspaceCredentialsDetails {
-  id: string;
-  bucket: string;
-  workspaceUserId: string;
-  credentials: NetworkCredentials;
-  token: string;
-}
-
-export interface Workspace {
-  workspaceData: WorkspaceData;
-  workspaceCredentials: WorkspaceCredentialsDetails;
-}
-
 export interface LoginCredentials {
   user: LoginUserDetails;
   token: string;
-  workspace?: Workspace;
 }
 
 export interface WebdavConfig {
@@ -103,14 +86,6 @@ export class NotValidFileIdError extends Error {
     super('FileId is not valid');
 
     Object.setPrototypeOf(this, NotValidFileIdError.prototype);
-  }
-}
-
-export class NoRootFolderIdFoundError extends Error {
-  constructor() {
-    super('No root folder id found on your account');
-
-    Object.setPrototypeOf(this, NoRootFolderIdFoundError.prototype);
   }
 }
 
@@ -194,14 +169,6 @@ export class NotValidFileError extends Error {
   }
 }
 
-export class NotValidWorkspaceUuidError extends Error {
-  constructor() {
-    super('Workspace UUID is not valid (it must be a valid v4 UUID)');
-
-    Object.setPrototypeOf(this, NotValidWorkspaceUuidError.prototype);
-  }
-}
-
 export class MissingCredentialsWhenUsingAuthError extends Error {
   constructor() {
     super('When using custom WebDAV authentication, both username and password must be provided');
@@ -226,14 +193,4 @@ export interface PromptOptions {
     values: string[];
     default?: number;
   };
-}
-
-export interface PaginatedWorkspace {
-  name: string;
-  id: string;
-  usedSpace: string;
-  availableSpace: string;
-  owner: string;
-  address: string;
-  created: string;
 }

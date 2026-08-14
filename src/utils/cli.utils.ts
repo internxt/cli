@@ -344,27 +344,14 @@ export class CLIUtils {
     credentials: NetworkCredentials;
     mnemonic: string;
   }> => {
-    const currentWorkspace = await AuthService.instance.getCurrentWorkspace();
-
-    if (currentWorkspace) {
-      return {
-        bucket: currentWorkspace.workspaceCredentials.bucket,
-        credentials: {
-          user: currentWorkspace.workspaceCredentials.credentials.user,
-          pass: currentWorkspace.workspaceCredentials.credentials.pass,
-        },
-        mnemonic: currentWorkspace.workspaceData.workspaceUser.key,
-      };
-    } else {
-      return {
-        bucket: userCredentials.bucket,
-        credentials: {
-          user: userCredentials.bridgeUser,
-          pass: userCredentials.userId,
-        },
-        mnemonic: userCredentials.mnemonic,
-      };
-    }
+    return {
+      bucket: userCredentials.bucket,
+      credentials: {
+        user: userCredentials.bridgeUser,
+        pass: userCredentials.userId,
+      },
+      mnemonic: userCredentials.mnemonic,
+    };
   };
 }
 
