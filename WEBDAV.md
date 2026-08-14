@@ -15,7 +15,7 @@ No plain data is being sent or is being pulled from the Internxt servers, you ca
 
 ![image](https://raw.githubusercontent.com/internxt/cli/main/public/webdav-how-it-works.png)
 
-_We currently have a 40GB size upload limitation per file for both, CLI and WebDAV_
+_Upload size limits depend on the account's plan tier. Since the CLI is only available to Ultimate plan users, we currently have a 100GB size upload limitation per file for both, CLI and WebDAV_
 
 ## Officially supported WebDav clients
 

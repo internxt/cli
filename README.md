@@ -1697,4 +1697,4 @@ EXAMPLES
 
 # Current Limitations
 
-- We currently have a 40GB size upload limitation per file for both, CLI and WebDAV
+- Upload size limits depend on the account's plan tier. Since the CLI is only available to Ultimate plan users, we currently have a 100GB size upload limitation per file for both, CLI and WebDAV
