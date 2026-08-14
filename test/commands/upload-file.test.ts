@@ -10,7 +10,6 @@ import { CLIUtils } from '../../src/utils/cli.utils';
 import { ConfigService } from '../../src/services/config.service';
 import { DriveFileService } from '../../src/services/drive/drive-file.service';
 import { ThumbnailService } from '../../src/services/thumbnail.service';
-import { AuthService } from '../../src/services/auth.service';
 import { NetworkFacade } from '../../src/services/network/network-facade.service';
 import { createMockStats, createMockReadStream } from '../services/network/upload/upload.service.helpers';
 
@@ -55,7 +54,6 @@ describe('Upload File Command', () => {
     createFileSpy = vi.spyOn(DriveFileService.instance, 'createFile').mockResolvedValue(createdFile);
     replaceFileSpy = vi.spyOn(DriveFileService.instance, 'replaceFile').mockResolvedValue(createdFile);
     vi.spyOn(ThumbnailService.instance, 'tryUploadThumbnail').mockResolvedValue(undefined);
-    vi.spyOn(AuthService.instance, 'getCurrentWorkspace').mockResolvedValue(undefined);
     cliSuccessSpy = vi.spyOn(CLIUtils, 'success').mockImplementation(() => {});
   });
 

@@ -5,11 +5,6 @@ set -e
 login() {
   echo "[login] Logging into your account [$INXT_USER]..."
   internxt login-legacy $LOGIN_ARGS
-
-  if [ -n "$INXT_WORKSPACE_ID" ]; then
-    echo "[login] Switching to workspace: $INXT_WORKSPACE_ID"
-    internxt workspaces use -i="$INXT_WORKSPACE_ID"
-  fi
 }
 
 webdav_enable() {

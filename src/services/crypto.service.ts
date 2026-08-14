@@ -4,8 +4,6 @@ import { createCipheriv, createDecipheriv, createHash, Decipheriv, pbkdf2Sync, r
 import { KeysService } from './keys.service';
 import { ConfigService } from '../services/config.service';
 import { StreamUtils } from '../utils/stream.utils';
-import { LoginCredentials } from '../types/command.types';
-import { WorkspaceData } from '@internxt/sdk/dist/workspaces';
 import { aes } from '@internxt/lib';
 
 export class CryptoService {
@@ -187,45 +185,6 @@ export class CryptoService {
     const key = Buffer.concat([md5Hashes[0], md5Hashes[1]]);
     const iv = md5Hashes[2];
     return { key, iv };
-  };
-
-  private readonly decryptWorkspaceMnemonic = async (
-    encryptionKey: string,
-    user: LoginCredentials['user'],
-  ): Promise<string> => {
-    const privateKeyInBase64 = user.keys?.ecc?.privateKey;
-    const privateKyberKeyInBase64 = user.keys?.kyber?.privateKey;
-
-    if (!privateKeyInBase64) {
-      throw new Error('Missing privateKey in user keys');
-    }
-
-    try {
-      return await KeysService.instance.hybridDecryptMessageWithPrivateKey({
-        encryptedMessageInBase64: encryptionKey,
-        privateKeyInBase64,
-        privateKyberKeyInBase64,
-      });
-    } catch {
-      throw new Error('Failed to decrypt workspace mnemonic');
-    }
-  };
-
-  public decryptWorkspacesMnemonic = async (
-    workspaces: WorkspaceData[],
-    user: LoginCredentials['user'],
-  ): Promise<WorkspaceData[]> => {
-    return await Promise.all(
-      workspaces.map(async (workspace) => {
-        return {
-          ...workspace,
-          workspaceUser: {
-            ...workspace.workspaceUser,
-            key: await this.decryptWorkspaceMnemonic(workspace.workspaceUser.key, user),
-          },
-        };
-      }),
-    );
   };
 
   public decryptPrivateKey = (privateKey: string, password: string): string => {

@@ -20,7 +20,6 @@ services:
       INXT_PASSWORD: ""                   # Your Internxt account password
       INXT_TWOFACTORCODE: ""              # (Optional) Current 2FA one-time code
       INXT_OTPTOKEN: ""                   # (Optional) OTP secret for auto-generating 2FA codes
-      INXT_WORKSPACE_ID: ""               # (Optional) Workspace ID to use for WebDAV server
       WEBDAV_PORT: ""                     # (Optional) WebDAV port. Defaults to 3005 if empty
       WEBDAV_PROTOCOL: ""                 # (Optional) WebDAV protocol. Accepts 'http' or 'https'. Defaults to 'https' if empty
       WEBDAV_CUSTOM_AUTH: ""              # (Optional) Enable custom authentication. Set to 'true' to enable
@@ -48,7 +47,6 @@ docker run -d \
   -e INXT_PASSWORD="your_password" \
   -e INXT_TWOFACTORCODE="" \
   -e INXT_OTPTOKEN="" \
-  -e INXT_WORKSPACE_ID="" \
   -e WEBDAV_PORT="" \
   -e WEBDAV_PROTOCOL="" \
   -e WEBDAV_CUSTOM_AUTH="" \
@@ -89,7 +87,6 @@ You can also run the `internxt/webdav` image directly on popular NAS devices lik
 | `INXT_PASSWORD`                   | ✅ Yes   | Your Internxt account password.                                                                |
 | `INXT_TWOFACTORCODE`              | ❌ No    | Temporary one-time code from your 2FA app. Must be refreshed every startup.                    |
 | `INXT_OTPTOKEN`                   | ❌ No    | OTP secret key (base32). Used to auto-generate fresh codes at runtime.                         |
-| `INXT_WORKSPACE_ID`               | ❌ No    | Workspace ID to use. If set, the WebDAV server will operate within this workspace.             |
 | `WEBDAV_PORT`                     | ❌ No    | Port for the WebDAV server. Defaults to `3005` if left empty.                                  |
 | `WEBDAV_PROTOCOL`                 | ❌ No    | Protocol for the WebDAV server. Accepts `http` or `https`. Defaults to `https` if left empty.  |
 | `WEBDAV_CUSTOM_AUTH`              | ❌ No    | Enable custom Basic Authentication for WebDAV. Set to `true` to enable.                        |
@@ -122,10 +119,6 @@ If your Internxt account has **two-factor authentication enabled**, you can choo
 | **`INXT_OTPTOKEN`**     | The **private OTP secret** (the key you scan when setting up 2FA). | Use this for unattended containers. The server will generate fresh codes automatically. | If set, `INXT_TWOFACTORCODE` will be ignored. |
 
 💡 **Recommended:** Use `INXT_OTPTOKEN` if you want your container to run unattended without re-entering codes on each restart.
-
-
-### Using Workspaces
-If you have access to Internxt Workspaces and want to use the WebDAV server with a specific workspace instead of your personal drive, you can set the INXT_WORKSPACE_ID environment variable.
 
 
 ### Permanent File Deletion

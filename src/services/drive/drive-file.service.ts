@@ -2,7 +2,6 @@ import { StorageTypes } from '@internxt/sdk/dist/drive';
 import { SdkManager } from '../sdk-manager.service';
 import { DriveFileItem } from '../../types/drive.types';
 import { DriveUtils } from '../../utils/drive.utils';
-import { AuthService } from '../auth.service';
 import { NotFoundError } from '../../utils/errors.utils';
 import { FileStatus } from '@internxt/sdk/dist/drive/storage/types';
 
@@ -90,27 +89,6 @@ export class DriveFileService {
   private readonly createDriveFileEntry = async (
     payload: StorageTypes.FileEntryByUuid,
   ): Promise<StorageTypes.DriveFileData> => {
-    const currentWorkspace = await AuthService.instance.getCurrentWorkspace();
-
-    if (currentWorkspace) {
-      const workspaceClient = SdkManager.instance.getWorkspaces();
-      return workspaceClient.createFileEntry(
-        {
-          name: payload.plainName,
-          plainName: payload.plainName,
-          bucket: payload.bucket,
-          fileId: payload.fileId ?? '',
-          encryptVersion: StorageTypes.EncryptionVersion.Aes03,
-          folderUuid: payload.folderUuid,
-          size: payload.size,
-          type: payload.type ?? '',
-          modificationTime: payload.modificationTime ?? new Date().toISOString(),
-          date: payload.date ?? new Date().toISOString(),
-        },
-        currentWorkspace.workspaceCredentials.id,
-      );
-    }
-
     const storageClient = SdkManager.instance.getStorage();
     return storageClient.createFileEntryByUuid(payload);
   };

@@ -14,7 +14,7 @@ export const AuthMiddleware = (): RequestHandler => {
         const cached = CacheService.instance.get<LoginCredentials>(CacheService.AUTH_CACHE_KEY);
 
         if (cached) {
-          SdkManager.init({ token: cached.token, workspaceToken: cached.workspace?.workspaceCredentials?.token });
+          SdkManager.init({ token: cached.token });
           next();
           return;
         }

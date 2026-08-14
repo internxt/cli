@@ -31,8 +31,8 @@ const hook: Hook<'prerun'> = async function (opts) {
   ) {
     CLIUtils.doing('Checking credentials', jsonFlag);
     try {
-      const { token, workspace } = await AuthService.instance.getAuthDetails();
-      SdkManager.init({ token, workspaceToken: workspace?.workspaceCredentials.token });
+      const { token } = await AuthService.instance.getAuthDetails();
+      SdkManager.init({ token });
       CLIUtils.done(jsonFlag);
       CLIUtils.clearPreviousLine(jsonFlag);
       await DatabaseService.instance.initialize();
