@@ -29,6 +29,7 @@ describe('UploadUtils', () => {
       vi.spyOn(UsageService.instance, 'fetchLimits').mockResolvedValue({
         maxUploadFileSize: 8 * 1024 * 1024 * 1024,
         versioning: { enabled: false, maxFileSize: 0, retentionDays: 0, maxVersions: 0 },
+        photosAccess: false,
       });
 
       await expect(UploadUtils.checkUploadSizeLimits(5 * 1024 * 1024 * 1024)).resolves.toBeUndefined();
@@ -40,6 +41,7 @@ describe('UploadUtils', () => {
       vi.spyOn(UsageService.instance, 'fetchLimits').mockResolvedValue({
         maxUploadFileSize: limitBytes,
         versioning: { enabled: false, maxFileSize: 0, retentionDays: 0, maxVersions: 0 },
+        photosAccess: false,
       });
 
       await expect(UploadUtils.checkUploadSizeLimits(sizeBytes)).rejects.toThrow(
@@ -53,6 +55,7 @@ describe('UploadUtils', () => {
       vi.spyOn(UsageService.instance, 'fetchLimits').mockResolvedValue({
         maxUploadFileSize: limitBytes,
         versioning: { enabled: false, maxFileSize: 0, retentionDays: 0, maxVersions: 0 },
+        photosAccess: false,
       });
 
       await expect(UploadUtils.checkUploadSizeLimits(limitBytes)).resolves.toBeUndefined();
@@ -70,6 +73,7 @@ describe('UploadUtils', () => {
       vi.spyOn(UsageService.instance, 'fetchLimits').mockResolvedValue({
         maxUploadFileSize: 200 * 1024 * 1024 * 1024,
         versioning: { enabled: false, maxFileSize: 0, retentionDays: 0, maxVersions: 0 },
+        photosAccess: false,
       });
 
       await expect(UploadUtils.checkUploadSizeLimits(150 * 1024 * 1024 * 1024)).rejects.toThrow(
@@ -82,6 +86,7 @@ describe('UploadUtils', () => {
       vi.spyOn(UsageService.instance, 'fetchLimits').mockResolvedValue({
         maxUploadFileSize: limitBytes,
         versioning: { enabled: false, maxFileSize: 0, retentionDays: 0, maxVersions: 0 },
+        photosAccess: false,
       });
 
       await expect(UploadUtils.checkUploadSizeLimits(9 * 1024 * 1024 * 1024)).rejects.toThrow(

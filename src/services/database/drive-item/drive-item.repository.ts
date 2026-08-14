@@ -22,14 +22,26 @@ export class DriveItemRepository {
       const existingByUuid = new Map(existing.map((e) => [e.uuid, e]));
       const existingByPath = new Map(existing.map((e) => [e.path, e]));
 
+      const itemsToInsert: DriveItemModel[] = [];
+      const itemsToUpdate: { targetUuid: string; item: DriveItemModel }[] = [];
+
       for (const item of items) {
         const match = existingByUuid.get(item.uuid) ?? existingByPath.get(item.path);
         if (match) {
-          await this.repository.update(match.uuid, item);
+          itemsToUpdate.push({ targetUuid: match.uuid, item });
         } else {
-          await this.repository.insert(item);
+          itemsToInsert.push(item);
         }
       }
+
+      await this.repository.manager.transaction(async (transactionalEntityManager) => {
+        if (itemsToInsert.length > 0) {
+          await transactionalEntityManager.insert(DriveItemModel, itemsToInsert);
+        }
+        for (const { targetUuid, item } of itemsToUpdate) {
+          await transactionalEntityManager.update(DriveItemModel, targetUuid, item);
+        }
+      });
 
       return items.map((item) => new DriveItemBD(item));
     } catch (error) {

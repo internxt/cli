@@ -3,6 +3,8 @@ import { ErrorHandlingMiddleware } from '../../../src/webdav/middewares/errors.m
 import { createWebDavRequestFixture, createWebDavResponseFixture } from '../../fixtures/webdav.fixture';
 import { BadRequestError, NotFoundError, NotImplementedError } from '../../../src/utils/errors.utils';
 import { XMLUtils } from '../../../src/utils/xml.utils';
+import { AxiosResponseError, AxiosUnknownError } from '@internxt/sdk/dist/shared/types/errors';
+import { AxiosError } from 'axios';
 
 describe('Error handling middleware', () => {
   test('when a not found error occurs, then the server responds with a 404 status', () => {
@@ -98,6 +100,69 @@ describe('Error handling middleware', () => {
       XMLUtils.toWebDavXML(
         {
           [XMLUtils.addDefaultNamespace('responsedescription')]: errorMessage,
+        },
+        {},
+        'error',
+      ),
+    );
+  });
+
+  test('when a Drive API request fails with a response, then the server forwards its status and detail', () => {
+    const error = new AxiosResponseError('Request failed with status code 400', 'POST /files', {
+      status: 400,
+      data: { message: 'fileId must not be provided when size is 0', statusCode: 400 },
+      headers: {},
+      statusText: 'Bad Request',
+      // @ts-expect-error partial AxiosResponse fixture, only the fields read by AxiosResponseError are needed
+      config: {},
+    });
+    const res = createWebDavResponseFixture({
+      status: vi.fn().mockReturnValue({ send: vi.fn() }),
+    });
+    const req = createWebDavRequestFixture({
+      method: 'PUT',
+      url: '/test/empty.bin',
+    });
+
+    ErrorHandlingMiddleware(error, req, res, () => {});
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.send).toHaveBeenCalledWith(
+      XMLUtils.toWebDavXML(
+        {
+          [XMLUtils.addDefaultNamespace('responsedescription')]:
+            'Request failed with status code 400 [fileId must not be provided when size is 0]',
+        },
+        {},
+        'error',
+      ),
+    );
+  });
+
+  test('when a Drive API request fails without a response, then the server responds with the normalized status and no detail suffix', () => {
+    const axiosError = {
+      message: 'Network Error',
+      code: 'ECONNABORTED',
+      // no `request` -> AxiosUnknownError normalizes this to status 400
+      request: undefined,
+      config: {},
+    } as AxiosError;
+    const error = new AxiosUnknownError('Network Error', 'POST /files', axiosError);
+    const res = createWebDavResponseFixture({
+      status: vi.fn().mockReturnValue({ send: vi.fn() }),
+    });
+    const req = createWebDavRequestFixture({
+      method: 'PUT',
+      url: '/test/empty.bin',
+    });
+
+    ErrorHandlingMiddleware(error, req, res, () => {});
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.send).toHaveBeenCalledWith(
+      XMLUtils.toWebDavXML(
+        {
+          [XMLUtils.addDefaultNamespace('responsedescription')]: 'Network Error',
         },
         {},
         'error',

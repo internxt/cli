@@ -28,6 +28,7 @@ describe('PUT request handler', () => {
     vi.spyOn(UsageService.instance, 'fetchLimits').mockResolvedValue({
       maxUploadFileSize: null,
       versioning: { enabled: false, maxFileSize: 0, retentionDays: 0, maxVersions: 0 },
+      photosAccess: false,
     });
 
     sut = new PUTRequestHandler();
@@ -83,6 +84,14 @@ describe('PUT request handler', () => {
     expect(getAuthDetailsStub).toHaveBeenCalledOnce();
     expect(uploadStub).not.toHaveBeenCalled();
     expect(createDriveFileStub).toHaveBeenCalledOnce();
+    expect(createDriveFileStub).toHaveBeenCalledWith(
+      expect.objectContaining({
+        fileId: undefined,
+        size: 0,
+        folderUuid: folderFixture.uuid,
+        plainName: requestedFileResource.path.name,
+      }),
+    );
   });
 
   test('when a file is uploaded to an existing folder, then the server stores it', async () => {
