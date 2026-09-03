@@ -6,6 +6,7 @@ import selfsigned from 'selfsigned';
 import parseRange from 'range-parser';
 import { WebdavConfig } from '../types/command.types';
 import { WEBDAV_SSL_CERTS_DIR } from '../constants/configs';
+import { BadRequestError, RangeNotSatisfiableError } from './errors.utils';
 
 export class NetworkUtils {
   static getAuthFromCredentials(creds: NetworkCredentials): { username: string; password: string } {
@@ -85,9 +86,11 @@ export class NetworkUtils {
     const parsed = parseRange(rangeOptions.totalFileSize, rangeOptions.range);
     if (Array.isArray(parsed)) {
       if (parsed.length > 1) {
-        throw new Error(`Multi Range-Requests functionality is not implemented. ${JSON.stringify(rangeOptions)}`);
+        throw new BadRequestError(
+          `Multi Range-Requests functionality is not implemented. ${JSON.stringify(rangeOptions)}`,
+        );
       } else if (parsed.length <= 0) {
-        throw new Error(`Empty Range-Request. ${JSON.stringify(rangeOptions)}`);
+        throw new RangeNotSatisfiableError(`Empty Range-Request. ${JSON.stringify(rangeOptions)}`);
       }
 
       if (parsed.type === 'bytes') {
@@ -99,14 +102,14 @@ export class NetworkUtils {
           parsed: parsed[0],
         };
       } else {
-        throw new Error(`Unkwnown Range-Request type "${parsed.type}". ${JSON.stringify(rangeOptions)}`);
+        throw new BadRequestError(`Unkwnown Range-Request type "${parsed.type}". ${JSON.stringify(rangeOptions)}`);
       }
     } else if (parsed === -1) {
-      throw new Error(`Unsatisfiable Range-Request. ${JSON.stringify(rangeOptions)}`);
+      throw new RangeNotSatisfiableError(`Unsatisfiable Range-Request. ${JSON.stringify(rangeOptions)}`);
     } else if (parsed === -2) {
-      throw new Error(`Malformed Range-Request. ${JSON.stringify(rangeOptions)}`);
+      throw new BadRequestError(`Malformed Range-Request. ${JSON.stringify(rangeOptions)}`);
     } else {
-      throw new Error(`Unknown error from Range-Request. ${JSON.stringify(rangeOptions)}`);
+      throw new BadRequestError(`Unknown error from Range-Request. ${JSON.stringify(rangeOptions)}`);
     }
   }
 }
