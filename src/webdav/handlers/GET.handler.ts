@@ -2,7 +2,7 @@ import { WebDavMethodHandler } from '../../types/webdav.types';
 import { Request, Response } from 'express';
 import { WebDavUtils } from '../../utils/webdav.utils';
 import { AuthService } from '../../services/auth.service';
-import { NotFoundError } from '../../utils/errors.utils';
+import { NotFoundError, RangeNotSatisfiableError } from '../../utils/errors.utils';
 import { webdavLogger } from '../../utils/logger.utils';
 import { NetworkUtils } from '../../utils/network.utils';
 import { NotValidFileIdError } from '../../types/command.types';
@@ -34,14 +34,23 @@ export class GETRequestHandler implements WebDavMethodHandler {
 
     if (fileSize > 0) {
       const range = req.headers['range'];
-      const rangeOptions = NetworkUtils.parseRangeHeader({
-        range,
-        totalFileSize: fileSize,
-      });
+      let rangeOptions;
+      try {
+        rangeOptions = NetworkUtils.parseRangeHeader({
+          range,
+          totalFileSize: fileSize,
+        });
+      } catch (error) {
+        if (error instanceof RangeNotSatisfiableError) {
+          res.header('Content-Range', `bytes */${fileSize}`);
+        }
+        throw error;
+      }
       let contentLength = fileSize;
       if (rangeOptions) {
         webdavLogger.info(`[GET] [${driveFile.uuid}] Range request received:`, { rangeOptions });
         contentLength = rangeOptions.rangeSize;
+        res.header('Content-Range', `bytes ${rangeOptions.parsed.start}-${rangeOptions.parsed.end}/${fileSize}`);
       }
       res.header('Content-length', contentLength.toString());
 
@@ -71,11 +80,12 @@ export class GETRequestHandler implements WebDavMethodHandler {
       webdavLogger.info(`[GET] [${driveFile.uuid}] Download prepared, executing...`);
 
       /**
-       * If the client doesn't receive a 200 status code, the download can be aborted.
-       * We need to respond with status 200 while the file is being downloaded via streams
-       * so the client can keep the connection open and receive the file completely.
+       * If the client doesn't receive a 200/206 status code, the download can be aborted.
+       * We need to respond with status 200 (or 206 for range requests) while the file is being
+       * downloaded via streams so the client can keep the connection open and receive the file
+       * completely.
        */
-      res.status(200);
+      res.status(rangeOptions ? 206 : 200);
 
       await executeDownload;
       webdavLogger.info(`[GET] [${driveFile.uuid}] ✅ Download ready, replying to client`);
