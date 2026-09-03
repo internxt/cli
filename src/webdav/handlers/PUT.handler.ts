@@ -119,13 +119,11 @@ export class PUTRequestHandler implements WebDavMethodHandler {
           }`,
         );
         await WebDavUtils.deleteOrTrashItem(driveFileItem);
-        await DriveItemRepository.instance.delete([driveFileItem.uuid]);
         file = await DriveFileService.instance.createFile(filePayload);
       }
     } else {
       if (driveFileItem?.itemType === 'file') {
         await WebDavUtils.deleteOrTrashItem(driveFileItem);
-        await DriveItemRepository.instance.delete([driveFileItem.uuid]);
       }
       file = await DriveFileService.instance.createFile(filePayload);
     }
