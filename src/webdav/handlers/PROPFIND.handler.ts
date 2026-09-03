@@ -11,6 +11,7 @@ import mime from 'mime-types';
 import { WebDavUtils } from '../../utils/webdav.utils';
 import { webdavLogger } from '../../utils/logger.utils';
 import { UsageService } from '../../services/usage.service';
+import { NotFoundError } from '../../utils/errors.utils';
 
 export class PROPFINDRequestHandler implements WebDavMethodHandler {
   handle = async (req: Request, res: Response) => {
@@ -20,8 +21,7 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
     const driveItem = await WebDavUtils.getDriveItemFromResource(resource);
 
     if (!driveItem) {
-      res.status(404).send();
-      return;
+      throw new NotFoundError(`Resource not found on Internxt Drive at ${resource.url}`);
     }
 
     res.set('Content-Type', 'application/xml; charset="utf-8"');
