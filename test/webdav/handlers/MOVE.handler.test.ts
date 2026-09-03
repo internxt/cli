@@ -6,6 +6,7 @@ import {
   getRequestedFolderResource,
 } from '../../fixtures/webdav.fixture';
 import { MOVERequestHandler } from '../../../src/webdav/handlers/MOVE.handler';
+import { PreconditionFailedError } from '../../../src/utils/errors.utils';
 import { WebDavUtils } from '../../../src/utils/webdav.utils';
 import { DriveFolderService } from '../../../src/services/drive/drive-folder.service';
 import { DriveFileService } from '../../../src/services/drive/drive-file.service';
@@ -71,7 +72,7 @@ describe('MOVE request handler', () => {
     expect(renameFolderStub).toHaveBeenCalledWith({ folderUuid: 'folder-uuid', name: 'renamed' });
     expect(deleteSpy).toHaveBeenCalledWith(['folder-uuid']);
     expect(createOrUpdateSpy).toHaveBeenCalled();
-    expect(response.status).toHaveBeenCalledWith(204);
+    expect(response.status).toHaveBeenCalledWith(201);
   });
 
   test('when a file is moved within the same directory, then the server renames it', async () => {
@@ -100,6 +101,77 @@ describe('MOVE request handler', () => {
 
     expect(renameFileStub).toHaveBeenCalledWith('file-uuid', { plainName: 'renamed', type: 'txt' });
     expect(deleteSpy).toHaveBeenCalledWith(['file-uuid']);
+    expect(createOrUpdateSpy).toHaveBeenCalled();
+    expect(response.status).toHaveBeenCalledWith(201);
+  });
+
+  test('when Overwrite is F and the destination already exists, then the server responds with a precondition failed error', async () => {
+    const sourceFileItem = newFileItem({ uuid: 'file-uuid' });
+    const destinationFileItem = newFileItem({ uuid: 'other-file-uuid' });
+    const request = createWebDavRequestFixture({
+      method: 'MOVE',
+      url: '/source/file.txt',
+      header: vi.fn((name: string) =>
+        name === 'destination' ? 'https://example.com/dest/file.txt' : name === 'overwrite' ? 'F' : undefined,
+      ),
+    });
+    const response = createWebDavResponseFixture({});
+
+    vi.spyOn(WebDavUtils, 'removeHostFromURL').mockReturnValue('/dest/file.txt');
+    vi.spyOn(WebDavUtils, 'getRequestedResource')
+      .mockResolvedValueOnce(getRequestedFileResource({ parentFolder: '/source/', fileName: 'file', fileType: 'txt' }))
+      .mockResolvedValueOnce(getRequestedFileResource({ parentFolder: '/dest/', fileName: 'file', fileType: 'txt' }));
+    vi.spyOn(WebDavUtils, 'getDriveItemFromResource')
+      .mockResolvedValueOnce(sourceFileItem)
+      .mockResolvedValueOnce(destinationFileItem);
+    const deleteOrTrashSpy = vi.spyOn(WebDavUtils, 'deleteOrTrashItem');
+    const renameFileStub = vi.spyOn(DriveFileService.instance, 'renameFile');
+    const moveFileStub = vi.spyOn(DriveFileService.instance, 'moveFile');
+
+    await expect(sut.handle(request, response)).rejects.toThrow(PreconditionFailedError);
+
+    expect(deleteOrTrashSpy).not.toHaveBeenCalled();
+    expect(renameFileStub).not.toHaveBeenCalled();
+    expect(moveFileStub).not.toHaveBeenCalled();
+  });
+
+  test('when the destination already exists and Overwrite is not disabled, then the server overwrites it before moving', async () => {
+    const sourceFileItem = newFileItem({ uuid: 'file-uuid' });
+    const destinationFileItem = newFileItem({ uuid: 'other-file-uuid' });
+    const destFolderItem = newFolderItem({ uuid: 'dest-folder-uuid' });
+    const request = createWebDavRequestFixture({
+      method: 'MOVE',
+      url: '/source/file.txt',
+      header: vi.fn((name: string) => (name === 'destination' ? 'https://example.com/dest/file.txt' : undefined)),
+    });
+    const response = createWebDavResponseFixture({
+      status: vi.fn().mockReturnValue({ send: vi.fn() }),
+    });
+
+    vi.spyOn(WebDavUtils, 'removeHostFromURL').mockReturnValue('/dest/file.txt');
+    vi.spyOn(WebDavUtils, 'getRequestedResource')
+      .mockResolvedValueOnce(getRequestedFileResource({ parentFolder: '/source/', fileName: 'file', fileType: 'txt' }))
+      .mockResolvedValueOnce(getRequestedFileResource({ parentFolder: '/dest/', fileName: 'file', fileType: 'txt' }));
+    vi.spyOn(WebDavUtils, 'getDriveItemFromResource')
+      .mockResolvedValueOnce(sourceFileItem)
+      .mockResolvedValueOnce(destinationFileItem);
+    const deleteOrTrashSpy = vi.spyOn(WebDavUtils, 'deleteOrTrashItem').mockResolvedValue(undefined);
+    vi.spyOn(WebDavFolderService.instance, 'getDriveFolderItemFromPath').mockResolvedValue(destFolderItem);
+    const moveFileStub = vi.spyOn(DriveFileService.instance, 'moveFile').mockResolvedValue(undefined);
+    const deleteRepoSpy = vi.spyOn(DriveItemRepository.instance, 'delete').mockResolvedValue(undefined);
+    const createOrUpdateSpy = vi.spyOn(DriveItemRepository.instance, 'createOrUpdate').mockResolvedValue(undefined);
+
+    await sut.handle(request, response);
+
+    // Cache cleanup for the overwritten destination is WebDavUtils.deleteOrTrashItem's own
+    // responsibility (see webdav.utils.test.ts), not something MOVE has to repeat.
+    expect(deleteOrTrashSpy).toHaveBeenCalledWith(destinationFileItem);
+    expect(deleteRepoSpy).toHaveBeenCalledWith(['file-uuid']);
+    expect(moveFileStub).toHaveBeenCalledWith('file-uuid', {
+      destinationFolder: 'dest-folder-uuid',
+      name: 'file',
+      type: 'txt',
+    });
     expect(createOrUpdateSpy).toHaveBeenCalled();
     expect(response.status).toHaveBeenCalledWith(204);
   });
@@ -134,7 +206,7 @@ describe('MOVE request handler', () => {
     });
     expect(deleteSpy).toHaveBeenCalledWith(['folder-uuid']);
     expect(createOrUpdateSpy).toHaveBeenCalled();
-    expect(response.status).toHaveBeenCalledWith(204);
+    expect(response.status).toHaveBeenCalledWith(201);
   });
 
   test('when a file is moved to a different directory, then the server processes the move', async () => {
@@ -168,6 +240,6 @@ describe('MOVE request handler', () => {
     });
     expect(deleteSpy).toHaveBeenCalledWith(['file-uuid']);
     expect(createOrUpdateSpy).toHaveBeenCalled();
-    expect(response.status).toHaveBeenCalledWith(204);
+    expect(response.status).toHaveBeenCalledWith(201);
   });
 });
