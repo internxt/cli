@@ -139,6 +139,40 @@ describe('Error handling middleware', () => {
     );
   });
 
+  test('when the request body has not finished arriving, then the connection is destroyed', () => {
+    const error = new NotFoundError('Item not found');
+    const res = createWebDavResponseFixture({
+      status: vi.fn().mockReturnValue({ send: vi.fn() }),
+    });
+    const req = createWebDavRequestFixture({
+      method: 'PUT',
+      url: '/test',
+      complete: false,
+    });
+    const destroySpy = vi.spyOn(req, 'destroy');
+
+    ErrorHandlingMiddleware(error, req, res, () => {});
+
+    expect(destroySpy).toHaveBeenCalledOnce();
+  });
+
+  test('when the request body has already been fully received, then the connection is left open', () => {
+    const error = new NotFoundError('Item not found');
+    const res = createWebDavResponseFixture({
+      status: vi.fn().mockReturnValue({ send: vi.fn() }),
+    });
+    const req = createWebDavRequestFixture({
+      method: 'GET',
+      url: '/test',
+      complete: true,
+    });
+    const destroySpy = vi.spyOn(req, 'destroy');
+
+    ErrorHandlingMiddleware(error, req, res, () => {});
+
+    expect(destroySpy).not.toHaveBeenCalled();
+  });
+
   test('when a Drive API request fails without a response, then the server responds with the normalized status and no detail suffix', () => {
     const axiosError = {
       message: 'Network Error',

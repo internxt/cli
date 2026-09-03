@@ -59,5 +59,12 @@ export const ErrorHandlingMiddleware: ErrorRequestHandler = (err, req, res, _) =
 
   res.set('Content-Type', 'application/xml; charset="utf-8"');
   res.status(statusCode).send(errorBodyXML);
-  req.destroy();
+
+  // If the client hasn't finished sending the request body (e.g. a large PUT rejected early by
+  // a size check), abort the connection instead of waiting for it to finish streaming data that
+  // will never be read. Otherwise let the response flush normally so the connection can be
+  // reused for keep-alive, instead of forcing every trivial error (404, 409, 415...) to reset it.
+  if (!req.complete) {
+    req.destroy();
+  }
 };
