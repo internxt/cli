@@ -89,3 +89,23 @@ export class NotImplementedError extends Error {
     Object.setPrototypeOf(this, NotImplementedError.prototype);
   }
 }
+
+export class PreconditionFailedError extends Error {
+  public statusCode = 412;
+
+  constructor(message: string) {
+    super(message);
+    this.name = 'PreconditionFailedError';
+    Object.setPrototypeOf(this, PreconditionFailedError.prototype);
+  }
+}
+
+export class RangeNotSatisfiableError extends Error {
+  public statusCode = 416;
+
+  constructor(message: string) {
+    super(message);
+    this.name = 'RangeNotSatisfiableError';
+    Object.setPrototypeOf(this, RangeNotSatisfiableError.prototype);
+  }
+}
