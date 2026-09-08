@@ -37,8 +37,10 @@ export class DriveFolderService {
   };
 
   public getFolderContent = async (folderUuid: string) => {
-    const folders = await this.getFolderSubfolders(folderUuid);
-    const files = await this.getFolderSubfiles(folderUuid);
+    const [folders, files] = await Promise.all([
+      this.getFolderSubfolders(folderUuid),
+      this.getFolderSubfiles(folderUuid),
+    ]);
     return { folders, files };
   };
 
