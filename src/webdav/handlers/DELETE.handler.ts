@@ -1,5 +1,4 @@
 import { Request, Response } from 'express';
-import { DriveItemRepository } from '../../services/database/drive-item/drive-item.repository';
 import { WebDavMethodHandler } from '../../types/webdav.types';
 import { WebDavUtils } from '../../utils/webdav.utils';
 import { webdavLogger } from '../../utils/logger.utils';
@@ -17,7 +16,6 @@ export class DELETERequestHandler implements WebDavMethodHandler {
     }
 
     await WebDavUtils.deleteOrTrashItem(driveItem);
-    await DriveItemRepository.instance.delete([driveItem.uuid]);
 
     res.status(204).send();
   };

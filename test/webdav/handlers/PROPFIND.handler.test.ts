@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, test, vi } from 'vitest';
+import { fail } from 'node:assert';
 import { PROPFINDRequestHandler } from '../../../src/webdav/handlers/PROPFIND.handler';
+import { NotFoundError } from '../../../src/utils/errors.utils';
 import { DriveFolderService } from '../../../src/services/drive/drive-folder.service';
 import { DriveItemService } from '../../../src/services/drive/drive-item.service';
 import { DriveItemRepository } from '../../../src/services/database/drive-item/drive-item.repository';
@@ -335,9 +337,12 @@ describe('PROPFIND request handler', () => {
       .spyOn(WebDavUtils, 'getDriveItemFromResource')
       .mockResolvedValue(undefined);
 
-    await sut.handle(request, response);
-    expect(response.status).toHaveBeenCalledWith(404);
-    expect(response.send).toHaveBeenCalledWith();
+    try {
+      await sut.handle(request, response);
+      fail('Expected function to throw an error, but it did not.');
+    } catch (error) {
+      expect(error).to.be.instanceOf(NotFoundError);
+    }
     expect(getRequestedResourceStub).toHaveBeenCalledOnce();
     expect(getAndSearchItemFromResourceStub).toHaveBeenCalledOnce();
   });

@@ -3,6 +3,7 @@ import { WebDavMethodHandler } from '../../types/webdav.types';
 import { randomUUID } from 'node:crypto';
 import { webdavLogger } from '../../utils/logger.utils';
 import { XMLUtils } from '../../utils/xml.utils';
+import { WebDavUtils } from '../../utils/webdav.utils';
 
 const LOCK_TIMEOUT_SECONDS = 300;
 
@@ -52,8 +53,14 @@ export class LOCKRequestHandler implements WebDavMethodHandler {
       'prop',
     );
 
+    // RFC 4918 9.10.1: locking a not-yet-existing resource creates a lock-null resource and
+    // must be reported as 201 Created, locking an existing resource is a 200 OK.
+    const resource = await WebDavUtils.getRequestedResource(req.url);
+    const driveItem = await WebDavUtils.getDriveItemFromResource(resource);
+    const statusCode = driveItem ? 200 : 201;
+
     res.set('Lock-Token', `<${lockToken}>`);
     res.set('Content-Type', 'application/xml; charset="utf-8"');
-    res.status(200).send(lockDiscoveryXml);
+    res.status(statusCode).send(lockDiscoveryXml);
   };
 }

@@ -3,7 +3,7 @@ import { DriveFileService } from '../../services/drive/drive-file.service';
 import { DriveFolderService } from '../../services/drive/drive-folder.service';
 import { DriveItemRepository } from '../../services/database/drive-item/drive-item.repository';
 import { WebDavMethodHandler } from '../../types/webdav.types';
-import { NotFoundError } from '../../utils/errors.utils';
+import { NotFoundError, PreconditionFailedError } from '../../utils/errors.utils';
 import { webdavLogger } from '../../utils/logger.utils';
 import { WebDavUtils } from '../../utils/webdav.utils';
 import { WebDavFolderService } from '../../services/webdav/webdav-folder.service';
@@ -27,6 +27,23 @@ export class MOVERequestHandler implements WebDavMethodHandler {
 
     if (!originalDriveItem) {
       throw new NotFoundError(`Resource not found on Internxt Drive at ${resource.url}`);
+    }
+
+    // RFC 4918 10.6: Overwrite defaults to 'T' when absent. 'F' must fail with 412 if the
+    // destination is already mapped to a different resource, otherwise it's overwritten and the
+    // response is 204 instead of 201 (same replace-vs-create pattern as PUT.handler.ts).
+    let isOverwrite = false;
+    const destinationDriveItem = await WebDavUtils.getDriveItemFromResource(destinationResource);
+
+    if (destinationDriveItem && destinationDriveItem.uuid !== originalDriveItem.uuid) {
+      const overwrite = (req.header('overwrite') ?? 'T').toUpperCase();
+      if (overwrite === 'F') {
+        throw new PreconditionFailedError(`Destination '${destinationResource.url}' already exists`);
+      }
+
+      isOverwrite = true;
+      webdavLogger.info(`[MOVE] Destination '${destinationResource.url}' already exists, overwriting it`);
+      await WebDavUtils.deleteOrTrashItem(destinationDriveItem);
     }
 
     if (destinationResource.path.dir === resource.path.dir) {
@@ -90,6 +107,7 @@ export class MOVERequestHandler implements WebDavMethodHandler {
       },
     ]);
 
-    res.status(204).send();
+    const statusCode = isOverwrite ? 204 : 201;
+    res.status(statusCode).send();
   };
 }

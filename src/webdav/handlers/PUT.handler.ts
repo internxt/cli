@@ -109,7 +109,7 @@ export class PUTRequestHandler implements WebDavMethodHandler {
     };
 
     let file;
-    if (driveFileItem?.itemType === 'file' && contentLength > 0) {
+    if (driveFileItem?.itemType === 'file') {
       try {
         file = await DriveFileService.instance.replaceFile(driveFileItem.uuid, filePayload);
       } catch (error) {
@@ -119,14 +119,9 @@ export class PUTRequestHandler implements WebDavMethodHandler {
           }`,
         );
         await WebDavUtils.deleteOrTrashItem(driveFileItem);
-        await DriveItemRepository.instance.delete([driveFileItem.uuid]);
         file = await DriveFileService.instance.createFile(filePayload);
       }
     } else {
-      if (driveFileItem?.itemType === 'file') {
-        await WebDavUtils.deleteOrTrashItem(driveFileItem);
-        await DriveItemRepository.instance.delete([driveFileItem.uuid]);
-      }
       file = await DriveFileService.instance.createFile(filePayload);
     }
     timings.driveUpload = driveTimer.stop();

@@ -10,6 +10,7 @@ import { DriveItemService } from '../../../src/services/drive/drive-item.service
 import { WebDavRequestedResource } from '../../../src/types/webdav.types';
 import { newFileItem, newFolderItem } from '../../fixtures/drive.fixture';
 import { WebDavUtils } from '../../../src/utils/webdav.utils';
+import { NetworkUtils } from '../../../src/utils/network.utils';
 import { randomInt } from 'crypto';
 
 describe('HEAD request handler', () => {
@@ -80,12 +81,18 @@ describe('HEAD request handler', () => {
     const mockSize = randomInt(500, 10000);
     const mockFile = newFileItem({ size: mockSize });
     const rangeStart = randomInt(0, 450);
+    const range = `bytes=${rangeStart}-${mockSize}`;
+
+    const expectedRangeOptions = NetworkUtils.parseRangeHeader({
+      range,
+      totalFileSize: mockFile.size,
+    });
 
     const request = createWebDavRequestFixture({
       method: 'HEAD',
       url: requestedFileResource.url,
       headers: {
-        range: `bytes=${rangeStart}-${mockSize}`,
+        range,
       },
     });
     const response = createWebDavResponseFixture({
@@ -99,10 +106,14 @@ describe('HEAD request handler', () => {
     const getFileMetadataStub = vi.spyOn(DriveItemService.instance, 'getFileByPath').mockResolvedValue(mockFile);
 
     await sut.handle(request, response);
-    expect(response.status).toHaveBeenCalledWith(200);
+    expect(response.status).toHaveBeenCalledWith(206);
     expect(response.header).toHaveBeenCalledWith('Content-length', (mockSize - rangeStart).toString());
     expect(response.header).toHaveBeenCalledWith('Content-Type', 'application/octet-stream');
     expect(response.header).toHaveBeenCalledWith('ETag', WebDavUtils.getItemETag(mockFile));
+    expect(response.header).toHaveBeenCalledWith(
+      'Content-Range',
+      `bytes ${expectedRangeOptions?.parsed.start}-${expectedRangeOptions?.parsed.end}/${mockSize}`,
+    );
     expect(getRequestedResourceStub).toHaveBeenCalledOnce();
     expect(getFileMetadataStub).toHaveBeenCalledOnce();
   });

@@ -1,9 +1,11 @@
 import { describe, expect, test, vi } from 'vitest';
 import { LOCKRequestHandler } from '../../../src/webdav/handlers/LOCK.handler';
+import { WebDavUtils } from '../../../src/utils/webdav.utils';
+import { newFileItem } from '../../fixtures/drive.fixture';
 import { createWebDavRequestFixture, createWebDavResponseFixture } from '../../fixtures/webdav.fixture';
 
 describe('LOCK request handler', () => {
-  test('when a lock request is made, then the server responds with a valid lock token', async () => {
+  test('when a lock request is made for a resource that does not exist yet, then the server responds with 201 (lock-null resource)', async () => {
     const requestHandler = new LOCKRequestHandler();
 
     const request = createWebDavRequestFixture({
@@ -18,7 +20,7 @@ describe('LOCK request handler', () => {
 
     await requestHandler.handle(request, response);
 
-    expect(response.status).toHaveBeenCalledWith(200);
+    expect(response.status).toHaveBeenCalledWith(201);
     expect(setSpy).toHaveBeenCalledWith('Lock-Token', expect.stringMatching(/^<opaquelocktoken:/));
     expect(setSpy).toHaveBeenCalledWith('Content-Type', 'application/xml; charset="utf-8"');
 
@@ -31,6 +33,24 @@ describe('LOCK request handler', () => {
       '<D:lockroot><D:href>/file.txt</D:href></D:lockroot></D:activelock>' +
       '</D:lockdiscovery></D:prop>';
     expect(sendSpy.mock.calls[0]?.[0]).toBe(expectedXml);
+  });
+
+  test('when a lock request is made for a resource that already exists, then the server responds with 200', async () => {
+    const requestHandler = new LOCKRequestHandler();
+
+    const request = createWebDavRequestFixture({
+      method: 'LOCK',
+      url: '/file.txt',
+    });
+    const response = createWebDavResponseFixture({
+      status: vi.fn().mockReturnThis(),
+    });
+
+    vi.spyOn(WebDavUtils, 'getDriveItemFromResource').mockResolvedValue(newFileItem());
+
+    await requestHandler.handle(request, response);
+
+    expect(response.status).toHaveBeenCalledWith(200);
   });
 
   test('when no depth or timeout are specified, then the server uses default values in the response', async () => {

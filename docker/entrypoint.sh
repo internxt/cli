@@ -13,8 +13,9 @@ webdav_enable() {
 
 session_alive() {
   WHOAMI_OUTPUT=$(internxt whoami --json 2>/dev/null || true)
-  WHOAMI_EMAIL=$(echo "$WHOAMI_OUTPUT" | jq -r '.login.user.email // empty')
-  [ "$WHOAMI_EMAIL" = "$INXT_USER" ]
+  WHOAMI_EMAIL=$(echo "$WHOAMI_OUTPUT" | jq -r '.login.user.email // empty' | tr '[:upper:]' '[:lower:]')
+  INXT_USER_LOWER=$(echo "$INXT_USER" | tr '[:upper:]' '[:lower:]')
+  [ -n "$WHOAMI_EMAIL" ] && [ "$WHOAMI_EMAIL" = "$INXT_USER_LOWER" ]
 }
 
 webdav_online() {

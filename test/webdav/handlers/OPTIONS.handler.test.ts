@@ -20,7 +20,7 @@ describe('OPTIONS request handler', () => {
     await requestHandler.handle(request, response);
 
     expect(response.status).toHaveBeenCalledWith(200);
-    const allowHeader = 'DELETE, GET, HEAD, LOCK, MKCOL, MOVE, OPTIONS, PROPFIND, PUT, UNLOCK';
+    const allowHeader = 'DELETE, GET, HEAD, LOCK, MKCOL, MOVE, OPTIONS, PROPFIND, PROPPATCH, PUT, UNLOCK';
     expect(response.header).toHaveBeenCalledWith('Allow', allowHeader);
     expect(response.header).toHaveBeenCalledWith('DAV', '1, 2, ordered-collections');
   });
@@ -41,7 +41,7 @@ describe('OPTIONS request handler', () => {
     await requestHandler.handle(request, response);
 
     expect(response.status).toHaveBeenCalledWith(200);
-    const folderAllow = 'DELETE, HEAD, LOCK, MKCOL, MOVE, OPTIONS, PROPFIND, UNLOCK';
+    const folderAllow = 'DELETE, HEAD, LOCK, MKCOL, MOVE, OPTIONS, PROPFIND, PROPPATCH, UNLOCK';
     expect(response.header).toHaveBeenCalledWith('Allow', folderAllow);
     expect(response.header).toHaveBeenCalledWith('DAV', '1, 2, ordered-collections');
   });
@@ -62,7 +62,7 @@ describe('OPTIONS request handler', () => {
     await requestHandler.handle(request, response);
 
     expect(response.status).toHaveBeenCalledWith(200);
-    const fileAllow = 'DELETE, GET, HEAD, LOCK, MOVE, OPTIONS, PROPFIND, PUT, UNLOCK';
+    const fileAllow = 'DELETE, GET, HEAD, LOCK, MOVE, OPTIONS, PROPFIND, PROPPATCH, PUT, UNLOCK';
     expect(response.header).toHaveBeenCalledWith('Allow', fileAllow);
     expect(response.header).toHaveBeenCalledWith('DAV', '1, 2, ordered-collections');
   });

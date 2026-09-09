@@ -10,7 +10,7 @@ import {
 import { GETRequestHandler } from '../../../src/webdav/handlers/GET.handler';
 import { DriveItemService } from '../../../src/services/drive/drive-item.service';
 import { AuthService } from '../../../src/services/auth.service';
-import { NotFoundError } from '../../../src/utils/errors.utils';
+import { NotFoundError, RangeNotSatisfiableError } from '../../../src/utils/errors.utils';
 import { NetworkFacade } from '../../../src/services/network/network-facade.service';
 import { WebDavUtils } from '../../../src/utils/webdav.utils';
 import { WebDavRequestedResource } from '../../../src/types/webdav.types';
@@ -145,10 +145,14 @@ describe('GET request handler', () => {
 
     await sut.handle(request, response);
 
-    expect(response.status).toHaveBeenCalledWith(200);
+    expect(response.status).toHaveBeenCalledWith(206);
     expect(response.header).toHaveBeenCalledWith('Content-length', (mockSize - rangeStart).toString());
     expect(response.header).toHaveBeenCalledWith('Content-Type', 'application/octet-stream');
     expect(response.header).toHaveBeenCalledWith('ETag', WebDavUtils.getItemETag(mockFile));
+    expect(response.header).toHaveBeenCalledWith(
+      'Content-Range',
+      `bytes ${expectedRangeOptions?.parsed.start}-${expectedRangeOptions?.parsed.end}/${mockSize}`,
+    );
     expect(getRequestedResourceStub).toHaveBeenCalledOnce();
     expect(getFileMetadataStub).toHaveBeenCalledOnce();
     expect(authDetailsStub).toHaveBeenCalledOnce();
@@ -160,6 +164,46 @@ describe('GET request handler', () => {
       expect.any(Object),
       expectedRangeOptions,
     );
+  });
+
+  test('when the requested range cannot be satisfied, then the server responds with 416 and Content-Range', async () => {
+    const requestedFileResource: WebDavRequestedResource = getRequestedFileResource();
+
+    const mockSize = randomInt(500, 10000);
+    const mockFile = newFileItem({ size: mockSize });
+    const range = `bytes=${mockSize + 1000}-${mockSize + 2000}`;
+
+    const request = createWebDavRequestFixture({
+      method: 'GET',
+      url: requestedFileResource.url,
+      headers: {
+        range,
+      },
+    });
+    const response = createWebDavResponseFixture({
+      status: vi.fn().mockReturnValue({ send: vi.fn() }),
+      header: vi.fn(),
+    });
+
+    const getRequestedResourceStub = vi
+      .spyOn(WebDavUtils, 'getRequestedResource')
+      .mockResolvedValue(requestedFileResource);
+    const getFileMetadataStub = vi.spyOn(DriveItemService.instance, 'getFileByPath').mockResolvedValue(mockFile);
+    const authDetailsStub = vi.spyOn(AuthService.instance, 'getAuthDetails').mockResolvedValue(UserCredentialsFixture);
+    const downloadStreamStub = vi.spyOn(networkFacade, 'downloadToStream');
+
+    try {
+      await sut.handle(request, response);
+      fail('Expected function to throw an error, but it did not.');
+    } catch (error) {
+      expect(error).to.be.instanceOf(RangeNotSatisfiableError);
+    }
+
+    expect(response.header).toHaveBeenCalledWith('Content-Range', `bytes */${mockSize}`);
+    expect(getRequestedResourceStub).toHaveBeenCalledOnce();
+    expect(getFileMetadataStub).toHaveBeenCalledOnce();
+    expect(authDetailsStub).toHaveBeenCalledOnce();
+    expect(downloadStreamStub).not.toHaveBeenCalled();
   });
 
   test('when an empty file is requested, then the server responds with no content', async () => {
