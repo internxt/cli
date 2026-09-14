@@ -41,10 +41,14 @@ export const ErrorHandlingMiddleware: ErrorRequestHandler = (err, req, res, _) =
     message += ` [${detail}]`;
   }
 
+  const logMessage = ErrorUtils.withRequestId(message, err);
+
   if (ErrorUtils.isError(err) && err.stack) {
-    webdavLogger.error(`[ERROR MIDDLEWARE] [${req.method.toUpperCase()} - ${req.url}] ${message}\nStack: ${err.stack}`);
+    webdavLogger.error(
+      `[ERROR MIDDLEWARE] [${req.method.toUpperCase()} - ${req.url}] ${logMessage}\nStack: ${err.stack}`,
+    );
   } else {
-    webdavLogger.error(`[ERROR MIDDLEWARE] [${req.method.toUpperCase()} - ${req.url}] ${message}`);
+    webdavLogger.error(`[ERROR MIDDLEWARE] [${req.method.toUpperCase()} - ${req.url}] ${logMessage}`);
   }
 
   const errorBodyXML = XMLUtils.toWebDavXML(

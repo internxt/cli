@@ -3,7 +3,7 @@ import { DriveFileService } from '../../services/drive/drive-file.service';
 import { DriveItemRepository } from '../../services/database/drive-item/drive-item.repository';
 import { AuthService } from '../../services/auth.service';
 import { WebDavMethodHandler } from '../../types/webdav.types';
-import { ConflictError } from '../../utils/errors.utils';
+import { ConflictError, ErrorUtils } from '../../utils/errors.utils';
 import { WebDavUtils } from '../../utils/webdav.utils';
 import { webdavLogger } from '../../utils/logger.utils';
 import { EncryptionVersion } from '@internxt/sdk/dist/drive/storage/types';
@@ -114,9 +114,12 @@ export class PUTRequestHandler implements WebDavMethodHandler {
         file = await DriveFileService.instance.replaceFile(driveFileItem.uuid, filePayload);
       } catch (error) {
         webdavLogger.warn(
-          `[PUT] File replace failed for '${resource.url}', falling back to delete and create: ${
-            error instanceof Error ? error.message : String(error)
-          }`,
+          ErrorUtils.withRequestId(
+            `[PUT] File replace failed for '${resource.url}', falling back to delete and create: ${
+              error instanceof Error ? error.message : String(error)
+            }`,
+            error,
+          ),
         );
         await WebDavUtils.deleteOrTrashItem(driveFileItem);
         file = await DriveFileService.instance.createFile(filePayload);

@@ -6,11 +6,44 @@ import { DriveFileService } from '../../../src/services/drive/drive-file.service
 import { DriveFolderService } from '../../../src/services/drive/drive-folder.service';
 import { newFileItem, newFolderItem } from '../../fixtures/drive.fixture';
 import { NotFoundError } from '../../../src/utils/errors.utils';
+import { webdavLogger } from '../../../src/utils/logger.utils';
+import { AxiosResponseError } from '@internxt/sdk/dist/shared/types/errors';
+
+const createApiError = (status: number, requestId: string) =>
+  new AxiosResponseError(`Request failed with status code ${status}`, 'GET files/meta', {
+    status,
+    data: {},
+    headers: { 'x-request-id': requestId },
+    statusText: '',
+    // @ts-expect-error partial AxiosResponse fixture, only the fields read by AxiosResponseError are needed
+    config: {},
+  });
 
 describe('Drive Item Service', () => {
   const sut = DriveItemService.instance;
 
   describe('getting a file by path', () => {
+    test('when the path lookup fails with an unexpected API error, then it is logged with its request id', async () => {
+      const path = '/test/file.txt';
+      vi.spyOn(DriveItemRepository.instance, 'getByPath').mockResolvedValue(undefined);
+      vi.spyOn(DriveFileService.instance, 'getFileMetadataByPath').mockRejectedValue(createApiError(500, 'req-123'));
+
+      await expect(sut.getFileByPath(path)).rejects.toThrow('File not found at path');
+      expect(webdavLogger.warn).toHaveBeenCalledWith(
+        'File lookup by path failed: Request failed with status code 500 (requestId: req-123)',
+        { path },
+      );
+    });
+
+    test('when the path lookup fails because the file does not exist, then nothing is logged', async () => {
+      const path = '/test/file.txt';
+      vi.spyOn(DriveItemRepository.instance, 'getByPath').mockResolvedValue(undefined);
+      vi.spyOn(DriveFileService.instance, 'getFileMetadataByPath').mockRejectedValue(createApiError(404, 'req-404'));
+
+      await expect(sut.getFileByPath(path)).rejects.toThrow('File not found at path');
+      expect(webdavLogger.warn).not.toHaveBeenCalled();
+    });
+
     test('when the file is in cache and the API responds, then the cached file is returned', async () => {
       const path = '/test/file.txt';
       const cachedItem = new DriveItemBD({

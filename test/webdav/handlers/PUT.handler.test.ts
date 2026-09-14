@@ -17,6 +17,8 @@ import { newFileItem, newFolderItem } from '../../fixtures/drive.fixture';
 import { UserCredentialsFixture } from '../../fixtures/login.fixture';
 import { CLIUtils } from '../../../src/utils/cli.utils';
 import { UsageService } from '../../../src/services/usage.service';
+import { webdavLogger } from '../../../src/utils/logger.utils';
+import { AxiosResponseError } from '@internxt/sdk/dist/shared/types/errors';
 
 describe('PUT request handler', () => {
   let networkFacade: NetworkFacade;
@@ -200,5 +202,56 @@ describe('PUT request handler', () => {
     );
     expect(createDriveFileStub).not.toHaveBeenCalled();
     expect(deleteDriveFileStub).not.toHaveBeenCalled();
+  });
+
+  test('when replacing an existing file fails, then the request id is logged and the file is deleted and created', async () => {
+    const requestedFileResource: WebDavRequestedResource = getRequestedFileResource();
+    const requestedParentFolderResource: WebDavRequestedResource = getRequestedFolderResource({
+      parentFolder: '/',
+      folderName: '',
+    });
+    const folderFixture = newFolderItem({ name: requestedParentFolderResource.name });
+    const fileFixture = newFileItem({ folderUuid: folderFixture.uuid, size: 0, fileId: undefined });
+
+    const request = createWebDavRequestFixture({
+      method: 'PUT',
+      url: requestedFileResource.url,
+      headers: {
+        'content-length': '0',
+      },
+    });
+
+    const response = createWebDavResponseFixture({
+      status: vi.fn().mockReturnValue({ send: vi.fn() }),
+    });
+
+    const replaceError = new AxiosResponseError('Request failed with status code 500', 'PUT /files/uuid', {
+      status: 500,
+      data: {},
+      headers: { 'x-request-id': 'req-123' },
+      statusText: 'Internal Server Error',
+      // @ts-expect-error partial AxiosResponse fixture, only the fields read by AxiosResponseError are needed
+      config: {},
+    });
+
+    vi.spyOn(WebDavUtils, 'getRequestedResource')
+      .mockResolvedValueOnce(requestedFileResource)
+      .mockResolvedValueOnce(requestedParentFolderResource);
+    vi.spyOn(WebDavUtils, 'getDriveItemFromResource').mockResolvedValueOnce(fileFixture);
+    vi.spyOn(WebDavUtils, 'getDriveFolderFromResource').mockResolvedValue(folderFixture);
+    vi.spyOn(AuthService.instance, 'getAuthDetails').mockResolvedValue(UserCredentialsFixture);
+    const deleteDriveFileStub = vi.spyOn(WebDavUtils, 'deleteOrTrashItem').mockResolvedValue();
+    const replaceDriveFileStub = vi.spyOn(DriveFileService.instance, 'replaceFile').mockRejectedValue(replaceError);
+    const createDriveFileStub = vi.spyOn(DriveFileService.instance, 'createFile').mockResolvedValue(fileFixture);
+
+    await sut.handle(request, response);
+
+    expect(response.status).toHaveBeenCalledWith(204);
+    expect(replaceDriveFileStub).toHaveBeenCalledOnce();
+    expect(webdavLogger.warn).toHaveBeenCalledWith(
+      expect.stringContaining('Request failed with status code 500 (requestId: req-123)'),
+    );
+    expect(deleteDriveFileStub).toHaveBeenCalledWith(fileFixture);
+    expect(createDriveFileStub).toHaveBeenCalledOnce();
   });
 });

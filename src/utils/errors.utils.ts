@@ -11,10 +11,14 @@ export class ErrorUtils {
   static readonly report = (error: unknown, props: Record<string, unknown> = {}) => {
     if (this.isError(error)) {
       logger.error(
-        `[REPORTED_ERROR]: ${error.message}\nProperties => ${JSON.stringify(props, null, 2)}\nStack => ${error.stack}`,
+        `[REPORTED_ERROR]: ${this.withRequestId(error.message, error)}\n` +
+          `Properties => ${JSON.stringify(props, null, 2)}\nStack => ${error.stack}`,
       );
     } else {
-      logger.error(`[REPORTED_ERROR]: ${JSON.stringify(error)}\nProperties => ${JSON.stringify(props, null, 2)}\n`);
+      logger.error(
+        `[REPORTED_ERROR]: ${this.withRequestId(JSON.stringify(error), error)}\n` +
+          `Properties => ${JSON.stringify(props, null, 2)}\n`,
+      );
     }
   };
 
@@ -27,6 +31,29 @@ export class ErrorUtils {
 
   static readonly isFileNotFoundError = (error: unknown): error is NodeJS.ErrnoException => {
     return this.isError(error) && 'code' in error && error.code === 'ENOENT';
+  };
+
+  static readonly getRequestId = (error: unknown): string | undefined => {
+    if (typeof error !== 'object' || error === null) return undefined;
+
+    const { requestId, xRequestId, data } = error as { requestId?: unknown; xRequestId?: unknown; data?: unknown };
+    const bodyRequestId =
+      typeof data === 'object' && data !== null ? (data as { requestId?: unknown }).requestId : undefined;
+
+    return [requestId, xRequestId, bodyRequestId].find(
+      (candidate): candidate is string => typeof candidate === 'string' && candidate.length > 0,
+    );
+  };
+
+  static readonly withRequestId = (message: string, error: unknown): string => {
+    const requestId = this.getRequestId(error);
+    return requestId ? `${message} (requestId: ${requestId})` : message;
+  };
+
+  static readonly isNotFoundError = (error: unknown): boolean => {
+    if (typeof error !== 'object' || error === null) return false;
+    const { status, statusCode } = error as { status?: unknown; statusCode?: unknown };
+    return status === 404 || statusCode === 404;
   };
 }
 

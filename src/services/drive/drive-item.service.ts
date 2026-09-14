@@ -1,13 +1,19 @@
 import { DriveItemRepository } from '../database/drive-item/drive-item.repository';
 import { DriveFileItem, DriveFolderItem } from '../../types/drive.types';
-import { NotFoundError } from '../../utils/errors.utils';
-import { logger } from '../../utils/logger.utils';
+import { ErrorUtils, NotFoundError } from '../../utils/errors.utils';
+import { webdavLogger } from '../../utils/logger.utils';
 import { DriveFileService } from './drive-file.service';
 import { DriveFolderService } from './drive-folder.service';
 import { DriveItemBD } from '../database/drive-item/drive-item.domain';
 
 export class DriveItemService {
   static readonly instance = new DriveItemService();
+
+  private readonly logUnexpectedLookupError = (itemType: 'File' | 'Folder', path: string, error: unknown) => {
+    if (ErrorUtils.isNotFoundError(error)) return;
+    const message = ErrorUtils.isError(error) ? error.message : String(error);
+    webdavLogger.warn(ErrorUtils.withRequestId(`${itemType} lookup by path failed: ${message}`, error), { path });
+  };
 
   private readonly tryGetFileByUuid = async (cached: DriveItemBD, path: string): Promise<DriveFileItem | undefined> => {
     try {
@@ -22,8 +28,11 @@ export class DriveItemService {
         },
       ]);
       return item;
-    } catch {
-      logger.warn('File metadata by uuid failed, falling back to path lookup', { path, uuid: cached.uuid });
+    } catch (error) {
+      webdavLogger.warn(ErrorUtils.withRequestId('File metadata by uuid failed, falling back to path lookup', error), {
+        path,
+        uuid: cached.uuid,
+      });
       await DriveItemRepository.instance.delete([cached.uuid]);
     }
   };
@@ -44,8 +53,11 @@ export class DriveItemService {
         },
       ]);
       return item;
-    } catch {
-      logger.warn('Folder metadata by uuid failed, falling back to path lookup', { path, uuid: cached.uuid });
+    } catch (error) {
+      webdavLogger.warn(
+        ErrorUtils.withRequestId('Folder metadata by uuid failed, falling back to path lookup', error),
+        { path, uuid: cached.uuid },
+      );
       await DriveItemRepository.instance.delete([cached.uuid]);
     }
   };
@@ -70,7 +82,8 @@ export class DriveItemService {
         },
       ]);
       return item;
-    } catch {
+    } catch (error) {
+      this.logUnexpectedLookupError('File', path, error);
       throw new NotFoundError(`File not found at path: ${path}`);
     }
   };
@@ -95,7 +108,8 @@ export class DriveItemService {
         },
       ]);
       return item;
-    } catch {
+    } catch (error) {
+      this.logUnexpectedLookupError('Folder', path, error);
       throw new NotFoundError(`Folder not found at path: ${path}`);
     }
   };

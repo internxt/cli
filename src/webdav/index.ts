@@ -6,6 +6,7 @@ import { AuthService } from '../services/auth.service';
 import { webdavLogger } from '../utils/logger.utils';
 import { SdkManager } from '../services/sdk-manager.service';
 import { DatabaseService } from '../services/database/database.service';
+import { ErrorUtils } from '../utils/errors.utils';
 
 dotenv.config({ quiet: true });
 
@@ -23,11 +24,11 @@ const init = async () => {
   new WebDavServer(express())
     .start()
     .then()
-    .catch((err) => webdavLogger.error('Failed to start WebDAV server', err));
+    .catch((err) => webdavLogger.error(ErrorUtils.withRequestId('Failed to start WebDAV server', err), err));
 };
 
 process.on('uncaughtException', (err) => {
-  webdavLogger.error('Unhandled exception:', err);
+  webdavLogger.error(ErrorUtils.withRequestId('Unhandled exception:', err), err);
 });
 
 init();
