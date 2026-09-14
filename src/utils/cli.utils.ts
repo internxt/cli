@@ -261,12 +261,7 @@ export class CLIUtils {
     debugMode?: boolean;
   }) => {
     let message = '';
-    let requestId: string | undefined;
-    if ('requestId' in error) {
-      requestId = error.requestId;
-    } else if ('xRequestId' in error) {
-      requestId = error.xRequestId;
-    }
+    const requestId = ErrorUtils.getRequestId(error);
 
     if ('message' in error && typeof error.message === 'string' && error.message?.trim?.().length > 0) {
       message = error.message;
@@ -304,7 +299,7 @@ export class CLIUtils {
       if (debugMode) {
         ErrorUtils.report(error);
       }
-      CLIUtils.error(logReporter, message + (requestId ? ` (requestId: ${requestId})` : ''));
+      CLIUtils.error(logReporter, ErrorUtils.withRequestId(message, error));
     }
   };
 

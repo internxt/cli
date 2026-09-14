@@ -5,6 +5,7 @@ import { BadRequestError, NotFoundError, NotImplementedError } from '../../../sr
 import { XMLUtils } from '../../../src/utils/xml.utils';
 import { AxiosResponseError, AxiosUnknownError } from '@internxt/sdk/dist/shared/types/errors';
 import { AxiosError } from 'axios';
+import { webdavLogger } from '../../../src/utils/logger.utils';
 
 describe('Error handling middleware', () => {
   test('when a not found error occurs, then the server responds with a 404 status', () => {
@@ -132,6 +133,41 @@ describe('Error handling middleware', () => {
         {
           [XMLUtils.addDefaultNamespace('responsedescription')]:
             'Request failed with status code 400 [fileId must not be provided when size is 0]',
+        },
+        {},
+        'error',
+      ),
+    );
+  });
+
+  test('when a Drive API request fails with a request id, then the request id is logged', () => {
+    const error = new AxiosResponseError('Request failed with status code 500', 'PUT /files/uuid', {
+      status: 500,
+      data: { message: 'Internal Server Error', statusCode: 500 },
+      headers: { 'x-request-id': 'req-123' },
+      statusText: 'Internal Server Error',
+      // @ts-expect-error partial AxiosResponse fixture, only the fields read by AxiosResponseError are needed
+      config: {},
+    });
+    const res = createWebDavResponseFixture({
+      status: vi.fn().mockReturnValue({ send: vi.fn() }),
+    });
+    const req = createWebDavRequestFixture({
+      method: 'PUT',
+      url: '/test/empty.bin',
+    });
+
+    ErrorHandlingMiddleware(error, req, res, () => {});
+
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(webdavLogger.error).toHaveBeenCalledWith(
+      expect.stringContaining('Request failed with status code 500 [Internal Server Error] (requestId: req-123)'),
+    );
+    expect(res.send).toHaveBeenCalledWith(
+      XMLUtils.toWebDavXML(
+        {
+          [XMLUtils.addDefaultNamespace('responsedescription')]:
+            'Request failed with status code 500 [Internal Server Error]',
         },
         {},
         'error',

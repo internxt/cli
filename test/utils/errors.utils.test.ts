@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import { ErrorUtils } from '../../src/utils/errors.utils';
 import { logger } from '../../src/utils/logger.utils';
+import { AxiosResponseError } from '@internxt/sdk/dist/shared/types/errors';
 
 describe('Errors Utils', () => {
   test('when an error is reported, then it is logged with its details', () => {
@@ -86,5 +87,66 @@ describe('Errors Utils', () => {
       expect(ErrorUtils.isFileNotFoundError(undefined)).toBe(false);
       expect(ErrorUtils.isFileNotFoundError(123)).toBe(false);
     });
+  });
+
+  describe('getRequestId', () => {
+    test('when a Drive API error carries the x-request-id header, then its request id is returned', () => {
+      const error = new AxiosResponseError('Request failed with status code 500', 'PUT /files/uuid', {
+        status: 500,
+        data: {},
+        headers: { 'x-request-id': 'req-123' },
+        statusText: 'Internal Server Error',
+        // @ts-expect-error partial AxiosResponse fixture, only the fields read by AxiosResponseError are needed
+        config: {},
+      });
+
+      expect(ErrorUtils.getRequestId(error)).toBe('req-123');
+    });
+
+    test('when a Drive API error only carries the request id in its response body, then it is returned', () => {
+      const error = new AxiosResponseError('Request failed with status code 500', 'PUT /files/uuid', {
+        status: 500,
+        data: { statusCode: 500, message: 'Internal Server Error', requestId: 'req-789' },
+        headers: {},
+        statusText: 'Internal Server Error',
+        // @ts-expect-error partial AxiosResponse fixture, only the fields read by AxiosResponseError are needed
+        config: {},
+      });
+
+      expect(ErrorUtils.getRequestId(error)).toBe('req-789');
+    });
+
+    test('when an error carries a requestId property, then it is returned', () => {
+      const error = Object.assign(new Error('Something failed'), { requestId: 'req-456' });
+
+      expect(ErrorUtils.getRequestId(error)).toBe('req-456');
+    });
+
+    test('when an error has no request id, then nothing is returned', () => {
+      expect(ErrorUtils.getRequestId(new Error('Something failed'))).toBeUndefined();
+      expect(ErrorUtils.getRequestId({ xRequestId: '' })).toBeUndefined();
+      expect(ErrorUtils.getRequestId('string error')).toBeUndefined();
+      expect(ErrorUtils.getRequestId(null)).toBeUndefined();
+    });
+  });
+
+  describe('withRequestId', () => {
+    test('when the error has a request id, then it is appended to the message', () => {
+      const error = Object.assign(new Error('Something failed'), { requestId: 'req-123' });
+
+      expect(ErrorUtils.withRequestId('Something failed', error)).toBe('Something failed (requestId: req-123)');
+    });
+
+    test('when the error has no request id, then the message is unchanged', () => {
+      expect(ErrorUtils.withRequestId('Something failed', new Error('Something failed'))).toBe('Something failed');
+    });
+  });
+
+  test('when a reported error has a request id, then it is logged with it', () => {
+    const error = Object.assign(new Error('Test Error'), { xRequestId: 'req-123' });
+
+    ErrorUtils.report(error);
+
+    expect(logger.error).toHaveBeenCalledWith(expect.stringContaining('[REPORTED_ERROR]: Test Error (requestId: req-123)'));
   });
 });

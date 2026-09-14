@@ -26,10 +26,11 @@ export const AuthMiddleware = (): RequestHandler => {
         let message = 'Authentication required to access this resource.';
         if (ErrorUtils.isError(error)) {
           message = error.message;
+          const logMessage = ErrorUtils.withRequestId(message, error);
           if (error.stack) {
-            webdavLogger.error(`Error from AuthMiddleware: ${message}\nStack: ${error.stack}`);
+            webdavLogger.error(`Error from AuthMiddleware: ${logMessage}\nStack: ${error.stack}`);
           } else {
-            webdavLogger.error(`Error from AuthMiddleware: ${message}`);
+            webdavLogger.error(`Error from AuthMiddleware: ${logMessage}`);
           }
         }
         const errorBodyXML = XMLUtils.toWebDavXML(
