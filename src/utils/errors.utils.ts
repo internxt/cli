@@ -1,3 +1,4 @@
+import { Logger } from 'winston';
 import { logger } from './logger.utils';
 
 export class ErrorUtils {
@@ -54,6 +55,17 @@ export class ErrorUtils {
     if (typeof error !== 'object' || error === null) return false;
     const { status, statusCode } = error as { status?: unknown; statusCode?: unknown };
     return status === 404 || statusCode === 404;
+  };
+
+  static readonly logIfUnexpected = (
+    log: Logger,
+    message: string,
+    error: unknown,
+    meta?: Record<string, unknown>,
+  ) => {
+    if (this.isNotFoundError(error)) return;
+    const errorMessage = this.isError(error) ? error.message : String(error);
+    log.warn(this.withRequestId(`${message}: ${errorMessage}`, error), meta);
   };
 }
 

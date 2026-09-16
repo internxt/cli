@@ -9,12 +9,6 @@ import { DriveItemBD } from '../database/drive-item/drive-item.domain';
 export class DriveItemService {
   static readonly instance = new DriveItemService();
 
-  private readonly logUnexpectedLookupError = (itemType: 'File' | 'Folder', path: string, error: unknown) => {
-    if (ErrorUtils.isNotFoundError(error)) return;
-    const message = ErrorUtils.isError(error) ? error.message : String(error);
-    webdavLogger.warn(ErrorUtils.withRequestId(`${itemType} lookup by path failed: ${message}`, error), { path });
-  };
-
   private readonly tryGetFileByUuid = async (cached: DriveItemBD, path: string): Promise<DriveFileItem | undefined> => {
     try {
       const item = await DriveFileService.instance.getFileMetadata(cached.uuid);
@@ -83,7 +77,7 @@ export class DriveItemService {
       ]);
       return item;
     } catch (error) {
-      this.logUnexpectedLookupError('File', path, error);
+      ErrorUtils.logIfUnexpected(webdavLogger, 'File lookup by path failed', error, { path });
       throw new NotFoundError(`File not found at path: ${path}`);
     }
   };
@@ -109,7 +103,7 @@ export class DriveItemService {
       ]);
       return item;
     } catch (error) {
-      this.logUnexpectedLookupError('Folder', path, error);
+      ErrorUtils.logIfUnexpected(webdavLogger, 'Folder lookup by path failed', error, { path });
       throw new NotFoundError(`Folder not found at path: ${path}`);
     }
   };
