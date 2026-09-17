@@ -13,7 +13,7 @@ export class DriveFolderService {
     const storageClient = SdkManager.instance.getStorage();
     const folderMeta = await storageClient.getFolderMeta(uuid);
     const folderItem = DriveUtils.driveFolderMetaToItem(folderMeta);
-    if (folderItem?.status !== FileStatus.EXISTS) {
+    if (folderItem.status !== FileStatus.EXISTS) {
       throw new NotFoundError(`Folder with uuid ${uuid} not found`);
     }
     return folderItem;
