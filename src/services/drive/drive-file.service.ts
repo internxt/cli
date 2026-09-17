@@ -98,11 +98,10 @@ export class DriveFileService {
 
     const [getFileMetadata] = storageClient.getFile(uuid);
 
-    const fileMetadata = await getFileMetadata;
-    if (fileMetadata?.status !== FileStatus.EXISTS) {
+    const driveFileItem = DriveUtils.driveFileMetaToItem(await getFileMetadata);
+    if (driveFileItem.status !== FileStatus.EXISTS) {
       throw new NotFoundError(`File with uuid ${uuid} not found`);
     }
-    const driveFileItem = DriveUtils.driveFileMetaToItem(fileMetadata);
 
     return driveFileItem;
   };
@@ -110,12 +109,10 @@ export class DriveFileService {
   public getFileMetadataByPath = async (path: string): Promise<DriveFileItem> => {
     const storageClient = SdkManager.instance.getStorage();
 
-    const fileMetadata = await storageClient.getFileByPath(path);
-
-    if (fileMetadata?.status !== FileStatus.EXISTS) {
+    const driveFileItem = DriveUtils.driveFileMetaToItem(await storageClient.getFileByPath(path));
+    if (driveFileItem.status !== FileStatus.EXISTS) {
       throw new NotFoundError(`File with path ${path} not found`);
     }
-    const driveFileItem = DriveUtils.driveFileMetaToItem(fileMetadata);
 
     return driveFileItem;
   };

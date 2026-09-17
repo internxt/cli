@@ -1,6 +1,10 @@
 import { Logger } from 'winston';
 import { logger } from './logger.utils';
 
+export type LookupErrorKind = 'not-found' | 'auth' | 'inconclusive';
+
+export const DEFAULT_RETRY_AFTER_SECONDS = 5;
+
 export class ErrorUtils {
   static readonly isError = (error: unknown): error is Error => {
     return typeof Error.isError === 'function'
@@ -51,18 +55,61 @@ export class ErrorUtils {
     return requestId ? `${message} (requestId: ${requestId})` : message;
   };
 
-  static readonly isNotFoundError = (error: unknown): boolean => {
-    if (typeof error !== 'object' || error === null) return false;
-    const { status, statusCode } = error as { status?: unknown; statusCode?: unknown };
-    return status === 404 || statusCode === 404;
+  static readonly getStatusCode = (error: unknown, key?: 'statusCode' | 'status'): number | undefined => {
+    if (typeof error !== 'object' || error === null) return undefined;
+
+    const source = error as Record<string, unknown>;
+    const value = key ? source[key] : (source.statusCode ?? source.status);
+    return typeof value === 'number' && !Number.isNaN(value) ? value : undefined;
   };
 
-  static readonly logIfUnexpected = (
-    log: Logger,
-    message: string,
-    error: unknown,
-    meta?: Record<string, unknown>,
-  ) => {
+  static readonly isNotFoundError = (error: unknown): boolean => {
+    return this.getStatusCode(error) === 404;
+  };
+
+  private static readonly hasResponseBody = (error: unknown): boolean => {
+    return typeof error === 'object' && error !== null && 'data' in error;
+  };
+
+  static readonly classifyLookupError = (error: unknown): LookupErrorKind => {
+    const status = this.getStatusCode(error);
+
+    if (status === 404) return 'not-found';
+    if (status === undefined || !this.hasResponseBody(error)) return 'inconclusive';
+
+    // TODO: the SDK sends `?path=` unencoded, so names with '%' can arrive malformed and names
+    // with '#'/'&' truncate the query. Until it encodes them, a rejected path reads as absent.
+    if (status === 400 || status === 414 || status === 422) return 'not-found';
+
+    if (this.isAuthStatus(status)) return 'auth';
+    return 'inconclusive';
+  };
+
+  private static readonly isAuthStatus = (status: number): boolean => status === 401 || status === 403;
+
+  private static readonly isRetryableStatus = (status: number): boolean =>
+    status === 408 || status === 425 || status === 429 || status >= 500;
+
+  static readonly toWebDavStatus = (error: unknown): { statusCode: number; retryAfter?: number } => {
+    const ownStatus = this.getStatusCode(error, 'statusCode');
+    if (ownStatus !== undefined) {
+      return error instanceof ServiceUnavailableError
+        ? { statusCode: ownStatus, retryAfter: error.retryAfter }
+        : { statusCode: ownStatus };
+    }
+
+    const apiStatus = this.getStatusCode(error, 'status');
+    if (apiStatus === undefined) return { statusCode: 500 };
+
+    if (!this.hasResponseBody(error) || this.isRetryableStatus(apiStatus)) {
+      return { statusCode: 503, retryAfter: DEFAULT_RETRY_AFTER_SECONDS };
+    }
+    if (this.isAuthStatus(apiStatus)) return { statusCode: 502 };
+
+    return { statusCode: apiStatus };
+  };
+
+  static readonly logIfUnexpected = (log: Logger, message: string, error: unknown, meta?: Record<string, unknown>) => {
     if (this.isNotFoundError(error)) return;
     const errorMessage = this.isError(error) ? error.message : String(error);
     log.warn(this.withRequestId(`${message}: ${errorMessage}`, error), meta);
@@ -86,6 +133,31 @@ export class NotFoundError extends Error {
     super(message);
     this.name = 'NotFoundError';
     Object.setPrototypeOf(this, NotFoundError.prototype);
+  }
+}
+
+/** The resource's state could not be determined; 503 asks the client to retry instead of
+ * telling it the resource is gone, which makes clients re-create it. */
+export class ServiceUnavailableError extends Error {
+  public statusCode = 503;
+  public retryAfter: number;
+
+  constructor(message: string, retryAfter = DEFAULT_RETRY_AFTER_SECONDS) {
+    super(message);
+    this.name = 'ServiceUnavailableError';
+    this.retryAfter = retryAfter;
+    Object.setPrototypeOf(this, ServiceUnavailableError.prototype);
+  }
+}
+
+/** The CLI reached the WebDAV client but not the Internxt API on its behalf. */
+export class BadGatewayError extends Error {
+  public statusCode = 502;
+
+  constructor(message: string) {
+    super(message);
+    this.name = 'BadGatewayError';
+    Object.setPrototypeOf(this, BadGatewayError.prototype);
   }
 }
 

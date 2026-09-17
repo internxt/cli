@@ -1,9 +1,15 @@
 import { describe, expect, test, vi } from 'vitest';
 import { ErrorHandlingMiddleware } from '../../../src/webdav/middewares/errors.middleware';
 import { createWebDavRequestFixture, createWebDavResponseFixture } from '../../fixtures/webdav.fixture';
-import { BadRequestError, NotFoundError, NotImplementedError } from '../../../src/utils/errors.utils';
+import {
+  BadRequestError,
+  NotFoundError,
+  NotImplementedError,
+  ServiceUnavailableError,
+} from '../../../src/utils/errors.utils';
 import { XMLUtils } from '../../../src/utils/xml.utils';
 import { AxiosResponseError, AxiosUnknownError } from '@internxt/sdk/dist/shared/types/errors';
+import { newApiError } from '../../fixtures/errors.fixture';
 import { AxiosError } from 'axios';
 import { webdavLogger } from '../../../src/utils/logger.utils';
 
@@ -31,6 +37,46 @@ describe('Error handling middleware', () => {
         'error',
       ),
     );
+  });
+
+  test('when a lookup could not be completed, then the server responds with 503 and a Retry-After', () => {
+    const error = new ServiceUnavailableError('Folder lookup at path /a/b could not be completed, retry later', 7);
+    const res = createWebDavResponseFixture({
+      status: vi.fn().mockReturnValue({ send: vi.fn() }),
+    });
+    const req = createWebDavRequestFixture({
+      method: 'PROPFIND',
+      url: '/a/b',
+    });
+
+    ErrorHandlingMiddleware(error, req, res, () => {});
+
+    expect(res.status).toHaveBeenCalledWith(503);
+    expect(res.set).toHaveBeenCalledWith('Retry-After', '7');
+  });
+
+  test('when an error carries no retry hint, then no Retry-After header is set', () => {
+    const res = createWebDavResponseFixture({
+      status: vi.fn().mockReturnValue({ send: vi.fn() }),
+    });
+    const req = createWebDavRequestFixture({
+      method: 'GET',
+      url: '/test',
+    });
+
+    ErrorHandlingMiddleware(new NotFoundError('Item not found'), req, res, () => {});
+
+    expect(res.set).not.toHaveBeenCalledWith('Retry-After', expect.anything());
+  });
+
+  test('when the API could not answer, then the client is told to retry rather than given the raw status', () => {
+    const res = createWebDavResponseFixture({ status: vi.fn().mockReturnValue({ send: vi.fn() }) });
+    const req = createWebDavRequestFixture({ method: 'PROPFIND', url: '/folder/' });
+
+    ErrorHandlingMiddleware(newApiError(408), req, res, () => {});
+
+    expect(res.status).toHaveBeenCalledWith(503);
+    expect(res.set).toHaveBeenCalledWith('Retry-After', '5');
   });
 
   test('when a bad request error occurs, then the server responds with a 400 status', () => {
@@ -159,7 +205,7 @@ describe('Error handling middleware', () => {
 
     ErrorHandlingMiddleware(error, req, res, () => {});
 
-    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.status).toHaveBeenCalledWith(503);
     expect(webdavLogger.error).toHaveBeenCalledWith(
       expect.stringContaining('Request failed with status code 500 [Internal Server Error] (requestId: req-123)'),
     );
@@ -209,7 +255,7 @@ describe('Error handling middleware', () => {
     expect(destroySpy).not.toHaveBeenCalled();
   });
 
-  test('when a Drive API request fails without a response, then the server responds with the normalized status and no detail suffix', () => {
+  test('when a Drive API request fails without a response, then the client is told to retry and gets no detail suffix', () => {
     const axiosError = {
       message: 'Network Error',
       code: 'ECONNABORTED',
@@ -228,7 +274,8 @@ describe('Error handling middleware', () => {
 
     ErrorHandlingMiddleware(error, req, res, () => {});
 
-    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.status).toHaveBeenCalledWith(503);
+    expect(res.set).toHaveBeenCalledWith('Retry-After', '5');
     expect(res.send).toHaveBeenCalledWith(
       XMLUtils.toWebDavXML(
         {

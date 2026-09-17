@@ -7,6 +7,7 @@ import { randomUUID } from 'node:crypto';
 import { CommonFixture } from '../../fixtures/common.fixture';
 import { ConfigService } from '../../../src/services/config.service';
 import { UserCredentialsFixture } from '../../fixtures/login.fixture';
+import { NotFoundError, ServiceUnavailableError } from '../../../src/utils/errors.utils';
 
 describe('Drive file Service', () => {
   const sut = DriveFileService.instance;
@@ -83,5 +84,38 @@ describe('Drive file Service', () => {
 
     expect(result.bucket).to.be.equal(fakeFileData.bucket);
     expect(result.uuid).to.be.equal(fakeFileData.uuid);
+  });
+
+  test('when the API answers a path lookup with an empty body, then a retryable error is thrown', async () => {
+    const storageClientMock: Partial<Storage> = {
+      getFileByPath: vi.fn().mockResolvedValue(''),
+    };
+
+    // @ts-expect-error - We only stub the method we need to test
+    vi.spyOn(SdkManager.instance, 'getStorage').mockReturnValue(storageClientMock);
+
+    await expect(sut.getFileMetadataByPath('/a/b.txt')).rejects.toBeInstanceOf(ServiceUnavailableError);
+  });
+
+  test('when a path lookup answers with a trashed file, then a not found error is thrown', async () => {
+    const storageClientMock: Partial<Storage> = {
+      getFileByPath: vi.fn().mockResolvedValue({ uuid: randomUUID(), status: 'TRASHED' }),
+    };
+
+    // @ts-expect-error - We only stub the method we need to test
+    vi.spyOn(SdkManager.instance, 'getStorage').mockReturnValue(storageClientMock);
+
+    await expect(sut.getFileMetadataByPath('/a/b.txt')).rejects.toBeInstanceOf(NotFoundError);
+  });
+
+  test('when the API answers a uuid lookup with an empty body, then a retryable error is thrown', async () => {
+    const storageClientMock: Partial<Storage> = {
+      getFile: vi.fn().mockReturnValue([Promise.resolve('')]),
+    };
+
+    // @ts-expect-error - We only stub the method we need to test
+    vi.spyOn(SdkManager.instance, 'getStorage').mockReturnValue(storageClientMock);
+
+    await expect(sut.getFileMetadata(randomUUID())).rejects.toBeInstanceOf(ServiceUnavailableError);
   });
 });
