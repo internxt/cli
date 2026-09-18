@@ -161,6 +161,29 @@ describe('Errors Utils', () => {
     });
   });
 
+  describe('isRetryableLookupError', () => {
+    test.each([408, 500, 502, 503, 504])('when the lookup failed upstream with %i, then it is replayed', (status) => {
+      expect(ErrorUtils.isRetryableLookupError(newApiError(status))).toBe(true);
+    });
+
+    test('when no response ever arrived, then the lookup is replayed', () => {
+      expect(ErrorUtils.isRetryableLookupError(newNetworkError())).toBe(true);
+      expect(ErrorUtils.isRetryableLookupError(newNetworkError({ sent: false }))).toBe(true);
+      expect(ErrorUtils.isRetryableLookupError(new Error('socket hang up'))).toBe(true);
+    });
+
+    test.each([404, 400, 401, 403, 414, 422])(
+      'when the API answered %i, then replaying it cannot change the answer',
+      (status) => {
+        expect(ErrorUtils.isRetryableLookupError(newApiError(status))).toBe(false);
+      },
+    );
+
+    test('when the API is rate limiting, then the lookup is not replayed', () => {
+      expect(ErrorUtils.isRetryableLookupError(newApiError(429))).toBe(false);
+    });
+  });
+
   describe('toWebDavStatus', () => {
     test('when a CLI error is raised, then its status reaches the client untouched', () => {
       expect(ErrorUtils.toWebDavStatus(new NotFoundError('gone'))).toEqual({ statusCode: 404 });

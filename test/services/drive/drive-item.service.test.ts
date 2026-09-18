@@ -1,4 +1,4 @@
-import { describe, expect, test, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { DriveItemService } from '../../../src/services/drive/drive-item.service';
 import { DriveItemRepository } from '../../../src/services/database/drive-item/drive-item.repository';
 import { DriveItemBD } from '../../../src/services/database/drive-item/drive-item.domain';
@@ -7,10 +7,19 @@ import { DriveFolderService } from '../../../src/services/drive/drive-folder.ser
 import { newFileItem, newFolderItem } from '../../fixtures/drive.fixture';
 import { BadGatewayError, NotFoundError, ServiceUnavailableError } from '../../../src/utils/errors.utils';
 import { webdavLogger } from '../../../src/utils/logger.utils';
-import { newApiError } from '../../fixtures/errors.fixture';
+import { newApiError, newNetworkError } from '../../fixtures/errors.fixture';
+import { AsyncUtils } from '../../../src/utils/async.utils';
 
 describe('Drive Item Service', () => {
   const sut = DriveItemService.instance;
+
+  beforeEach(() => {
+    vi.spyOn(AsyncUtils, 'sleep').mockResolvedValue(undefined);
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
 
   describe('getting a file by path', () => {
     test('when the path lookup fails with an unexpected API error, then it is logged with its request id', async () => {
@@ -367,6 +376,94 @@ describe('Drive Item Service', () => {
 
       await expect(sut.getFolderByPath(path)).rejects.toBeInstanceOf(ServiceUnavailableError);
       expect(deleteSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('retrying transient lookup failures', () => {
+    const path = '/test/file.txt';
+
+    const cachedFile = () =>
+      new DriveItemBD({ uuid: 'cached-uuid', path, type: 'file', createdAt: new Date(), updatedAt: new Date() });
+
+    test('when a path lookup fails transiently and then answers, then the file is returned', async () => {
+      vi.spyOn(DriveItemRepository.instance, 'getByPath').mockResolvedValue(undefined);
+      vi.spyOn(DriveItemRepository.instance, 'createOrUpdate').mockResolvedValue(undefined);
+      const expectedItem = newFileItem({ uuid: 'new-uuid' });
+      const lookup = vi
+        .spyOn(DriveFileService.instance, 'getFileMetadataByPath')
+        .mockRejectedValueOnce(newApiError(503))
+        .mockResolvedValue(expectedItem);
+
+      await expect(sut.getFileByPath(path)).resolves.toBe(expectedItem);
+      expect(lookup).toHaveBeenCalledTimes(2);
+    });
+
+    test('when a path lookup keeps failing, then the attempts are bounded', async () => {
+      vi.spyOn(DriveItemRepository.instance, 'getByPath').mockResolvedValue(undefined);
+      const lookup = vi.spyOn(DriveFolderService.instance, 'getFolderMetaByPath').mockRejectedValue(newNetworkError());
+
+      await expect(sut.getFolderByPath('/test/folder/')).rejects.toBeInstanceOf(ServiceUnavailableError);
+      expect(lookup).toHaveBeenCalledTimes(3);
+    });
+
+    test('when the attempts are slow, then retrying stops before the client gives up waiting', async () => {
+      vi.useFakeTimers();
+      vi.spyOn(AsyncUtils, 'sleep').mockImplementation(async (ms: number) => {
+        vi.advanceTimersByTime(ms);
+      });
+      vi.spyOn(DriveItemRepository.instance, 'getByPath').mockResolvedValue(undefined);
+      const lookup = vi.spyOn(DriveFileService.instance, 'getFileMetadataByPath').mockImplementation(async () => {
+        vi.advanceTimersByTime(3000);
+        throw newApiError(504);
+      });
+
+      await expect(sut.getFileByPath(path)).rejects.toBeInstanceOf(ServiceUnavailableError);
+      expect(lookup).toHaveBeenCalledTimes(2);
+    });
+
+    test.each([404, 429, 401, 400])('when the API answers %i, then the lookup is not replayed', async (status) => {
+      vi.spyOn(DriveItemRepository.instance, 'getByPath').mockResolvedValue(undefined);
+      const lookup = vi
+        .spyOn(DriveFileService.instance, 'getFileMetadataByPath')
+        .mockRejectedValue(newApiError(status));
+
+      await expect(sut.getFileByPath(path)).rejects.toThrow();
+      expect(lookup).toHaveBeenCalledTimes(1);
+      expect(AsyncUtils.sleep).not.toHaveBeenCalled();
+    });
+
+    test('when the cached uuid lookup fails transiently, then it is replayed before the slower path lookup', async () => {
+      vi.spyOn(DriveItemRepository.instance, 'getByPath').mockResolvedValue(cachedFile());
+      vi.spyOn(DriveItemRepository.instance, 'createOrUpdate').mockResolvedValue(undefined);
+      const expectedItem = newFileItem({ uuid: 'cached-uuid' });
+      const byUuid = vi
+        .spyOn(DriveFileService.instance, 'getFileMetadata')
+        .mockRejectedValueOnce(newApiError(408))
+        .mockResolvedValue(expectedItem);
+      const byPath = vi.spyOn(DriveFileService.instance, 'getFileMetadataByPath');
+
+      await expect(sut.getFileByPath(path)).resolves.toBe(expectedItem);
+      expect(byUuid).toHaveBeenCalledTimes(2);
+      expect(byPath).not.toHaveBeenCalled();
+    });
+
+    test('when the uuid lookup burns the budget, then the path lookup is not replayed on top of it', async () => {
+      vi.useFakeTimers();
+      vi.spyOn(AsyncUtils, 'sleep').mockImplementation(async (ms: number) => {
+        vi.advanceTimersByTime(ms);
+      });
+      vi.spyOn(DriveItemRepository.instance, 'getByPath').mockResolvedValue(cachedFile());
+      vi.spyOn(DriveItemRepository.instance, 'delete').mockResolvedValue(undefined);
+      const slowFailure = async () => {
+        vi.advanceTimersByTime(2000);
+        throw newApiError(500);
+      };
+      const byUuid = vi.spyOn(DriveFileService.instance, 'getFileMetadata').mockImplementation(slowFailure);
+      const byPath = vi.spyOn(DriveFileService.instance, 'getFileMetadataByPath').mockImplementation(slowFailure);
+
+      await expect(sut.getFileByPath(path)).rejects.toBeInstanceOf(ServiceUnavailableError);
+      expect(byUuid).toHaveBeenCalledTimes(2);
+      expect(byPath).toHaveBeenCalledTimes(1);
     });
   });
 });

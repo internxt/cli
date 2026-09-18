@@ -5,6 +5,12 @@ import { webdavLogger } from '../../utils/logger.utils';
 import { DriveFileService } from './drive-file.service';
 import { DriveFolderService } from './drive-folder.service';
 import { DriveItemBD } from '../database/drive-item/drive-item.domain';
+import { AsyncUtils } from '../../utils/async.utils';
+
+const LOOKUP_RETRY_DELAYS_MS = [400, 1200];
+const LOOKUP_RETRY_BUDGET_MS = 5000;
+
+const withJitter = (delayMs: number): number => Math.round(delayMs * (0.75 + Math.random() * 0.5));
 
 export class DriveItemService {
   static readonly instance = new DriveItemService();
@@ -34,9 +40,43 @@ export class DriveItemService {
     }
   };
 
-  private readonly tryGetFileByUuid = async (cached: DriveItemBD, path: string): Promise<DriveFileItem | undefined> => {
+  /** Metadata reads are side effect free, so a transient failure is replayed until the attempts
+   * or the time budget run out. */
+  private readonly retryOnTransientFailure = async <T>(
+    operation: () => Promise<T>,
+    deadline: number,
+    meta: { description: string; path: string },
+  ): Promise<T> => {
+    for (let attempt = 0; ; attempt++) {
+      try {
+        return await operation();
+      } catch (error) {
+        const delay = LOOKUP_RETRY_DELAYS_MS[attempt];
+        if (delay === undefined || !ErrorUtils.isRetryableLookupError(error)) throw error;
+
+        const waitMs = withJitter(delay);
+        if (Date.now() + waitMs >= deadline) throw error;
+
+        webdavLogger.warn(ErrorUtils.withRequestId(`${meta.description} failed, retrying in ${waitMs}ms`, error), {
+          path: meta.path,
+          attempt: attempt + 1,
+        });
+        await AsyncUtils.sleep(waitMs);
+      }
+    }
+  };
+
+  private readonly tryGetFileByUuid = async (
+    cached: DriveItemBD,
+    path: string,
+    deadline: number,
+  ): Promise<DriveFileItem | undefined> => {
     try {
-      const item = await DriveFileService.instance.getFileMetadata(cached.uuid);
+      const item = await this.retryOnTransientFailure(
+        () => DriveFileService.instance.getFileMetadata(cached.uuid),
+        deadline,
+        { description: 'File metadata by uuid', path },
+      );
       await DriveItemRepository.instance.createOrUpdate([
         {
           uuid: cached.uuid,
@@ -59,9 +99,14 @@ export class DriveItemService {
   private readonly tryGetFolderByUuid = async (
     cached: DriveItemBD,
     path: string,
+    deadline: number,
   ): Promise<DriveFolderItem | undefined> => {
     try {
-      const item = await DriveFolderService.instance.getFolderMetaByUuid(cached.uuid);
+      const item = await this.retryOnTransientFailure(
+        () => DriveFolderService.instance.getFolderMetaByUuid(cached.uuid),
+        deadline,
+        { description: 'Folder metadata by uuid', path },
+      );
       await DriveItemRepository.instance.createOrUpdate([
         {
           uuid: cached.uuid,
@@ -83,14 +128,19 @@ export class DriveItemService {
 
   public getFileByPath = async (path: string): Promise<DriveFileItem> => {
     const cached = await DriveItemRepository.instance.getByPath(path);
+    const deadline = Date.now() + LOOKUP_RETRY_BUDGET_MS;
 
     if (cached?.type === 'file') {
-      const item = await this.tryGetFileByUuid(cached, path);
+      const item = await this.tryGetFileByUuid(cached, path, deadline);
       if (item) return item;
     }
 
     try {
-      const item = await DriveFileService.instance.getFileMetadataByPath(path);
+      const item = await this.retryOnTransientFailure(
+        () => DriveFileService.instance.getFileMetadataByPath(path),
+        deadline,
+        { description: 'File lookup by path', path },
+      );
       await DriveItemRepository.instance.createOrUpdate([
         {
           uuid: item.uuid,
@@ -109,14 +159,19 @@ export class DriveItemService {
 
   public getFolderByPath = async (path: string): Promise<DriveFolderItem> => {
     const cached = await DriveItemRepository.instance.getByPath(path);
+    const deadline = Date.now() + LOOKUP_RETRY_BUDGET_MS;
 
     if (cached?.type === 'folder') {
-      const item = await this.tryGetFolderByUuid(cached, path);
+      const item = await this.tryGetFolderByUuid(cached, path, deadline);
       if (item) return item;
     }
 
     try {
-      const item = await DriveFolderService.instance.getFolderMetaByPath(path);
+      const item = await this.retryOnTransientFailure(
+        () => DriveFolderService.instance.getFolderMetaByPath(path),
+        deadline,
+        { description: 'Folder lookup by path', path },
+      );
       await DriveItemRepository.instance.createOrUpdate([
         {
           uuid: item.uuid,

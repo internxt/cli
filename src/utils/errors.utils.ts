@@ -86,6 +86,13 @@ export class ErrorUtils {
 
   private static readonly isAuthStatus = (status: number): boolean => status === 401 || status === 403;
 
+  static readonly isRetryableLookupError = (error: unknown): boolean => {
+    if (this.classifyLookupError(error) !== 'inconclusive') return false;
+
+    const status = this.getStatusCode(error);
+    return status === undefined || !this.hasResponseBody(error) || status === 408 || status >= 500;
+  };
+
   private static readonly isRetryableStatus = (status: number): boolean =>
     status === 408 || status === 425 || status === 429 || status >= 500;
 
