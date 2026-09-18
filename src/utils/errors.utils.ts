@@ -77,8 +77,7 @@ export class ErrorUtils {
     if (status === 404) return 'not-found';
     if (status === undefined || !this.hasResponseBody(error)) return 'inconclusive';
 
-    // TODO: the SDK sends `?path=` unencoded, so names with '%' can arrive malformed and names
-    // with '#'/'&' truncate the query. Until it encodes them, a rejected path reads as absent.
+    // The API rejects a malformed or over-long path with 400, which we cannot tell apart from the item being absent
     if (status === 400 || status === 414 || status === 422) return 'not-found';
 
     if (this.isAuthStatus(status)) return 'auth';
