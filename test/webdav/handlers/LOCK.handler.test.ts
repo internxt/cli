@@ -1,10 +1,14 @@
-import { describe, expect, test, vi } from 'vitest';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 import { LOCKRequestHandler } from '../../../src/webdav/handlers/LOCK.handler';
 import { WebDavUtils } from '../../../src/utils/webdav.utils';
 import { newFileItem } from '../../fixtures/drive.fixture';
 import { createWebDavRequestFixture, createWebDavResponseFixture } from '../../fixtures/webdav.fixture';
 
 describe('LOCK request handler', () => {
+  beforeEach(() => {
+    vi.spyOn(WebDavUtils, 'getDriveItemFromResource').mockResolvedValue(undefined);
+  });
+
   test('when a lock request is made for a resource that does not exist yet, then the server responds with 201 (lock-null resource)', async () => {
     const requestHandler = new LOCKRequestHandler();
 
