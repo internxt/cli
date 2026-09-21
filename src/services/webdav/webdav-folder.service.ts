@@ -1,7 +1,7 @@
 import { ConfigService } from '../../services/config.service';
 import { DriveFolderService } from '../../services/drive/drive-folder.service';
 import { DriveFolderItem } from '../../types/drive.types';
-import { ConflictError } from '../../utils/errors.utils';
+import { ConflictError, ErrorUtils } from '../../utils/errors.utils';
 import { WebDavUtils } from '../../utils/webdav.utils';
 import { AsyncUtils } from '../../utils/async.utils';
 import { AuthService } from '../../services/auth.service';
@@ -35,6 +35,24 @@ export class WebDavFolderService {
     return DriveUtils.createFolderResponseToItem(newFolder);
   };
 
+  public createOrReuseFolder = async ({
+    folderName,
+    parentFolderUuid,
+  }: {
+    folderName: string;
+    parentFolderUuid: string;
+  }): Promise<DriveFolderItem> => {
+    try {
+      return await this.createFolder({ folderName, parentFolderUuid });
+    } catch (error) {
+      if (!ErrorUtils.isAlreadyExistsError(error)) throw error;
+
+      const existingFolder = await DriveFolderService.instance.findExistentFolder(parentFolderUuid, folderName);
+      if (!existingFolder) throw error;
+      return existingFolder;
+    }
+  };
+
   public createParentPathOrThrow = async (parentPath: string): Promise<DriveFolderItem> => {
     const { createFullPath } = await ConfigService.instance.readWebdavConfig();
     if (!createFullPath) {
@@ -64,7 +82,7 @@ export class WebDavFolderService {
 
     const folder =
       (await this.getDriveFolderItemFromPath(folderPath)) ??
-      (await this.createFolder({ folderName: currentFolderName, parentFolderUuid }));
+      (await this.createOrReuseFolder({ folderName: currentFolderName, parentFolderUuid }));
 
     if (rest.length === 0) {
       return folder;
