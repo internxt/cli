@@ -120,4 +120,33 @@ describe('MKCOL request handler', () => {
     expect(createFolderStub).not.toHaveBeenCalled();
     expect(response.status).not.toHaveBeenCalled();
   });
+
+  test('when the folder is created by someone else before our create, then the server answers 405 not 409', async () => {
+    const requestedFolderResource: WebDavRequestedResource = getRequestedFolderResource({
+      parentFolder: '/test',
+      folderName: 'FolderA',
+    });
+    const request = createWebDavRequestFixture({
+      method: 'MKCOL',
+      url: requestedFolderResource.url,
+      user: UserSettingsFixture,
+    });
+    const response = createWebDavResponseFixture({
+      status: vi.fn().mockReturnValue({ send: vi.fn() }),
+    });
+
+    const parentFolder = newFolderItem({ name: 'test', uuid: 'parent-uuid' });
+    const conflict = Object.assign(new Error('Folder with the same name already exists in this location'), {
+      status: 409,
+      data: {},
+    });
+
+    vi.spyOn(WebDavUtils, 'getRequestedResource').mockResolvedValue(requestedFolderResource);
+    vi.spyOn(WebDavFolderService.instance, 'getDriveFolderItemFromPath').mockResolvedValue(parentFolder);
+    vi.spyOn(WebDavUtils, 'getDriveFolderFromResource').mockResolvedValue(undefined);
+    vi.spyOn(WebDavFolderService.instance, 'createFolder').mockRejectedValue(conflict);
+
+    await expect(sut.handle(request, response)).rejects.toThrow(MethodNotAllowed);
+    expect(response.status).not.toHaveBeenCalled();
+  });
 });

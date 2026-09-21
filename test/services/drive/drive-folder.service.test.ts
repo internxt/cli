@@ -6,6 +6,7 @@ import { SdkManager } from '../../../src/services/sdk-manager.service';
 import { DriveUtils } from '../../../src/utils/drive.utils';
 import { generateSubcontent, newCreateFolderResponse, newFolderMeta } from '../../fixtures/drive.fixture';
 import {
+  CheckDuplicatedFoldersResponse,
   CreateFolderResponse,
   FetchPaginatedFile,
   FetchPaginatedFolder,
@@ -103,6 +104,26 @@ describe('Drive Folder Service', () => {
 
     const newFolder = await createFolder;
     expect(newFolder).to.be.equal(newFolderResponse);
+  });
+
+  test('when a folder with the given name exists in the parent, then it is returned as a folder item', async () => {
+    const existentFolder = newCreateFolderResponse({ plainName: 'backup', uuid: 'backup-uuid' });
+    const spy = vi
+      .spyOn(Storage.prototype, 'checkDuplicatedFolders')
+      .mockResolvedValue({ existentFolders: [existentFolder] } as unknown as CheckDuplicatedFoldersResponse);
+    vi.spyOn(SdkManager.instance, 'getStorage').mockReturnValue(Storage.prototype);
+
+    const result = await sut.findExistentFolder('parent-uuid', 'backup');
+
+    expect(spy).toHaveBeenCalledWith({ folderUuid: 'parent-uuid', folderNamesList: ['backup'] });
+    expect(result).toMatchObject({ itemType: 'folder', uuid: 'backup-uuid', name: 'backup', status: 'EXISTS' });
+  });
+
+  test('when no folder with the given name exists in the parent, then nothing is returned', async () => {
+    vi.spyOn(Storage.prototype, 'checkDuplicatedFolders').mockResolvedValue({ existentFolders: [] });
+    vi.spyOn(SdkManager.instance, 'getStorage').mockReturnValue(Storage.prototype);
+
+    expect(await sut.findExistentFolder('parent-uuid', 'backup')).toBeUndefined();
   });
 
   test('when the API answers a path lookup with an empty body, then a retryable error is thrown', async () => {
