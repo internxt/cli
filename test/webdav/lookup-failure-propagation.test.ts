@@ -19,6 +19,8 @@ import { WebDavFolderService } from '../../src/services/webdav/webdav-folder.ser
 import { TrashService } from '../../src/services/drive/trash.service';
 import { UploadUtils } from '../../src/utils/upload.utils';
 import { ServiceUnavailableError } from '../../src/utils/errors.utils';
+import { DriveItemRepository } from '../../src/services/database/drive-item/drive-item.repository';
+import { DriveItemBD } from '../../src/services/database/drive-item/drive-item.domain';
 
 /** A lookup that cannot be completed must leave the handler inert: nothing created, moved or
  * trashed on a false "not found". */
@@ -34,6 +36,7 @@ describe('WebDAV handlers when a path lookup cannot be completed', () => {
   beforeEach(() => {
     vi.spyOn(AuthService.instance, 'getAuthDetails').mockResolvedValue(UserCredentialsFixture);
     vi.spyOn(ConfigService.instance, 'readWebdavConfig').mockResolvedValue(getWebdavConfigMock());
+    vi.spyOn(DriveItemRepository.instance, 'getByPath').mockResolvedValue(undefined);
     lookupTimedOut();
   });
 
@@ -91,5 +94,29 @@ describe('WebDAV handlers when a path lookup cannot be completed', () => {
       ServiceUnavailableError,
     );
     expect(trashSpy).not.toHaveBeenCalled();
+  });
+
+  test('a warm cache does not let PUT act on a lookup it could not complete', async () => {
+    vi.spyOn(DriveItemRepository.instance, 'getByPath').mockResolvedValue(
+      new DriveItemBD({
+        uuid: 'uuid-1',
+        path: '/folder/file.txt/',
+        type: 'folder',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }),
+    );
+    vi.spyOn(UploadUtils, 'checkUploadSizeLimits').mockResolvedValue(undefined);
+    const createFolderSpy = vi.spyOn(WebDavFolderService.instance, 'createFolder');
+    const createFileSpy = vi.spyOn(DriveFileService.instance, 'createFile');
+    const request = createWebDavRequestFixture({
+      method: 'PUT',
+      url: '/folder/file.txt',
+      headers: { 'content-length': '10' },
+    });
+
+    await expect(new PUTRequestHandler().handle(request, response())).rejects.toBeInstanceOf(ServiceUnavailableError);
+    expect(createFolderSpy).not.toHaveBeenCalled();
+    expect(createFileSpy).not.toHaveBeenCalled();
   });
 });

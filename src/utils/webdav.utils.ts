@@ -75,23 +75,31 @@ export class WebDavUtils {
     }
   }
 
+  /** A path with no trailing slash may be either kind, so it costs two lookups. The cached type
+   * only picks which one runs first: a stale guess still falls through to the other. */
   static async getDriveItemFromResource(resource: WebDavRequestedResource): Promise<DriveItem | undefined> {
     if (resource.url.endsWith('/')) {
       return await this.getDriveFolderFromResource(resource.url);
     }
 
-    let fileLookupError: ServiceUnavailableError | undefined;
+    const lookupFile = (): Promise<DriveItem | undefined> => this.getDriveFileFromResource(resource.url);
+    const lookupFolder = (): Promise<DriveItem | undefined> => this.getDriveFolderFromResource(resource.url);
+
+    const cached = await DriveItemRepository.instance.getByPath(resource.url);
+    const [first, second] = cached?.type === 'folder' ? [lookupFolder, lookupFile] : [lookupFile, lookupFolder];
+
+    let inconclusive: ServiceUnavailableError | undefined;
     try {
-      const file = await this.getDriveFileFromResource(resource.url);
-      if (file) return file;
+      const item = await first();
+      if (item) return item;
     } catch (error) {
       if (!(error instanceof ServiceUnavailableError)) throw error;
-      fileLookupError = error;
+      inconclusive = error;
     }
 
-    const folder = await this.getDriveFolderFromResource(resource.url);
-    if (folder) return folder;
-    if (fileLookupError) throw fileLookupError;
+    const item = await second();
+    if (item) return item;
+    if (inconclusive) throw inconclusive;
     return undefined;
   }
 

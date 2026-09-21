@@ -82,7 +82,7 @@ export class DriveItemService {
   };
 
   public getFileByPath = async (path: string): Promise<DriveFileItem> => {
-    const cached = await DriveItemRepository.instance.getByPath(path);
+    const cached = await DriveItemRepository.instance.getByPath(path, 'file');
 
     if (cached?.type === 'file') {
       const item = await this.tryGetFileByUuid(cached, path);
@@ -108,7 +108,7 @@ export class DriveItemService {
   };
 
   public getFolderByPath = async (path: string): Promise<DriveFolderItem> => {
-    const cached = await DriveItemRepository.instance.getByPath(path);
+    const cached = await DriveItemRepository.instance.getByPath(path, 'folder');
 
     if (cached?.type === 'folder') {
       const item = await this.tryGetFolderByUuid(cached, path);

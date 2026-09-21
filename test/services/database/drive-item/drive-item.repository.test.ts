@@ -1,6 +1,7 @@
 import { describe, expect, test, vi } from 'vitest';
 import { DriveItemRepository } from '../../../../src/services/database/drive-item/drive-item.repository';
 import { DriveItemBD } from '../../../../src/services/database/drive-item/drive-item.domain';
+import { DriveItemAttributes } from '../../../../src/services/database/drive-item/drive-item.attributes';
 
 describe('Drive Item Repository', () => {
   test('when an item is saved, then it can be retrieved', async () => {
@@ -170,5 +171,71 @@ describe('Drive Item Repository', () => {
     const item = await DriveItemRepository.instance.getByPath('/file.txt');
     expect(item).toBeInstanceOf(DriveItemBD);
     expect(item?.toJSON).toBeDefined();
+  });
+  describe('looking up a path whose trailing slash does not match how it was cached', () => {
+    const dataSource = (
+      DriveItemRepository.instance as unknown as {
+        repository: { findBy: (where: Record<string, unknown>) => Promise<DriveItemAttributes[]> };
+      }
+    ).repository;
+
+    const row = (path: string, type: 'file' | 'folder', uuid: string) => ({
+      uuid,
+      path,
+      type,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    const queriedPaths = (findBy: ReturnType<typeof vi.spyOn>) =>
+      (findBy.mock.calls[0][0] as { path: { _value: string[] } }).path._value;
+
+    test('when a folder was cached with a trailing slash, then looking it up without one still finds it', async () => {
+      const findBy = vi.spyOn(dataSource, 'findBy').mockResolvedValue([row('/a/b/', 'folder', 'uuid-folder')]);
+
+      const item = await DriveItemRepository.instance.getByPath('/a/b');
+
+      expect(item?.uuid).toBe('uuid-folder');
+      expect(findBy).toHaveBeenCalledOnce();
+      expect(queriedPaths(findBy)).toEqual(['/a/b', '/a/b/']);
+    });
+
+    test('when a file and a folder share the name, then the requested type wins', async () => {
+      vi.spyOn(dataSource, 'findBy').mockImplementation(async (where) =>
+        [row('/a/b', 'file', 'uuid-file'), row('/a/b/', 'folder', 'uuid-folder')].filter(
+          (candidate) => !where.type || candidate.type === where.type,
+        ),
+      );
+
+      await expect(DriveItemRepository.instance.getByPath('/a/b', 'folder')).resolves.toMatchObject({
+        uuid: 'uuid-folder',
+      });
+      await expect(DriveItemRepository.instance.getByPath('/a/b', 'file')).resolves.toMatchObject({
+        uuid: 'uuid-file',
+      });
+    });
+
+    test('when no type is requested and both exist, then the file wins as it did before the cache was consulted', async () => {
+      vi.spyOn(dataSource, 'findBy').mockResolvedValue([
+        row('/a/b/', 'folder', 'uuid-folder'),
+        row('/a/b', 'file', 'uuid-file'),
+      ]);
+
+      await expect(DriveItemRepository.instance.getByPath('/a/b')).resolves.toMatchObject({ uuid: 'uuid-file' });
+    });
+
+    test('when the root is looked up, then an empty path is never queried', async () => {
+      const findBy = vi.spyOn(dataSource, 'findBy').mockResolvedValue([]);
+
+      await DriveItemRepository.instance.getByPath('/');
+
+      expect(queriedPaths(findBy)).toEqual(['/']);
+    });
+
+    test('when neither spelling matches, then undefined is returned', async () => {
+      vi.spyOn(dataSource, 'findBy').mockResolvedValue([]);
+
+      await expect(DriveItemRepository.instance.getByPath('/a/b')).resolves.toBeUndefined();
+    });
   });
 });
