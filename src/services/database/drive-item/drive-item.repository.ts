@@ -1,7 +1,9 @@
+import { In } from 'typeorm';
 import { ErrorUtils } from '../../../utils/errors.utils';
 import { DatabaseService } from '../database.service';
 import { DriveItemBD } from './drive-item.domain';
 import { DriveItemModel } from './drive-item.model';
+import { DriveItemAttributes } from './drive-item.attributes';
 
 export class DriveItemRepository {
   public static readonly instance = new DriveItemRepository();
@@ -77,15 +79,21 @@ export class DriveItemRepository {
     }
   };
 
-  public getByPath = async (path: string): Promise<DriveItemBD | undefined> => {
+  public getByPath = async (path: string, type?: DriveItemAttributes['type']): Promise<DriveItemBD | undefined> => {
     try {
-      const item = await this.repository.findOneBy({ path });
-      if (!item) {
+      const variant = path.endsWith('/') ? path.slice(0, -1) : `${path}/`;
+      const paths = variant.length > 0 ? [path, variant] : [path];
+
+      const candidates = await this.repository.findBy(type ? { path: In(paths), type } : { path: In(paths) });
+      if (candidates.length === 0) {
         return;
       }
-      return new DriveItemBD(item);
+
+      const rank = (item: DriveItemModel) => (item.path === path ? 0 : 2) + (item.type === 'file' ? 0 : 1);
+      const [best] = candidates.sort((a, b) => rank(a) - rank(b));
+      return new DriveItemBD(best);
     } catch (error) {
-      ErrorUtils.report(error, { getByPath: path });
+      ErrorUtils.report(error, { getByPath: path, type });
     }
   };
 
