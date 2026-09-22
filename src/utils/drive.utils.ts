@@ -1,10 +1,9 @@
 import { FileMeta, FolderMeta, CreateFolderResponse, FileStatus } from '@internxt/sdk/dist/drive/storage/types';
-import { DriveFileItem, DriveFolderItem } from '../types/drive.types';
+import { DriveFileItem, DriveFolderItem, DriveItemType } from '../types/drive.types';
 import { ServiceUnavailableError } from './errors.utils';
 
 export class DriveUtils {
-
-  private static assertUsableMeta(meta: { uuid?: string }, kind: 'file' | 'folder'): void {
+  private static assertUsableMeta(meta: { uuid?: string }, kind: DriveItemType): void {
     if (!meta?.uuid) {
       throw new ServiceUnavailableError(`Unusable ${kind} metadata received from the API`);
     }
