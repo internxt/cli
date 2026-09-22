@@ -1,9 +1,19 @@
 import { StorageTypes } from '@internxt/sdk/dist/drive';
 import { SdkManager } from '../sdk-manager.service';
-import { FetchPaginatedFile, FetchPaginatedFolder } from '@internxt/sdk/dist/drive/storage/types';
+import {
+  FetchFilesSyncResponse,
+  FetchFoldersSyncResponse,
+  FilesSyncQuery,
+  FoldersSyncQuery,
+} from '@internxt/sdk/dist/drive/storage/types';
+import { PaginationUtils } from '../../utils/pagination.utils';
+
+type TrashedFolder = FetchFoldersSyncResponse['folders'][number];
+type TrashedFile = FetchFilesSyncResponse['files'][number];
 
 export class TrashService {
   static readonly instance = new TrashService();
+  private static readonly SCAN_FROM = new Date(0).toISOString();
 
   public trashItems = (payload: StorageTypes.AddItemsToTrashPayload) => {
     const storageClient = SdkManager.instance.getStorage();
@@ -34,32 +44,30 @@ export class TrashService {
   };
 
   public getTrashFolderContent = async () => {
-    const folders = await this.getAllTrashSubfolders(0);
-    const files = await this.getAllTrashSubfiles(0);
+    const [folders, files] = await Promise.all([this.getTrashedFolders(), this.getTrashedFiles()]);
     return { folders, files };
   };
 
-  private readonly getAllTrashSubfolders = async (offset: number): Promise<FetchPaginatedFolder[]> => {
-    const trashClient = SdkManager.instance.getTrash();
-    const promise = trashClient.getTrashedFilesPaginated(50, offset, 'folders', true);
-    const folders = (await promise).result as unknown as FetchPaginatedFolder[];
-
-    if (folders.length > 0) {
-      return folders.concat(await this.getAllTrashSubfolders(offset + folders.length));
-    } else {
-      return folders;
-    }
+  private readonly getTrashedFolders = async (): Promise<TrashedFolder[]> => {
+    const storageClient = SdkManager.instance.getStorage();
+    return PaginationUtils.fetchAllPages(async (cursor) => {
+      const [promise] = storageClient.getFoldersSync(this.syncQuery(cursor));
+      const { folders, nextCursor } = await promise;
+      return { items: folders, nextCursor };
+    });
   };
 
-  private readonly getAllTrashSubfiles = async (offset: number): Promise<FetchPaginatedFile[]> => {
-    const trashClient = SdkManager.instance.getTrash();
-    const promise = trashClient.getTrashedFilesPaginated(50, offset, 'files', true);
-    const files = (await promise).result as unknown as FetchPaginatedFile[];
+  private readonly getTrashedFiles = async (): Promise<TrashedFile[]> => {
+    const storageClient = SdkManager.instance.getStorage();
+    return PaginationUtils.fetchAllPages(async (cursor) => {
+      const [promise] = storageClient.getFilesSync(this.syncQuery(cursor));
+      const { files, nextCursor } = await promise;
+      return { items: files, nextCursor };
+    });
+  };
 
-    if (files.length > 0) {
-      return files.concat(await this.getAllTrashSubfiles(offset + files.length));
-    } else {
-      return files;
-    }
+  private readonly syncQuery = (cursor?: string): FilesSyncQuery & FoldersSyncQuery => {
+    const position = cursor ? { cursor } : { updatedAt: TrashService.SCAN_FROM };
+    return { ...position, status: 'TRASHED', limit: PaginationUtils.MAX_PAGE_SIZE };
   };
 }

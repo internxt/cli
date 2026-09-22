@@ -9,13 +9,13 @@ import { DriveFolderItem } from '../../types/drive.types';
 import { DriveUtils } from '../../utils/drive.utils';
 import { RequestCanceler } from '@internxt/sdk/dist/shared/http/types';
 import { NotFoundError } from '../../utils/errors.utils';
+import { PaginationUtils } from '../../utils/pagination.utils';
 
 type FolderContentFolder = FetchFolderFoldersCursorResponse['folders'][number];
 type FolderContentFile = FetchFolderFilesCursorResponse['files'][number];
 
 export class DriveFolderService {
   static readonly instance = new DriveFolderService();
-  private static readonly PAGE_SIZE = 1000;
 
   public getFolderMetaByUuid = async (uuid: string): Promise<DriveFolderItem> => {
     const storageClient = SdkManager.instance.getStorage();
@@ -54,9 +54,9 @@ export class DriveFolderService {
 
   public getFolderSubfolders = (folderUuid: string): Promise<FolderContentFolder[]> => {
     const storageClient = SdkManager.instance.getStorage();
-    return this.fetchAllPages(async (cursor) => {
+    return PaginationUtils.fetchAllPages(async (cursor) => {
       const [promise] = storageClient.getFolderFoldersByUuidWithCursor(folderUuid, {
-        limit: DriveFolderService.PAGE_SIZE,
+        limit: PaginationUtils.MAX_PAGE_SIZE,
         order: 'ASC',
         cursor,
       });
@@ -67,31 +67,15 @@ export class DriveFolderService {
 
   public getFolderSubfiles = (folderUuid: string): Promise<FolderContentFile[]> => {
     const storageClient = SdkManager.instance.getStorage();
-    return this.fetchAllPages(async (cursor) => {
+    return PaginationUtils.fetchAllPages(async (cursor) => {
       const [promise] = storageClient.getFolderFilesByUuidWithCursor(folderUuid, {
-        limit: DriveFolderService.PAGE_SIZE,
+        limit: PaginationUtils.MAX_PAGE_SIZE,
         order: 'ASC',
         cursor,
       });
       const { files, nextCursor } = await promise;
       return { items: files, nextCursor };
     });
-  };
-
-  private readonly fetchAllPages = async <T>(
-    fetchPage: (cursor?: string) => Promise<{ items: T[]; nextCursor: string | null }>,
-  ): Promise<T[]> => {
-    const items: T[] = [];
-    let cursor: string | undefined;
-    do {
-      const page = await fetchPage(cursor);
-      if (!Array.isArray(page.items)) {
-        throw new Error('Unusable folder content received from the API');
-      }
-      items.push(...page.items);
-      cursor = page.nextCursor ?? undefined;
-    } while (cursor);
-    return items;
   };
 
   public moveFolder = async (

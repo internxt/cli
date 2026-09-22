@@ -4,15 +4,15 @@ import { Storage } from '@internxt/sdk/dist/drive';
 import { DriveFolderService } from '../../../src/services/drive/drive-folder.service';
 import { SdkManager } from '../../../src/services/sdk-manager.service';
 import { DriveUtils } from '../../../src/utils/drive.utils';
-import { generateSubcontent, newCreateFolderResponse, newFolderMeta } from '../../fixtures/drive.fixture';
+import { generateSubcontent, newCreateFolderResponse, newFolderMeta, pageOf } from '../../fixtures/drive.fixture';
 import {
-  CheckDuplicatedFoldersResponse,
   CreateFolderResponse,
   FolderMeta,
+  CheckDuplicatedFoldersResponse,
 } from '@internxt/sdk/dist/drive/storage/types';
-import { NotFoundError, ServiceUnavailableError } from '../../../src/utils/errors.utils';
 import { ConfigService } from '../../../src/services/config.service';
 import { UserCredentialsFixture } from '../../fixtures/login.fixture';
+import { NotFoundError, ServiceUnavailableError } from '../../../src/utils/errors.utils';
 
 describe('Drive Folder Service', () => {
   const sut = DriveFolderService.instance;
@@ -52,12 +52,6 @@ describe('Drive Folder Service', () => {
     const parentUuid = randomUUID();
     const subContentFixture = generateSubcontent(parentUuid, 2500, 1200);
     const requestCancelerMock = { cancel: () => {} };
-    const pageOf = <T>(items: T[], cursor: string | undefined) => {
-      const start = cursor ? Number(cursor) : 0;
-      const end = start + 1000;
-      return { page: items.slice(start, end), nextCursor: end < items.length ? String(end) : null };
-    };
-
     const foldersSpy = vi
       .spyOn(Storage.prototype, 'getFolderFoldersByUuidWithCursor')
       .mockImplementation((_, query) => {
@@ -121,7 +115,7 @@ describe('Drive Folder Service', () => {
     ]);
     vi.spyOn(SdkManager.instance, 'getStorage').mockReturnValue(Storage.prototype);
 
-    await expect(sut.getFolderContent(parentUuid)).rejects.toThrow('Unusable folder content received from the API');
+    await expect(sut.getFolderContent(parentUuid)).rejects.toThrow('Unusable page received from the API');
   });
 
   test('when a folder is created, then the new folder and a request canceler are returned', async () => {
