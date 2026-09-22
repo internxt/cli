@@ -1,5 +1,6 @@
 import { Logger } from 'winston';
 import { logger } from './logger.utils';
+import { DriveItemType } from '../types/drive.types';
 
 export type LookupErrorKind = 'not-found' | 'auth' | 'inconclusive';
 
@@ -82,6 +83,27 @@ export class ErrorUtils {
 
     if (this.isAuthStatus(status)) return 'auth';
     return 'inconclusive';
+  };
+
+  /** Maps a failed path lookup to the error the WebDAV client should see, so only a
+   * confirmed absence surfaces as 404. */
+  static readonly toLookupError = (itemType: DriveItemType, path: string, error: unknown): Error => {
+    const label = itemType === 'file' ? 'File' : 'Folder';
+    switch (this.classifyLookupError(error)) {
+      case 'auth':
+        return new BadGatewayError(
+          this.withRequestId(
+            `The Internxt API rejected this session while looking up ${path}, log in again with 'internxt login'`,
+            error,
+          ),
+        );
+      case 'inconclusive':
+        return new ServiceUnavailableError(
+          this.withRequestId(`${label} lookup at path ${path} could not be completed, retry later`, error),
+        );
+      case 'not-found':
+        return new NotFoundError(`${label} not found at path: ${path}`);
+    }
   };
 
   private static readonly isAuthStatus = (status: number): boolean => status === 401 || status === 403;

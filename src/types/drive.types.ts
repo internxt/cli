@@ -1,5 +1,7 @@
 import { FileMeta, FolderMeta } from '@internxt/sdk/dist/drive/storage/types';
 
+export type DriveItemType = 'file' | 'folder';
+
 export type DriveFileItem = Pick<FileMeta, 'uuid' | 'name' | 'bucket' | 'folderUuid' | 'status'> & {
   itemType: 'file';
   size: number;

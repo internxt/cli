@@ -1,5 +1,11 @@
 import { describe, expect, test } from 'vitest';
-import { ErrorUtils, NotFoundError, NotImplementedError, ServiceUnavailableError } from '../../src/utils/errors.utils';
+import {
+  BadGatewayError,
+  ErrorUtils,
+  NotFoundError,
+  NotImplementedError,
+  ServiceUnavailableError,
+} from '../../src/utils/errors.utils';
 import { newApiError, newNetworkError } from '../fixtures/errors.fixture';
 import { logger } from '../../src/utils/logger.utils';
 
@@ -158,6 +164,29 @@ describe('Errors Utils', () => {
     test('when the error carries no status at all, then nothing can be concluded', () => {
       expect(ErrorUtils.classifyLookupError(new Error('boom'))).toBe('inconclusive');
       expect(ErrorUtils.classifyLookupError(undefined)).toBe('inconclusive');
+    });
+  });
+
+  describe('toLookupError', () => {
+    test('when the API confirms the item is gone, then a not found error names the item and path', () => {
+      const error = ErrorUtils.toLookupError('folder', '/docs/', newApiError(404));
+
+      expect(error).toBeInstanceOf(NotFoundError);
+      expect(error.message).toBe('Folder not found at path: /docs/');
+    });
+
+    test('when the API rejects the session, then a bad gateway error asks to log in again', () => {
+      const error = ErrorUtils.toLookupError('file', '/a.txt', newApiError(401));
+
+      expect(error).toBeInstanceOf(BadGatewayError);
+      expect(error.message).toContain('log in again with \'internxt login\'');
+    });
+
+    test('when the lookup is inconclusive, then a service unavailable error is returned', () => {
+      const error = ErrorUtils.toLookupError('file', '/a.txt', newNetworkError());
+
+      expect(error).toBeInstanceOf(ServiceUnavailableError);
+      expect(error.message).toContain('File lookup at path /a.txt could not be completed');
     });
   });
 

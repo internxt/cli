@@ -1,6 +1,6 @@
 import { DriveItemRepository } from '../database/drive-item/drive-item.repository';
 import { DriveFileItem, DriveFolderItem } from '../../types/drive.types';
-import { BadGatewayError, ErrorUtils, NotFoundError, ServiceUnavailableError } from '../../utils/errors.utils';
+import { ErrorUtils } from '../../utils/errors.utils';
 import { webdavLogger } from '../../utils/logger.utils';
 import { DriveFileService } from './drive-file.service';
 import { DriveFolderService } from './drive-folder.service';
@@ -14,24 +14,6 @@ export class DriveItemService {
   private readonly dropCacheIfGone = async (uuid: string, error: unknown): Promise<void> => {
     if (!ErrorUtils.isNotFoundError(error)) return;
     await DriveItemRepository.instance.delete([uuid]);
-  };
-
-  private readonly asLookupError = (itemType: 'File' | 'Folder', path: string, error: unknown): Error => {
-    switch (ErrorUtils.classifyLookupError(error)) {
-      case 'auth':
-        return new BadGatewayError(
-          ErrorUtils.withRequestId(
-            `The Internxt API rejected this session while looking up ${path}, log in again with 'internxt login'`,
-            error,
-          ),
-        );
-      case 'inconclusive':
-        return new ServiceUnavailableError(
-          ErrorUtils.withRequestId(`${itemType} lookup at path ${path} could not be completed, retry later`, error),
-        );
-      case 'not-found':
-        return new NotFoundError(`${itemType} not found at path: ${path}`);
-    }
   };
 
   private readonly tryGetFileByUuid = async (cached: DriveItemBD, path: string): Promise<DriveFileItem | undefined> => {
@@ -103,7 +85,7 @@ export class DriveItemService {
       return item;
     } catch (error) {
       ErrorUtils.logIfUnexpected(webdavLogger, 'File lookup by path failed', error, { path });
-      throw this.asLookupError('File', path, error);
+      throw ErrorUtils.toLookupError('file', path, error);
     }
   };
 
@@ -129,7 +111,7 @@ export class DriveItemService {
       return item;
     } catch (error) {
       ErrorUtils.logIfUnexpected(webdavLogger, 'Folder lookup by path failed', error, { path });
-      throw this.asLookupError('Folder', path, error);
+      throw ErrorUtils.toLookupError('folder', path, error);
     }
   };
 }
