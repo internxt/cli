@@ -1,4 +1,8 @@
-import { FetchPaginatedFile, FetchPaginatedFolder, FileStatus } from '@internxt/sdk/dist/drive/storage/types';
+import {
+  FetchFolderFilesCursorResponse,
+  FetchFolderFoldersCursorResponse,
+  FileStatus,
+} from '@internxt/sdk/dist/drive/storage/types';
 import { SdkManager } from '../sdk-manager.service';
 import { StorageTypes } from '@internxt/sdk/dist/drive';
 import { DriveFolderItem } from '../../types/drive.types';
@@ -6,8 +10,12 @@ import { DriveUtils } from '../../utils/drive.utils';
 import { RequestCanceler } from '@internxt/sdk/dist/shared/http/types';
 import { NotFoundError } from '../../utils/errors.utils';
 
+type FolderContentFolder = FetchFolderFoldersCursorResponse['folders'][number];
+type FolderContentFile = FetchFolderFilesCursorResponse['files'][number];
+
 export class DriveFolderService {
   static readonly instance = new DriveFolderService();
+  private static readonly PAGE_SIZE = 1000;
 
   public getFolderMetaByUuid = async (uuid: string): Promise<DriveFolderItem> => {
     const storageClient = SdkManager.instance.getStorage();
@@ -44,48 +52,46 @@ export class DriveFolderService {
     return { folders, files };
   };
 
-  public getFolderSubfolders = async (folderUuid: string): Promise<FetchPaginatedFolder[]> => {
-    const folders = await this.getAllSubfolders(folderUuid, 0);
-    return folders;
-  };
-
-  public getFolderSubfiles = async (folderUuid: string): Promise<FetchPaginatedFile[]> => {
-    const files = await this.getAllSubfiles(folderUuid, 0);
-    return files;
-  };
-
-  private readonly getAllSubfolders = async (folderUuid: string, offset: number): Promise<FetchPaginatedFolder[]> => {
+  public getFolderSubfolders = (folderUuid: string): Promise<FolderContentFolder[]> => {
     const storageClient = SdkManager.instance.getStorage();
-    const [personalFolderContentPromise] = storageClient.getFolderFoldersByUuid(
-      folderUuid,
-      offset,
-      50,
-      'plainName',
-      'ASC',
-    );
-    let folders = (await personalFolderContentPromise).folders;
-
-    folders = folders.filter((folder) => folder.status === FileStatus.EXISTS);
-
-    if (folders.length > 0) {
-      return folders.concat(await this.getAllSubfolders(folderUuid, offset + folders.length));
-    } else {
-      return folders;
-    }
+    return this.fetchAllPages(async (cursor) => {
+      const [promise] = storageClient.getFolderFoldersByUuidWithCursor(folderUuid, {
+        limit: DriveFolderService.PAGE_SIZE,
+        order: 'ASC',
+        cursor,
+      });
+      const { folders, nextCursor } = await promise;
+      return { items: folders, nextCursor };
+    });
   };
 
-  private readonly getAllSubfiles = async (folderUuid: string, offset: number): Promise<FetchPaginatedFile[]> => {
+  public getFolderSubfiles = (folderUuid: string): Promise<FolderContentFile[]> => {
     const storageClient = SdkManager.instance.getStorage();
-    const [folderContentPromise] = storageClient.getFolderFilesByUuid(folderUuid, offset, 50, 'plainName', 'ASC');
-    let files = (await folderContentPromise).files;
+    return this.fetchAllPages(async (cursor) => {
+      const [promise] = storageClient.getFolderFilesByUuidWithCursor(folderUuid, {
+        limit: DriveFolderService.PAGE_SIZE,
+        order: 'ASC',
+        cursor,
+      });
+      const { files, nextCursor } = await promise;
+      return { items: files, nextCursor };
+    });
+  };
 
-    files = files.filter((file) => file.status === FileStatus.EXISTS);
-
-    if (files.length > 0) {
-      return files.concat(await this.getAllSubfiles(folderUuid, offset + files.length));
-    } else {
-      return files;
-    }
+  private readonly fetchAllPages = async <T>(
+    fetchPage: (cursor?: string) => Promise<{ items: T[]; nextCursor: string | null }>,
+  ): Promise<T[]> => {
+    const items: T[] = [];
+    let cursor: string | undefined;
+    do {
+      const page = await fetchPage(cursor);
+      if (!Array.isArray(page.items)) {
+        throw new Error('Unusable folder content received from the API');
+      }
+      items.push(...page.items);
+      cursor = page.nextCursor ?? undefined;
+    } while (cursor);
+    return items;
   };
 
   public moveFolder = async (
