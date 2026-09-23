@@ -25,6 +25,8 @@ webdav_online() {
 }
 
 
+echo "[entrypoint] $(internxt --version 2>/dev/null || echo 'internxt version unknown')"
+
 if [ -z "$INXT_USER" ] || [ -z "$INXT_PASSWORD" ]; then
   echo "Error: INXT_USER and INXT_PASSWORD environment variables must be set."
   exit 1
