@@ -7,4 +7,5 @@ export interface ConfigKeys {
   readonly APP_MAGIC_SALT: string;
   readonly NETWORK_URL: string;
   readonly DESKTOP_HEADER: string;
+  readonly INXT_SQLITE_JOURNAL_MODE: string;
 }
