@@ -4,17 +4,15 @@ import { Storage } from '@internxt/sdk/dist/drive';
 import { DriveFolderService } from '../../../src/services/drive/drive-folder.service';
 import { SdkManager } from '../../../src/services/sdk-manager.service';
 import { DriveUtils } from '../../../src/utils/drive.utils';
-import { generateSubcontent, newCreateFolderResponse, newFolderMeta } from '../../fixtures/drive.fixture';
+import { generateSubcontent, newCreateFolderResponse, newFolderMeta, pageOf } from '../../fixtures/drive.fixture';
 import {
-  CheckDuplicatedFoldersResponse,
   CreateFolderResponse,
-  FetchPaginatedFile,
-  FetchPaginatedFolder,
   FolderMeta,
+  CheckDuplicatedFoldersResponse,
 } from '@internxt/sdk/dist/drive/storage/types';
-import { NotFoundError, ServiceUnavailableError } from '../../../src/utils/errors.utils';
 import { ConfigService } from '../../../src/services/config.service';
 import { UserCredentialsFixture } from '../../fixtures/login.fixture';
+import { NotFoundError, ServiceUnavailableError } from '../../../src/utils/errors.utils';
 
 describe('Drive Folder Service', () => {
   const sut = DriveFolderService.instance;
@@ -50,42 +48,74 @@ describe('Drive Folder Service', () => {
     expect(spy).toHaveBeenCalledWith(expectedFolderMeta.id);
   });
 
-  test('when folder content is requested, then all its subfolders and subfiles are returned', async () => {
+  test('when folder content is requested, then every cursor page of subfolders and subfiles is returned', async () => {
     const parentUuid = randomUUID();
-    const subContentFixture = generateSubcontent(parentUuid, 112, 117); //112 subfolders and 117 subfiles
+    const subContentFixture = generateSubcontent(parentUuid, 2500, 1200);
     const requestCancelerMock = { cancel: () => {} };
-
-    vi.spyOn(Storage.prototype, 'getFolderFoldersByUuid').mockImplementation((_: string, offset) => {
-      let foldersContent: FetchPaginatedFolder[] = [];
-      if (offset === 0) {
-        foldersContent = subContentFixture.folders.slice(0, 50);
-      } else if (offset === 50) {
-        foldersContent = subContentFixture.folders.slice(50, 100);
-      } else if (offset === 100) {
-        foldersContent = subContentFixture.folders.slice(100, 112);
-      } else if (offset === 112) {
-        foldersContent = [];
-      }
-      return [Promise.resolve({ folders: foldersContent }), requestCancelerMock];
-    });
-    vi.spyOn(Storage.prototype, 'getFolderFilesByUuid').mockImplementation((_: string, offset) => {
-      let filesContent: FetchPaginatedFile[] = [];
-      if (offset === 0) {
-        filesContent = subContentFixture.files.slice(0, 50);
-      } else if (offset === 50) {
-        filesContent = subContentFixture.files.slice(50, 100);
-      } else if (offset === 100) {
-        filesContent = subContentFixture.files.slice(100, 117);
-      } else if (offset === 117) {
-        filesContent = [];
-      }
-      return [Promise.resolve({ files: filesContent }), requestCancelerMock];
+    const foldersSpy = vi
+      .spyOn(Storage.prototype, 'getFolderFoldersByUuidWithCursor')
+      .mockImplementation((_, query) => {
+        const { page, nextCursor } = pageOf(subContentFixture.folders, query?.cursor);
+        return [Promise.resolve({ folders: page, nextCursor }), requestCancelerMock];
+      });
+    const filesSpy = vi.spyOn(Storage.prototype, 'getFolderFilesByUuidWithCursor').mockImplementation((_, query) => {
+      const { page, nextCursor } = pageOf(subContentFixture.files, query?.cursor);
+      return [Promise.resolve({ files: page, nextCursor }), requestCancelerMock];
     });
     vi.spyOn(SdkManager.instance, 'getStorage').mockReturnValue(Storage.prototype);
 
     const resultContent = await sut.getFolderContent(parentUuid);
 
-    expect(subContentFixture).to.deep.equal(resultContent);
+    expect(resultContent).to.deep.equal(subContentFixture);
+    expect(foldersSpy).toHaveBeenCalledTimes(3);
+    expect(foldersSpy.mock.calls.map(([, query]) => query)).toEqual([
+      { limit: 1000, order: 'ASC', cursor: undefined },
+      { limit: 1000, order: 'ASC', cursor: '1000' },
+      { limit: 1000, order: 'ASC', cursor: '2000' },
+    ]);
+    expect(filesSpy).toHaveBeenCalledTimes(2);
+    expect(filesSpy.mock.calls.map(([, query]) => query)).toEqual([
+      { limit: 1000, order: 'ASC', cursor: undefined },
+      { limit: 1000, order: 'ASC', cursor: '1000' },
+    ]);
+  });
+
+  test('when an empty folder content is requested, then a single request per type is made', async () => {
+    const parentUuid = randomUUID();
+    const requestCancelerMock = { cancel: () => {} };
+    const foldersSpy = vi
+      .spyOn(Storage.prototype, 'getFolderFoldersByUuidWithCursor')
+      .mockReturnValue([Promise.resolve({ folders: [], nextCursor: null }), requestCancelerMock]);
+    const filesSpy = vi
+      .spyOn(Storage.prototype, 'getFolderFilesByUuidWithCursor')
+      .mockReturnValue([Promise.resolve({ files: [], nextCursor: null }), requestCancelerMock]);
+    vi.spyOn(SdkManager.instance, 'getStorage').mockReturnValue(Storage.prototype);
+
+    const resultContent = await sut.getFolderContent(parentUuid);
+
+    expect(resultContent).to.deep.equal({ folders: [], files: [] });
+    expect(foldersSpy).toHaveBeenCalledOnce();
+    expect(foldersSpy).toHaveBeenCalledWith(parentUuid, { limit: 1000, order: 'ASC', cursor: undefined });
+    expect(filesSpy).toHaveBeenCalledOnce();
+    expect(filesSpy).toHaveBeenCalledWith(parentUuid, { limit: 1000, order: 'ASC', cursor: undefined });
+  });
+
+  test('when a page arrives without items, then it throws instead of returning a partial listing', async () => {
+    const parentUuid = randomUUID();
+    const subContentFixture = generateSubcontent(parentUuid, 1200, 0);
+    const requestCancelerMock = { cancel: () => {} };
+
+    vi.spyOn(Storage.prototype, 'getFolderFoldersByUuidWithCursor').mockImplementation((_, query) => {
+      const folders = query?.cursor ? undefined : subContentFixture.folders.slice(0, 1000);
+      return [Promise.resolve({ folders, nextCursor: query?.cursor ? null : 'next' } as never), requestCancelerMock];
+    });
+    vi.spyOn(Storage.prototype, 'getFolderFilesByUuidWithCursor').mockReturnValue([
+      Promise.resolve({ files: [], nextCursor: null }),
+      requestCancelerMock,
+    ]);
+    vi.spyOn(SdkManager.instance, 'getStorage').mockReturnValue(Storage.prototype);
+
+    await expect(sut.getFolderContent(parentUuid)).rejects.toThrow('Unusable page received from the API');
   });
 
   test('when a folder is created, then the new folder and a request canceler are returned', async () => {

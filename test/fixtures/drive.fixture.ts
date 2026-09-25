@@ -196,3 +196,9 @@ export const newCreateFolderResponse = (attributes?: Partial<CreateFolderRespons
   };
   return { ...folder, ...attributes };
 };
+
+export const pageOf = <T>(items: T[], cursor: string | undefined, pageSize = 1000) => {
+  const start = cursor ? Number(cursor) : 0;
+  const end = start + pageSize;
+  return { page: items.slice(start, end), nextCursor: end < items.length ? String(end) : null };
+};
