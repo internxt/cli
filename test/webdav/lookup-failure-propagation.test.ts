@@ -1,0 +1,122 @@
+import { beforeEach, describe, expect, test, vi } from 'vitest';
+import { PROPFINDRequestHandler } from '../../src/webdav/handlers/PROPFIND.handler';
+import { PUTRequestHandler } from '../../src/webdav/handlers/PUT.handler';
+import { MKCOLRequestHandler } from '../../src/webdav/handlers/MKCOL.handler';
+import { MOVERequestHandler } from '../../src/webdav/handlers/MOVE.handler';
+import { DELETERequestHandler } from '../../src/webdav/handlers/DELETE.handler';
+import {
+  createWebDavRequestFixture,
+  createWebDavResponseFixture,
+  getWebdavConfigMock,
+} from '../fixtures/webdav.fixture';
+import { UserCredentialsFixture } from '../fixtures/login.fixture';
+import { AuthService } from '../../src/services/auth.service';
+import { ConfigService } from '../../src/services/config.service';
+import { DriveItemService } from '../../src/services/drive/drive-item.service';
+import { DriveFileService } from '../../src/services/drive/drive-file.service';
+import { DriveFolderService } from '../../src/services/drive/drive-folder.service';
+import { WebDavFolderService } from '../../src/services/webdav/webdav-folder.service';
+import { TrashService } from '../../src/services/drive/trash.service';
+import { UploadUtils } from '../../src/utils/upload.utils';
+import { ServiceUnavailableError } from '../../src/utils/errors.utils';
+import { DriveItemRepository } from '../../src/services/database/drive-item/drive-item.repository';
+import { DriveItemBD } from '../../src/services/database/drive-item/drive-item.domain';
+
+/** A lookup that cannot be completed must leave the handler inert: nothing created, moved or
+ * trashed on a false "not found". */
+describe('WebDAV handlers when a path lookup cannot be completed', () => {
+  const lookupTimedOut = () => {
+    const error = new ServiceUnavailableError('Lookup at path could not be completed, retry later');
+    vi.spyOn(DriveItemService.instance, 'getFileByPath').mockRejectedValue(error);
+    vi.spyOn(DriveItemService.instance, 'getFolderByPath').mockRejectedValue(error);
+  };
+
+  const response = () => createWebDavResponseFixture({ status: vi.fn().mockReturnThis() });
+
+  beforeEach(() => {
+    vi.spyOn(AuthService.instance, 'getAuthDetails').mockResolvedValue(UserCredentialsFixture);
+    vi.spyOn(ConfigService.instance, 'readWebdavConfig').mockResolvedValue(getWebdavConfigMock());
+    vi.spyOn(DriveItemRepository.instance, 'getByPath').mockResolvedValue(undefined);
+    lookupTimedOut();
+  });
+
+  test('when a PROPFIND lookup is inconclusive, then a retryable error is reported instead of a 404', async () => {
+    const request = createWebDavRequestFixture({ method: 'PROPFIND', url: '/folder/file.txt', headers: {} });
+
+    await expect(new PROPFINDRequestHandler().handle(request, response())).rejects.toBeInstanceOf(
+      ServiceUnavailableError,
+    );
+  });
+
+  test('when the parent lookup is inconclusive, then PUT does not create the parent folders', async () => {
+    vi.spyOn(UploadUtils, 'checkUploadSizeLimits').mockResolvedValue(undefined);
+    const createFolderSpy = vi.spyOn(WebDavFolderService.instance, 'createFolder');
+    const createFileSpy = vi.spyOn(DriveFileService.instance, 'createFile');
+    const request = createWebDavRequestFixture({
+      method: 'PUT',
+      url: '/folder/file.txt',
+      headers: { 'content-length': '10' },
+    });
+
+    await expect(new PUTRequestHandler().handle(request, response())).rejects.toBeInstanceOf(ServiceUnavailableError);
+    expect(createFolderSpy).not.toHaveBeenCalled();
+    expect(createFileSpy).not.toHaveBeenCalled();
+  });
+
+  test('when the lookup is inconclusive, then MKCOL does not create the folder', async () => {
+    const createFolderSpy = vi.spyOn(WebDavFolderService.instance, 'createFolder');
+    const request = createWebDavRequestFixture({ method: 'MKCOL', url: '/folder/new/', headers: {} });
+
+    await expect(new MKCOLRequestHandler().handle(request, response())).rejects.toBeInstanceOf(ServiceUnavailableError);
+    expect(createFolderSpy).not.toHaveBeenCalled();
+  });
+
+  test('when the source lookup is inconclusive, then MOVE does not move anything', async () => {
+    const moveFileSpy = vi.spyOn(DriveFileService.instance, 'moveFile');
+    const moveFolderSpy = vi.spyOn(DriveFolderService.instance, 'moveFolder');
+    const request = createWebDavRequestFixture({
+      method: 'MOVE',
+      url: '/folder/file.txt',
+      headers: {},
+      header: vi.fn((name: string) => (name === 'destination' ? 'http://localhost/folder/renamed.txt' : undefined)),
+    });
+
+    await expect(new MOVERequestHandler().handle(request, response())).rejects.toBeInstanceOf(ServiceUnavailableError);
+    expect(moveFileSpy).not.toHaveBeenCalled();
+    expect(moveFolderSpy).not.toHaveBeenCalled();
+  });
+
+  test('when the target lookup is inconclusive, then DELETE does not trash anything', async () => {
+    const trashSpy = vi.spyOn(TrashService.instance, 'trashItems');
+    const request = createWebDavRequestFixture({ method: 'DELETE', url: '/folder/file.txt', headers: {} });
+
+    await expect(new DELETERequestHandler().handle(request, response())).rejects.toBeInstanceOf(
+      ServiceUnavailableError,
+    );
+    expect(trashSpy).not.toHaveBeenCalled();
+  });
+
+  test('when the cache is warm but the lookup is inconclusive, then PUT does nothing', async () => {
+    vi.spyOn(DriveItemRepository.instance, 'getByPath').mockResolvedValue(
+      new DriveItemBD({
+        uuid: 'uuid-1',
+        path: '/folder/file.txt/',
+        type: 'folder',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }),
+    );
+    vi.spyOn(UploadUtils, 'checkUploadSizeLimits').mockResolvedValue(undefined);
+    const createFolderSpy = vi.spyOn(WebDavFolderService.instance, 'createFolder');
+    const createFileSpy = vi.spyOn(DriveFileService.instance, 'createFile');
+    const request = createWebDavRequestFixture({
+      method: 'PUT',
+      url: '/folder/file.txt',
+      headers: { 'content-length': '10' },
+    });
+
+    await expect(new PUTRequestHandler().handle(request, response())).rejects.toBeInstanceOf(ServiceUnavailableError);
+    expect(createFolderSpy).not.toHaveBeenCalled();
+    expect(createFileSpy).not.toHaveBeenCalled();
+  });
+});

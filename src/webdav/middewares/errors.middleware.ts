@@ -19,19 +19,6 @@ const getErrorDetail = (err: unknown): string | undefined => {
   return undefined;
 };
 
-/**
- * The CLI's own errors (BadRequestError, NotFoundError, ...) expose `statusCode`,
- * but errors normalized by @internxt/sdk's HttpClient expose `status` instead.
- */
-const getErrorStatusCode = (err: unknown): number | undefined => {
-  if (typeof err !== 'object' || err === null) return undefined;
-
-  const { statusCode, status } = err as { statusCode?: unknown; status?: unknown };
-  if (typeof statusCode === 'number' && !Number.isNaN(statusCode)) return statusCode;
-  if (typeof status === 'number' && !Number.isNaN(status)) return status;
-  return undefined;
-};
-
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const ErrorHandlingMiddleware: ErrorRequestHandler = (err, req, res, _) => {
   let message = ErrorUtils.isError(err) ? err.message : 'Something went wrong';
@@ -59,7 +46,11 @@ export const ErrorHandlingMiddleware: ErrorRequestHandler = (err, req, res, _) =
     'error',
   );
 
-  const statusCode = getErrorStatusCode(err) ?? 500;
+  const { statusCode, retryAfter } = ErrorUtils.toWebDavStatus(err);
+
+  if (retryAfter !== undefined) {
+    res.set('Retry-After', String(retryAfter));
+  }
 
   res.set('Content-Type', 'application/xml; charset="utf-8"');
   res.status(statusCode).send(errorBodyXML);

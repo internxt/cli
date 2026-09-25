@@ -10,7 +10,7 @@ import {
 import { GETRequestHandler } from '../../../src/webdav/handlers/GET.handler';
 import { DriveItemService } from '../../../src/services/drive/drive-item.service';
 import { AuthService } from '../../../src/services/auth.service';
-import { NotFoundError, RangeNotSatisfiableError } from '../../../src/utils/errors.utils';
+import { NotFoundError, RangeNotSatisfiableError, ServiceUnavailableError } from '../../../src/utils/errors.utils';
 import { NetworkFacade } from '../../../src/services/network/network-facade.service';
 import { WebDavUtils } from '../../../src/utils/webdav.utils';
 import { WebDavRequestedResource } from '../../../src/types/webdav.types';
@@ -50,7 +50,7 @@ describe('GET request handler', () => {
       .mockResolvedValue(requestedFileResource);
     const getFileMetadataStub = vi
       .spyOn(DriveItemService.instance, 'getFileByPath')
-      .mockRejectedValue(new Error('File not found'));
+      .mockRejectedValue(new NotFoundError('File not found'));
 
     try {
       await sut.handle(request, response);
@@ -60,6 +60,26 @@ describe('GET request handler', () => {
     }
     expect(getRequestedResourceStub).toHaveBeenCalledOnce();
     expect(getFileMetadataStub).toHaveBeenCalledOnce();
+  });
+
+  test('when the lookup cannot be completed, then the error is surfaced instead of a not found', async () => {
+    const requestedFileResource: WebDavRequestedResource = getRequestedFileResource();
+
+    const request = createWebDavRequestFixture({
+      method: 'GET',
+      url: requestedFileResource.url,
+      headers: {},
+    });
+    const response = createWebDavResponseFixture({
+      status: vi.fn().mockReturnValue({ send: vi.fn() }),
+    });
+
+    vi.spyOn(WebDavUtils, 'getRequestedResource').mockResolvedValue(requestedFileResource);
+    vi.spyOn(DriveItemService.instance, 'getFileByPath').mockRejectedValue(
+      new ServiceUnavailableError('File lookup could not be completed'),
+    );
+
+    await expect(sut.handle(request, response)).rejects.toBeInstanceOf(ServiceUnavailableError);
   });
 
   test('when a file is requested, then the server responds with its content', async () => {

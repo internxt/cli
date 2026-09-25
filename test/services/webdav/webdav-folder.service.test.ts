@@ -129,6 +129,62 @@ describe('WebDavFolderService', () => {
     });
   });
 
+  describe('when a parent folder create conflicts', () => {
+    const alreadyExists = () =>
+      Object.assign(new Error('Folder with the same name already exists in this location'), {
+        status: 409,
+        data: {},
+      });
+
+    test('when the API reports the folder already exists, then the existing folder is reused', async () => {
+      const backupFolder = newFolderItem({ name: 'backup', uuid: 'backup-uuid' });
+      const folder1 = newFolderItem({ name: 'folder1', uuid: 'folder1-uuid' });
+
+      mockWebdavConfig(true);
+      mockAuthDetails(rootFolderId);
+      vi.spyOn(sut, 'getDriveFolderItemFromPath').mockResolvedValue(undefined);
+      const createFolderSpy = vi
+        .spyOn(sut, 'createFolder')
+        .mockRejectedValueOnce(alreadyExists())
+        .mockResolvedValueOnce(folder1);
+      const findExistentSpy = vi.spyOn(driveFolderService, 'findExistentFolder').mockResolvedValue(backupFolder);
+
+      const result = await sut.createParentPathOrThrow('/backup/folder1/');
+
+      expect(result).to.deep.equal(folder1);
+      expect(findExistentSpy).toHaveBeenCalledWith(rootFolderId, 'backup');
+      expect(createFolderSpy).toHaveBeenNthCalledWith(2, {
+        folderName: 'folder1',
+        parentFolderUuid: backupFolder.uuid,
+      });
+    });
+
+    test('when the conflicting folder cannot be found, then the original conflict is thrown', async () => {
+      const conflict = alreadyExists();
+
+      mockWebdavConfig(true);
+      mockAuthDetails(rootFolderId);
+      vi.spyOn(sut, 'getDriveFolderItemFromPath').mockResolvedValue(undefined);
+      vi.spyOn(sut, 'createFolder').mockRejectedValue(conflict);
+      vi.spyOn(driveFolderService, 'findExistentFolder').mockResolvedValue(undefined);
+
+      await expect(sut.createParentPathOrThrow('/backup/')).rejects.toBe(conflict);
+    });
+
+    test('when the create fails for another reason, then no lookup is made and the error is thrown', async () => {
+      const serverError = Object.assign(new Error('Internal Server Error'), { status: 500, data: {} });
+
+      mockWebdavConfig(true);
+      mockAuthDetails(rootFolderId);
+      vi.spyOn(sut, 'getDriveFolderItemFromPath').mockResolvedValue(undefined);
+      vi.spyOn(sut, 'createFolder').mockRejectedValue(serverError);
+      const findExistentSpy = vi.spyOn(driveFolderService, 'findExistentFolder');
+
+      await expect(sut.createParentPathOrThrow('/backup/')).rejects.toBe(serverError);
+      expect(findExistentSpy).not.toHaveBeenCalled();
+    });
+  });
+
   describe('creating a folder', () => {
     test('when a folder is created, then the system waits for backend propagation', async () => {
       vi.useFakeTimers();

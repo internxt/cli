@@ -1,7 +1,13 @@
 import { describe, expect, test } from 'vitest';
-import { ErrorUtils } from '../../src/utils/errors.utils';
+import {
+  BadGatewayError,
+  ErrorUtils,
+  NotFoundError,
+  NotImplementedError,
+  ServiceUnavailableError,
+} from '../../src/utils/errors.utils';
+import { newApiError, newNetworkError } from '../fixtures/errors.fixture';
 import { logger } from '../../src/utils/logger.utils';
-import { AxiosResponseError } from '@internxt/sdk/dist/shared/types/errors';
 
 describe('Errors Utils', () => {
   test('when an error is reported, then it is logged with its details', () => {
@@ -91,27 +97,13 @@ describe('Errors Utils', () => {
 
   describe('getRequestId', () => {
     test('when a Drive API error carries the x-request-id header, then its request id is returned', () => {
-      const error = new AxiosResponseError('Request failed with status code 500', 'PUT /files/uuid', {
-        status: 500,
-        data: {},
-        headers: { 'x-request-id': 'req-123' },
-        statusText: 'Internal Server Error',
-        // @ts-expect-error partial AxiosResponse fixture, only the fields read by AxiosResponseError are needed
-        config: {},
-      });
+      const error = newApiError(500, { requestId: 'req-123' });
 
       expect(ErrorUtils.getRequestId(error)).toBe('req-123');
     });
 
     test('when a Drive API error only carries the request id in its response body, then it is returned', () => {
-      const error = new AxiosResponseError('Request failed with status code 500', 'PUT /files/uuid', {
-        status: 500,
-        data: { statusCode: 500, message: 'Internal Server Error', requestId: 'req-789' },
-        headers: {},
-        statusText: 'Internal Server Error',
-        // @ts-expect-error partial AxiosResponse fixture, only the fields read by AxiosResponseError are needed
-        config: {},
-      });
+      const error = newApiError(500, { data: { requestId: 'req-789' } });
 
       expect(ErrorUtils.getRequestId(error)).toBe('req-789');
     });
@@ -142,11 +134,118 @@ describe('Errors Utils', () => {
     });
   });
 
+  describe('classifyLookupError', () => {
+    test('when the API answered 404, then the item is conclusively absent', () => {
+      expect(ErrorUtils.classifyLookupError(newApiError(404))).toBe('not-found');
+      expect(ErrorUtils.classifyLookupError(new NotFoundError('gone'))).toBe('not-found');
+    });
+
+    test.each([400, 414, 422])('when the API rejected the path with %i, then the item reads as absent', (status) => {
+      expect(ErrorUtils.classifyLookupError(newApiError(status))).toBe('not-found');
+    });
+
+    test.each([401, 403])('when the API rejected the session with %i, then retrying cannot help', (status) => {
+      expect(ErrorUtils.classifyLookupError(newApiError(status))).toBe('auth');
+    });
+
+    test.each([408, 425, 429, 500, 502, 503, 504])(
+      'when the lookup failed upstream with %i, then nothing can be concluded',
+      (status) => {
+        expect(ErrorUtils.classifyLookupError(newApiError(status))).toBe('inconclusive');
+      },
+    );
+
+    test('when no response ever arrived, then its invented status is not read as an answer', () => {
+      expect(ErrorUtils.getStatusCode(newNetworkError({ sent: false }))).toBe(400);
+      expect(ErrorUtils.classifyLookupError(newNetworkError({ sent: false }))).toBe('inconclusive');
+      expect(ErrorUtils.classifyLookupError(newNetworkError())).toBe('inconclusive');
+    });
+
+    test('when the error carries no status at all, then nothing can be concluded', () => {
+      expect(ErrorUtils.classifyLookupError(new Error('boom'))).toBe('inconclusive');
+      expect(ErrorUtils.classifyLookupError(undefined)).toBe('inconclusive');
+    });
+  });
+
+  describe('toLookupError', () => {
+    test('when the API confirms the item is gone, then a not found error names the item and path', () => {
+      const error = ErrorUtils.toLookupError('folder', '/docs/', newApiError(404));
+
+      expect(error).toBeInstanceOf(NotFoundError);
+      expect(error.message).toBe('Folder not found at path: /docs/');
+    });
+
+    test('when the API rejects the session, then a bad gateway error asks to log in again', () => {
+      const error = ErrorUtils.toLookupError('file', '/a.txt', newApiError(401));
+
+      expect(error).toBeInstanceOf(BadGatewayError);
+      expect(error.message).toContain('log in again with \'internxt login\'');
+    });
+
+    test('when the lookup is inconclusive, then a service unavailable error is returned', () => {
+      const error = ErrorUtils.toLookupError('file', '/a.txt', newNetworkError());
+
+      expect(error).toBeInstanceOf(ServiceUnavailableError);
+      expect(error.message).toContain('File lookup at path /a.txt could not be completed');
+    });
+  });
+
+  describe('toWebDavStatus', () => {
+    test('when a CLI error is raised, then its status reaches the client untouched', () => {
+      expect(ErrorUtils.toWebDavStatus(new NotFoundError('gone'))).toEqual({ statusCode: 404 });
+      expect(ErrorUtils.toWebDavStatus(new NotImplementedError('no COPY'))).toEqual({ statusCode: 501 });
+      expect(ErrorUtils.toWebDavStatus(new ServiceUnavailableError('busy', 7))).toEqual({
+        statusCode: 503,
+        retryAfter: 7,
+      });
+    });
+
+    test.each([408, 425, 429, 500, 502, 503, 504])(
+      'when the API answered %i, then the client is told to retry',
+      (status) => {
+        expect(ErrorUtils.toWebDavStatus(newApiError(status))).toEqual({ statusCode: 503, retryAfter: 5 });
+      },
+    );
+
+    test.each([401, 403])('when the API rejected the session with %i, then the client gets a 502', (status) => {
+      expect(ErrorUtils.toWebDavStatus(newApiError(status))).toEqual({ statusCode: 502 });
+    });
+
+    test.each([400, 404, 409, 412])('when the API answered %i, then it is passed through', (status) => {
+      expect(ErrorUtils.toWebDavStatus(newApiError(status))).toEqual({ statusCode: status });
+    });
+
+    test('when no response ever arrived, then the invented status is not forwarded', () => {
+      expect(ErrorUtils.toWebDavStatus(newNetworkError({ sent: false }))).toEqual({ statusCode: 503, retryAfter: 5 });
+      expect(ErrorUtils.toWebDavStatus(newNetworkError())).toEqual({ statusCode: 503, retryAfter: 5 });
+    });
+
+    test('when the error carries no status at all, then it is an internal failure', () => {
+      expect(ErrorUtils.toWebDavStatus(new Error('boom'))).toEqual({ statusCode: 500 });
+    });
+  });
+
+  describe('getStatusCode', () => {
+    test('when the error exposes statusCode or status, then it is returned', () => {
+      expect(ErrorUtils.getStatusCode(new NotFoundError('gone'))).toBe(404);
+      expect(ErrorUtils.getStatusCode({ status: 503 })).toBe(503);
+      expect(ErrorUtils.getStatusCode({ statusCode: 409, status: 500 })).toBe(409);
+    });
+
+    test('when the error has no usable status, then nothing is returned', () => {
+      expect(ErrorUtils.getStatusCode(new Error('boom'))).toBeUndefined();
+      expect(ErrorUtils.getStatusCode({ status: 'nope' })).toBeUndefined();
+      expect(ErrorUtils.getStatusCode(null)).toBeUndefined();
+    });
+  });
+
   test('when a reported error has a request id, then it is logged with it', () => {
     const error = Object.assign(new Error('Test Error'), { xRequestId: 'req-123' });
 
     ErrorUtils.report(error);
 
-    expect(logger.error).toHaveBeenCalledWith(expect.stringContaining('[REPORTED_ERROR]: Test Error (requestId: req-123)'));
+    expect(logger.error).toHaveBeenCalledWith(
+      expect.stringContaining('[REPORTED_ERROR]: Test Error (requestId: req-123)'),
+    );
   });
 });

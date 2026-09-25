@@ -13,7 +13,7 @@ export class DriveFolderService {
     const storageClient = SdkManager.instance.getStorage();
     const folderMeta = await storageClient.getFolderMeta(uuid);
     const folderItem = DriveUtils.driveFolderMetaToItem(folderMeta);
-    if (folderItem?.status !== FileStatus.EXISTS) {
+    if (folderItem.status !== FileStatus.EXISTS) {
       throw new NotFoundError(`Folder with uuid ${uuid} not found`);
     }
     return folderItem;
@@ -110,6 +110,33 @@ export class DriveFolderService {
   ): Promise<[Promise<StorageTypes.CreateFolderResponse>, RequestCanceler]> => {
     const storageClient = SdkManager.instance.getStorage();
     return storageClient.createFolderByUuid(payload);
+  };
+
+  public findExistentFolder = async (
+    parentFolderUuid: string,
+    plainName: string,
+  ): Promise<DriveFolderItem | undefined> => {
+    const storageClient = SdkManager.instance.getStorage();
+    const { existentFolders } = await storageClient.checkDuplicatedFolders({
+      folderUuid: parentFolderUuid,
+      folderNamesList: [plainName],
+    });
+
+    const existentFolder = existentFolders[0];
+    if (!existentFolder) return undefined;
+
+    return {
+      itemType: 'folder',
+      uuid: existentFolder.uuid,
+      bucket: existentFolder.bucket,
+      status: existentFolder.deleted ? FileStatus.TRASHED : FileStatus.EXISTS,
+      name: existentFolder.plainName ?? existentFolder.plain_name ?? existentFolder.name,
+      parentUuid: existentFolder.parentUuid,
+      createdAt: new Date(existentFolder.createdAt),
+      updatedAt: new Date(existentFolder.updatedAt),
+      creationTime: new Date(existentFolder.createdAt),
+      modificationTime: new Date(existentFolder.updatedAt),
+    };
   };
 
   public renameFolder = async (payload: { folderUuid: string; name: string }): Promise<void> => {

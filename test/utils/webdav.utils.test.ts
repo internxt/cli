@@ -1,12 +1,14 @@
-import { describe, expect, test, vi } from 'vitest';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 import { WebDavUtils } from '../../src/utils/webdav.utils';
 import { WebDavRequestedResource } from '../../src/types/webdav.types';
 import { newFileItem, newFolderItem } from '../fixtures/drive.fixture';
 import { DriveItemService } from '../../src/services/drive/drive-item.service';
 import { DriveItemRepository } from '../../src/services/database/drive-item/drive-item.repository';
+import { DriveItemBD } from '../../src/services/database/drive-item/drive-item.domain';
 import { ConfigService } from '../../src/services/config.service';
 import { TrashService } from '../../src/services/drive/trash.service';
 import { getWebdavConfigMock } from '../fixtures/webdav.fixture';
+import { NotFoundError, ServiceUnavailableError } from '../../src/utils/errors.utils';
 
 describe('Webdav utils', () => {
   describe('joinURL', () => {
@@ -95,10 +97,23 @@ describe('Webdav utils', () => {
       },
     };
 
+    beforeEach(() => {
+      vi.spyOn(DriveItemRepository.instance, 'getByPath').mockResolvedValue(undefined);
+    });
+
+    const cachedAsFolder = (path: string) =>
+      vi
+        .spyOn(DriveItemRepository.instance, 'getByPath')
+        .mockResolvedValue(
+          new DriveItemBD({ uuid: 'uuid-1', path, type: 'folder', createdAt: new Date(), updatedAt: new Date() }),
+        );
+
     test('when a folder is looked up by path, then it is returned', async () => {
       const expectedFolder = newFolderItem();
       const findFolderStub = vi.spyOn(DriveItemService.instance, 'getFolderByPath').mockResolvedValue(expectedFolder);
-      const findFileStub = vi.spyOn(DriveItemService.instance, 'getFileByPath').mockRejectedValue(new Error());
+      const findFileStub = vi
+        .spyOn(DriveItemService.instance, 'getFileByPath')
+        .mockRejectedValue(new NotFoundError('File not found'));
 
       const driveFolderItem = await WebDavUtils.getDriveItemFromResource(requestFolderFixture);
       expect(driveFolderItem).to.be.deep.equal(expectedFolder);
@@ -109,22 +124,105 @@ describe('Webdav utils', () => {
     test('when a folder is not found, then undefined is returned', async () => {
       const findFolderStub = vi
         .spyOn(DriveItemService.instance, 'getFolderByPath')
-        .mockRejectedValue(new Error('Folder not found'));
+        .mockRejectedValue(new NotFoundError('Folder not found'));
 
       const item = await WebDavUtils.getDriveItemFromResource(requestFolderFixture);
       expect(findFolderStub).toHaveBeenCalledOnce();
       expect(item).toBeUndefined();
     });
 
+    test('when the folder lookup cannot be completed, then the error is propagated', async () => {
+      vi.spyOn(DriveItemService.instance, 'getFolderByPath').mockRejectedValue(
+        new ServiceUnavailableError('Folder lookup could not be completed'),
+      );
+
+      await expect(WebDavUtils.getDriveItemFromResource(requestFolderFixture)).rejects.toBeInstanceOf(
+        ServiceUnavailableError,
+      );
+    });
+
+    test('when neither the file nor the folder exist, then undefined is returned', async () => {
+      vi.spyOn(DriveItemService.instance, 'getFileByPath').mockRejectedValue(new NotFoundError('File not found'));
+      const findFolderStub = vi
+        .spyOn(DriveItemService.instance, 'getFolderByPath')
+        .mockRejectedValue(new NotFoundError('Folder not found'));
+
+      const item = await WebDavUtils.getDriveItemFromResource(requestFileFixture);
+      expect(findFolderStub).toHaveBeenCalledOnce();
+      expect(item).toBeUndefined();
+    });
+
+    test('when the file lookup cannot be completed but the path is a folder, then the folder is returned', async () => {
+      const expectedFolder = newFolderItem();
+      vi.spyOn(DriveItemService.instance, 'getFileByPath').mockRejectedValue(
+        new ServiceUnavailableError('File lookup could not be completed'),
+      );
+      const findFolderStub = vi.spyOn(DriveItemService.instance, 'getFolderByPath').mockResolvedValue(expectedFolder);
+
+      const item = await WebDavUtils.getDriveItemFromResource(requestFileFixture);
+      expect(findFolderStub).toHaveBeenCalledOnce();
+      expect(item).toBe(expectedFolder);
+    });
+
+    test('when the file lookup is inconclusive and the folder is absent, then the file error is propagated', async () => {
+      vi.spyOn(DriveItemService.instance, 'getFileByPath').mockRejectedValue(
+        new ServiceUnavailableError('File lookup could not be completed'),
+      );
+      vi.spyOn(DriveItemService.instance, 'getFolderByPath').mockRejectedValue(new NotFoundError('Folder not found'));
+
+      await expect(WebDavUtils.getDriveItemFromResource(requestFileFixture)).rejects.toThrow(
+        'File lookup could not be completed',
+      );
+    });
+
     test('when a file is looked up by path, then it is returned', async () => {
       const expectedFile = newFileItem();
       const findFileStub = vi.spyOn(DriveItemService.instance, 'getFileByPath').mockResolvedValue(expectedFile);
-      const findFolderStub = vi.spyOn(DriveItemService.instance, 'getFolderByPath').mockRejectedValue(new Error());
+      const findFolderStub = vi
+        .spyOn(DriveItemService.instance, 'getFolderByPath')
+        .mockRejectedValue(new NotFoundError('Folder not found'));
 
       const driveFileItem = await WebDavUtils.getDriveItemFromResource(requestFileFixture);
       expect(driveFileItem).to.be.deep.equal(expectedFile);
       expect(findFileStub).toHaveBeenCalledOnce();
       expect(findFolderStub).not.toHaveBeenCalled();
+    });
+
+    test('when the cache says the path is a folder, then the file lookup is skipped', async () => {
+      cachedAsFolder('/url/to/test.png/');
+      const expectedFolder = newFolderItem();
+      const findFolderStub = vi.spyOn(DriveItemService.instance, 'getFolderByPath').mockResolvedValue(expectedFolder);
+      const findFileStub = vi.spyOn(DriveItemService.instance, 'getFileByPath');
+
+      const item = await WebDavUtils.getDriveItemFromResource(requestFileFixture);
+
+      expect(item).toBe(expectedFolder);
+      expect(findFolderStub).toHaveBeenCalledOnce();
+      expect(findFileStub).not.toHaveBeenCalled();
+    });
+
+    test('when the cached type is stale, then the other lookup still resolves the item', async () => {
+      cachedAsFolder('/url/to/test.png/');
+      const expectedFile = newFileItem();
+      vi.spyOn(DriveItemService.instance, 'getFolderByPath').mockRejectedValue(new NotFoundError('Folder not found'));
+      const findFileStub = vi.spyOn(DriveItemService.instance, 'getFileByPath').mockResolvedValue(expectedFile);
+
+      const item = await WebDavUtils.getDriveItemFromResource(requestFileFixture);
+
+      expect(item).toBe(expectedFile);
+      expect(findFileStub).toHaveBeenCalledOnce();
+    });
+
+    test('when the cached type is folder and that lookup is inconclusive, then a stale guess cannot report absent', async () => {
+      cachedAsFolder('/url/to/test.png/');
+      vi.spyOn(DriveItemService.instance, 'getFolderByPath').mockRejectedValue(
+        new ServiceUnavailableError('Folder lookup could not be completed'),
+      );
+      vi.spyOn(DriveItemService.instance, 'getFileByPath').mockRejectedValue(new NotFoundError('File not found'));
+
+      await expect(WebDavUtils.getDriveItemFromResource(requestFileFixture)).rejects.toBeInstanceOf(
+        ServiceUnavailableError,
+      );
     });
   });
 
@@ -139,11 +237,21 @@ describe('Webdav utils', () => {
     });
 
     test('when the file does not exist, then undefined is returned', async () => {
-      vi.spyOn(DriveItemService.instance, 'getFileByPath').mockRejectedValue(new Error('Not found'));
+      vi.spyOn(DriveItemService.instance, 'getFileByPath').mockRejectedValue(new NotFoundError('Not found'));
 
       const result = await WebDavUtils.getDriveFileFromResource('/path/to/nonexistent.txt');
 
       expect(result).toBeUndefined();
+    });
+
+    test('when the file lookup cannot be completed, then the error is propagated', async () => {
+      vi.spyOn(DriveItemService.instance, 'getFileByPath').mockRejectedValue(
+        new ServiceUnavailableError('File lookup could not be completed'),
+      );
+
+      await expect(WebDavUtils.getDriveFileFromResource('/path/to/file.txt')).rejects.toBeInstanceOf(
+        ServiceUnavailableError,
+      );
     });
   });
 
@@ -158,11 +266,21 @@ describe('Webdav utils', () => {
     });
 
     test('when the folder does not exist, then undefined is returned', async () => {
-      vi.spyOn(DriveItemService.instance, 'getFolderByPath').mockRejectedValue(new Error('Not found'));
+      vi.spyOn(DriveItemService.instance, 'getFolderByPath').mockRejectedValue(new NotFoundError('Not found'));
 
       const result = await WebDavUtils.getDriveFolderFromResource('/path/to/nonexistent/');
 
       expect(result).toBeUndefined();
+    });
+
+    test('when the folder lookup cannot be completed, then the error is propagated', async () => {
+      vi.spyOn(DriveItemService.instance, 'getFolderByPath').mockRejectedValue(
+        new ServiceUnavailableError('Folder lookup could not be completed'),
+      );
+
+      await expect(WebDavUtils.getDriveFolderFromResource('/path/to/folder/')).rejects.toBeInstanceOf(
+        ServiceUnavailableError,
+      );
     });
   });
 

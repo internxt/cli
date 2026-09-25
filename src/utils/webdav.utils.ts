@@ -8,6 +8,7 @@ import { ConfigService } from '../services/config.service';
 import { TrashService } from '../services/drive/trash.service';
 import { FormatUtils } from './format.utils';
 import { DriveItemRepository } from '../services/database/drive-item/drive-item.repository';
+import { ErrorUtils, ServiceUnavailableError } from './errors.utils';
 
 export class WebDavUtils {
   static joinURL(...pathComponents: string[]): string {
@@ -59,38 +60,47 @@ export class WebDavUtils {
   static async getDriveFileFromResource(url: string): Promise<DriveFileItem | undefined> {
     try {
       return await DriveItemService.instance.getFileByPath(url);
-    } catch {
-      // no op
+    } catch (error) {
+      if (ErrorUtils.isNotFoundError(error)) return undefined;
+      throw error;
     }
   }
 
   static async getDriveFolderFromResource(url: string): Promise<DriveFolderItem | undefined> {
     try {
       return await DriveItemService.instance.getFolderByPath(url);
-    } catch {
-      // no op
+    } catch (error) {
+      if (ErrorUtils.isNotFoundError(error)) return undefined;
+      throw error;
     }
   }
 
+  /** A path with no trailing slash may be either kind, so it costs two lookups. The cached type
+   * only picks which one runs first: a stale guess still falls through to the other. */
   static async getDriveItemFromResource(resource: WebDavRequestedResource): Promise<DriveItem | undefined> {
-    let item: DriveItem | undefined = undefined;
-
-    const isFolder = resource.url.endsWith('/');
-
-    try {
-      if (isFolder) {
-        item = await DriveItemService.instance.getFolderByPath(resource.url);
-      } else {
-        try {
-          item = await DriveItemService.instance.getFileByPath(resource.url);
-        } catch {
-          item = await DriveItemService.instance.getFolderByPath(resource.url);
-        }
-      }
-    } catch {
-      //no op
+    if (resource.url.endsWith('/')) {
+      return await this.getDriveFolderFromResource(resource.url);
     }
-    return item;
+
+    const lookupFile = (): Promise<DriveItem | undefined> => this.getDriveFileFromResource(resource.url);
+    const lookupFolder = (): Promise<DriveItem | undefined> => this.getDriveFolderFromResource(resource.url);
+
+    const cached = await DriveItemRepository.instance.getByPath(resource.url);
+    const [first, second] = cached?.type === 'folder' ? [lookupFolder, lookupFile] : [lookupFile, lookupFolder];
+
+    let inconclusive: ServiceUnavailableError | undefined;
+    try {
+      const item = await first();
+      if (item) return item;
+    } catch (error) {
+      if (!(error instanceof ServiceUnavailableError)) throw error;
+      inconclusive = error;
+    }
+
+    const item = await second();
+    if (item) return item;
+    if (inconclusive) throw inconclusive;
+    return undefined;
   }
 
   static async deleteOrTrashItem<T extends { itemType: 'file' | 'folder'; uuid: string }>(driveItem: T) {

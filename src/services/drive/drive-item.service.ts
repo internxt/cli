@@ -1,6 +1,6 @@
 import { DriveItemRepository } from '../database/drive-item/drive-item.repository';
 import { DriveFileItem, DriveFolderItem } from '../../types/drive.types';
-import { ErrorUtils, NotFoundError } from '../../utils/errors.utils';
+import { ErrorUtils } from '../../utils/errors.utils';
 import { webdavLogger } from '../../utils/logger.utils';
 import { DriveFileService } from './drive-file.service';
 import { DriveFolderService } from './drive-folder.service';
@@ -8,6 +8,13 @@ import { DriveItemBD } from '../database/drive-item/drive-item.domain';
 
 export class DriveItemService {
   static readonly instance = new DriveItemService();
+
+  /** Only drop the cached uuid when the API confirms the item is gone; evicting on a timeout
+   * pushes every later request onto the slow path lookup. */
+  private readonly dropCacheIfGone = async (uuid: string, error: unknown): Promise<void> => {
+    if (!ErrorUtils.isNotFoundError(error)) return;
+    await DriveItemRepository.instance.delete([uuid]);
+  };
 
   private readonly tryGetFileByUuid = async (cached: DriveItemBD, path: string): Promise<DriveFileItem | undefined> => {
     try {
@@ -27,7 +34,7 @@ export class DriveItemService {
         path,
         uuid: cached.uuid,
       });
-      await DriveItemRepository.instance.delete([cached.uuid]);
+      await this.dropCacheIfGone(cached.uuid, error);
     }
   };
 
@@ -52,14 +59,14 @@ export class DriveItemService {
         ErrorUtils.withRequestId('Folder metadata by uuid failed, falling back to path lookup', error),
         { path, uuid: cached.uuid },
       );
-      await DriveItemRepository.instance.delete([cached.uuid]);
+      await this.dropCacheIfGone(cached.uuid, error);
     }
   };
 
   public getFileByPath = async (path: string): Promise<DriveFileItem> => {
-    const cached = await DriveItemRepository.instance.getByPath(path);
+    const cached = await DriveItemRepository.instance.getByPath(path, 'file');
 
-    if (cached) {
+    if (cached?.type === 'file') {
       const item = await this.tryGetFileByUuid(cached, path);
       if (item) return item;
     }
@@ -78,14 +85,14 @@ export class DriveItemService {
       return item;
     } catch (error) {
       ErrorUtils.logIfUnexpected(webdavLogger, 'File lookup by path failed', error, { path });
-      throw new NotFoundError(`File not found at path: ${path}`);
+      throw ErrorUtils.toLookupError('file', path, error);
     }
   };
 
   public getFolderByPath = async (path: string): Promise<DriveFolderItem> => {
-    const cached = await DriveItemRepository.instance.getByPath(path);
+    const cached = await DriveItemRepository.instance.getByPath(path, 'folder');
 
-    if (cached) {
+    if (cached?.type === 'folder') {
       const item = await this.tryGetFolderByUuid(cached, path);
       if (item) return item;
     }
@@ -104,7 +111,7 @@ export class DriveItemService {
       return item;
     } catch (error) {
       ErrorUtils.logIfUnexpected(webdavLogger, 'Folder lookup by path failed', error, { path });
-      throw new NotFoundError(`Folder not found at path: ${path}`);
+      throw ErrorUtils.toLookupError('folder', path, error);
     }
   };
 }

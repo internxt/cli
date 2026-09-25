@@ -6,7 +6,7 @@ import { webdavLogger } from '../../utils/logger.utils';
 import { XMLUtils } from '../../utils/xml.utils';
 import { WebDavFolderService } from '../../services/webdav/webdav-folder.service';
 import { AsyncUtils } from '../../utils/async.utils';
-import { MethodNotAllowed } from '../../utils/errors.utils';
+import { ErrorUtils, MethodNotAllowed } from '../../utils/errors.utils';
 
 export class MKCOLRequestHandler implements WebDavMethodHandler {
   handle = async (req: Request, res: Response) => {
@@ -29,10 +29,15 @@ export class MKCOLRequestHandler implements WebDavMethodHandler {
       throw new MethodNotAllowed('Folder already exists');
     }
 
-    const newFolder = await WebDavFolderService.instance.createFolder({
-      folderName: resource.path.base,
-      parentFolderUuid: parentDriveFolderItem.uuid,
-    });
+    const newFolder = await WebDavFolderService.instance
+      .createFolder({
+        folderName: resource.path.base,
+        parentFolderUuid: parentDriveFolderItem.uuid,
+      })
+      .catch((error) => {
+        if (ErrorUtils.isAlreadyExistsError(error)) throw new MethodNotAllowed('Folder already exists');
+        throw error;
+      });
 
     webdavLogger.info(`[MKCOL] ✅ Folder created with UUID ${newFolder.uuid}`);
 

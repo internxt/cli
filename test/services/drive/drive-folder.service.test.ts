@@ -5,7 +5,14 @@ import { DriveFolderService } from '../../../src/services/drive/drive-folder.ser
 import { SdkManager } from '../../../src/services/sdk-manager.service';
 import { DriveUtils } from '../../../src/utils/drive.utils';
 import { generateSubcontent, newCreateFolderResponse, newFolderMeta } from '../../fixtures/drive.fixture';
-import { CreateFolderResponse, FetchPaginatedFile, FetchPaginatedFolder } from '@internxt/sdk/dist/drive/storage/types';
+import {
+  CheckDuplicatedFoldersResponse,
+  CreateFolderResponse,
+  FetchPaginatedFile,
+  FetchPaginatedFolder,
+  FolderMeta,
+} from '@internxt/sdk/dist/drive/storage/types';
+import { NotFoundError, ServiceUnavailableError } from '../../../src/utils/errors.utils';
 import { ConfigService } from '../../../src/services/config.service';
 import { UserCredentialsFixture } from '../../fixtures/login.fixture';
 
@@ -97,5 +104,46 @@ describe('Drive Folder Service', () => {
 
     const newFolder = await createFolder;
     expect(newFolder).to.be.equal(newFolderResponse);
+  });
+
+  test('when a folder with the given name exists in the parent, then it is returned as a folder item', async () => {
+    const existentFolder = newCreateFolderResponse({ plainName: 'backup', uuid: 'backup-uuid' });
+    const spy = vi
+      .spyOn(Storage.prototype, 'checkDuplicatedFolders')
+      .mockResolvedValue({ existentFolders: [existentFolder] } as unknown as CheckDuplicatedFoldersResponse);
+    vi.spyOn(SdkManager.instance, 'getStorage').mockReturnValue(Storage.prototype);
+
+    const result = await sut.findExistentFolder('parent-uuid', 'backup');
+
+    expect(spy).toHaveBeenCalledWith({ folderUuid: 'parent-uuid', folderNamesList: ['backup'] });
+    expect(result).toMatchObject({ itemType: 'folder', uuid: 'backup-uuid', name: 'backup', status: 'EXISTS' });
+  });
+
+  test('when no folder with the given name exists in the parent, then nothing is returned', async () => {
+    vi.spyOn(Storage.prototype, 'checkDuplicatedFolders').mockResolvedValue({ existentFolders: [] });
+    vi.spyOn(SdkManager.instance, 'getStorage').mockReturnValue(Storage.prototype);
+
+    expect(await sut.findExistentFolder('parent-uuid', 'backup')).toBeUndefined();
+  });
+
+  test('when the API answers a path lookup with an empty body, then a retryable error is thrown', async () => {
+    vi.spyOn(Storage.prototype, 'getFolderByPath').mockResolvedValue('' as unknown as FolderMeta);
+    vi.spyOn(SdkManager.instance, 'getStorage').mockReturnValue(Storage.prototype);
+
+    await expect(sut.getFolderMetaByPath('/a/b/')).rejects.toBeInstanceOf(ServiceUnavailableError);
+  });
+
+  test('when a path lookup answers with a trashed folder, then a not found error is thrown', async () => {
+    vi.spyOn(Storage.prototype, 'getFolderByPath').mockResolvedValue(newFolderMeta({ removed: true }));
+    vi.spyOn(SdkManager.instance, 'getStorage').mockReturnValue(Storage.prototype);
+
+    await expect(sut.getFolderMetaByPath('/a/b/')).rejects.toBeInstanceOf(NotFoundError);
+  });
+
+  test('when the API answers a uuid lookup with an empty body, then a retryable error is thrown', async () => {
+    vi.spyOn(Storage.prototype, 'getFolderMeta').mockResolvedValue('' as unknown as FolderMeta);
+    vi.spyOn(SdkManager.instance, 'getStorage').mockReturnValue(Storage.prototype);
+
+    await expect(sut.getFolderMetaByUuid(randomUUID())).rejects.toBeInstanceOf(ServiceUnavailableError);
   });
 });
