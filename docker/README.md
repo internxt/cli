@@ -27,6 +27,7 @@ services:
       WEBDAV_PASSWORD: ""                 # (Optional) Custom password for WebDAV authentication
       WEBDAV_DELETE_FILES_PERMANENTLY: "" # (Optional) Delete files permanently. Set to 'true' to enable
       WEBDAV_KEEPALIVE_ENABLED: ""        # (Optional) Auto-renew the session/WebDAV server on failure. Defaults to 'true'. Set to 'false' to stop the container on failure instead
+      INXT_SQLITE_JOURNAL_MODE: ""        # (Optional) Local cache journal mode. 'WAL' (default) or 'DELETE'. Use 'DELETE' if the CLI data dir is on a network share (NFS/SMB)
     ports:
       - "127.0.0.1:3005:3005" # Map container port to host. Change if WEBDAV_PORT is customized
 ```
@@ -54,6 +55,7 @@ docker run -d \
   -e WEBDAV_PASSWORD="" \
   -e WEBDAV_DELETE_FILES_PERMANENTLY="" \
   -e WEBDAV_KEEPALIVE_ENABLED="" \
+  -e INXT_SQLITE_JOURNAL_MODE="" \
   -p 127.0.0.1:3005:3005 \
   internxt/webdav:latest
 ```
