@@ -76,7 +76,7 @@
     "@types/mime-types": "^3.0.1",
     "@types/node": "^26.5.0",
     "@types/range-parser": "^1.2.7",
-    "@vitest/coverage-istanbul": "^5.0.0",
+    "@vitest/coverage-istanbul": "^5.0.2",
     "@vitest/spy": "^5.0.2",
     "eslint": "^10.10.0",
     "husky": "^9.1.7",
