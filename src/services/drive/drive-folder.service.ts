@@ -113,7 +113,7 @@ export class DriveFolderService {
       uuid: existentFolder.uuid,
       bucket: existentFolder.bucket,
       status: existentFolder.deleted ? FileStatus.TRASHED : FileStatus.EXISTS,
-      name: existentFolder.plainName ?? existentFolder.plain_name ?? existentFolder.name,
+      name: existentFolder.plainName!,
       parentUuid: existentFolder.parentUuid,
       createdAt: new Date(existentFolder.createdAt),
       updatedAt: new Date(existentFolder.updatedAt),
