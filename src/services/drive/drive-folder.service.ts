@@ -27,13 +27,6 @@ export class DriveFolderService {
     return folderItem;
   };
 
-  public getFolderMetaById = async (id: number): Promise<DriveFolderItem> => {
-    const storageClient = SdkManager.instance.getStorage();
-    const folderMeta = await storageClient.getFolderMetaById(id);
-    const folderItem = DriveUtils.driveFolderMetaToItem(folderMeta);
-    return folderItem;
-  };
-
   public getFolderMetaByPath = async (path: string): Promise<DriveFolderItem> => {
     const storageClient = SdkManager.instance.getStorage();
     const folderMeta = await storageClient.getFolderByPath(path);
