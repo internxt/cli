@@ -108,18 +108,7 @@ export class DriveFolderService {
     const existentFolder = existentFolders[0];
     if (!existentFolder) return undefined;
 
-    return {
-      itemType: 'folder',
-      uuid: existentFolder.uuid,
-      bucket: existentFolder.bucket,
-      status: existentFolder.status,
-      name: existentFolder.plainName ?? '',
-      parentUuid: existentFolder.parentUuid,
-      createdAt: new Date(existentFolder.createdAt),
-      updatedAt: new Date(existentFolder.updatedAt),
-      creationTime: new Date(existentFolder.createdAt),
-      modificationTime: new Date(existentFolder.updatedAt),
-    };
+    return DriveUtils.driveFolderMetaToItem(existentFolder);
   };
 
   public renameFolder = async (payload: { folderUuid: string; name: string }): Promise<void> => {
