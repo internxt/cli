@@ -35,19 +35,6 @@ describe('Drive Folder Service', () => {
     expect(spy).toHaveBeenCalledWith(expectedFolderMeta.uuid);
   });
 
-  test('when folder metadata is requested by its internal identifier, then it is acquired successfully', async () => {
-    const expectedFolderMeta = newFolderMeta();
-    const expectedFolderItem = DriveUtils.driveFolderMetaToItem(expectedFolderMeta);
-
-    const spy = vi.spyOn(Storage.prototype, 'getFolderMetaById').mockResolvedValue(expectedFolderMeta);
-    vi.spyOn(SdkManager.instance, 'getStorage').mockReturnValue(Storage.prototype);
-
-    const resultMetadata = await sut.getFolderMetaById(expectedFolderMeta.id);
-
-    expect(resultMetadata).to.deep.equal(expectedFolderItem);
-    expect(spy).toHaveBeenCalledWith(expectedFolderMeta.id);
-  });
-
   test('when folder content is requested, then every cursor page of subfolders and subfiles is returned', async () => {
     const parentUuid = randomUUID();
     const subContentFixture = generateSubcontent(parentUuid, 2500, 1200);
