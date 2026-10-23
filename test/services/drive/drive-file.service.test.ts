@@ -65,6 +65,7 @@ describe('Drive file Service', () => {
       id: 0,
       name: 'NAME',
       plain_name: 'PLAIN_NAME',
+      plainName: 'PLAIN_NAME',
       size: 0,
       type: 'jpg',
       updatedAt: new Date().toISOString(),
@@ -84,6 +85,7 @@ describe('Drive file Service', () => {
 
     expect(result.bucket).to.be.equal(fakeFileData.bucket);
     expect(result.uuid).to.be.equal(fakeFileData.uuid);
+    expect(result.name).to.be.equal(fakeFileData.plainName);
   });
 
   test('when the API answers a path lookup with an empty body, then a retryable error is thrown', async () => {
@@ -99,7 +101,7 @@ describe('Drive file Service', () => {
 
   test('when a path lookup answers with a trashed file, then a not found error is thrown', async () => {
     const storageClientMock: Partial<Storage> = {
-      getFileByPath: vi.fn().mockResolvedValue({ uuid: randomUUID(), status: 'TRASHED' }),
+      getFileByPath: vi.fn().mockResolvedValue({ uuid: randomUUID(), plainName: 'b', status: 'TRASHED' }),
     };
 
     // @ts-expect-error - We only stub the method we need to test
