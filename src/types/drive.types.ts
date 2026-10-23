@@ -1,4 +1,4 @@
-import { FileMeta, FolderMeta } from '@internxt/sdk/dist/drive/storage/types';
+import { FileMeta, FileStatus, FolderMeta } from '@internxt/sdk/dist/drive/storage/types';
 
 export type DriveItemType = 'file' | 'folder';
 
@@ -19,7 +19,7 @@ export type DriveFolderItem = Pick<FolderMeta, 'uuid' | 'name' | 'bucket'> & {
   updatedAt: Date;
   creationTime: Date;
   modificationTime: Date;
-  status: 'EXISTS' | 'TRASHED';
+  status: `${FileStatus}`;
   parentUuid: string | null;
 };
 

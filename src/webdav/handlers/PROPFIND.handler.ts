@@ -106,7 +106,7 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
             itemType: 'folder',
             name: folder.plainName,
             bucket: folder.bucket,
-            status: folder.deleted || folder.removed ? 'TRASHED' : 'EXISTS',
+            status: folder.status,
             createdAt: new Date(folder.createdAt),
             updatedAt: new Date(folder.updatedAt),
             creationTime: new Date(folder.creationTime),
