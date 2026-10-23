@@ -5,11 +5,10 @@ import {
   FetchPaginatedFolder,
   FileMeta,
   FileStatus,
-  FolderMeta,
 } from '@internxt/sdk/dist/drive/storage/types';
 import { getDefaultWordlist, wordlists } from 'bip39';
 import crypto, { randomInt, randomUUID } from 'node:crypto';
-import { DriveFileItem, DriveFolderItem } from '../../src/types/drive.types';
+import { DriveFileItem, DriveFolderItem, FolderMetaResponse, WithFolderStatus } from '../../src/types/drive.types';
 
 const wordlist = wordlists[getDefaultWordlist()];
 const fileTypes = ['png', 'jpg', 'docx', 'pdf', 'mp4', 'mp3'];
@@ -53,10 +52,10 @@ export const newFileItem = (attributes?: Partial<DriveFileItem>): DriveFileItem 
   return { ...file, ...attributes };
 };
 
-export const newFolderMeta = (attributes?: Partial<FolderMeta>): FolderMeta => {
+export const newFolderMeta = (attributes?: Partial<FolderMetaResponse>): FolderMetaResponse => {
   const createdAt = getRandomDate();
   const updatedAt = getRandomDate();
-  const folder: FolderMeta = {
+  const folder: FolderMetaResponse = {
     bucket: crypto.randomBytes(16).toString('hex'),
     createdAt: createdAt.toString(),
     created_at: createdAt.toString(),
@@ -87,6 +86,9 @@ export const newFolderMeta = (attributes?: Partial<FolderMeta>): FolderMeta => {
     parent_uuid: randomUUID(),
     creation_time: getRandomDate().toString(),
     modification_time: getRandomDate().toString(),
+    creationTime: getRandomDate().toString(),
+    modificationTime: getRandomDate().toString(),
+    status: FileStatus.EXISTS,
   };
   return { ...folder, ...attributes };
 };
@@ -174,8 +176,10 @@ export const generateSubcontent = (uuid: string, countFolders: number, countFile
   return { folders, files };
 };
 
-export const newCreateFolderResponse = (attributes?: Partial<CreateFolderResponse>): CreateFolderResponse => {
-  const folder: CreateFolderResponse = {
+export const newCreateFolderResponse = (
+  attributes?: Partial<WithFolderStatus<CreateFolderResponse>>,
+): WithFolderStatus<CreateFolderResponse> => {
+  const folder: WithFolderStatus<CreateFolderResponse> = {
     id: randomInt(1, 100000),
     parentId: randomInt(1, 100000),
     parentUuid: randomUUID(),
@@ -193,6 +197,7 @@ export const newCreateFolderResponse = (attributes?: Partial<CreateFolderRespons
     removedAt: null,
     creationTime: getRandomDate(),
     modificationTime: getRandomDate(),
+    status: FileStatus.EXISTS,
   };
   return { ...folder, ...attributes };
 };

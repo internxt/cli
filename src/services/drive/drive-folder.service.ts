@@ -5,7 +5,7 @@ import {
 } from '@internxt/sdk/dist/drive/storage/types';
 import { SdkManager } from '../sdk-manager.service';
 import { StorageTypes } from '@internxt/sdk/dist/drive';
-import { DriveFolderItem } from '../../types/drive.types';
+import { DriveFolderItem, FolderMetaResponse, WithFolderStatus } from '../../types/drive.types';
 import { DriveUtils } from '../../utils/drive.utils';
 import { RequestCanceler } from '@internxt/sdk/dist/shared/http/types';
 import { NotFoundError } from '../../utils/errors.utils';
@@ -19,7 +19,7 @@ export class DriveFolderService {
 
   public getFolderMetaByUuid = async (uuid: string): Promise<DriveFolderItem> => {
     const storageClient = SdkManager.instance.getStorage();
-    const folderMeta = await storageClient.getFolderMeta(uuid);
+    const folderMeta = (await storageClient.getFolderMeta(uuid)) as FolderMetaResponse;
     const folderItem = DriveUtils.driveFolderMetaToItem(folderMeta);
     if (folderItem.status !== FileStatus.EXISTS) {
       throw new NotFoundError(`Folder with uuid ${uuid} not found`);
@@ -29,7 +29,7 @@ export class DriveFolderService {
 
   public getFolderMetaByPath = async (path: string): Promise<DriveFolderItem> => {
     const storageClient = SdkManager.instance.getStorage();
-    const folderMeta = await storageClient.getFolderByPath(path);
+    const folderMeta = (await storageClient.getFolderByPath(path)) as FolderMetaResponse;
     const folderItem = DriveUtils.driveFolderMetaToItem(folderMeta);
     if (folderItem.status !== FileStatus.EXISTS) {
       throw new NotFoundError(`Folder with uuid ${folderItem.uuid} not found at path: ${path}`);
@@ -86,13 +86,16 @@ export class DriveFolderService {
    * @param {Object} payload - The payload object containing the folder name and parent folder UUID.
    * @param {string} payload.folderName - The name of the folder to be created.
    * @param {number} payload.parentFolderId - The ID of the parent folder.
-   * @return {[Promise<StorageTypes.CreateFolderResponse>, RequestCanceler]} - A tuple containing a promise that resolves to the response of creating the folder and a request canceler.
+   * @return {[Promise<WithFolderStatus<StorageTypes.CreateFolderResponse>>, RequestCanceler]} - A tuple containing a promise that resolves to the response of creating the folder and a request canceler.
    */
   public createFolder = async (
     payload: StorageTypes.CreateFolderByUuidPayload,
-  ): Promise<[Promise<StorageTypes.CreateFolderResponse>, RequestCanceler]> => {
+  ): Promise<[Promise<WithFolderStatus<StorageTypes.CreateFolderResponse>>, RequestCanceler]> => {
     const storageClient = SdkManager.instance.getStorage();
-    return storageClient.createFolderByUuid(payload);
+    return storageClient.createFolderByUuid(payload) as [
+      Promise<WithFolderStatus<StorageTypes.CreateFolderResponse>>,
+      RequestCanceler,
+    ];
   };
 
   public findExistentFolder = async (
@@ -105,14 +108,14 @@ export class DriveFolderService {
       folderNamesList: [plainName],
     });
 
-    const existentFolder = existentFolders[0];
+    const existentFolder = existentFolders[0] as WithFolderStatus<StorageTypes.DriveFolderData> | undefined;
     if (!existentFolder) return undefined;
 
     return {
       itemType: 'folder',
       uuid: existentFolder.uuid,
       bucket: existentFolder.bucket,
-      status: existentFolder.deleted ? FileStatus.TRASHED : FileStatus.EXISTS,
+      status: existentFolder.status,
       name: existentFolder.plainName!,
       parentUuid: existentFolder.parentUuid,
       createdAt: new Date(existentFolder.createdAt),
