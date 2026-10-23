@@ -1,11 +1,11 @@
 import {
   CreateFolderResponse,
+  FolderMeta,
   EncryptionVersion,
   FetchPaginatedFile,
   FetchPaginatedFolder,
   FileMeta,
   FileStatus,
-  FolderMeta,
 } from '@internxt/sdk/dist/drive/storage/types';
 import { getDefaultWordlist, wordlists } from 'bip39';
 import crypto, { randomInt, randomUUID } from 'node:crypto';
@@ -87,6 +87,9 @@ export const newFolderMeta = (attributes?: Partial<FolderMeta>): FolderMeta => {
     parent_uuid: randomUUID(),
     creation_time: getRandomDate().toString(),
     modification_time: getRandomDate().toString(),
+    creationTime: getRandomDate().toString(),
+    modificationTime: getRandomDate().toString(),
+    status: FileStatus.EXISTS,
   };
   return { ...folder, ...attributes };
 };
@@ -193,6 +196,7 @@ export const newCreateFolderResponse = (attributes?: Partial<CreateFolderRespons
     removedAt: null,
     creationTime: getRandomDate(),
     modificationTime: getRandomDate(),
+    status: FileStatus.EXISTS,
   };
   return { ...folder, ...attributes };
 };

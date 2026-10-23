@@ -1,4 +1,4 @@
-import { FileMeta, FolderMeta, CreateFolderResponse, FileStatus } from '@internxt/sdk/dist/drive/storage/types';
+import { FileMeta, FolderMeta, CreateFolderResponse } from '@internxt/sdk/dist/drive/storage/types';
 import { DriveFileItem, DriveFolderItem, DriveItemType } from '../types/drive.types';
 import { ServiceUnavailableError } from './errors.utils';
 
@@ -41,13 +41,13 @@ export class DriveUtils {
       itemType: 'folder',
       uuid: folderMeta.uuid,
       bucket: folderMeta.bucket,
-      status: folderMeta.deleted || folderMeta.removed ? FileStatus.TRASHED : FileStatus.EXISTS,
+      status: folderMeta.status,
       name: folderMeta.plainName,
       parentUuid: folderMeta.parentUuid,
       createdAt: new Date(folderMeta.createdAt),
       updatedAt: new Date(folderMeta.updatedAt),
-      creationTime: new Date(folderMeta.creation_time),
-      modificationTime: new Date(folderMeta.creation_time),
+      creationTime: new Date(folderMeta.creationTime),
+      modificationTime: new Date(folderMeta.modificationTime),
     };
   }
 
@@ -56,7 +56,7 @@ export class DriveUtils {
       itemType: 'folder',
       uuid: folderResponse.uuid,
       bucket: folderResponse.bucket,
-      status: folderResponse.deleted || folderResponse.removed ? FileStatus.TRASHED : FileStatus.EXISTS,
+      status: folderResponse.status,
       name: folderResponse.plainName,
       parentUuid: folderResponse.parentUuid,
       createdAt: new Date(folderResponse.createdAt),
