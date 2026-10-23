@@ -1,4 +1,10 @@
-import { FileMeta, FolderMeta, CreateFolderResponse } from '@internxt/sdk/dist/drive/storage/types';
+import {
+  CreateFolderResponse,
+  FetchFolderByPathResponse,
+  FetchFolderMetaResponse,
+  FileMeta,
+  FileStatus,
+} from '@internxt/sdk/dist/drive/storage/types';
 import { DriveFileItem, DriveFolderItem, DriveItemType } from '../types/drive.types';
 import { ServiceUnavailableError } from './errors.utils';
 
@@ -35,7 +41,7 @@ export class DriveUtils {
     };
   }
 
-  static driveFolderMetaToItem(folderMeta: FolderMeta): DriveFolderItem {
+  static driveFolderMetaToItem(folderMeta: FetchFolderMetaResponse | FetchFolderByPathResponse): DriveFolderItem {
     DriveUtils.assertUsableMeta(folderMeta, 'folder');
     return {
       itemType: 'folder',
@@ -56,7 +62,8 @@ export class DriveUtils {
       itemType: 'folder',
       uuid: folderResponse.uuid,
       bucket: folderResponse.bucket,
-      status: folderResponse.status,
+      // The SDK's create response type has no status; a new folder always exists.
+      status: FileStatus.EXISTS,
       name: folderResponse.plainName,
       parentUuid: folderResponse.parentUuid,
       createdAt: new Date(folderResponse.createdAt),

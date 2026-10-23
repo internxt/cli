@@ -1,6 +1,6 @@
 import {
   CreateFolderResponse,
-  FolderMeta,
+  FetchFolderMetaResponse,
   EncryptionVersion,
   FetchPaginatedFile,
   FetchPaginatedFolder,
@@ -53,43 +53,27 @@ export const newFileItem = (attributes?: Partial<DriveFileItem>): DriveFileItem 
   return { ...file, ...attributes };
 };
 
-export const newFolderMeta = (attributes?: Partial<FolderMeta>): FolderMeta => {
-  const createdAt = getRandomDate();
-  const updatedAt = getRandomDate();
-  const folder: FolderMeta = {
-    bucket: crypto.randomBytes(16).toString('hex'),
-    createdAt: createdAt.toString(),
-    created_at: createdAt.toString(),
-    deleted: false,
-    deletedAt: null,
-    deleted_at: null,
-    encryptVersion: EncryptionVersion.Aes03,
-    encrypt_version: EncryptionVersion.Aes03,
-    id: randomInt(1, 100000),
-    name: crypto.randomBytes(16).toString('hex'),
-    parent: null,
-    parentId: randomInt(1, 100000),
-    parent_id: randomInt(1, 100000),
-    plainName: wordlist[randomInt(wordlist.length)],
-    plain_name: wordlist[randomInt(wordlist.length)],
-    removed: false,
-    removedAt: null,
-    removed_at: null,
-    size: randomInt(1, 10000),
+export const newFolderMeta = (attributes?: Partial<FetchFolderMetaResponse>): FetchFolderMetaResponse => {
+  const folder: FetchFolderMetaResponse = {
     type: 'folder',
-    updatedAt: updatedAt.toString(),
-    updated_at: updatedAt.toString(),
-    user: null,
-    userId: randomInt(1, 100000),
-    user_id: randomInt(1, 100000),
-    uuid: randomUUID(),
+    id: randomInt(1, 100000),
+    parentId: randomInt(1, 100000),
     parentUuid: randomUUID(),
-    parent_uuid: randomUUID(),
-    creation_time: getRandomDate().toString(),
-    modification_time: getRandomDate().toString(),
-    creationTime: getRandomDate().toString(),
-    modificationTime: getRandomDate().toString(),
+    name: crypto.randomBytes(16).toString('hex'),
+    parent: {},
+    bucket: crypto.randomBytes(16).toString('hex'),
+    userId: randomInt(1, 100000),
+    encryptVersion: EncryptionVersion.Aes03,
+    createdAt: getRandomDate().toISOString(),
+    updatedAt: getRandomDate().toISOString(),
+    uuid: randomUUID(),
+    plainName: wordlist[randomInt(wordlist.length)],
+    size: randomInt(1, 10000),
+    creationTime: getRandomDate().toISOString(),
+    modificationTime: getRandomDate().toISOString(),
     status: FileStatus.EXISTS,
+    removed: false,
+    deleted: false,
   };
   return { ...folder, ...attributes };
 };
@@ -196,7 +180,6 @@ export const newCreateFolderResponse = (attributes?: Partial<CreateFolderRespons
     removedAt: null,
     creationTime: getRandomDate(),
     modificationTime: getRandomDate(),
-    status: FileStatus.EXISTS,
   };
   return { ...folder, ...attributes };
 };

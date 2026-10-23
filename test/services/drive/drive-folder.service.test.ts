@@ -7,8 +7,8 @@ import { DriveUtils } from '../../../src/utils/drive.utils';
 import { generateSubcontent, newCreateFolderResponse, newFolderMeta, pageOf } from '../../fixtures/drive.fixture';
 import {
   CreateFolderResponse,
-  FolderMeta,
-  CheckDuplicatedFoldersResponse,
+  FetchFolderByPathResponse,
+  FetchFolderMetaResponse,
   FileStatus,
 } from '@internxt/sdk/dist/drive/storage/types';
 import { ConfigService } from '../../../src/services/config.service';
@@ -125,10 +125,10 @@ describe('Drive Folder Service', () => {
   });
 
   test('when a folder with the given name exists in the parent, then it is returned as a folder item', async () => {
-    const existentFolder = newCreateFolderResponse({ plainName: 'backup', uuid: 'backup-uuid' });
+    const existentFolder = newFolderMeta({ plainName: 'backup', uuid: 'backup-uuid' });
     const spy = vi
       .spyOn(Storage.prototype, 'checkDuplicatedFolders')
-      .mockResolvedValue({ existentFolders: [existentFolder] } as unknown as CheckDuplicatedFoldersResponse);
+      .mockResolvedValue({ existentFolders: [existentFolder] });
     vi.spyOn(SdkManager.instance, 'getStorage').mockReturnValue(Storage.prototype);
 
     const result = await sut.findExistentFolder('parent-uuid', 'backup');
@@ -145,7 +145,7 @@ describe('Drive Folder Service', () => {
   });
 
   test('when the API answers a path lookup with an empty body, then a retryable error is thrown', async () => {
-    vi.spyOn(Storage.prototype, 'getFolderByPath').mockResolvedValue('' as unknown as FolderMeta);
+    vi.spyOn(Storage.prototype, 'getFolderByPath').mockResolvedValue('' as unknown as FetchFolderByPathResponse);
     vi.spyOn(SdkManager.instance, 'getStorage').mockReturnValue(Storage.prototype);
 
     await expect(sut.getFolderMetaByPath('/a/b/')).rejects.toBeInstanceOf(ServiceUnavailableError);
@@ -166,7 +166,7 @@ describe('Drive Folder Service', () => {
   });
 
   test('when the API answers a uuid lookup with an empty body, then a retryable error is thrown', async () => {
-    vi.spyOn(Storage.prototype, 'getFolderMeta').mockResolvedValue('' as unknown as FolderMeta);
+    vi.spyOn(Storage.prototype, 'getFolderMeta').mockResolvedValue('' as unknown as FetchFolderMetaResponse);
     vi.spyOn(SdkManager.instance, 'getStorage').mockReturnValue(Storage.prototype);
 
     await expect(sut.getFolderMetaByUuid(randomUUID())).rejects.toBeInstanceOf(ServiceUnavailableError);
