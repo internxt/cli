@@ -9,6 +9,7 @@ import {
   CreateFolderResponse,
   FolderMeta,
   CheckDuplicatedFoldersResponse,
+  FileStatus,
 } from '@internxt/sdk/dist/drive/storage/types';
 import { ConfigService } from '../../../src/services/config.service';
 import { UserCredentialsFixture } from '../../fixtures/login.fixture';
@@ -151,10 +152,17 @@ describe('Drive Folder Service', () => {
   });
 
   test('when a path lookup answers with a trashed folder, then a not found error is thrown', async () => {
-    vi.spyOn(Storage.prototype, 'getFolderByPath').mockResolvedValue(newFolderMeta({ removed: true }));
+    vi.spyOn(Storage.prototype, 'getFolderByPath').mockResolvedValue(newFolderMeta({ status: FileStatus.TRASHED }));
     vi.spyOn(SdkManager.instance, 'getStorage').mockReturnValue(Storage.prototype);
 
     await expect(sut.getFolderMetaByPath('/a/b/')).rejects.toBeInstanceOf(NotFoundError);
+  });
+
+  test('when a uuid lookup answers with a trashed folder, then a not found error is thrown', async () => {
+    vi.spyOn(Storage.prototype, 'getFolderMeta').mockResolvedValue(newFolderMeta({ status: FileStatus.TRASHED }));
+    vi.spyOn(SdkManager.instance, 'getStorage').mockReturnValue(Storage.prototype);
+
+    await expect(sut.getFolderMetaByUuid(randomUUID())).rejects.toBeInstanceOf(NotFoundError);
   });
 
   test('when the API answers a uuid lookup with an empty body, then a retryable error is thrown', async () => {

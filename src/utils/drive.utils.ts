@@ -1,5 +1,11 @@
-import { FileMeta, FolderMeta, CreateFolderResponse, FileStatus } from '@internxt/sdk/dist/drive/storage/types';
-import { DriveFileItem, DriveFolderItem, DriveItemType } from '../types/drive.types';
+import { FileMeta, CreateFolderResponse } from '@internxt/sdk/dist/drive/storage/types';
+import {
+  DriveFileItem,
+  DriveFolderItem,
+  DriveItemType,
+  FolderMetaResponse,
+  WithFolderStatus,
+} from '../types/drive.types';
 import { ServiceUnavailableError } from './errors.utils';
 
 export class DriveUtils {
@@ -35,28 +41,28 @@ export class DriveUtils {
     };
   }
 
-  static driveFolderMetaToItem(folderMeta: FolderMeta): DriveFolderItem {
+  static driveFolderMetaToItem(folderMeta: FolderMetaResponse): DriveFolderItem {
     DriveUtils.assertUsableMeta(folderMeta, 'folder');
     return {
       itemType: 'folder',
       uuid: folderMeta.uuid,
       bucket: folderMeta.bucket,
-      status: folderMeta.deleted || folderMeta.removed ? FileStatus.TRASHED : FileStatus.EXISTS,
+      status: folderMeta.status,
       name: folderMeta.plainName,
       parentUuid: folderMeta.parentUuid,
       createdAt: new Date(folderMeta.createdAt),
       updatedAt: new Date(folderMeta.updatedAt),
-      creationTime: new Date(folderMeta.creation_time),
-      modificationTime: new Date(folderMeta.creation_time),
+      creationTime: new Date(folderMeta.creationTime),
+      modificationTime: new Date(folderMeta.modificationTime),
     };
   }
 
-  static createFolderResponseToItem(folderResponse: CreateFolderResponse): DriveFolderItem {
+  static createFolderResponseToItem(folderResponse: WithFolderStatus<CreateFolderResponse>): DriveFolderItem {
     return {
       itemType: 'folder',
       uuid: folderResponse.uuid,
       bucket: folderResponse.bucket,
-      status: folderResponse.deleted || folderResponse.removed ? FileStatus.TRASHED : FileStatus.EXISTS,
+      status: folderResponse.status,
       name: folderResponse.plainName,
       parentUuid: folderResponse.parentUuid,
       createdAt: new Date(folderResponse.createdAt),
