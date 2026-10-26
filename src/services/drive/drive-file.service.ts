@@ -39,7 +39,7 @@ export class DriveFileService {
 
     const driveFileItem: DriveFileItem = {
       itemType: 'file',
-      name: driveFile.plainName!,
+      name: driveFile.plainName ?? '',
       uuid: driveFile.uuid,
       size: driveFile.size,
       bucket: driveFile.bucket,
@@ -71,7 +71,7 @@ export class DriveFileService {
 
     return {
       itemType: 'file',
-      name: existentFile.plainName!,
+      name: existentFile.plainName ?? '',
       uuid: existentFile.uuid,
       size: existentFile.size,
       bucket: existentFile.bucket,
