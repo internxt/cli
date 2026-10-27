@@ -88,7 +88,7 @@
     "sql.js": "^1.15.1",
     "ts-node": "^10.9.2",
     "typescript": "^6.0.3",
-    "vitest": "^5.0.4",
+    "vitest": "^5.0.5",
     "vitest-mock-express": "^2.2.0"
   },
   "optionalDependencies": {
