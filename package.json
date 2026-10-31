@@ -43,7 +43,7 @@
     "@internxt/sdk": "1.24.0",
     "@oclif/core": "5.1.8",
     "@oclif/plugin-autocomplete": "4.0.4",
-    "axios": "1.20.0",
+    "axios": "1.21.0",
     "better-sqlite3": "12.11.1",
     "bip39": "3.1.2",
     "body-parser": "2.4.0",
