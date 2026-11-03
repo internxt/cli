@@ -1,9 +1,10 @@
 import { Request, Response } from 'express';
 import { DriveFileService } from '../../services/drive/drive-file.service';
 import { DriveItemRepository } from '../../services/database/drive-item/drive-item.repository';
+import { DriveItemService } from '../../services/drive/drive-item.service';
 import { AuthService } from '../../services/auth.service';
 import { WebDavMethodHandler } from '../../types/webdav.types';
-import { ConflictError, ErrorUtils } from '../../utils/errors.utils';
+import { ConflictError } from '../../utils/errors.utils';
 import { WebDavUtils } from '../../utils/webdav.utils';
 import { webdavLogger } from '../../utils/logger.utils';
 import { EncryptionVersion } from '@internxt/sdk/dist/drive/storage/types';
@@ -108,26 +109,10 @@ export class PUTRequestHandler implements WebDavMethodHandler {
       encryptVersion: EncryptionVersion.Aes03,
     };
 
-    let file;
-    if (driveFileItem?.itemType === 'file') {
-      try {
-        file = await DriveFileService.instance.replaceFile(driveFileItem.uuid, filePayload);
-      } catch (error) {
-        if (ErrorUtils.isClientVersionUnsupported(error)) throw error;
-        webdavLogger.warn(
-          ErrorUtils.withRequestId(
-            `[PUT] File replace failed for '${resource.url}', falling back to delete and create: ${
-              error instanceof Error ? error.message : String(error)
-            }`,
-            error,
-          ),
-        );
-        await WebDavUtils.deleteOrTrashItem(driveFileItem);
-        file = await DriveFileService.instance.createFile(filePayload);
-      }
-    } else {
-      file = await DriveFileService.instance.createFile(filePayload);
-    }
+    const file =
+      isReplacement && driveFileItem
+        ? await DriveFileService.instance.replaceFile(driveFileItem.uuid, filePayload)
+        : await DriveFileService.instance.createFile(filePayload);
     timings.driveUpload = driveTimer.stop();
 
     await DriveItemRepository.instance.createOrUpdate([
@@ -139,6 +124,7 @@ export class PUTRequestHandler implements WebDavMethodHandler {
         updatedAt: new Date(),
       },
     ]);
+    DriveItemService.instance.rememberFileWrite(resource.url, file);
 
     const thumbnailTimer = CLIUtils.timer();
     await ThumbnailService.instance.tryUploadThumbnail({
