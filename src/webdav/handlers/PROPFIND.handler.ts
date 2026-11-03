@@ -4,6 +4,7 @@ import { DriveFileItem, DriveFolderItem } from '../../types/drive.types';
 import { DriveItemBD } from '../../services/database/drive-item/drive-item.domain';
 import { DriveItemRepository } from '../../services/database/drive-item/drive-item.repository';
 import { DriveFolderService } from '../../services/drive/drive-folder.service';
+import { DriveItemService } from '../../services/drive/drive-item.service';
 import { DriveUtils } from '../../utils/drive.utils';
 import { FormatUtils } from '../../utils/format.utils';
 import { Request, Response } from 'express';
@@ -99,6 +100,7 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
 
     for (const folder of folderContent.folders) {
       const folderRelativePath = WebDavUtils.joinURL(relativePath, folder.plainName, '/');
+      if (DriveItemService.instance.isStale(folder.uuid, folderRelativePath)) continue;
 
       xmlNodes.push(
         this.driveFolderItemToXMLNode(
@@ -134,6 +136,7 @@ export class PROPFINDRequestHandler implements WebDavMethodHandler {
         relativePath,
         file.type ? `${file.plainName}.${file.type}` : file.plainName,
       );
+      if (DriveItemService.instance.isStale(file.uuid, fileRelativePath)) continue;
 
       xmlNodes.push(
         this.driveFileItemToXMLNode(

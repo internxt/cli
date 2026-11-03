@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { DriveFileService } from '../../services/drive/drive-file.service';
 import { DriveItemRepository } from '../../services/database/drive-item/drive-item.repository';
+import { DriveItemService } from '../../services/drive/drive-item.service';
 import { AuthService } from '../../services/auth.service';
 import { WebDavMethodHandler } from '../../types/webdav.types';
 import { ConflictError, ErrorUtils } from '../../utils/errors.utils';
@@ -12,6 +13,11 @@ import { WebDavFolderService } from '../../services/webdav/webdav-folder.service
 import { ThumbnailService } from '../../services/thumbnail.service';
 import { FormatUtils } from '../../utils/format.utils';
 import { UploadUtils } from '../../utils/upload.utils';
+import { AsyncUtils } from '../../utils/async.utils';
+import { DriveFileItem } from '../../types/drive.types';
+import { StorageTypes } from '@internxt/sdk/dist/drive';
+
+const STALE_READ_RETRY_DELAYS_MS = [0, 500, 1000];
 
 export class PUTRequestHandler implements WebDavMethodHandler {
   handle = async (req: Request, res: Response) => {
@@ -110,22 +116,26 @@ export class PUTRequestHandler implements WebDavMethodHandler {
 
     let file;
     if (driveFileItem?.itemType === 'file') {
-      try {
-        file = await DriveFileService.instance.replaceFile(driveFileItem.uuid, filePayload);
-      } catch (error) {
-        webdavLogger.warn(
-          ErrorUtils.withRequestId(
-            `[PUT] File replace failed for '${resource.url}', falling back to delete and create: ${
-              error instanceof Error ? error.message : String(error)
-            }`,
-            error,
-          ),
-        );
-        await WebDavUtils.deleteOrTrashItem(driveFileItem);
-        file = await DriveFileService.instance.createFile(filePayload);
-      }
+      file = await this.replaceExistingFile(driveFileItem, filePayload, resource.url);
     } else {
-      file = await DriveFileService.instance.createFile(filePayload);
+      try {
+        file = await DriveFileService.instance.createFile(filePayload);
+      } catch (error) {
+        if (!ErrorUtils.isAlreadyExistsError(error)) throw error;
+
+        const existingFile = await this.findUnseenExistingFile(
+          filePayload.folderUuid,
+          { plainName: filePayload.plainName, type: fileType },
+          resource.url,
+        );
+        if (!existingFile) throw error;
+
+        webdavLogger.info(
+          `[PUT] File '${resource.url}' already exists on Drive but the lookup missed it, it will be replaced...`,
+        );
+        isReplacement = true;
+        file = await this.replaceExistingFile(existingFile, filePayload, resource.url);
+      }
     }
     timings.driveUpload = driveTimer.stop();
 
@@ -138,6 +148,7 @@ export class PUTRequestHandler implements WebDavMethodHandler {
         updatedAt: new Date(),
       },
     ]);
+    DriveItemService.instance.rememberFileWrite(resource.url, file);
 
     const thumbnailTimer = CLIUtils.timer();
     await ThumbnailService.instance.tryUploadThumbnail({
@@ -166,5 +177,57 @@ export class PUTRequestHandler implements WebDavMethodHandler {
 
     res.header('ETag', WebDavUtils.getItemETag(file));
     res.status(statusCode).send();
+  };
+
+  private readonly replaceExistingFile = async (
+    existingFile: DriveFileItem,
+    filePayload: StorageTypes.FileEntryByUuid,
+    url: string,
+  ): Promise<DriveFileItem> => {
+    try {
+      return await DriveFileService.instance.replaceFile(existingFile.uuid, filePayload);
+    } catch (error) {
+      webdavLogger.warn(
+        ErrorUtils.withRequestId(
+          `[PUT] File replace failed for '${url}', falling back to delete and create: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+          error,
+        ),
+      );
+      await WebDavUtils.deleteOrTrashItem(existingFile);
+      return await this.createFileAfterTrashing(filePayload);
+    }
+  };
+
+  /** The create's 409 check reads a replica that can still see the file we just trashed. */
+  private readonly createFileAfterTrashing = async (
+    filePayload: StorageTypes.FileEntryByUuid,
+  ): Promise<DriveFileItem> => {
+    let lastError: unknown;
+    for (const delayMs of STALE_READ_RETRY_DELAYS_MS) {
+      await AsyncUtils.sleep(delayMs);
+      try {
+        return await DriveFileService.instance.createFile(filePayload);
+      } catch (error) {
+        if (!ErrorUtils.isAlreadyExistsError(error)) throw error;
+        lastError = error;
+      }
+    }
+    throw lastError;
+  };
+
+  /** A 409 on create means the file exists even though the path lookup missed it, usually
+   * because the read replica has not caught up with a file created moments ago. */
+  private readonly findUnseenExistingFile = async (
+    folderUuid: string,
+    file: StorageTypes.FileStructure,
+    url: string,
+  ): Promise<DriveFileItem | undefined> => {
+    for (const delayMs of STALE_READ_RETRY_DELAYS_MS) {
+      await AsyncUtils.sleep(delayMs);
+      const existingFile = await DriveFileService.instance.findExistentFile(folderUuid, file);
+      if (existingFile && !DriveItemService.instance.isStale(existingFile.uuid, url)) return existingFile;
+    }
   };
 }

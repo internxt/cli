@@ -404,6 +404,8 @@ describe('Webdav utils', () => {
       const trashItemsStub = vi.spyOn(TrashService.instance, 'trashItems').mockResolvedValue();
       const deleteCacheSpy = vi.spyOn(DriveItemRepository.instance, 'delete').mockResolvedValue(undefined);
 
+      const rememberDeletionSpy = vi.spyOn(DriveItemService.instance, 'rememberDeletion');
+
       await WebDavUtils.deleteOrTrashItem(fileItem);
 
       expect(trashItemsStub).toHaveBeenCalledWith({
@@ -411,6 +413,7 @@ describe('Webdav utils', () => {
       });
       expect(deleteItemPermanentlyStub).not.toHaveBeenCalled();
       expect(deleteCacheSpy).toHaveBeenCalledWith([fileItem.uuid]);
+      expect(rememberDeletionSpy).toHaveBeenCalledWith(fileItem.uuid);
     });
 
     test('when permanent deletion is disabled for folders, then folders are trashed and cache is cleared', async () => {

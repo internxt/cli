@@ -6,7 +6,7 @@ import { DriveFolderService } from '../../../src/services/drive/drive-folder.ser
 import { DriveItemService } from '../../../src/services/drive/drive-item.service';
 import { DriveItemRepository } from '../../../src/services/database/drive-item/drive-item.repository';
 import { UserSettingsFixture } from '../../fixtures/auth.fixture';
-import { newFileItem, newFolderItem, newPaginatedFolder } from '../../fixtures/drive.fixture';
+import { newFileItem, newFolderItem, newPaginatedFile, newPaginatedFolder } from '../../fixtures/drive.fixture';
 import {
   createWebDavRequestFixture,
   createWebDavResponseFixture,
@@ -345,5 +345,34 @@ describe('PROPFIND request handler', () => {
     }
     expect(getRequestedResourceStub).toHaveBeenCalledOnce();
     expect(getAndSearchItemFromResourceStub).toHaveBeenCalledOnce();
+  });
+  test('when a listing returns items moved or deleted moments ago, then the server leaves them out', async () => {
+    const requestedFolderResource = getRequestedFolderResource({ parentFolder: '/', folderName: 'folder_b' });
+    const request = createWebDavRequestFixture({ method: 'PROPFIND', url: '/folder_b/', user: UserSettingsFixture });
+    const response = createWebDavResponseFixture({});
+
+    const deletedFolder = newPaginatedFolder({ uuid: 'DELETED_FOLDER_UUID', plainName: 'deleted_child' });
+    const keptFolder = newPaginatedFolder({ uuid: 'KEPT_FOLDER_UUID', plainName: 'kept_child' });
+    const movedFile = newPaginatedFile({ uuid: 'MOVED_FILE_UUID', plainName: 'moved', type: 'txt' });
+    DriveItemService.instance.rememberDeletion(deletedFolder.uuid);
+    DriveItemService.instance.rememberMove(movedFile.uuid, '/elsewhere/moved.txt');
+
+    vi.spyOn(WebDavUtils, 'getRequestedResource').mockResolvedValue(requestedFolderResource);
+    vi.spyOn(WebDavUtils, 'getDriveItemFromResource').mockResolvedValue(
+      newFolderItem({ name: requestedFolderResource.name }),
+    );
+    vi.spyOn(DriveFolderService.instance, 'getFolderContent').mockResolvedValue({
+      files: [movedFile],
+      folders: [deletedFolder, keptFolder],
+    });
+    const createOrUpdateSpy = vi.spyOn(DriveItemRepository.instance, 'createOrUpdate').mockResolvedValue(undefined);
+
+    await sut.handle(request, response);
+
+    const xml = vi.mocked(response.send).mock.calls[0][0] as string;
+    expect(xml).toContain('kept_child');
+    expect(xml).not.toContain('deleted_child');
+    expect(xml).not.toContain('moved.txt');
+    expect(createOrUpdateSpy).toHaveBeenCalledWith([expect.objectContaining({ uuid: 'KEPT_FOLDER_UUID' })]);
   });
 });

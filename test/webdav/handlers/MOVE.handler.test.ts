@@ -12,6 +12,7 @@ import { DriveFolderService } from '../../../src/services/drive/drive-folder.ser
 import { DriveFileService } from '../../../src/services/drive/drive-file.service';
 import { WebDavFolderService } from '../../../src/services/webdav/webdav-folder.service';
 import { DriveItemRepository } from '../../../src/services/database/drive-item/drive-item.repository';
+import { DriveItemService } from '../../../src/services/drive/drive-item.service';
 import { newFolderItem, newFileItem } from '../../fixtures/drive.fixture';
 
 describe('MOVE request handler', () => {
@@ -230,6 +231,7 @@ describe('MOVE request handler', () => {
     const moveFileStub = vi.spyOn(DriveFileService.instance, 'moveFile').mockResolvedValue(undefined);
     const deleteSpy = vi.spyOn(DriveItemRepository.instance, 'delete').mockResolvedValue(undefined);
     const createOrUpdateSpy = vi.spyOn(DriveItemRepository.instance, 'createOrUpdate').mockResolvedValue(undefined);
+    const rememberMoveSpy = vi.spyOn(DriveItemService.instance, 'rememberMove');
 
     await sut.handle(request, response);
 
@@ -240,6 +242,7 @@ describe('MOVE request handler', () => {
     });
     expect(deleteSpy).toHaveBeenCalledWith(['file-uuid']);
     expect(createOrUpdateSpy).toHaveBeenCalled();
+    expect(rememberMoveSpy).toHaveBeenCalledWith('file-uuid', '/dest/file.txt');
     expect(response.status).toHaveBeenCalledWith(201);
   });
 });

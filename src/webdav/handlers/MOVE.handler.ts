@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { DriveFileService } from '../../services/drive/drive-file.service';
 import { DriveFolderService } from '../../services/drive/drive-folder.service';
 import { DriveItemRepository } from '../../services/database/drive-item/drive-item.repository';
+import { DriveItemService } from '../../services/drive/drive-item.service';
 import { WebDavMethodHandler } from '../../types/webdav.types';
 import { NotFoundError, PreconditionFailedError } from '../../utils/errors.utils';
 import { webdavLogger } from '../../utils/logger.utils';
@@ -96,6 +97,7 @@ export class MOVERequestHandler implements WebDavMethodHandler {
       }
     }
 
+    DriveItemService.instance.rememberMove(originalDriveItem.uuid, destinationResource.url);
     await DriveItemRepository.instance.delete([originalDriveItem.uuid]);
     await DriveItemRepository.instance.createOrUpdate([
       {
