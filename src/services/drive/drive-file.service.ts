@@ -66,7 +66,8 @@ export class DriveFileService {
       filesList: [file],
     });
 
-    const existentFile = existentFiles[0];
+    // The duplicate check can match a file with the same name but a different extension
+    const existentFile = existentFiles.find((existent) => (existent.type ?? '') === (file.type ?? ''));
     if (!existentFile) return undefined;
 
     return {

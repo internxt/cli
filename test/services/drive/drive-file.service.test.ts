@@ -120,4 +120,51 @@ describe('Drive file Service', () => {
 
     await expect(sut.getFileMetadata(randomUUID())).rejects.toBeInstanceOf(ServiceUnavailableError);
   });
+
+  describe('findExistentFile', () => {
+    const existent = (type: string | null) => ({
+      uuid: randomUUID(),
+      plainName: 'report',
+      type,
+      size: '1',
+      bucket: 'bucket',
+      fileId: 'file-id',
+      folderUuid: 'folder-uuid',
+      status: 'EXISTS',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    });
+
+    const mockDuplicates = (existentFiles: ReturnType<typeof existent>[]) => {
+      const storageClientMock: Partial<Storage> = {
+        checkDuplicatedFiles: vi.fn().mockResolvedValue({ existentFiles }),
+      };
+      // @ts-expect-error - We only stub the method we need to test
+      vi.spyOn(SdkManager.instance, 'getStorage').mockReturnValue(storageClientMock);
+    };
+
+    test('when the only duplicate has another extension, then no file is returned', async () => {
+      mockDuplicates([existent('txt')]);
+
+      await expect(sut.findExistentFile('folder-uuid', { plainName: 'report', type: 'pdf' })).resolves.toBeUndefined();
+    });
+
+    test('when several duplicates are returned, then the one with the same extension is picked', async () => {
+      const match = existent('pdf');
+      mockDuplicates([existent('txt'), match]);
+
+      const result = await sut.findExistentFile('folder-uuid', { plainName: 'report', type: 'pdf' });
+
+      expect(result?.uuid).toBe(match.uuid);
+    });
+
+    test('when the file has no extension, then a duplicate without one matches', async () => {
+      const match = existent(null);
+      mockDuplicates([existent('txt'), match]);
+
+      const result = await sut.findExistentFile('folder-uuid', { plainName: 'report', type: '' });
+
+      expect(result?.uuid).toBe(match.uuid);
+    });
+  });
 });
