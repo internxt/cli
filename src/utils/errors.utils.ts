@@ -1,10 +1,13 @@
 import { Logger } from 'winston';
 import { logger } from './logger.utils';
 import { DriveItemType } from '../types/drive.types';
+import { UpdateUtils } from './update.utils';
 
 export type LookupErrorKind = 'not-found' | 'auth' | 'inconclusive';
 
 export const DEFAULT_RETRY_AFTER_SECONDS = 5;
+
+export const CLIENT_VERSION_UNSUPPORTED = 'CLIENT_VERSION_UNSUPPORTED';
 
 export class ErrorUtils {
   static readonly isError = (error: unknown): error is Error => {
@@ -72,6 +75,34 @@ export class ErrorUtils {
     return typeof error === 'object' && error !== null && 'data' in error;
   };
 
+  private static readonly getResponseBody = (error: unknown): Record<string, unknown> | undefined => {
+    if (!this.hasResponseBody(error)) return undefined;
+    const data = (error as { data: unknown }).data;
+    return typeof data === 'object' && data !== null ? (data as Record<string, unknown>) : undefined;
+  };
+
+  static readonly getResponseMessage = (error: unknown): string | undefined => {
+    const message = this.getResponseBody(error)?.message;
+    if (typeof message === 'string' && message.trim().length > 0) return message;
+    if (Array.isArray(message) && message.length > 0) return message.join(', ');
+    return undefined;
+  };
+
+  static readonly isClientVersionUnsupported = (error: unknown): boolean => {
+    if (error instanceof ClientVersionUnsupportedError) return true;
+    return this.getResponseBody(error)?.errorCode === CLIENT_VERSION_UNSUPPORTED;
+  };
+
+  static readonly toClientVersionUnsupportedError = (error: unknown): ClientVersionUnsupportedError => {
+    if (error instanceof ClientVersionUnsupportedError) return error;
+
+    const recommendedVersion = this.getResponseBody(error)?.recommendedVersion;
+    return new ClientVersionUnsupportedError(
+      this.getResponseMessage(error),
+      typeof recommendedVersion === 'string' ? recommendedVersion : undefined,
+    );
+  };
+
   static readonly classifyLookupError = (error: unknown): LookupErrorKind => {
     const status = this.getStatusCode(error);
 
@@ -88,6 +119,8 @@ export class ErrorUtils {
   /** Maps a failed path lookup to the error the WebDAV client should see, so only a
    * confirmed absence surfaces as 404. */
   static readonly toLookupError = (itemType: DriveItemType, path: string, error: unknown): Error => {
+    if (this.isClientVersionUnsupported(error)) return this.toClientVersionUnsupportedError(error);
+
     const label = itemType === 'file' ? 'File' : 'Folder';
     switch (this.classifyLookupError(error)) {
       case 'auth':
@@ -179,6 +212,23 @@ export class BadGatewayError extends Error {
     super(message);
     this.name = 'BadGatewayError';
     Object.setPrototypeOf(this, BadGatewayError.prototype);
+  }
+}
+
+export class ClientVersionUnsupportedError extends Error {
+  public statusCode = 403;
+
+  constructor(apiMessage?: string, recommendedVersion?: string) {
+    const recommended = recommendedVersion ? `, recommended version: ${recommendedVersion}` : '';
+    super(
+      [
+        apiMessage ?? 'This version of the Internxt CLI is no longer supported.',
+        `Installed version: ${UpdateUtils.getCurrentVersion()}${recommended}.`,
+        UpdateUtils.getUpdateInstructions(),
+      ].join(' '),
+    );
+    this.name = 'ClientVersionUnsupportedError';
+    Object.setPrototypeOf(this, ClientVersionUnsupportedError.prototype);
   }
 }
 

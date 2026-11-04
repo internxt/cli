@@ -2,40 +2,25 @@ import { ErrorRequestHandler } from 'express';
 import { webdavLogger } from '../../utils/logger.utils';
 import { XMLUtils } from '../../utils/xml.utils';
 import { ErrorUtils } from '../../utils/errors.utils';
-
-/**
- * SDK errors (AxiosResponseError/AxiosUnknownError) carry the upstream API's response
- * body in `data`, which is discarded unless we read it explicitly.
- */
-const getErrorDetail = (err: unknown): string | undefined => {
-  if (typeof err !== 'object' || err === null || !('data' in err)) return undefined;
-
-  const data = (err as { data?: unknown }).data;
-  if (typeof data !== 'object' || data === null || !('message' in data)) return undefined;
-
-  const message = (data as { message?: unknown }).message;
-  if (typeof message === 'string' && message.trim().length > 0) return message;
-  if (Array.isArray(message) && message.length > 0) return message.join(', ');
-  return undefined;
-};
+import { ClientVersionGate } from './client-version.middleware';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export const ErrorHandlingMiddleware: ErrorRequestHandler = (err, req, res, _) => {
+export const ErrorHandlingMiddleware: ErrorRequestHandler = (rawErr, req, res, _) => {
+  const versionUnsupported = ErrorUtils.isClientVersionUnsupported(rawErr);
+  const err = versionUnsupported ? ClientVersionGate.block(rawErr) : rawErr;
+
   let message = ErrorUtils.isError(err) ? err.message : 'Something went wrong';
 
-  const detail = getErrorDetail(err);
+  const detail = ErrorUtils.getResponseMessage(err);
   if (detail) {
     message += ` [${detail}]`;
   }
 
-  const logMessage = ErrorUtils.withRequestId(message, err);
+  const logMessage = ErrorUtils.withRequestId(message, rawErr);
 
-  if (ErrorUtils.isError(err) && err.stack) {
-    webdavLogger.error(
-      `[ERROR MIDDLEWARE] [${req.method.toUpperCase()} - ${req.url}] ${logMessage}\nStack: ${err.stack}`,
-    );
-  } else {
-    webdavLogger.error(`[ERROR MIDDLEWARE] [${req.method.toUpperCase()} - ${req.url}] ${logMessage}`);
+  if (!versionUnsupported) {
+    const stack = ErrorUtils.isError(err) && err.stack ? `\nStack: ${err.stack}` : '';
+    webdavLogger.error(`[ERROR MIDDLEWARE] [${req.method.toUpperCase()} - ${req.url}] ${logMessage}${stack}`);
   }
 
   const errorBodyXML = XMLUtils.toWebDavXML(

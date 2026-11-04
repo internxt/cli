@@ -18,6 +18,7 @@ import { UserCredentialsFixture } from '../fixtures/login.fixture';
 import { fail } from 'node:assert';
 import { paths } from '@internxt/sdk/dist/schema';
 import { CacheService } from '../../src/services/cache.service';
+import { newClientVersionUnsupportedError } from '../fixtures/errors.fixture';
 
 describe('Auth service', () => {
   beforeEach(() => {
@@ -258,6 +259,22 @@ describe('Auth service', () => {
 
     await expect(() => sut.getAuthDetails()).rejects.toThrow(retryableError);
     expect(refreshTokenStub).toHaveBeenCalledOnce();
+    expect(clearUserStub).not.toHaveBeenCalled();
+  });
+
+  test('when the token refresh is blocked for the CLI version, then stored credentials are preserved', async () => {
+    const sut = AuthService.instance;
+    const versionError = newClientVersionUnsupportedError();
+
+    vi.spyOn(ConfigService.instance, 'readUser').mockResolvedValue(UserCredentialsFixture);
+    vi.spyOn(ValidationService.instance, 'validateTokenAndCheckExpiration').mockImplementationOnce(
+      () => TokenStatus.REFRESH_REQUIRED,
+    );
+    vi.spyOn(ValidationService.instance, 'validateMnemonic').mockReturnValue(true);
+    vi.spyOn(sut, 'refreshUserToken').mockRejectedValue(versionError);
+    const clearUserStub = vi.spyOn(ConfigService.instance, 'clearUser').mockResolvedValue();
+
+    await expect(() => sut.getAuthDetails()).rejects.toThrow(versionError);
     expect(clearUserStub).not.toHaveBeenCalled();
   });
 });

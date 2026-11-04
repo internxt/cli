@@ -25,6 +25,7 @@ import { UNLOCKRequestHandler } from './handlers/UNLOCK.handler';
 import { MkcolMiddleware } from './middewares/mkcol.middleware';
 import { WebdavConfig } from '../types/command.types';
 import { WebDAVAuthMiddleware } from './middewares/webdav-auth.middleware';
+import { ClientVersionMiddleware } from './middewares/client-version.middleware';
 
 export class WebDavServer {
   constructor(private readonly app: Express) {}
@@ -38,6 +39,7 @@ export class WebDavServer {
       }),
     );
     this.app.use(WebDAVAuthMiddleware(configs));
+    this.app.use(ClientVersionMiddleware);
     this.app.use(AuthMiddleware());
     this.app.use(bodyParser.text({ type: ['application/xml', 'text/xml'] }));
     this.app.use(MkcolMiddleware);

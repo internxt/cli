@@ -18,6 +18,10 @@ session_alive() {
   [ -n "$WHOAMI_EMAIL" ] && [ "$WHOAMI_EMAIL" = "$INXT_USER_LOWER" ]
 }
 
+version_blocked() {
+  [ "$(echo "$WHOAMI_OUTPUT" | jq -r '.code // empty')" = "CLIENT_VERSION_UNSUPPORTED" ]
+}
+
 webdav_online() {
   STATUS_OUTPUT=$(internxt webdav status --json 2>/dev/null || true)
   WEBDAV_STATUS=$(echo "$STATUS_OUTPUT" | jq -r '.message | split(" ") | last // empty')
@@ -100,10 +104,21 @@ else
   AUTO_HEAL=false
 fi
 
+VERSION_BLOCKED=false
+
 while true; do
   sleep "$KEEPALIVE_INTERVAL"
 
+  if [ "$VERSION_BLOCKED" = true ]; then
+    continue
+  fi
+
   if ! session_alive; then
+    if version_blocked; then
+      echo "[keepalive] ERROR: $(echo "$WHOAMI_OUTPUT" | jq -r '.message')"
+      VERSION_BLOCKED=true
+      continue
+    fi
     if [ "$AUTO_HEAL" = true ]; then
       echo "[keepalive] Session expired. Re-authenticating..."
       login
