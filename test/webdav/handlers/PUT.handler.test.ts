@@ -15,6 +15,7 @@ import { WebDavRequestedResource } from '../../../src/types/webdav.types';
 import { WebDavUtils } from '../../../src/utils/webdav.utils';
 import { newFileItem, newFolderItem } from '../../fixtures/drive.fixture';
 import { UserCredentialsFixture } from '../../fixtures/login.fixture';
+import { newClientVersionUnsupportedError } from '../../fixtures/errors.fixture';
 import { CLIUtils } from '../../../src/utils/cli.utils';
 import { UsageService } from '../../../src/services/usage.service';
 import { webdavLogger } from '../../../src/utils/logger.utils';
@@ -253,5 +254,39 @@ describe('PUT request handler', () => {
     );
     expect(deleteDriveFileStub).toHaveBeenCalledWith(fileFixture);
     expect(createDriveFileStub).toHaveBeenCalledOnce();
+  });
+
+  test('when replacing an existing file is blocked for the CLI version, then the existing file is left untouched', async () => {
+    const requestedFileResource: WebDavRequestedResource = getRequestedFileResource();
+    const requestedParentFolderResource: WebDavRequestedResource = getRequestedFolderResource({
+      parentFolder: '/',
+      folderName: '',
+    });
+    const folderFixture = newFolderItem({ name: requestedParentFolderResource.name });
+    const fileFixture = newFileItem({ folderUuid: folderFixture.uuid, size: 0, fileId: undefined });
+    const request = createWebDavRequestFixture({
+      method: 'PUT',
+      url: requestedFileResource.url,
+      headers: { 'content-length': '0' },
+    });
+    const response = createWebDavResponseFixture({
+      status: vi.fn().mockReturnValue({ send: vi.fn() }),
+    });
+    const versionError = newClientVersionUnsupportedError();
+
+    vi.spyOn(WebDavUtils, 'getRequestedResource')
+      .mockResolvedValueOnce(requestedFileResource)
+      .mockResolvedValueOnce(requestedParentFolderResource);
+    vi.spyOn(WebDavUtils, 'getDriveItemFromResource').mockResolvedValueOnce(fileFixture);
+    vi.spyOn(WebDavUtils, 'getDriveFolderFromResource').mockResolvedValue(folderFixture);
+    vi.spyOn(AuthService.instance, 'getAuthDetails').mockResolvedValue(UserCredentialsFixture);
+    const deleteDriveFileStub = vi.spyOn(WebDavUtils, 'deleteOrTrashItem').mockResolvedValue();
+    vi.spyOn(DriveFileService.instance, 'replaceFile').mockRejectedValue(versionError);
+    const createDriveFileStub = vi.spyOn(DriveFileService.instance, 'createFile').mockResolvedValue(fileFixture);
+
+    await expect(sut.handle(request, response)).rejects.toBe(versionError);
+
+    expect(deleteDriveFileStub).not.toHaveBeenCalled();
+    expect(createDriveFileStub).not.toHaveBeenCalled();
   });
 });

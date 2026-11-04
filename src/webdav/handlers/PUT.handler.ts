@@ -113,6 +113,7 @@ export class PUTRequestHandler implements WebDavMethodHandler {
       try {
         file = await DriveFileService.instance.replaceFile(driveFileItem.uuid, filePayload);
       } catch (error) {
+        if (ErrorUtils.isClientVersionUnsupported(error)) throw error;
         webdavLogger.warn(
           ErrorUtils.withRequestId(
             `[PUT] File replace failed for '${resource.url}', falling back to delete and create: ${

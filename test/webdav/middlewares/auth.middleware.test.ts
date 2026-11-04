@@ -6,6 +6,7 @@ import { AuthService } from '../../../src/services/auth.service';
 import { CacheService } from '../../../src/services/cache.service';
 import { MissingCredentialsError } from '../../../src/types/command.types';
 import { XMLUtils } from '../../../src/utils/xml.utils';
+import { newClientVersionUnsupportedError } from '../../fixtures/errors.fixture';
 
 describe('Auth middleware', () => {
   beforeEach(() => {
@@ -71,5 +72,18 @@ describe('Auth middleware', () => {
     expect(next).toHaveBeenCalledOnce();
     expect(res.status).not.toHaveBeenCalled();
     expect(res.send).not.toHaveBeenCalled();
+  });
+
+  test('when the API blocks the CLI version, then the error is passed on instead of asking for credentials', async () => {
+    const req = createWebDavRequestFixture({});
+    const res = createWebDavResponseFixture({});
+    const next = vi.fn();
+    const versionError = newClientVersionUnsupportedError();
+    vi.spyOn(AuthService.instance, 'getAuthDetails').mockRejectedValue(versionError);
+
+    await AuthMiddleware()(req, res, next);
+
+    expect(next).toHaveBeenCalledWith(versionError);
+    expect(res.status).not.toHaveBeenCalled();
   });
 });

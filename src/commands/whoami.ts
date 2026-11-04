@@ -5,6 +5,7 @@ import { ValidationService } from '../services/validation.service';
 import { LoginCredentials } from '../types/command.types';
 import { AuthService } from '../services/auth.service';
 import { TokenStatus } from '@internxt/lib';
+import { ErrorUtils } from '../utils/errors.utils';
 
 export default class Whoami extends Command {
   static readonly args = {};
@@ -39,8 +40,8 @@ export default class Whoami extends Command {
               userCredentials.user.keys.ecc.privateKey,
             );
             await ConfigService.instance.saveUser(refreshedCreds);
-          } catch {
-            /* noop */
+          } catch (error) {
+            if (ErrorUtils.isClientVersionUnsupported(error)) throw error;
           }
         }
         const message = `You are logged in as: ${userCredentials.user.email}.`;

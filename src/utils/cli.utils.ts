@@ -3,7 +3,7 @@ import cliProgress from 'cli-progress';
 import Table, { Header } from 'tty-table';
 import { LoginCredentials, LoginUserDetails, NotValidFolderUuidError, PromptOptions } from '../types/command.types';
 import { InquirerUtils } from './inquirer.utils';
-import { ErrorUtils } from './errors.utils';
+import { CLIENT_VERSION_UNSUPPORTED, ErrorUtils } from './errors.utils';
 import { ValidationService } from '../services/validation.service';
 import { SdkManager } from '../services/sdk-manager.service';
 import { Environment } from '@internxt/inxt-js';
@@ -247,6 +247,21 @@ export class CLIUtils {
     return megabytes / seconds;
   };
 
+  private static readonly getErrorMessage = (error: Error | AppError | AxiosResponseError): string => {
+    let message = '';
+
+    if ('message' in error && typeof error.message === 'string' && error.message?.trim?.().length > 0) {
+      message = error.message;
+    }
+
+    const apiMessage = ErrorUtils.getResponseMessage(error);
+    if (apiMessage) {
+      message += ' [' + apiMessage + ']';
+    }
+
+    return message.length > 0 ? message : JSON.stringify(error);
+  };
+
   static readonly catchError = ({
     error,
     logReporter,
@@ -260,35 +275,24 @@ export class CLIUtils {
     jsonFlag?: boolean;
     debugMode?: boolean;
   }) => {
-    let message = '';
     const requestId = ErrorUtils.getRequestId(error);
-
-    if ('message' in error && typeof error.message === 'string' && error.message?.trim?.().length > 0) {
-      message = error.message;
-    }
-
-    if ('data' in error) {
-      const errorData = error.data as { message?: string | Array<string> };
-      if (typeof errorData.message === 'string' && errorData.message?.trim?.().length > 0) {
-        message += ' [' + errorData.message + ']';
-      } else if (Array.isArray(errorData.message) && errorData.message.length > 0) {
-        message += ' [' + errorData.message.join(', ') + ']';
-      }
-    }
-
-    if (message.length === 0) {
-      message = JSON.stringify(error);
-    }
+    const versionUnsupported = ErrorUtils.isClientVersionUnsupported(error);
+    const message = versionUnsupported
+      ? ErrorUtils.toClientVersionUnsupportedError(error).message
+      : CLIUtils.getErrorMessage(error);
 
     CLIUtils.failed(jsonFlag);
 
-    const jsonLog: { success: boolean; message: string; command?: string; requestId?: string } = {
+    const jsonLog: { success: boolean; message: string; command?: string; requestId?: string; code?: string } = {
       success: false,
       message,
       command,
     };
     if (requestId) {
       jsonLog.requestId = requestId;
+    }
+    if (versionUnsupported) {
+      jsonLog.code = CLIENT_VERSION_UNSUPPORTED;
     }
     if (command) {
       jsonLog.command = command;

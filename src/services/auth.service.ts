@@ -11,6 +11,7 @@ import {
 } from '../types/command.types';
 import { ValidationService } from './validation.service';
 import { TokenStatus } from '@internxt/lib';
+import { ErrorUtils } from '../utils/errors.utils';
 
 export class AuthService {
   public static readonly instance: AuthService = new AuthService();
@@ -123,6 +124,11 @@ export class AuthService {
   private readonly shouldClearUserAfterRefreshError = (error: unknown): boolean => {
     if (error instanceof InvalidCredentialsError || error instanceof ExpiredCredentialsError) {
       return true;
+    }
+
+    // The session is still valid, so updating shouldn't require logging in again
+    if (ErrorUtils.isClientVersionUnsupported(error)) {
+      return false;
     }
 
     const status = this.getHttpStatusFromError(error);
