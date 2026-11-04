@@ -23,6 +23,11 @@ export const AuthMiddleware = (): RequestHandler => {
         CacheService.instance.set(CacheService.AUTH_CACHE_KEY, authDetails);
         next();
       } catch (error) {
+        if (ErrorUtils.isClientVersionUnsupported(error)) {
+          next(error);
+          return;
+        }
+
         let message = 'Authentication required to access this resource.';
         if (ErrorUtils.isError(error)) {
           message = error.message;

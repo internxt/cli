@@ -11,6 +11,8 @@ import { Environment } from '@internxt/inxt-js';
 import { UserFixture } from '../fixtures/auth.fixture';
 import { getNetworkOptionsMock } from '../fixtures/webdav.fixture';
 import { NetworkOptions } from '../../src/types/network.types';
+import { ErrorUtils } from '../../src/utils/errors.utils';
+import { newApiError, newClientVersionUnsupportedError } from '../fixtures/errors.fixture';
 
 vi.mock('ux', () => {
   return {
@@ -309,6 +311,47 @@ describe('CliUtils', () => {
     test('when negative time is given, then the throughput is zero', () => {
       const throughput = CLIUtils.calculateThroughputMBps(1048576, -1000);
       expect(throughput).toBe(0);
+    });
+  });
+
+  describe('catchError', () => {
+    test('when the API blocks the CLI version, then the update message is shown instead of the raw API error', () => {
+      const reporter = vi.fn();
+      const error = newClientVersionUnsupportedError();
+
+      CLIUtils.catchError({ error, logReporter: reporter, command: 'list' });
+
+      expect(reporter).toHaveBeenCalledOnce();
+      const output = reporter.mock.calls[0][0] as string;
+      expect(output).toContain(ErrorUtils.toClientVersionUnsupportedError(error).message);
+      expect(output).not.toContain('Request failed with status code 403');
+    });
+
+    test('when the API blocks the CLI version with --json, then the output carries the error code', () => {
+      const consoleLogSpy = vi.spyOn(CLIUtils, 'consoleLog').mockImplementation(() => {});
+      const error = newClientVersionUnsupportedError();
+
+      CLIUtils.catchError({ error, logReporter: vi.fn(), command: 'list', jsonFlag: true });
+
+      expect(JSON.parse(consoleLogSpy.mock.calls[0][0])).toEqual({
+        success: false,
+        message: ErrorUtils.toClientVersionUnsupportedError(error).message,
+        command: 'list',
+        code: 'CLIENT_VERSION_UNSUPPORTED',
+      });
+    });
+
+    test('when a regular API error happens, then the message includes the API detail and no error code', () => {
+      const consoleLogSpy = vi.spyOn(CLIUtils, 'consoleLog').mockImplementation(() => {});
+      const error = newApiError(403, { data: { message: 'Not your folder' } });
+
+      CLIUtils.catchError({ error, logReporter: vi.fn(), command: 'list', jsonFlag: true });
+
+      expect(JSON.parse(consoleLogSpy.mock.calls[0][0])).toEqual({
+        success: false,
+        message: 'Request failed with status code 403 [Not your folder]',
+        command: 'list',
+      });
     });
   });
 });

@@ -1,12 +1,14 @@
-import { describe, expect, test } from 'vitest';
+import { afterEach, describe, expect, test, vi } from 'vitest';
 import {
   BadGatewayError,
+  ClientVersionUnsupportedError,
   ErrorUtils,
   NotFoundError,
   NotImplementedError,
   ServiceUnavailableError,
 } from '../../src/utils/errors.utils';
-import { newApiError, newNetworkError } from '../fixtures/errors.fixture';
+import { newApiError, newClientVersionUnsupportedError, newNetworkError } from '../fixtures/errors.fixture';
+import { UpdateUtils } from '../../src/utils/update.utils';
 import { logger } from '../../src/utils/logger.utils';
 
 describe('Errors Utils', () => {
@@ -179,7 +181,7 @@ describe('Errors Utils', () => {
       const error = ErrorUtils.toLookupError('file', '/a.txt', newApiError(401));
 
       expect(error).toBeInstanceOf(BadGatewayError);
-      expect(error.message).toContain('log in again with \'internxt login\'');
+      expect(error.message).toContain("log in again with 'internxt login'");
     });
 
     test('when the lookup is inconclusive, then a service unavailable error is returned', () => {
@@ -247,5 +249,78 @@ describe('Errors Utils', () => {
     expect(logger.error).toHaveBeenCalledWith(
       expect.stringContaining('[REPORTED_ERROR]: Test Error (requestId: req-123)'),
     );
+  });
+
+  describe('isClientVersionUnsupported', () => {
+    test('when the API blocks the CLI version with 403 and its error code, then it is detected', () => {
+      expect(ErrorUtils.isClientVersionUnsupported(newClientVersionUnsupportedError())).toBe(true);
+    });
+
+    test('when the error code comes with another status, then it is still detected', () => {
+      const error = newApiError(426, { data: { errorCode: 'CLIENT_VERSION_UNSUPPORTED' } });
+      expect(ErrorUtils.isClientVersionUnsupported(error)).toBe(true);
+    });
+
+    test('when the status matches but the error code does not, then it is not detected', () => {
+      expect(ErrorUtils.isClientVersionUnsupported(newApiError(403))).toBe(false);
+      expect(ErrorUtils.isClientVersionUnsupported(newApiError(426))).toBe(false);
+      expect(ErrorUtils.isClientVersionUnsupported(newApiError(403, { data: { errorCode: 'OTHER' } }))).toBe(false);
+    });
+
+    test('when the error is already a ClientVersionUnsupportedError, then it is detected', () => {
+      expect(ErrorUtils.isClientVersionUnsupported(new ClientVersionUnsupportedError())).toBe(true);
+    });
+
+    test('when the error is not an API error, then it is not detected', () => {
+      expect(ErrorUtils.isClientVersionUnsupported(new Error('boom'))).toBe(false);
+      expect(ErrorUtils.isClientVersionUnsupported(undefined)).toBe(false);
+    });
+  });
+
+  describe('toClientVersionUnsupportedError', () => {
+    afterEach(() => {
+      vi.unstubAllEnvs();
+    });
+
+    test('when the API sends a message and recommended version, then both are shown with npm instructions', () => {
+      vi.stubEnv('INXT_RUNTIME', '');
+      const error = ErrorUtils.toClientVersionUnsupportedError(newClientVersionUnsupportedError());
+
+      expect(error).toBeInstanceOf(ClientVersionUnsupportedError);
+      expect(error.statusCode).toBe(403);
+      expect(error.message).toBe(
+        'This version of the app is no longer supported. Please update to a newer version. ' +
+          `Installed version: ${UpdateUtils.getCurrentVersion()}, recommended version: 1.7.0. ` +
+          'Update with: npm install -g @internxt/cli@latest',
+      );
+    });
+
+    test('when running in Docker, then the instructions say to pull the latest image', () => {
+      vi.stubEnv('INXT_RUNTIME', 'docker');
+      const error = ErrorUtils.toClientVersionUnsupportedError(newClientVersionUnsupportedError());
+
+      expect(error.message).toContain('Pull the latest image with: docker pull internxt/webdav:latest');
+      expect(error.message).not.toContain('npm install');
+    });
+
+    test('when the API sends no message or recommended version, then a default message is used', () => {
+      vi.stubEnv('INXT_RUNTIME', '');
+      const error = ErrorUtils.toClientVersionUnsupportedError(
+        newApiError(403, { data: { errorCode: 'CLIENT_VERSION_UNSUPPORTED' } }),
+      );
+
+      expect(error.message).toBe(
+        'This version of the Internxt CLI is no longer supported. ' +
+          `Installed version: ${UpdateUtils.getCurrentVersion()}. ` +
+          'Update with: npm install -g @internxt/cli@latest',
+      );
+    });
+  });
+
+  test('when a path lookup is blocked for the CLI version, then the version error is returned instead of an auth error', () => {
+    const error = ErrorUtils.toLookupError('file', '/a.txt', newClientVersionUnsupportedError());
+
+    expect(error).toBeInstanceOf(ClientVersionUnsupportedError);
+    expect(error).not.toBeInstanceOf(BadGatewayError);
   });
 });
