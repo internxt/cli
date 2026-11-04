@@ -44,6 +44,12 @@ Requires Node >= 22.13.0
 
 [View Internxt CLI latest release here](https://www.npmjs.com/package/@internxt/cli)
 
+## Updating
+
+The CLI checks npm for a newer version once a day and prints a notice when one is available. To update:
+
+`npm i -g @internxt/cli@latest`
+
 # Usage
 
 <!-- usage -->
