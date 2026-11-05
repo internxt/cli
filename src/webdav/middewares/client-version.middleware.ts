@@ -27,7 +27,7 @@ export class ClientVersionGate {
       ? ''
       : ' After updating, restart the server with: internxt webdav restart.';
     webdavLogger.error(
-      `[CLIENT VERSION] ${this.blockedError.message}${restartHint} ` +
+      `[CLIENT VERSION] ${this.blockedError.message}.${restartHint} ` +
         'Requests are refused without reaching the API, re-checking every 5 minutes.',
     );
     return this.blockedError;
