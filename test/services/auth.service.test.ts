@@ -102,6 +102,14 @@ describe('Auth service', () => {
     expect(securityStub).toHaveBeenCalledOnce();
   });
 
+  test('when the security details request is blocked for the CLI version, then the API error is kept', async () => {
+    const versionError = newClientVersionUnsupportedError();
+    vi.spyOn(Auth.prototype, 'securityDetails').mockRejectedValue(versionError);
+    vi.spyOn(SdkManager.instance, 'getAuth').mockReturnValue(Auth.prototype);
+
+    await expect(AuthService.instance.is2FANeeded('user@example.com')).rejects.toBe(versionError);
+  });
+
   test('when all stored credentials are complete and valid, then authentication details are returned', async () => {
     const sut = AuthService.instance;
 
