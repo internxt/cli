@@ -89,6 +89,7 @@ describe('Client version middleware', () => {
       ClientVersionGate.block(newClientVersionUnsupportedError());
 
       expect(webdavLogger.error).toHaveBeenCalledWith(expect.stringContaining('internxt webdav restart'));
+      expect(webdavLogger.error).toHaveBeenCalledWith(expect.stringContaining('@latest. After updating'));
     });
 
     test('when running in Docker, then the log does not mention restarting the server', () => {
@@ -96,6 +97,7 @@ describe('Client version middleware', () => {
       ClientVersionGate.block(newClientVersionUnsupportedError());
 
       expect(webdavLogger.error).toHaveBeenCalledWith(expect.not.stringContaining('internxt webdav restart'));
+      expect(webdavLogger.error).toHaveBeenCalledWith(expect.stringContaining('webdav:latest. Requests are refused'));
     });
   });
 
