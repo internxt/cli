@@ -66,6 +66,7 @@ export class AuthService {
   public is2FANeeded = async (email: string): Promise<boolean> => {
     const authClient = SdkManager.instance.getAuth();
     const securityDetails = await authClient.securityDetails(email).catch((error) => {
+      if (ErrorUtils.isClientVersionUnsupported(error)) throw error;
       throw new Error(error.message ?? 'Login error');
     });
     return securityDetails.tfaEnabled;
