@@ -118,6 +118,7 @@ export class WebDavUtils {
       });
       webdavLogger.info(`[DELETE] [${driveItem.uuid}] ${type} trashed successfully`);
     }
+    DriveItemService.instance.rememberDeletion(driveItem.uuid);
     await DriveItemRepository.instance.delete([driveItem.uuid]);
   }
 
