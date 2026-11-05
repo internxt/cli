@@ -5,6 +5,7 @@ import { LoginCredentials } from '../types/command.types';
 import { ConfigService } from './config.service';
 import { AuthService } from './auth.service';
 import { CLIUtils, LogReporter } from '../utils/cli.utils';
+import { CLIENT_VERSION_UNSUPPORTED, ErrorUtils } from '../utils/errors.utils';
 
 export class UniversalLinkService {
   public static readonly instance: UniversalLinkService = new UniversalLinkService();
@@ -71,8 +72,9 @@ export class UniversalLinkService {
 
           resolve(loginCredentials);
         } catch (error) {
+          const reason = ErrorUtils.isClientVersionUnsupported(error) ? `?reason=${CLIENT_VERSION_UNSUPPORTED}` : '';
           res.writeHead(302, {
-            Location: `${driveUrl}/auth-link-error`,
+            Location: `${driveUrl}/auth-link-error${reason}`,
           });
           res.end();
           reject(error);
