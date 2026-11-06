@@ -18,8 +18,13 @@ session_alive() {
   [ -n "$WHOAMI_EMAIL" ] && [ "$WHOAMI_EMAIL" = "$INXT_USER_LOWER" ]
 }
 
+relogin() {
+  LOGIN_OUTPUT=$(internxt login-legacy $LOGIN_ARGS --json 2>/dev/null)
+}
+
+# $1: JSON output of a CLI command run with --json
 version_blocked() {
-  [ "$(echo "$WHOAMI_OUTPUT" | jq -r '.code // empty')" = "CLIENT_VERSION_UNSUPPORTED" ]
+  [ "$(echo "$1" | jq -r '.code // empty' 2>/dev/null)" = "CLIENT_VERSION_UNSUPPORTED" ]
 }
 
 webdav_online() {
@@ -104,40 +109,59 @@ else
   AUTO_HEAL=false
 fi
 
+# $1: failure reason, prefixed to the standard stop message
+stop_if_no_autoheal() {
+  if [ "$AUTO_HEAL" != true ]; then
+    echo "[keepalive] ERROR: $1 and WEBDAV_KEEPALIVE_ENABLED=false (auto-renewal disabled). Stopping container so it can be restarted."
+    exit 1
+  fi
+}
+
+# $1: JSON output carrying the version error. The flag only dedupes the log;
+# checks keep running so a lifted block self-heals.
+handle_version_blocked() {
+  if [ "$VERSION_BLOCKED" = false ]; then
+    echo "[keepalive] ERROR: $(echo "$1" | jq -r '.message')"
+    VERSION_BLOCKED=true
+  fi
+  stop_if_no_autoheal "Client version unsupported"
+}
+
 VERSION_BLOCKED=false
 
 while true; do
   sleep "$KEEPALIVE_INTERVAL"
 
-  if [ "$VERSION_BLOCKED" = true ]; then
-    continue
-  fi
-
-  if ! session_alive; then
-    if version_blocked; then
-      echo "[keepalive] ERROR: $(echo "$WHOAMI_OUTPUT" | jq -r '.message')"
-      VERSION_BLOCKED=true
-      continue
-    fi
-    if [ "$AUTO_HEAL" = true ]; then
+  if session_alive; then
+    VERSION_BLOCKED=false
+  elif version_blocked "$WHOAMI_OUTPUT"; then
+    handle_version_blocked "$WHOAMI_OUTPUT"
+  else
+    stop_if_no_autoheal "Session expired"
+    if [ "$VERSION_BLOCKED" = false ]; then
       echo "[keepalive] Session expired. Re-authenticating..."
-      login
-      webdav_enable
-      echo "[keepalive] Session restored."
+    fi
+    if relogin; then
+      VERSION_BLOCKED=false
+      if webdav_enable; then
+        echo "[keepalive] Session restored."
+      else
+        echo "[keepalive] ERROR: Logged in, but the WebDAV server failed to start. Retrying in ${KEEPALIVE_INTERVAL}s."
+      fi
+    elif version_blocked "$LOGIN_OUTPUT"; then
+      handle_version_blocked "$LOGIN_OUTPUT"
     else
-      echo "[keepalive] ERROR: Session expired and WEBDAV_KEEPALIVE_ENABLED=false (auto-renewal disabled). Stopping container so it can be restarted."
-      exit 1
+      echo "[keepalive] ERROR: Re-authentication failed: $(echo "$LOGIN_OUTPUT" | jq -r '.message // empty' 2>/dev/null). Retrying in ${KEEPALIVE_INTERVAL}s."
     fi
   fi
 
   if ! webdav_online; then
-    if [ "$AUTO_HEAL" = true ]; then
-      echo "[keepalive] WebDAV server is not online. Re-enabling..."
-      webdav_enable
+    stop_if_no_autoheal "WebDAV server is not online"
+    echo "[keepalive] WebDAV server is not online. Re-enabling..."
+    if webdav_enable; then
       echo "[keepalive] WebDAV server re-enabled."
     else
-      echo "[keepalive] ERROR: WebDAV server is not online and WEBDAV_KEEPALIVE_ENABLED=false (auto-renewal disabled). Stopping container so it can be restarted."
-      exit 1
+      echo "[keepalive] ERROR: Failed to re-enable the WebDAV server. Retrying in ${KEEPALIVE_INTERVAL}s."
     fi
   fi
 done
