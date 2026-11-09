@@ -1,9 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
-import {
-  BLOCK_RECHECK_MS,
-  ClientVersionGate,
-  ClientVersionMiddleware,
-} from '../../../src/webdav/middewares/client-version.middleware';
+import { ClientVersionGate, ClientVersionMiddleware } from '../../../src/webdav/middewares/client-version.middleware';
 import { ErrorHandlingMiddleware } from '../../../src/webdav/middewares/errors.middleware';
 import { createWebDavRequestFixture, createWebDavResponseFixture } from '../../fixtures/webdav.fixture';
 import { newApiError, newClientVersionUnsupportedError } from '../../fixtures/errors.fixture';
@@ -42,53 +38,14 @@ describe('Client version middleware', () => {
     expect(webdavLogger.error).toHaveBeenCalledWith(expect.stringContaining('[CLIENT VERSION]'));
   });
 
-  describe('re-check after a block', () => {
-    afterEach(() => {
-      vi.useRealTimers();
-    });
+  test('when the version has been blocked, then the block never expires', () => {
+    vi.useFakeTimers();
+    ClientVersionGate.block(newClientVersionUnsupportedError());
 
-    test('when less than 5 minutes have passed, then requests are still refused', () => {
-      vi.useFakeTimers();
-      ClientVersionGate.block(newClientVersionUnsupportedError());
+    vi.advanceTimersByTime(24 * 60 * 60 * 1000);
 
-      vi.advanceTimersByTime(BLOCK_RECHECK_MS - 1);
-
-      expect(ClientVersionGate.getBlockedError()).toBeInstanceOf(ClientVersionUnsupportedError);
-    });
-
-    test('when 5 minutes have passed, then the next request reaches the API again', () => {
-      vi.useFakeTimers();
-      ClientVersionGate.block(newClientVersionUnsupportedError());
-
-      vi.advanceTimersByTime(BLOCK_RECHECK_MS);
-      const next = vi.fn();
-      ClientVersionMiddleware(createWebDavRequestFixture({}), createWebDavResponseFixture({}), next);
-
-      expect(next).toHaveBeenCalledWith(undefined);
-    });
-
-    test('when the block is confirmed again before it expires, then it lasts another 5 minutes', () => {
-      vi.useFakeTimers();
-      ClientVersionGate.block(newClientVersionUnsupportedError());
-      vi.advanceTimersByTime(BLOCK_RECHECK_MS - 1);
-
-      ClientVersionGate.block(newClientVersionUnsupportedError());
-      vi.advanceTimersByTime(BLOCK_RECHECK_MS - 1);
-
-      expect(ClientVersionGate.getBlockedError()).toBeInstanceOf(ClientVersionUnsupportedError);
-      expect(webdavLogger.error).toHaveBeenCalledOnce();
-    });
-
-    test('when the API still blocks after the re-check, then the block is set and logged again', () => {
-      vi.useFakeTimers();
-      ClientVersionGate.block(newClientVersionUnsupportedError());
-      vi.advanceTimersByTime(BLOCK_RECHECK_MS);
-
-      ClientVersionGate.block(newClientVersionUnsupportedError());
-
-      expect(ClientVersionGate.getBlockedError()).toBeInstanceOf(ClientVersionUnsupportedError);
-      expect(webdavLogger.error).toHaveBeenCalledTimes(2);
-    });
+    expect(ClientVersionGate.getBlockedError()).toBeInstanceOf(ClientVersionUnsupportedError);
+    vi.useRealTimers();
   });
 
   describe('restart hint', () => {

@@ -25,35 +25,25 @@ import { UNLOCKRequestHandler } from './handlers/UNLOCK.handler';
 import { MkcolMiddleware } from './middewares/mkcol.middleware';
 import { WebdavConfig } from '../types/command.types';
 import { WebDAVAuthMiddleware } from './middewares/webdav-auth.middleware';
-import { BLOCK_RECHECK_MS, ClientVersionGate, ClientVersionMiddleware } from './middewares/client-version.middleware';
-import {
-  ClientCompatibilityService,
-  UPDATE_RECOMMENDED_WARNING_INTERVAL_MS,
-} from '../services/client-compatibility.service';
+import { ClientVersionGate, ClientVersionMiddleware } from './middewares/client-version.middleware';
+import { ClientCompatibilityService } from '../services/client-compatibility.service';
+
+export const COMPATIBILITY_CHECK_INTERVAL_MS = 5 * 60 * 1000;
 
 export class WebDavServer {
   private lastCompatibilityWarning?: string;
-  private lastCompatibilityWarningAt = 0;
 
   constructor(private readonly app: Express) {}
 
   readonly checkCompatibility = async () => {
-    const { blockError, warning } = await ClientCompatibilityService.instance.evaluate({ throttleRecommended: false });
+    if (ClientVersionGate.getBlockedError()) return;
+    const { blockError, warning } = await ClientCompatibilityService.instance.evaluate();
     if (blockError) {
       ClientVersionGate.block(blockError);
-      return;
+    } else if (warning && warning !== this.lastCompatibilityWarning) {
+      this.lastCompatibilityWarning = warning;
+      webdavLogger.warn(`[CLIENT VERSION] ${warning}`);
     }
-    if (!warning) return;
-
-    const now = Date.now();
-    const repeated =
-      warning === this.lastCompatibilityWarning &&
-      now - this.lastCompatibilityWarningAt < UPDATE_RECOMMENDED_WARNING_INTERVAL_MS;
-    if (repeated) return;
-
-    this.lastCompatibilityWarning = warning;
-    this.lastCompatibilityWarningAt = now;
-    webdavLogger.warn(`[CLIENT VERSION] ${warning}`);
   };
 
   private readonly registerStartMiddlewares = (configs: WebdavConfig) => {
@@ -114,7 +104,7 @@ export class WebDavServer {
     this.registerHandlers();
     this.registerEndMiddleWares();
     void this.checkCompatibility();
-    setInterval(this.checkCompatibility, BLOCK_RECHECK_MS).unref();
+    setInterval(this.checkCompatibility, COMPATIBILITY_CHECK_INTERVAL_MS).unref();
 
     const plainHttp = configs.protocol === 'http';
     let server: http.Server | https.Server;

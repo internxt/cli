@@ -6,7 +6,6 @@ import {
   ClientCompatibilityService,
   COMPATIBILITY_CACHE_TTL_MS,
   COMPATIBILITY_REQUEST_TIMEOUT_MS,
-  UNSUPPORTED_RECHECK_MS,
   UPDATE_RECOMMENDED_WARNING_INTERVAL_MS,
 } from '../../src/services/client-compatibility.service';
 import { ConfigService } from '../../src/services/config.service';
@@ -87,37 +86,19 @@ describe('Client compatibility service', () => {
     });
 
     test('when the cache has expired, then the endpoint is called and the cache refreshed', async () => {
-      writeCacheFile({ checkedAt: Date.now() - COMPATIBILITY_CACHE_TTL_MS, compatibility: { status: 'unsupported' } });
-      mockResponse({ status: 'up_to_date' });
+      writeCacheFile({ checkedAt: Date.now() - COMPATIBILITY_CACHE_TTL_MS, compatibility: { status: 'up_to_date' } });
+      mockResponse({ status: 'unsupported' });
 
-      expect(await sut.evaluate()).toEqual({});
-      expect(readCacheFile().compatibility.status).toBe('up_to_date');
+      expect((await sut.evaluate()).blockError).toBeInstanceOf(ClientVersionUnsupportedError);
+      expect(readCacheFile().compatibility.status).toBe('unsupported');
     });
 
-    test('when the cached version is unsupported, then it is re-checked after 5 minutes instead of the full TTL', async () => {
-      writeCacheFile({ checkedAt: Date.now() - UNSUPPORTED_RECHECK_MS, compatibility: { status: 'unsupported' } });
-      mockResponse({ status: 'up_to_date' });
-
-      expect(await sut.evaluate()).toEqual({});
-    });
-
-    test('when the cached version is up to date, then it is not re-checked after 5 minutes', async () => {
-      writeCacheFile({ checkedAt: Date.now() - UNSUPPORTED_RECHECK_MS, compatibility: { status: 'up_to_date' } });
+    test('when the cached version is unsupported, then it is never checked again', async () => {
+      writeCacheFile({ checkedAt: 0, compatibility: { status: 'unsupported' } });
       const get = vi.spyOn(axios, 'get');
 
-      await sut.evaluate();
-
+      expect((await sut.evaluate()).blockError).toBeInstanceOf(ClientVersionUnsupportedError);
       expect(get).not.toHaveBeenCalled();
-    });
-
-    test.each([
-      ['a missing check time', { checkedAt: undefined }],
-      ['a non-numeric check time', { checkedAt: 'yesterday' }],
-    ])('when the cache has %s, then it is ignored', async (_, cache) => {
-      writeCacheFile({ ...cache, compatibility: { status: 'unsupported' } });
-      mockResponse({ status: 'up_to_date' });
-
-      expect(await sut.evaluate()).toEqual({});
     });
 
     test.each([
@@ -160,10 +141,10 @@ describe('Client compatibility service', () => {
     });
 
     test('when the check fails and there is an expired cache, then the cached status is used', async () => {
-      writeCacheFile({ checkedAt: 0, compatibility: { status: 'unsupported' } });
+      writeCacheFile({ checkedAt: 0, compatibility: deprecated });
       vi.spyOn(axios, 'get').mockRejectedValue(newNetworkError());
 
-      expect((await sut.evaluate()).blockError).toBeInstanceOf(ClientVersionUnsupportedError);
+      expect((await sut.evaluate()).warning).toContain(deprecated.message);
     });
 
     test('when the response has an unknown status, then it counts as a failed check', async () => {
@@ -250,15 +231,6 @@ describe('Client compatibility service', () => {
         compatibility: { status: 'update_recommended' },
         recommendedWarnedAt: Date.now() - UPDATE_RECOMMENDED_WARNING_INTERVAL_MS,
       });
-      expect((await sut.evaluate()).warning).toBeDefined();
-    });
-
-    test('when the recommendation is not throttled, then it warns every time without using up the shared reminder', async () => {
-      writeCacheFile({ compatibility: { status: 'update_recommended' } });
-
-      expect((await sut.evaluate({ throttleRecommended: false })).warning).toBeDefined();
-      expect((await sut.evaluate({ throttleRecommended: false })).warning).toBeDefined();
-      expect(readCacheFile().recommendedWarnedAt).toBeUndefined();
       expect((await sut.evaluate()).warning).toBeDefined();
     });
 

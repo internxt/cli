@@ -4,12 +4,9 @@ import { randomBytes } from 'node:crypto';
 import http from 'http';
 import https from 'https';
 import { ConfigService } from '../../src/services/config.service';
-import { WebDavServer } from '../../src/webdav/webdav-server';
-import {
-  ClientCompatibilityService,
-  UPDATE_RECOMMENDED_WARNING_INTERVAL_MS,
-} from '../../src/services/client-compatibility.service';
-import { BLOCK_RECHECK_MS, ClientVersionGate } from '../../src/webdav/middewares/client-version.middleware';
+import { COMPATIBILITY_CHECK_INTERVAL_MS, WebDavServer } from '../../src/webdav/webdav-server';
+import { ClientCompatibilityService } from '../../src/services/client-compatibility.service';
+import { ClientVersionGate } from '../../src/webdav/middewares/client-version.middleware';
 import { ClientVersionUnsupportedError } from '../../src/utils/errors.utils';
 import { webdavLogger } from '../../src/utils/logger.utils';
 import { NetworkUtils } from '../../src/utils/network.utils';
@@ -94,6 +91,16 @@ describe('WebDav server', () => {
       expect(ClientVersionGate.getBlockedError()?.message).toContain('No longer supported.');
     });
 
+    test('when the version is already blocked, then it is not checked again', async () => {
+      evaluate.mockResolvedValue({ blockError: new ClientVersionUnsupportedError('No longer supported.') });
+      const server = new WebDavServer(express());
+
+      await server.checkCompatibility();
+      await server.checkCompatibility();
+
+      expect(evaluate).toHaveBeenCalledOnce();
+    });
+
     test('when there is a warning, then it is logged once and requests continue', async () => {
       evaluate.mockResolvedValue({ warning: 'Deprecated.' });
       const server = new WebDavServer(express());
@@ -106,27 +113,6 @@ describe('WebDav server', () => {
       expect(webdavLogger.warn).toHaveBeenCalledWith('[CLIENT VERSION] Deprecated.');
     });
 
-    test('when the same warning persists, then it is logged again every hour', async () => {
-      vi.useFakeTimers();
-      evaluate.mockResolvedValue({ warning: 'Update available.' });
-      const server = new WebDavServer(express());
-
-      await server.checkCompatibility();
-      vi.advanceTimersByTime(UPDATE_RECOMMENDED_WARNING_INTERVAL_MS - 1);
-      await server.checkCompatibility();
-      expect(webdavLogger.warn).toHaveBeenCalledOnce();
-
-      vi.advanceTimersByTime(1);
-      await server.checkCompatibility();
-      expect(webdavLogger.warn).toHaveBeenCalledTimes(2);
-    });
-
-    test('when the check runs, then it does not use up the CLI hourly reminder', async () => {
-      await new WebDavServer(express()).checkCompatibility();
-
-      expect(evaluate).toHaveBeenCalledWith({ throttleRecommended: false });
-    });
-
     test('when the server starts, then the check runs and repeats every 5 minutes', async () => {
       vi.useFakeTimers();
       vi.spyOn(ConfigService.instance, 'readWebdavConfig').mockResolvedValue(getWebdavConfigMock({ protocol: 'http' }));
@@ -137,7 +123,7 @@ describe('WebDav server', () => {
       await new WebDavServer(express()).start();
       expect(evaluate).toHaveBeenCalledTimes(1);
 
-      await vi.advanceTimersByTimeAsync(BLOCK_RECHECK_MS);
+      await vi.advanceTimersByTimeAsync(COMPATIBILITY_CHECK_INTERVAL_MS);
       expect(evaluate).toHaveBeenCalledTimes(2);
       vi.clearAllTimers();
     });

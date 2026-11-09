@@ -42,6 +42,7 @@ export class UpdateUtils {
   };
 
   private static readonly getSunsetNotice = (sunsetAt?: string): string | undefined => {
+    // UTC so the calendar day matches the backend's, not shifted by the local timezone
     const date = dayjs.utc(sunsetAt);
     if (!sunsetAt || !date.isValid()) return undefined;
 
