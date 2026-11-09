@@ -62,6 +62,7 @@ export class UploadFolderService {
           logger.warn(`Folder ${folderName} already exists, skipping...`);
           return null;
         }
+        if (ErrorUtils.isClientVersionUnsupported(error)) throw error;
 
         if (attempt < MAX_RETRIES) {
           const delay = DELAYS_MS[attempt];

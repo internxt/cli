@@ -4,6 +4,7 @@ import os from 'node:os';
 export const INTERNXT_CLI_DATA_DIR = path.join(os.homedir(), '.internxt-cli');
 export const INTERNXT_CLI_LOGS_DIR = path.join(INTERNXT_CLI_DATA_DIR, 'logs');
 export const CREDENTIALS_FILE = path.join(INTERNXT_CLI_DATA_DIR, '.inxtcli');
+export const CLIENT_COMPATIBILITY_CACHE_FILE = path.join(INTERNXT_CLI_DATA_DIR, 'client-compatibility.json');
 export const DRIVE_SQLITE_FILE = path.join(INTERNXT_CLI_DATA_DIR, 'internxt-cli-drive.db');
 export const WEBDAV_SSL_CERTS_DIR = path.join(INTERNXT_CLI_DATA_DIR, 'certs');
 export const WEBDAV_CONFIGS_FILE = path.join(INTERNXT_CLI_DATA_DIR, 'config.webdav.inxt');

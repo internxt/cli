@@ -25,10 +25,26 @@ import { UNLOCKRequestHandler } from './handlers/UNLOCK.handler';
 import { MkcolMiddleware } from './middewares/mkcol.middleware';
 import { WebdavConfig } from '../types/command.types';
 import { WebDAVAuthMiddleware } from './middewares/webdav-auth.middleware';
-import { ClientVersionMiddleware } from './middewares/client-version.middleware';
+import { ClientVersionGate, ClientVersionMiddleware } from './middewares/client-version.middleware';
+import { ClientCompatibilityService } from '../services/client-compatibility.service';
+
+export const COMPATIBILITY_CHECK_INTERVAL_MS = 5 * 60 * 1000;
 
 export class WebDavServer {
+  private lastCompatibilityWarning?: string;
+
   constructor(private readonly app: Express) {}
+
+  readonly checkCompatibility = async () => {
+    if (ClientVersionGate.getBlockedError()) return;
+    const { blockError, warning } = await ClientCompatibilityService.instance.evaluate();
+    if (blockError) {
+      ClientVersionGate.block(blockError);
+    } else if (warning && warning !== this.lastCompatibilityWarning) {
+      this.lastCompatibilityWarning = warning;
+      webdavLogger.warn(`[CLIENT VERSION] ${warning}`);
+    }
+  };
 
   private readonly registerStartMiddlewares = (configs: WebdavConfig) => {
     // The logger must run before the auth middlewares, otherwise rejected
@@ -87,6 +103,8 @@ export class WebDavServer {
     this.registerStartMiddlewares(configs);
     this.registerHandlers();
     this.registerEndMiddleWares();
+    void this.checkCompatibility();
+    setInterval(this.checkCompatibility, COMPATIBILITY_CHECK_INTERVAL_MS).unref();
 
     const plainHttp = configs.protocol === 'http';
     let server: http.Server | https.Server;

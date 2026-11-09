@@ -1,16 +1,27 @@
-import { describe, expect, test, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import express from 'express';
 import { randomBytes } from 'node:crypto';
 import http from 'http';
 import https from 'https';
 import { ConfigService } from '../../src/services/config.service';
-import { WebDavServer } from '../../src/webdav/webdav-server';
+import { COMPATIBILITY_CHECK_INTERVAL_MS, WebDavServer } from '../../src/webdav/webdav-server';
+import { ClientCompatibilityService } from '../../src/services/client-compatibility.service';
+import { ClientVersionGate } from '../../src/webdav/middewares/client-version.middleware';
+import { ClientVersionUnsupportedError } from '../../src/utils/errors.utils';
+import { webdavLogger } from '../../src/utils/logger.utils';
 import { NetworkUtils } from '../../src/utils/network.utils';
 import { WebdavConfig } from '../../src/types/command.types';
 import { UserCredentialsFixture } from '../fixtures/login.fixture';
 import { getWebdavConfigMock } from '../fixtures/webdav.fixture';
 
 describe('WebDav server', () => {
+  let evaluate: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    ClientVersionGate.reset();
+    evaluate = vi.spyOn(ClientCompatibilityService.instance, 'evaluate').mockResolvedValue({});
+  });
+
   test('when the server is started over a secure connection, then it generates security certificates', async () => {
     const webdavConfig: WebdavConfig = getWebdavConfigMock({ protocol: 'https' });
     const sslSelfSigned = {
@@ -65,5 +76,56 @@ describe('WebDav server', () => {
     expect(createHTTPServerStub).toHaveBeenCalledOnce();
     expect(createHTTPServerStub).toHaveBeenCalledWith(app);
     expect(createHTTPSServerStub).not.toHaveBeenCalled();
+  });
+
+  describe('compatibility check', () => {
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    test('when the version is unsupported, then requests are refused before reaching the API', async () => {
+      evaluate.mockResolvedValue({ blockError: new ClientVersionUnsupportedError('No longer supported.') });
+
+      await new WebDavServer(express()).checkCompatibility();
+
+      expect(ClientVersionGate.getBlockedError()?.message).toContain('No longer supported.');
+    });
+
+    test('when the version is already blocked, then it is not checked again', async () => {
+      evaluate.mockResolvedValue({ blockError: new ClientVersionUnsupportedError('No longer supported.') });
+      const server = new WebDavServer(express());
+
+      await server.checkCompatibility();
+      await server.checkCompatibility();
+
+      expect(evaluate).toHaveBeenCalledOnce();
+    });
+
+    test('when there is a warning, then it is logged once and requests continue', async () => {
+      evaluate.mockResolvedValue({ warning: 'Deprecated.' });
+      const server = new WebDavServer(express());
+
+      await server.checkCompatibility();
+      await server.checkCompatibility();
+
+      expect(ClientVersionGate.getBlockedError()).toBeUndefined();
+      expect(webdavLogger.warn).toHaveBeenCalledOnce();
+      expect(webdavLogger.warn).toHaveBeenCalledWith('[CLIENT VERSION] Deprecated.');
+    });
+
+    test('when the server starts, then the check runs and repeats every 5 minutes', async () => {
+      vi.useFakeTimers();
+      vi.spyOn(ConfigService.instance, 'readWebdavConfig').mockResolvedValue(getWebdavConfigMock({ protocol: 'http' }));
+      vi.spyOn(http, 'createServer').mockReturnValue({
+        listen: vi.fn(),
+      } as unknown as http.Server);
+
+      await new WebDavServer(express()).start();
+      expect(evaluate).toHaveBeenCalledTimes(1);
+
+      await vi.advanceTimersByTimeAsync(COMPATIBILITY_CHECK_INTERVAL_MS);
+      expect(evaluate).toHaveBeenCalledTimes(2);
+      vi.clearAllTimers();
+    });
   });
 });
