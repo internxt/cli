@@ -119,7 +119,10 @@
     "topicSeparator": " ",
     "topics": {},
     "hooks": {
-      "prerun": "./dist/hooks/prerun/auth_check"
+      "prerun": [
+        "./dist/hooks/prerun/version_check",
+        "./dist/hooks/prerun/auth_check"
+      ]
     },
     "macos": {
       "identifier": "com.internxt.cli"

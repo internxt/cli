@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, test, onTestFinished, vi } from 'vitest';
 import { DriveFolderService } from '../../../../src/services/drive/drive-folder.service';
 import { UploadFolderService } from '../../../../src/services/network/upload/upload-folder.service';
 import { logger } from '../../../../src/utils/logger.utils';
-import { ErrorUtils } from '../../../../src/utils/errors.utils';
+import { ClientVersionUnsupportedError, ErrorUtils } from '../../../../src/utils/errors.utils';
 import { createFileSystemNodeFixture, createProgressFixtures } from './upload.service.helpers';
 import { DELAYS_MS } from '../../../../src/services/network/upload/upload.types';
 
@@ -122,6 +122,18 @@ describe('Upload Folder Service', () => {
         plainName: folderName,
         parentFolderUuid,
       });
+    });
+
+    test('when the client version is blocked, then the error is thrown without retrying', async () => {
+      const blockError = new ClientVersionUnsupportedError();
+      vi.spyOn(DriveFolderService.instance, 'createFolder').mockReturnValue([
+        Promise.reject(blockError),
+      ] as unknown as ReturnType<typeof DriveFolderService.instance.createFolder>);
+
+      await expect(
+        sut.createFolderWithRetry({ folderName, parentFolderUuid, reporter: vi.fn(), debugMode: false }),
+      ).rejects.toBe(blockError);
+      expect(DriveFolderService.instance.createFolder).toHaveBeenCalledTimes(1);
     });
 
     test('when the folder already exists, then null is returned', async () => {
