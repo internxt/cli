@@ -36,7 +36,7 @@ export class UploadFileService {
     const concurrentFiles = this.concurrencyArray(filesToUpload, MAX_CONCURRENT_UPLOADS);
 
     for (const fileArray of concurrentFiles) {
-      await Promise.allSettled(
+      const results = await Promise.allSettled(
         fileArray.map(async (file) => {
           const parentPath = dirname(file.relativePath);
           const parentFolderUuid =
@@ -64,6 +64,10 @@ export class UploadFileService {
           emitProgress();
         }),
       );
+      const blocked = results.find(
+        (result) => result.status === 'rejected' && ErrorUtils.isClientVersionUnsupported(result.reason),
+      );
+      if (blocked) throw (blocked as PromiseRejectedResult).reason;
     }
     return bytesUploaded;
   };
@@ -154,6 +158,7 @@ export class UploadFileService {
           logger.info(msg);
           return null;
         }
+        if (ErrorUtils.isClientVersionUnsupported(error)) throw error;
 
         if (attempt < MAX_RETRIES) {
           const delay = DELAYS_MS[attempt];

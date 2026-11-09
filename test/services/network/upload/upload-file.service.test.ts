@@ -3,7 +3,7 @@ import { UploadFileService } from '../../../../src/services/network/upload/uploa
 import { NetworkFacade } from '../../../../src/services/network/network-facade.service';
 import { DriveFileService } from '../../../../src/services/drive/drive-file.service';
 import { logger } from '../../../../src/utils/logger.utils';
-import { ErrorUtils } from '../../../../src/utils/errors.utils';
+import { ClientVersionUnsupportedError, ErrorUtils } from '../../../../src/utils/errors.utils';
 import { stat } from 'fs/promises';
 import { createReadStream } from 'fs';
 import {
@@ -175,9 +175,51 @@ describe('Upload File Service', () => {
 
       uploadFileWithRetrySpy.mockRestore();
     });
+
+    test('when the client version is blocked, then the error is thrown and no further batches are uploaded', async () => {
+      const files = Array.from({ length: 15 }, (_, i) =>
+        createFileSystemNodeFixture({ type: 'file', name: `file${i}.txt`, relativePath: `file${i}.txt`, size: 10 }),
+      );
+      const { currentProgress, emitProgress } = createProgressFixtures();
+      const blockError = new ClientVersionUnsupportedError();
+      const uploadFileWithRetrySpy = vi.spyOn(sut, 'uploadFileWithRetry').mockRejectedValue(blockError);
+
+      await expect(
+        sut.uploadFilesConcurrently({
+          network: mockNetworkFacade,
+          filesToUpload: files,
+          folderMap,
+          bucket,
+          destinationFolderUuid,
+          currentProgress,
+          emitProgress,
+          debugMode: false,
+          reporter: vi.fn(),
+        }),
+      ).rejects.toBe(blockError);
+      expect(uploadFileWithRetrySpy).toHaveBeenCalledTimes(10);
+      uploadFileWithRetrySpy.mockRestore();
+    });
   });
 
   describe('uploading a file with retry', () => {
+    test('when the client version is blocked, then the error is thrown without retrying', async () => {
+      const blockError = new ClientVersionUnsupportedError();
+      vi.mocked(mockNetworkFacade.uploadFile).mockRejectedValueOnce(blockError);
+
+      await expect(
+        sut.uploadFileWithRetry({
+          file: createFileSystemNodeFixture({ type: 'file', name: 'test', relativePath: 'test.txt', size: 1024 }),
+          network: mockNetworkFacade,
+          bucket: 'test-bucket',
+          parentFolderUuid: 'dest-uuid',
+          debugMode: false,
+          reporter: vi.fn(),
+        }),
+      ).rejects.toBe(blockError);
+      expect(mockNetworkFacade.uploadFile).toHaveBeenCalledTimes(1);
+    });
+
     const bucket = 'test-bucket';
     const destinationFolderUuid = 'dest-uuid';
 

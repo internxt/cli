@@ -25,10 +25,23 @@ import { UNLOCKRequestHandler } from './handlers/UNLOCK.handler';
 import { MkcolMiddleware } from './middewares/mkcol.middleware';
 import { WebdavConfig } from '../types/command.types';
 import { WebDAVAuthMiddleware } from './middewares/webdav-auth.middleware';
-import { ClientVersionMiddleware } from './middewares/client-version.middleware';
+import { BLOCK_RECHECK_MS, ClientVersionGate, ClientVersionMiddleware } from './middewares/client-version.middleware';
+import { ClientCompatibilityService } from '../services/client-compatibility.service';
 
 export class WebDavServer {
+  private lastCompatibilityWarning?: string;
+
   constructor(private readonly app: Express) {}
+
+  readonly checkCompatibility = async () => {
+    const { blockError, warning } = await ClientCompatibilityService.instance.evaluate();
+    if (blockError) {
+      ClientVersionGate.block(blockError);
+    } else if (warning && warning !== this.lastCompatibilityWarning) {
+      this.lastCompatibilityWarning = warning;
+      webdavLogger.warn(`[CLIENT VERSION] ${warning}`);
+    }
+  };
 
   private readonly registerStartMiddlewares = (configs: WebdavConfig) => {
     // The logger must run before the auth middlewares, otherwise rejected
@@ -87,6 +100,8 @@ export class WebDavServer {
     this.registerStartMiddlewares(configs);
     this.registerHandlers();
     this.registerEndMiddleWares();
+    void this.checkCompatibility();
+    setInterval(this.checkCompatibility, BLOCK_RECHECK_MS).unref();
 
     const plainHttp = configs.protocol === 'http';
     let server: http.Server | https.Server;

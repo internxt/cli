@@ -3,7 +3,7 @@ import { ClientVersionUnsupportedError, ErrorUtils } from '../../utils/errors.ut
 import { webdavLogger } from '../../utils/logger.utils';
 import { UpdateUtils } from '../../utils/update.utils';
 
-// Expires so a block lifted by the backend doesn't need a manual restart
+// Expires so a block lifted by the backend doesn't need a manual restart; also the server's re-check interval
 export const BLOCK_RECHECK_MS = 5 * 60 * 1000;
 
 export class ClientVersionGate {
@@ -28,7 +28,7 @@ export class ClientVersionGate {
       : ' After updating, restart the server with: internxt webdav restart.';
     webdavLogger.error(
       `[CLIENT VERSION] ${this.blockedError.message}.${restartHint} ` +
-        'Requests are refused without reaching the API, re-checking every 5 minutes.',
+        `Requests are refused without reaching the API, re-checking every ${BLOCK_RECHECK_MS / 60_000} minutes.`,
     );
     return this.blockedError;
   };

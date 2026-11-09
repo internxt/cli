@@ -219,11 +219,10 @@ export class ClientVersionUnsupportedError extends Error {
   public statusCode = 403;
 
   constructor(apiMessage?: string, recommendedVersion?: string) {
-    const recommended = recommendedVersion ? `, recommended version: ${recommendedVersion}` : '';
     super(
       [
-        apiMessage ?? 'This version of the Internxt CLI is no longer supported.',
-        `Installed version: ${UpdateUtils.getCurrentVersion()}${recommended}.`,
+        apiMessage || 'This version of the Internxt CLI is no longer supported.',
+        UpdateUtils.getVersionDetails(recommendedVersion),
         UpdateUtils.getUpdateInstructions(),
       ].join(' '),
     );
