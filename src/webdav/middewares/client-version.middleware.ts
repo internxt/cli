@@ -2,9 +2,10 @@ import { RequestHandler } from 'express';
 import { ClientVersionUnsupportedError, ErrorUtils } from '../../utils/errors.utils';
 import { webdavLogger } from '../../utils/logger.utils';
 import { UpdateUtils } from '../../utils/update.utils';
+import { UNSUPPORTED_RECHECK_MS } from '../../services/client-compatibility.service';
 
 // Expires so a block lifted by the backend doesn't need a manual restart; also the server's re-check interval
-export const BLOCK_RECHECK_MS = 5 * 60 * 1000;
+export const BLOCK_RECHECK_MS = UNSUPPORTED_RECHECK_MS;
 
 export class ClientVersionGate {
   private static blockedError?: ClientVersionUnsupportedError;
@@ -19,7 +20,10 @@ export class ClientVersionGate {
 
   static readonly block = (error: unknown): ClientVersionUnsupportedError => {
     const current = this.getBlockedError();
-    if (current) return current;
+    if (current) {
+      this.blockedAt = Date.now();
+      return current;
+    }
 
     this.blockedError = ErrorUtils.toClientVersionUnsupportedError(error);
     this.blockedAt = Date.now();

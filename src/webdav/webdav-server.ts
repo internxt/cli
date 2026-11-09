@@ -26,21 +26,34 @@ import { MkcolMiddleware } from './middewares/mkcol.middleware';
 import { WebdavConfig } from '../types/command.types';
 import { WebDAVAuthMiddleware } from './middewares/webdav-auth.middleware';
 import { BLOCK_RECHECK_MS, ClientVersionGate, ClientVersionMiddleware } from './middewares/client-version.middleware';
-import { ClientCompatibilityService } from '../services/client-compatibility.service';
+import {
+  ClientCompatibilityService,
+  UPDATE_RECOMMENDED_WARNING_INTERVAL_MS,
+} from '../services/client-compatibility.service';
 
 export class WebDavServer {
   private lastCompatibilityWarning?: string;
+  private lastCompatibilityWarningAt = 0;
 
   constructor(private readonly app: Express) {}
 
   readonly checkCompatibility = async () => {
-    const { blockError, warning } = await ClientCompatibilityService.instance.evaluate();
+    const { blockError, warning } = await ClientCompatibilityService.instance.evaluate({ throttleRecommended: false });
     if (blockError) {
       ClientVersionGate.block(blockError);
-    } else if (warning && warning !== this.lastCompatibilityWarning) {
-      this.lastCompatibilityWarning = warning;
-      webdavLogger.warn(`[CLIENT VERSION] ${warning}`);
+      return;
     }
+    if (!warning) return;
+
+    const now = Date.now();
+    const repeated =
+      warning === this.lastCompatibilityWarning &&
+      now - this.lastCompatibilityWarningAt < UPDATE_RECOMMENDED_WARNING_INTERVAL_MS;
+    if (repeated) return;
+
+    this.lastCompatibilityWarning = warning;
+    this.lastCompatibilityWarningAt = now;
+    webdavLogger.warn(`[CLIENT VERSION] ${warning}`);
   };
 
   private readonly registerStartMiddlewares = (configs: WebdavConfig) => {

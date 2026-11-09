@@ -6,6 +6,7 @@ import {
   ClientCompatibilityService,
   COMPATIBILITY_CACHE_TTL_MS,
   COMPATIBILITY_REQUEST_TIMEOUT_MS,
+  UNSUPPORTED_RECHECK_MS,
   UPDATE_RECOMMENDED_WARNING_INTERVAL_MS,
 } from '../../src/services/client-compatibility.service';
 import { ConfigService } from '../../src/services/config.service';
@@ -91,6 +92,32 @@ describe('Client compatibility service', () => {
 
       expect(await sut.evaluate()).toEqual({});
       expect(readCacheFile().compatibility.status).toBe('up_to_date');
+    });
+
+    test('when the cached version is unsupported, then it is re-checked after 5 minutes instead of the full TTL', async () => {
+      writeCacheFile({ checkedAt: Date.now() - UNSUPPORTED_RECHECK_MS, compatibility: { status: 'unsupported' } });
+      mockResponse({ status: 'up_to_date' });
+
+      expect(await sut.evaluate()).toEqual({});
+    });
+
+    test('when the cached version is up to date, then it is not re-checked after 5 minutes', async () => {
+      writeCacheFile({ checkedAt: Date.now() - UNSUPPORTED_RECHECK_MS, compatibility: { status: 'up_to_date' } });
+      const get = vi.spyOn(axios, 'get');
+
+      await sut.evaluate();
+
+      expect(get).not.toHaveBeenCalled();
+    });
+
+    test.each([
+      ['a missing check time', { checkedAt: undefined }],
+      ['a non-numeric check time', { checkedAt: 'yesterday' }],
+    ])('when the cache has %s, then it is ignored', async (_, cache) => {
+      writeCacheFile({ ...cache, compatibility: { status: 'unsupported' } });
+      mockResponse({ status: 'up_to_date' });
+
+      expect(await sut.evaluate()).toEqual({});
     });
 
     test.each([
@@ -199,6 +226,13 @@ describe('Client compatibility service', () => {
       expect(warning).toContain('It was scheduled to stop working on');
     });
 
+    test('when the sunset date is shown in a timezone behind UTC, then it keeps the UTC calendar day', async () => {
+      vi.stubEnv('TZ', 'America/Los_Angeles');
+      writeCacheFile({ compatibility: { ...deprecated, sunsetAt: '2099-03-01T00:00:00.000Z' } });
+
+      expect((await sut.evaluate()).warning).toContain('1 March, 2099');
+    });
+
     test('when running in Docker, then the warning says to pull the image', async () => {
       vi.stubEnv('INXT_RUNTIME', 'docker');
       writeCacheFile({ compatibility: deprecated });
@@ -216,6 +250,15 @@ describe('Client compatibility service', () => {
         compatibility: { status: 'update_recommended' },
         recommendedWarnedAt: Date.now() - UPDATE_RECOMMENDED_WARNING_INTERVAL_MS,
       });
+      expect((await sut.evaluate()).warning).toBeDefined();
+    });
+
+    test('when the recommendation is not throttled, then it warns every time without using up the shared reminder', async () => {
+      writeCacheFile({ compatibility: { status: 'update_recommended' } });
+
+      expect((await sut.evaluate({ throttleRecommended: false })).warning).toBeDefined();
+      expect((await sut.evaluate({ throttleRecommended: false })).warning).toBeDefined();
+      expect(readCacheFile().recommendedWarnedAt).toBeUndefined();
       expect((await sut.evaluate()).warning).toBeDefined();
     });
 

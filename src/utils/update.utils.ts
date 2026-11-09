@@ -1,6 +1,9 @@
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
 import type { ClientCompatibility } from '../services/client-compatibility.service';
 import packageJson from '../../package.json';
+
+dayjs.extend(utc);
 
 export class UpdateUtils {
   static readonly isDockerRuntime = (): boolean => process.env.INXT_RUNTIME === 'docker';
@@ -39,7 +42,7 @@ export class UpdateUtils {
   };
 
   private static readonly getSunsetNotice = (sunsetAt?: string): string | undefined => {
-    const date = dayjs(sunsetAt);
+    const date = dayjs.utc(sunsetAt);
     if (!sunsetAt || !date.isValid()) return undefined;
 
     const formatted = date.format('D MMMM, YYYY');

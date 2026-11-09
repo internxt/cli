@@ -67,6 +67,18 @@ describe('Client version middleware', () => {
       expect(next).toHaveBeenCalledWith(undefined);
     });
 
+    test('when the block is confirmed again before it expires, then it lasts another 5 minutes', () => {
+      vi.useFakeTimers();
+      ClientVersionGate.block(newClientVersionUnsupportedError());
+      vi.advanceTimersByTime(BLOCK_RECHECK_MS - 1);
+
+      ClientVersionGate.block(newClientVersionUnsupportedError());
+      vi.advanceTimersByTime(BLOCK_RECHECK_MS - 1);
+
+      expect(ClientVersionGate.getBlockedError()).toBeInstanceOf(ClientVersionUnsupportedError);
+      expect(webdavLogger.error).toHaveBeenCalledOnce();
+    });
+
     test('when the API still blocks after the re-check, then the block is set and logged again', () => {
       vi.useFakeTimers();
       ClientVersionGate.block(newClientVersionUnsupportedError());

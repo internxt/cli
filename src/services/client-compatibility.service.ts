@@ -33,17 +33,18 @@ interface CompatibilityCache {
 export const COMPATIBILITY_CACHE_TTL_MS = 6 * 60 * 60 * 1000;
 export const COMPATIBILITY_REQUEST_TIMEOUT_MS = 2000;
 export const UPDATE_RECOMMENDED_WARNING_INTERVAL_MS = 60 * 60 * 1000;
+export const UNSUPPORTED_RECHECK_MS = 5 * 60 * 1000;
 
 export class ClientCompatibilityService {
   public static readonly instance: ClientCompatibilityService = new ClientCompatibilityService();
 
-  public evaluate = async (): Promise<CompatibilityVerdict> => {
+  public evaluate = async ({ throttleRecommended = true } = {}): Promise<CompatibilityVerdict> => {
     if (ClientCompatibilityService.isCheckSkipped()) return {};
 
     const now = Date.now();
     let cache = await this.readCache();
     let changed = false;
-    if (!cache || now - cache.checkedAt >= COMPATIBILITY_CACHE_TTL_MS) {
+    if (!cache || now - cache.checkedAt >= ClientCompatibilityService.getTtl(cache)) {
       cache = {
         clientVersion: UpdateUtils.getCurrentVersion(),
         apiUrl: this.getApiUrl(),
@@ -60,18 +61,22 @@ export class ClientCompatibilityService {
       verdict.blockError = new ClientVersionUnsupportedError(compatibility.message, compatibility.recommendedVersion);
     } else if (compatibility?.status === 'deprecated') {
       verdict.warning = UpdateUtils.getOutdatedWarning(compatibility);
-    } else if (
-      compatibility?.status === 'update_recommended' &&
-      now - (cache.recommendedWarnedAt ?? 0) >= UPDATE_RECOMMENDED_WARNING_INTERVAL_MS
-    ) {
-      verdict.warning = UpdateUtils.getOutdatedWarning(compatibility);
-      cache.recommendedWarnedAt = now;
-      changed = true;
+    } else if (compatibility?.status === 'update_recommended') {
+      if (!throttleRecommended) {
+        verdict.warning = UpdateUtils.getOutdatedWarning(compatibility);
+      } else if (now - (cache.recommendedWarnedAt ?? 0) >= UPDATE_RECOMMENDED_WARNING_INTERVAL_MS) {
+        verdict.warning = UpdateUtils.getOutdatedWarning(compatibility);
+        cache.recommendedWarnedAt = now;
+        changed = true;
+      }
     }
 
     if (changed) await this.writeCache(cache);
     return verdict;
   };
+
+  private static readonly getTtl = (cache: CompatibilityCache): number =>
+    cache.compatibility?.status === 'unsupported' ? UNSUPPORTED_RECHECK_MS : COMPATIBILITY_CACHE_TTL_MS;
 
   private static readonly isCheckSkipped = (): boolean => {
     const value = process.env.INXT_SKIP_VERSION_CHECK?.trim().toLowerCase();
@@ -113,7 +118,11 @@ export class ClientCompatibilityService {
   private readonly readCache = async (): Promise<CompatibilityCache | undefined> => {
     try {
       const cache = JSON.parse(await fs.readFile(CLIENT_COMPATIBILITY_CACHE_FILE, 'utf8')) as CompatibilityCache;
-      if (cache.clientVersion !== UpdateUtils.getCurrentVersion() || cache.apiUrl !== this.getApiUrl()) {
+      if (
+        !Number.isFinite(cache.checkedAt) ||
+        cache.clientVersion !== UpdateUtils.getCurrentVersion() ||
+        cache.apiUrl !== this.getApiUrl()
+      ) {
         return undefined;
       }
       return { ...cache, compatibility: ClientCompatibilityService.parseCompatibility(cache.compatibility) };

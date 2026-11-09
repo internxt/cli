@@ -2,7 +2,7 @@ import { Hook, ux } from '@oclif/core';
 import { ClientCompatibilityService } from '../../services/client-compatibility.service';
 import { CLIUtils } from '../../utils/cli.utils';
 
-const ALLOWED_COMMANDS = new Set(['logout', 'logs', 'help']);
+const ALLOWED_COMMANDS = new Set(['logout', 'logs', 'help', 'webdav-config']);
 const ALLOWED_WEBDAV_ACTIONS = new Set(['disable', 'stop', 'status']);
 
 export const isAllowedWhenUnsupported = (commandId: string | undefined, argv: string[]): boolean => {

@@ -74,6 +74,7 @@ describe('Version check prerun hook', () => {
     test.each([
       ['logout', []],
       ['logs', []],
+      ['webdav-config', ['--port', '3005']],
       ['help', ['list']],
       ['autocomplete', ['zsh']],
       ['autocomplete:script', ['zsh']],

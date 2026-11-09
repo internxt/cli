@@ -5,7 +5,10 @@ import http from 'http';
 import https from 'https';
 import { ConfigService } from '../../src/services/config.service';
 import { WebDavServer } from '../../src/webdav/webdav-server';
-import { ClientCompatibilityService } from '../../src/services/client-compatibility.service';
+import {
+  ClientCompatibilityService,
+  UPDATE_RECOMMENDED_WARNING_INTERVAL_MS,
+} from '../../src/services/client-compatibility.service';
 import { BLOCK_RECHECK_MS, ClientVersionGate } from '../../src/webdav/middewares/client-version.middleware';
 import { ClientVersionUnsupportedError } from '../../src/utils/errors.utils';
 import { webdavLogger } from '../../src/utils/logger.utils';
@@ -101,6 +104,27 @@ describe('WebDav server', () => {
       expect(ClientVersionGate.getBlockedError()).toBeUndefined();
       expect(webdavLogger.warn).toHaveBeenCalledOnce();
       expect(webdavLogger.warn).toHaveBeenCalledWith('[CLIENT VERSION] Deprecated.');
+    });
+
+    test('when the same warning persists, then it is logged again every hour', async () => {
+      vi.useFakeTimers();
+      evaluate.mockResolvedValue({ warning: 'Update available.' });
+      const server = new WebDavServer(express());
+
+      await server.checkCompatibility();
+      vi.advanceTimersByTime(UPDATE_RECOMMENDED_WARNING_INTERVAL_MS - 1);
+      await server.checkCompatibility();
+      expect(webdavLogger.warn).toHaveBeenCalledOnce();
+
+      vi.advanceTimersByTime(1);
+      await server.checkCompatibility();
+      expect(webdavLogger.warn).toHaveBeenCalledTimes(2);
+    });
+
+    test('when the check runs, then it does not use up the CLI hourly reminder', async () => {
+      await new WebDavServer(express()).checkCompatibility();
+
+      expect(evaluate).toHaveBeenCalledWith({ throttleRecommended: false });
     });
 
     test('when the server starts, then the check runs and repeats every 5 minutes', async () => {
