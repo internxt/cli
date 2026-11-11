@@ -15,6 +15,8 @@ RUN npm approve-scripts --all
 RUN npm rebuild
 RUN npm run build
 
+RUN rm -rf /root/.cache/internxt-cli
+
 RUN chmod +x /app/docker/entrypoint.sh
 RUN chmod +x /app/docker/health_check.sh
 RUN ln -s '/app/bin/run.js' /usr/local/bin/internxt
