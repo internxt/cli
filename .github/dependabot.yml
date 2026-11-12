@@ -20,3 +20,20 @@ updates:
       - dependency-name: '@salesforce/dev-scripts'
       - dependency-name: '*'
         update-types: ['version-update:semver-major']
+
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'saturday'
+    labels:
+      - 'dependencies'
+    open-pull-requests-limit: 5
+    pull-request-branch-name:
+      separator: '-'
+    commit-message:
+      prefix: chore(ci)
+    groups:
+      github-actions:
+        patterns:
+          - '*'
