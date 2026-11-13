@@ -6,8 +6,39 @@ import { DriveFileService } from './drive-file.service';
 import { DriveFolderService } from './drive-folder.service';
 import { DriveItemBD } from '../database/drive-item/drive-item.domain';
 
+const RECENT_WRITE_TRUST_MS = 10_000;
+
 export class DriveItemService {
   static readonly instance = new DriveItemService();
+
+  private readonly recentFileWrites = new Map<string, { item: DriveFileItem; expiresAt: number }>();
+
+  /** The API reads from replicas that can lag a moment behind a write, so a file this server
+   * just created can briefly look missing; remember it so that 404 is not trusted. */
+  public rememberFileWrite = (path: string, item: DriveFileItem): void => {
+    const now = Date.now();
+    for (const [writtenPath, write] of this.recentFileWrites) {
+      if (write.expiresAt <= now) this.recentFileWrites.delete(writtenPath);
+    }
+    this.recentFileWrites.set(path, { item, expiresAt: now + RECENT_WRITE_TRUST_MS });
+  };
+
+  /** Only while the path cache still maps to the written uuid: our own DELETE and MOVE clear it. */
+  private readonly getRecentFileWrite = (
+    cached: DriveItemBD | undefined,
+    path: string,
+    error: unknown,
+  ): DriveFileItem | undefined => {
+    if (!cached || !ErrorUtils.isNotFoundError(error)) return;
+
+    const write = this.recentFileWrites.get(path);
+    if (!write || write.expiresAt <= Date.now() || write.item.uuid !== cached.uuid) return;
+
+    webdavLogger.info(`[LOOKUP] '${path}' was written moments ago, ignoring the API's not found`, {
+      uuid: cached.uuid,
+    });
+    return write.item;
+  };
 
   /** Only drop the cached uuid when the API confirms the item is gone; evicting on a timeout
    * pushes every later request onto the slow path lookup. */
@@ -30,6 +61,9 @@ export class DriveItemService {
       ]);
       return item;
     } catch (error) {
+      const recentWrite = this.getRecentFileWrite(cached, path, error);
+      if (recentWrite) return recentWrite;
+
       webdavLogger.warn(ErrorUtils.withRequestId('File metadata by uuid failed, falling back to path lookup', error), {
         path,
         uuid: cached.uuid,
@@ -84,6 +118,9 @@ export class DriveItemService {
       ]);
       return item;
     } catch (error) {
+      const recentWrite = this.getRecentFileWrite(cached, path, error);
+      if (recentWrite) return recentWrite;
+
       ErrorUtils.logIfUnexpected(webdavLogger, 'File lookup by path failed', error, { path });
       throw ErrorUtils.toLookupError('file', path, error);
     }
