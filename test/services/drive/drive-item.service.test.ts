@@ -299,6 +299,56 @@ describe('Drive Item Service', () => {
 
       await expect(sut.getFileByPath(path)).rejects.toBeInstanceOf(NotFoundError);
     });
+
+    test('when a just-written file is moved, then the destination keeps the protection with its new name', async () => {
+      const written = newFileItem({ uuid: 'moved-uuid', name: 'backup', type: 'temp' });
+      sut.rememberFileWrite('/recent/backup.temp', written);
+      sut.moveFileWrite('/recent/backup.temp', '/recent/backup.dat');
+      vi.spyOn(DriveItemRepository.instance, 'getByPath').mockImplementation(async (path) =>
+        cacheEntry(path, written.uuid),
+      );
+      vi.spyOn(DriveFileService.instance, 'getFileMetadata').mockRejectedValue(newApiError(404));
+      vi.spyOn(DriveFileService.instance, 'getFileMetadataByPath').mockRejectedValue(newApiError(404));
+      vi.spyOn(DriveItemRepository.instance, 'delete').mockResolvedValue(undefined);
+
+      const result = await sut.getFileByPath('/recent/backup.dat');
+
+      expect(result).toMatchObject({ uuid: written.uuid, name: 'backup', type: 'dat' });
+      await expect(sut.getFileByPath('/recent/backup.temp')).rejects.toBeInstanceOf(NotFoundError);
+    });
+
+    test('when a write is forgotten by uuid, then only a write of that uuid is dropped', async () => {
+      const path = '/forget/by-uuid.txt';
+      const newer = newFileItem({ uuid: 'newer-uuid' });
+      sut.rememberFileWrite(path, newer);
+      sut.forgetFileWrite(path, 'older-uuid');
+      vi.spyOn(DriveItemRepository.instance, 'getByPath').mockResolvedValue(cacheEntry(path, newer.uuid));
+      vi.spyOn(DriveFileService.instance, 'getFileMetadata').mockRejectedValue(newApiError(404));
+      vi.spyOn(DriveFileService.instance, 'getFileMetadataByPath').mockRejectedValue(newApiError(404));
+      vi.spyOn(DriveItemRepository.instance, 'delete').mockResolvedValue(undefined);
+
+      await expect(sut.getFileByPath(path)).resolves.toBe(newer);
+
+      sut.forgetFileWrite(path, newer.uuid);
+      await expect(sut.getFileByPath(path)).rejects.toBeInstanceOf(NotFoundError);
+    });
+
+    test('when a folder is forgotten, then the writes under it are forgotten and siblings are kept', async () => {
+      const inside = newFileItem({ uuid: 'inside-uuid' });
+      const sibling = newFileItem({ uuid: 'sibling-uuid' });
+      sut.rememberFileWrite('/forget/folder/file.txt', inside);
+      sut.rememberFileWrite('/forget/folder-2/file.txt', sibling);
+      sut.forgetFileWrites('/forget/folder');
+      vi.spyOn(DriveItemRepository.instance, 'getByPath').mockImplementation(async (path) =>
+        cacheEntry(path, path.startsWith('/forget/folder/') ? inside.uuid : sibling.uuid),
+      );
+      vi.spyOn(DriveFileService.instance, 'getFileMetadata').mockRejectedValue(newApiError(404));
+      vi.spyOn(DriveFileService.instance, 'getFileMetadataByPath').mockRejectedValue(newApiError(404));
+      vi.spyOn(DriveItemRepository.instance, 'delete').mockResolvedValue(undefined);
+
+      await expect(sut.getFileByPath('/forget/folder/file.txt')).rejects.toBeInstanceOf(NotFoundError);
+      await expect(sut.getFileByPath('/forget/folder-2/file.txt')).resolves.toBe(sibling);
+    });
   });
 
   describe('getting a folder by path', () => {

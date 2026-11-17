@@ -13,6 +13,7 @@ import { DriveFileService } from '../../../src/services/drive/drive-file.service
 import { WebDavFolderService } from '../../../src/services/webdav/webdav-folder.service';
 import { DriveItemRepository } from '../../../src/services/database/drive-item/drive-item.repository';
 import { newFolderItem, newFileItem } from '../../fixtures/drive.fixture';
+import { DriveItemService } from '../../../src/services/drive/drive-item.service';
 
 describe('MOVE request handler', () => {
   let sut: MOVERequestHandler;
@@ -66,9 +67,11 @@ describe('MOVE request handler', () => {
     const renameFolderStub = vi.spyOn(DriveFolderService.instance, 'renameFolder').mockResolvedValue(undefined);
     const deleteSpy = vi.spyOn(DriveItemRepository.instance, 'delete').mockResolvedValue(undefined);
     const createOrUpdateSpy = vi.spyOn(DriveItemRepository.instance, 'createOrUpdate').mockResolvedValue(undefined);
+    const forgetFileWritesSpy = vi.spyOn(DriveItemService.instance, 'forgetFileWrites');
 
     await sut.handle(request, response);
 
+    expect(forgetFileWritesSpy).toHaveBeenCalledWith('/source/folder/');
     expect(renameFolderStub).toHaveBeenCalledWith({ folderUuid: 'folder-uuid', name: 'renamed' });
     expect(deleteSpy).toHaveBeenCalledWith(['folder-uuid']);
     expect(createOrUpdateSpy).toHaveBeenCalled();
@@ -96,9 +99,11 @@ describe('MOVE request handler', () => {
     const renameFileStub = vi.spyOn(DriveFileService.instance, 'renameFile').mockResolvedValue(undefined);
     const deleteSpy = vi.spyOn(DriveItemRepository.instance, 'delete').mockResolvedValue(undefined);
     const createOrUpdateSpy = vi.spyOn(DriveItemRepository.instance, 'createOrUpdate').mockResolvedValue(undefined);
+    const moveFileWriteSpy = vi.spyOn(DriveItemService.instance, 'moveFileWrite');
 
     await sut.handle(request, response);
 
+    expect(moveFileWriteSpy).toHaveBeenCalledWith('/source/file.txt', '/source/renamed.txt');
     expect(renameFileStub).toHaveBeenCalledWith('file-uuid', { plainName: 'renamed', type: 'txt' });
     expect(deleteSpy).toHaveBeenCalledWith(['file-uuid']);
     expect(createOrUpdateSpy).toHaveBeenCalled();

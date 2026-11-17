@@ -1,3 +1,4 @@
+import path from 'node:path';
 import { DriveItemRepository } from '../database/drive-item/drive-item.repository';
 import { DriveFileItem, DriveFolderItem } from '../../types/drive.types';
 import { ErrorUtils } from '../../utils/errors.utils';
@@ -21,6 +22,26 @@ export class DriveItemService {
       if (write.expiresAt <= now) this.recentFileWrites.delete(writtenPath);
     }
     this.recentFileWrites.set(path, { item, expiresAt: now + RECENT_WRITE_TRUST_MS });
+  };
+
+  public moveFileWrite = (fromPath: string, toPath: string): void => {
+    const write = this.recentFileWrites.get(fromPath);
+    if (!write) return;
+    this.recentFileWrites.delete(fromPath);
+    const { name, ext } = path.parse(toPath);
+    this.recentFileWrites.set(toPath, { ...write, item: { ...write.item, name, type: ext.replace('.', '') } });
+  };
+
+  public forgetFileWrite = (itemPath: string, uuid: string): void => {
+    if (this.recentFileWrites.get(itemPath)?.item.uuid === uuid) this.recentFileWrites.delete(itemPath);
+  };
+
+  /** Forgets writes at this path and, for a folder, everything under it. */
+  public forgetFileWrites = (itemPath: string): void => {
+    const folderPrefix = itemPath.endsWith('/') ? itemPath : `${itemPath}/`;
+    for (const writtenPath of this.recentFileWrites.keys()) {
+      if (writtenPath === itemPath || writtenPath.startsWith(folderPrefix)) this.recentFileWrites.delete(writtenPath);
+    }
   };
 
   /** Only while the path cache still maps to the written uuid: our own DELETE and MOVE clear it. */

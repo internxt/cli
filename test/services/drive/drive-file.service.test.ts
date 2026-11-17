@@ -50,6 +50,28 @@ describe('Drive file Service', () => {
     expect(result.folderUuid).to.be.equal(payload.folderUuid);
   });
 
+  test('when the API returns the size as a string, then created and replaced files carry it as a number', async () => {
+    const payload: Storage.FileEntryByUuid = {
+      plainName: 'example',
+      type: 'txt',
+      size: 1024,
+      folderUuid: 'folder_uuid',
+      fileId: 'fileId_123456',
+      bucket: 'bucket123',
+      encryptVersion: EncryptionVersion.Aes03,
+    };
+    const apiFile = { uuid: 'example-uuid', size: '1024', createdAt: new Date(), updatedAt: new Date() };
+    const storageClientMock: Partial<Drive.Storage> = {
+      createFileEntryByUuid: vi.fn().mockResolvedValue(apiFile),
+      replaceFile: vi.fn().mockResolvedValue(apiFile),
+    };
+    // @ts-expect-error - We only stub the methods we need to test
+    vi.spyOn(SdkManager.instance, 'getStorage').mockReturnValue(storageClientMock);
+
+    expect((await sut.createFile(payload)).size).toBe(1024);
+    expect((await sut.replaceFile('example-uuid', payload)).size).toBe(1024);
+  });
+
   test('when file metadata is requested, then it is returned successfully', async () => {
     const fakeFileData: DriveFileData = {
       uuid: randomUUID(),

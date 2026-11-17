@@ -40,6 +40,10 @@ export class ErrorUtils {
     );
   };
 
+  static readonly isApiConflict = (error: unknown): boolean => {
+    return this.getStatusCode(error, 'status') === 409;
+  };
+
   static readonly isFileNotFoundError = (error: unknown): error is NodeJS.ErrnoException => {
     return this.isError(error) && 'code' in error && error.code === 'ENOENT';
   };

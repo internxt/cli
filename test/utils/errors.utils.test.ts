@@ -277,6 +277,19 @@ describe('Errors Utils', () => {
     });
   });
 
+  describe('isApiConflict', () => {
+    test('when the API answers 409, then it is a conflict whatever the message', () => {
+      expect(ErrorUtils.isApiConflict(newApiError(409, { data: { message: 'File already exists' } }))).toBe(true);
+      expect(ErrorUtils.isApiConflict(newApiError(409))).toBe(true);
+    });
+
+    test('when the error is another status or carries none, then it is not a conflict', () => {
+      expect(ErrorUtils.isApiConflict(newApiError(400))).toBe(false);
+      expect(ErrorUtils.isApiConflict(newNetworkError())).toBe(false);
+      expect(ErrorUtils.isApiConflict(new Error('File already exists'))).toBe(false);
+    });
+  });
+
   describe('isFileNotReplaceable', () => {
     test('when the API rejects a replace with its error code, then it is detected', () => {
       const error = newApiError(400, { data: { errorCode: 'FILE_NOT_REPLACEABLE' } });

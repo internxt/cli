@@ -4,7 +4,7 @@ import { DriveItemRepository } from '../../services/database/drive-item/drive-it
 import { DriveItemService } from '../../services/drive/drive-item.service';
 import { AuthService } from '../../services/auth.service';
 import { WebDavMethodHandler } from '../../types/webdav.types';
-import { ConflictError, ErrorUtils } from '../../utils/errors.utils';
+import { ConflictError, ErrorUtils, ServiceUnavailableError } from '../../utils/errors.utils';
 import { WebDavUtils } from '../../utils/webdav.utils';
 import { webdavLogger } from '../../utils/logger.utils';
 import { EncryptionVersion } from '@internxt/sdk/dist/drive/storage/types';
@@ -13,6 +13,7 @@ import { WebDavFolderService } from '../../services/webdav/webdav-folder.service
 import { ThumbnailService } from '../../services/thumbnail.service';
 import { FormatUtils } from '../../utils/format.utils';
 import { UploadUtils } from '../../utils/upload.utils';
+import { DriveFileItem } from '../../types/drive.types';
 
 export class PUTRequestHandler implements WebDavMethodHandler {
   handle = async (req: Request, res: Response) => {
@@ -120,11 +121,12 @@ export class PUTRequestHandler implements WebDavMethodHandler {
           uuid: driveFileItem.uuid,
         });
         await DriveItemRepository.instance.delete([driveFileItem.uuid]);
+        DriveItemService.instance.forgetFileWrite(resource.url, driveFileItem.uuid);
         isReplacement = false;
-        file = await DriveFileService.instance.createFile(filePayload);
+        file = await this.createFileOrRetryLater(resource.url, filePayload);
       }
     } else {
-      file = await DriveFileService.instance.createFile(filePayload);
+      file = await this.createFileOrRetryLater(resource.url, filePayload, driveFileItem?.uuid);
     }
     timings.driveUpload = driveTimer.stop();
 
@@ -166,5 +168,30 @@ export class PUTRequestHandler implements WebDavMethodHandler {
 
     res.header('ETag', WebDavUtils.getItemETag(file));
     res.status(statusCode).send();
+  };
+
+  private readonly createFileOrRetryLater = async (
+    url: string,
+    payload: Parameters<DriveFileService['createFile']>[0],
+    staleUuid?: string,
+  ): Promise<DriveFileItem> => {
+    try {
+      return await DriveFileService.instance.createFile(payload);
+    } catch (error) {
+      // POST /files only returns 409 when a live file with this name exists
+      if (!ErrorUtils.isApiConflict(error)) throw error;
+
+      webdavLogger.warn(
+        ErrorUtils.withRequestId(
+          `[PUT] '${url}' conflicts on the API, asking to retry: ${ErrorUtils.getResponseMessage(error) ?? 'no message'}`,
+          error,
+        ),
+      );
+      if (staleUuid) {
+        await DriveItemRepository.instance.delete([staleUuid]);
+        DriveItemService.instance.forgetFileWrite(url, staleUuid);
+      }
+      throw new ServiceUnavailableError(`File '${url}' already exists but could not be found yet, retry later`);
+    }
   };
 }
