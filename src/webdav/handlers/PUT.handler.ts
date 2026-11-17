@@ -4,7 +4,7 @@ import { DriveItemRepository } from '../../services/database/drive-item/drive-it
 import { DriveItemService } from '../../services/drive/drive-item.service';
 import { AuthService } from '../../services/auth.service';
 import { WebDavMethodHandler } from '../../types/webdav.types';
-import { ConflictError } from '../../utils/errors.utils';
+import { ConflictError, ErrorUtils } from '../../utils/errors.utils';
 import { WebDavUtils } from '../../utils/webdav.utils';
 import { webdavLogger } from '../../utils/logger.utils';
 import { EncryptionVersion } from '@internxt/sdk/dist/drive/storage/types';
@@ -109,10 +109,23 @@ export class PUTRequestHandler implements WebDavMethodHandler {
       encryptVersion: EncryptionVersion.Aes03,
     };
 
-    const file =
-      isReplacement && driveFileItem
-        ? await DriveFileService.instance.replaceFile(driveFileItem.uuid, filePayload)
-        : await DriveFileService.instance.createFile(filePayload);
+    let file;
+    if (isReplacement && driveFileItem) {
+      try {
+        file = await DriveFileService.instance.replaceFile(driveFileItem.uuid, filePayload);
+      } catch (error) {
+        if (!ErrorUtils.isNotFoundError(error) && !ErrorUtils.isFileNotReplaceable(error)) throw error;
+        // The lookup came from a lagging replica; the primary says this file is gone, so PUT creates it
+        webdavLogger.info(`[PUT] '${resource.url}' is no longer replaceable, creating it instead`, {
+          uuid: driveFileItem.uuid,
+        });
+        await DriveItemRepository.instance.delete([driveFileItem.uuid]);
+        isReplacement = false;
+        file = await DriveFileService.instance.createFile(filePayload);
+      }
+    } else {
+      file = await DriveFileService.instance.createFile(filePayload);
+    }
     timings.driveUpload = driveTimer.stop();
 
     await DriveItemRepository.instance.createOrUpdate([

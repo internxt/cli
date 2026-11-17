@@ -19,6 +19,8 @@ import { UserCredentialsFixture } from '../../fixtures/login.fixture';
 import { FileStatus } from '@internxt/sdk/dist/drive/storage/types';
 import { CLIUtils } from '../../../src/utils/cli.utils';
 import { UsageService } from '../../../src/services/usage.service';
+import { DriveItemRepository } from '../../../src/services/database/drive-item/drive-item.repository';
+import { newApiError } from '../../fixtures/errors.fixture';
 
 describe('PUT request handler', () => {
   let networkFacade: NetworkFacade;
@@ -241,6 +243,101 @@ describe('PUT request handler', () => {
     expect(response.status).not.toHaveBeenCalled();
   });
 
+  describe('when the replace says the file is no longer replaceable', () => {
+    const setupStaleReplace = (replaceError: unknown) => {
+      const requestedFileResource: WebDavRequestedResource = getRequestedFileResource();
+      const requestedParentFolderResource: WebDavRequestedResource = getRequestedFolderResource({
+        parentFolder: '/',
+        folderName: '',
+      });
+      const folderFixture = newFolderItem({ name: requestedParentFolderResource.name });
+      const staleFile = newFileItem({ folderUuid: folderFixture.uuid });
+      const createdFile = newFileItem({ folderUuid: folderFixture.uuid });
+      const request = createWebDavRequestFixture({
+        method: 'PUT',
+        url: requestedFileResource.url,
+        headers: { 'content-length': '100' },
+      });
+      const response = createWebDavResponseFixture({
+        status: vi.fn().mockReturnValue({ send: vi.fn() }),
+      });
+
+      vi.spyOn(WebDavUtils, 'getRequestedResource')
+        .mockResolvedValueOnce(requestedFileResource)
+        .mockResolvedValueOnce(requestedParentFolderResource);
+      vi.spyOn(WebDavUtils, 'getDriveItemFromResource').mockResolvedValueOnce(staleFile);
+      vi.spyOn(WebDavUtils, 'getDriveFolderFromResource').mockResolvedValue(folderFixture);
+      vi.spyOn(AuthService.instance, 'getAuthDetails').mockResolvedValue(UserCredentialsFixture);
+      const uploadStub = vi.spyOn(networkFacade, 'uploadFile').mockResolvedValue('uploaded-file-id');
+      const deleteDriveFileStub = vi.spyOn(WebDavUtils, 'deleteOrTrashItem').mockResolvedValue();
+      const dropCacheStub = vi.spyOn(DriveItemRepository.instance, 'delete').mockResolvedValue(undefined);
+      vi.spyOn(DriveItemRepository.instance, 'createOrUpdate').mockResolvedValue(undefined);
+      vi.spyOn(DriveFileService.instance, 'replaceFile').mockRejectedValue(replaceError);
+      const createDriveFileStub = vi.spyOn(DriveFileService.instance, 'createFile').mockResolvedValue(createdFile);
+
+      return {
+        request,
+        response,
+        staleFile,
+        createdFile,
+        uploadStub,
+        deleteDriveFileStub,
+        dropCacheStub,
+        createDriveFileStub,
+      };
+    };
+
+    test('when the replace returns 404, then the cached uuid is dropped and the file is created with the same upload', async () => {
+      const { request, response, staleFile, uploadStub, deleteDriveFileStub, dropCacheStub, createDriveFileStub } =
+        setupStaleReplace(newApiError(404));
+
+      await sut.handle(request, response);
+
+      expect(uploadStub).toHaveBeenCalledOnce();
+      expect(dropCacheStub).toHaveBeenCalledWith([staleFile.uuid]);
+      expect(createDriveFileStub).toHaveBeenCalledOnce();
+      expect(createDriveFileStub).toHaveBeenCalledWith(expect.objectContaining({ fileId: 'uploaded-file-id' }));
+      expect(deleteDriveFileStub).not.toHaveBeenCalled();
+      expect(response.status).toHaveBeenCalledWith(201);
+    });
+
+    test('when the replace returns FILE_NOT_REPLACEABLE, then the file is created', async () => {
+      const { request, response, staleFile, dropCacheStub, createDriveFileStub } = setupStaleReplace(
+        newApiError(400, { data: { errorCode: 'FILE_NOT_REPLACEABLE' } }),
+      );
+
+      await sut.handle(request, response);
+
+      expect(dropCacheStub).toHaveBeenCalledWith([staleFile.uuid]);
+      expect(createDriveFileStub).toHaveBeenCalledOnce();
+      expect(response.status).toHaveBeenCalledWith(201);
+    });
+
+    test('when the create that follows returns 409, then the 409 is returned to the client', async () => {
+      const conflict = newApiError(409, { data: { message: 'File already exists' } });
+      const { request, response, createDriveFileStub } = setupStaleReplace(
+        newApiError(400, { data: { errorCode: 'FILE_NOT_REPLACEABLE' } }),
+      );
+      createDriveFileStub.mockRejectedValue(conflict);
+
+      await expect(sut.handle(request, response)).rejects.toBe(conflict);
+
+      expect(createDriveFileStub).toHaveBeenCalledOnce();
+      expect(response.status).not.toHaveBeenCalled();
+    });
+
+    test('when the replace fails with a 400 with another error code, then no file is created', async () => {
+      const limitError = newApiError(400, { data: { errorCode: 'EMPTY_FILES_LIMIT_REACHED' } });
+      const { request, response, dropCacheStub, createDriveFileStub } = setupStaleReplace(limitError);
+
+      await expect(sut.handle(request, response)).rejects.toBe(limitError);
+
+      expect(dropCacheStub).not.toHaveBeenCalled();
+      expect(createDriveFileStub).not.toHaveBeenCalled();
+      expect(response.status).not.toHaveBeenCalled();
+    });
+  });
+
   test('when the file found at the destination is trashed, then the server creates a new one', async () => {
     const requestedFileResource: WebDavRequestedResource = getRequestedFileResource();
     const requestedParentFolderResource: WebDavRequestedResource = getRequestedFolderResource({
@@ -248,7 +345,12 @@ describe('PUT request handler', () => {
       folderName: '',
     });
     const folderFixture = newFolderItem({ name: requestedParentFolderResource.name });
-    const trashedFile = newFileItem({ folderUuid: folderFixture.uuid, size: 0, fileId: undefined, status: FileStatus.TRASHED });
+    const trashedFile = newFileItem({
+      folderUuid: folderFixture.uuid,
+      size: 0,
+      fileId: undefined,
+      status: FileStatus.TRASHED,
+    });
     const createdFile = newFileItem({ folderUuid: folderFixture.uuid, size: 0, fileId: undefined });
     const request = createWebDavRequestFixture({
       method: 'PUT',

@@ -9,6 +9,8 @@ export const DEFAULT_RETRY_AFTER_SECONDS = 5;
 
 export const CLIENT_VERSION_UNSUPPORTED = 'CLIENT_VERSION_UNSUPPORTED';
 
+export const FILE_NOT_REPLACEABLE = 'FILE_NOT_REPLACEABLE';
+
 export class ErrorUtils {
   static readonly isError = (error: unknown): error is Error => {
     return typeof Error.isError === 'function'
@@ -91,6 +93,10 @@ export class ErrorUtils {
   static readonly isClientVersionUnsupported = (error: unknown): boolean => {
     if (error instanceof ClientVersionUnsupportedError) return true;
     return this.getResponseBody(error)?.errorCode === CLIENT_VERSION_UNSUPPORTED;
+  };
+
+  static readonly isFileNotReplaceable = (error: unknown): boolean => {
+    return this.getResponseBody(error)?.errorCode === FILE_NOT_REPLACEABLE;
   };
 
   static readonly toClientVersionUnsupportedError = (error: unknown): ClientVersionUnsupportedError => {
