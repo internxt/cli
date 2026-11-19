@@ -10,6 +10,7 @@ import {
 } from '../../fixtures/webdav.fixture';
 import { NotFoundError } from '../../../src/utils/errors.utils';
 import { WebDavUtils } from '../../../src/utils/webdav.utils';
+import { DriveItemService } from '../../../src/services/drive/drive-item.service';
 import { newFileItem, newFolderItem } from '../../fixtures/drive.fixture';
 import { WebDavRequestedResource } from '../../../src/types/webdav.types';
 import { AuthService } from '../../../src/services/auth.service';
@@ -100,11 +101,13 @@ describe('DELETE request handler', () => {
       .spyOn(WebDavUtils, 'getDriveItemFromResource')
       .mockResolvedValue(mockFolder);
     const removeItemsStub = vi.spyOn(WebDavUtils, 'deleteOrTrashItem').mockResolvedValue();
+    const forgetFileWritesSpy = vi.spyOn(DriveItemService.instance, 'forgetFileWrites');
 
     await requestHandler.handle(request, response);
     expect(response.status).toHaveBeenCalledWith(204);
     expect(getRequestedResourceStub).toHaveBeenCalledOnce();
     expect(getAndSearchItemFromResourceStub).toHaveBeenCalledOnce();
     expect(removeItemsStub).toHaveBeenCalledWith(mockFolder);
+    expect(forgetFileWritesSpy).toHaveBeenCalledWith(requestedFolderResource.url);
   });
 });

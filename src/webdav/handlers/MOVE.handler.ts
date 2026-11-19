@@ -7,6 +7,7 @@ import { NotFoundError, PreconditionFailedError } from '../../utils/errors.utils
 import { webdavLogger } from '../../utils/logger.utils';
 import { WebDavUtils } from '../../utils/webdav.utils';
 import { WebDavFolderService } from '../../services/webdav/webdav-folder.service';
+import { DriveItemService } from '../../services/drive/drive-item.service';
 
 export class MOVERequestHandler implements WebDavMethodHandler {
   handle = async (req: Request, res: Response) => {
@@ -44,6 +45,7 @@ export class MOVERequestHandler implements WebDavMethodHandler {
       isOverwrite = true;
       webdavLogger.info(`[MOVE] Destination '${destinationResource.url}' already exists, overwriting it`);
       await WebDavUtils.deleteOrTrashItem(destinationDriveItem);
+      DriveItemService.instance.forgetFileWrites(destinationResource.url);
     }
 
     if (destinationResource.path.dir === resource.path.dir) {
@@ -106,6 +108,12 @@ export class MOVERequestHandler implements WebDavMethodHandler {
         updatedAt: new Date(),
       },
     ]);
+
+    if (originalDriveItem.itemType === 'file') {
+      DriveItemService.instance.moveFileWrite(resource.url, destinationResource.url);
+    } else {
+      DriveItemService.instance.forgetFileWrites(resource.url);
+    }
 
     const statusCode = isOverwrite ? 204 : 201;
     res.status(statusCode).send();

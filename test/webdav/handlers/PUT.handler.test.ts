@@ -8,6 +8,7 @@ import {
   getRequestedFolderResource,
 } from '../../fixtures/webdav.fixture';
 import { DriveFileService } from '../../../src/services/drive/drive-file.service';
+import { DriveItemService } from '../../../src/services/drive/drive-item.service';
 import { AuthService } from '../../../src/services/auth.service';
 import { NetworkFacade } from '../../../src/services/network/network-facade.service';
 import { PUTRequestHandler } from '../../../src/webdav/handlers/PUT.handler';
@@ -15,11 +16,13 @@ import { WebDavRequestedResource } from '../../../src/types/webdav.types';
 import { WebDavUtils } from '../../../src/utils/webdav.utils';
 import { newFileItem, newFolderItem } from '../../fixtures/drive.fixture';
 import { UserCredentialsFixture } from '../../fixtures/login.fixture';
-import { newClientVersionUnsupportedError } from '../../fixtures/errors.fixture';
+import { FileStatus } from '@internxt/sdk/dist/drive/storage/types';
 import { CLIUtils } from '../../../src/utils/cli.utils';
 import { UsageService } from '../../../src/services/usage.service';
-import { webdavLogger } from '../../../src/utils/logger.utils';
-import { AxiosResponseError } from '@internxt/sdk/dist/shared/types/errors';
+import { DriveItemRepository } from '../../../src/services/database/drive-item/drive-item.repository';
+import { newApiError, newClientVersionUnsupportedError } from '../../fixtures/errors.fixture';
+import { ServiceUnavailableError } from '../../../src/utils/errors.utils';
+import { DriveItemBD } from '../../../src/services/database/drive-item/drive-item.domain';
 
 describe('PUT request handler', () => {
   let networkFacade: NetworkFacade;
@@ -183,6 +186,7 @@ describe('PUT request handler', () => {
     const uploadStub = vi.spyOn(networkFacade, 'uploadFile').mockResolvedValue('uploaded-file-id');
     const createDriveFileStub = vi.spyOn(DriveFileService.instance, 'createFile').mockResolvedValue(fileFixture);
     const replaceDriveFileStub = vi.spyOn(DriveFileService.instance, 'replaceFile').mockResolvedValue(fileFixture);
+    const rememberFileWriteStub = vi.spyOn(DriveItemService.instance, 'rememberFileWrite');
 
     await sut.handle(request, response);
     expect(response.status).toHaveBeenCalledWith(204);
@@ -203,67 +207,173 @@ describe('PUT request handler', () => {
     );
     expect(createDriveFileStub).not.toHaveBeenCalled();
     expect(deleteDriveFileStub).not.toHaveBeenCalled();
+    expect(rememberFileWriteStub).toHaveBeenCalledWith(requestedFileResource.url, fileFixture);
   });
 
-  test('when replacing an existing file fails, then the request id is logged and the file is deleted and created', async () => {
+  test.each([
+    ['an API error', () => newApiError(500)],
+    ['an unsupported client version', () => newClientVersionUnsupportedError()],
+  ])(
+    'when replacing an existing file fails with %s, then the error passes through and nothing is created',
+    async (_, newError) => {
+      const requestedFileResource: WebDavRequestedResource = getRequestedFileResource();
+      const requestedParentFolderResource: WebDavRequestedResource = getRequestedFolderResource({
+        parentFolder: '/',
+        folderName: '',
+      });
+      const folderFixture = newFolderItem({ name: requestedParentFolderResource.name });
+      const fileFixture = newFileItem({ folderUuid: folderFixture.uuid, size: 0, fileId: undefined });
+      const request = createWebDavRequestFixture({
+        method: 'PUT',
+        url: requestedFileResource.url,
+        headers: { 'content-length': '0' },
+      });
+      const response = createWebDavResponseFixture({
+        status: vi.fn().mockReturnValue({ send: vi.fn() }),
+      });
+      const replaceError = newError();
+
+      vi.spyOn(WebDavUtils, 'getRequestedResource')
+        .mockResolvedValueOnce(requestedFileResource)
+        .mockResolvedValueOnce(requestedParentFolderResource);
+      vi.spyOn(WebDavUtils, 'getDriveItemFromResource').mockResolvedValueOnce(fileFixture);
+      vi.spyOn(WebDavUtils, 'getDriveFolderFromResource').mockResolvedValue(folderFixture);
+      vi.spyOn(AuthService.instance, 'getAuthDetails').mockResolvedValue(UserCredentialsFixture);
+      const deleteDriveFileStub = vi.spyOn(WebDavUtils, 'deleteOrTrashItem').mockResolvedValue();
+      vi.spyOn(DriveFileService.instance, 'replaceFile').mockRejectedValue(replaceError);
+      const createDriveFileStub = vi.spyOn(DriveFileService.instance, 'createFile').mockResolvedValue(fileFixture);
+
+      await expect(sut.handle(request, response)).rejects.toBe(replaceError);
+
+      expect(deleteDriveFileStub).not.toHaveBeenCalled();
+      expect(createDriveFileStub).not.toHaveBeenCalled();
+      expect(response.status).not.toHaveBeenCalled();
+    },
+  );
+
+  describe('when the replace says the file is no longer replaceable', () => {
+    const setupStaleReplace = (replaceError: unknown) => {
+      const requestedFileResource: WebDavRequestedResource = getRequestedFileResource();
+      const requestedParentFolderResource: WebDavRequestedResource = getRequestedFolderResource({
+        parentFolder: '/',
+        folderName: '',
+      });
+      const folderFixture = newFolderItem({ name: requestedParentFolderResource.name });
+      const staleFile = newFileItem({ folderUuid: folderFixture.uuid });
+      const createdFile = newFileItem({ folderUuid: folderFixture.uuid });
+      const request = createWebDavRequestFixture({
+        method: 'PUT',
+        url: requestedFileResource.url,
+        headers: { 'content-length': '100' },
+      });
+      const response = createWebDavResponseFixture({
+        status: vi.fn().mockReturnValue({ send: vi.fn() }),
+      });
+
+      vi.spyOn(WebDavUtils, 'getRequestedResource')
+        .mockResolvedValueOnce(requestedFileResource)
+        .mockResolvedValueOnce(requestedParentFolderResource);
+      vi.spyOn(WebDavUtils, 'getDriveItemFromResource').mockResolvedValueOnce(staleFile);
+      vi.spyOn(WebDavUtils, 'getDriveFolderFromResource').mockResolvedValue(folderFixture);
+      vi.spyOn(AuthService.instance, 'getAuthDetails').mockResolvedValue(UserCredentialsFixture);
+      const uploadStub = vi.spyOn(networkFacade, 'uploadFile').mockResolvedValue('uploaded-file-id');
+      const deleteDriveFileStub = vi.spyOn(WebDavUtils, 'deleteOrTrashItem').mockResolvedValue();
+      const dropCacheStub = vi.spyOn(DriveItemRepository.instance, 'delete').mockResolvedValue(undefined);
+      vi.spyOn(DriveItemRepository.instance, 'createOrUpdate').mockResolvedValue(undefined);
+      vi.spyOn(DriveFileService.instance, 'replaceFile').mockRejectedValue(replaceError);
+      const createDriveFileStub = vi.spyOn(DriveFileService.instance, 'createFile').mockResolvedValue(createdFile);
+
+      return {
+        request,
+        response,
+        staleFile,
+        createdFile,
+        uploadStub,
+        deleteDriveFileStub,
+        dropCacheStub,
+        createDriveFileStub,
+      };
+    };
+
+    test('when the replace returns 404, then the cached uuid is dropped and the file is created with the same upload', async () => {
+      const { request, response, staleFile, uploadStub, deleteDriveFileStub, dropCacheStub, createDriveFileStub } =
+        setupStaleReplace(newApiError(404));
+
+      await sut.handle(request, response);
+
+      expect(uploadStub).toHaveBeenCalledOnce();
+      expect(dropCacheStub).toHaveBeenCalledWith([staleFile.uuid]);
+      expect(createDriveFileStub).toHaveBeenCalledOnce();
+      expect(createDriveFileStub).toHaveBeenCalledWith(expect.objectContaining({ fileId: 'uploaded-file-id' }));
+      expect(deleteDriveFileStub).not.toHaveBeenCalled();
+      expect(response.status).toHaveBeenCalledWith(201);
+    });
+
+    test('when the replace returns FILE_NOT_REPLACEABLE, then the file is created', async () => {
+      const { request, response, staleFile, dropCacheStub, createDriveFileStub } = setupStaleReplace(
+        newApiError(400, { data: { errorCode: 'FILE_NOT_REPLACEABLE' } }),
+      );
+
+      await sut.handle(request, response);
+
+      expect(dropCacheStub).toHaveBeenCalledWith([staleFile.uuid]);
+      expect(createDriveFileStub).toHaveBeenCalledOnce();
+      expect(response.status).toHaveBeenCalledWith(201);
+    });
+
+    test('when the create that follows says the file already exists, then the client is asked to retry', async () => {
+      const { request, response, staleFile, dropCacheStub, createDriveFileStub } = setupStaleReplace(
+        newApiError(400, { data: { errorCode: 'FILE_NOT_REPLACEABLE' } }),
+      );
+      createDriveFileStub.mockRejectedValue(newApiError(409, { data: { message: 'File already exists' } }));
+      const forgetFileWriteSpy = vi.spyOn(DriveItemService.instance, 'forgetFileWrite');
+
+      await expect(sut.handle(request, response)).rejects.toBeInstanceOf(ServiceUnavailableError);
+
+      expect(createDriveFileStub).toHaveBeenCalledOnce();
+      expect(dropCacheStub).toHaveBeenCalledExactlyOnceWith([staleFile.uuid]);
+      expect(forgetFileWriteSpy).toHaveBeenCalledExactlyOnceWith(request.url, staleFile.uuid);
+      expect(response.status).not.toHaveBeenCalled();
+    });
+
+    test('when the create that follows fails with another error, then the gone file is no longer remembered', async () => {
+      const createError = newApiError(500);
+      const { request, response, staleFile, createDriveFileStub } = setupStaleReplace(newApiError(404));
+      createDriveFileStub.mockRejectedValue(createError);
+      DriveItemService.instance.rememberFileWrite(request.url, staleFile);
+      const forgetFileWriteSpy = vi.spyOn(DriveItemService.instance, 'forgetFileWrite');
+
+      await expect(sut.handle(request, response)).rejects.toBe(createError);
+
+      expect(forgetFileWriteSpy).toHaveBeenCalledWith(request.url, staleFile.uuid);
+    });
+
+    test('when the replace fails with a 400 with another error code, then no file is created', async () => {
+      const limitError = newApiError(400, { data: { errorCode: 'EMPTY_FILES_LIMIT_REACHED' } });
+      const { request, response, dropCacheStub, createDriveFileStub } = setupStaleReplace(limitError);
+
+      await expect(sut.handle(request, response)).rejects.toBe(limitError);
+
+      expect(dropCacheStub).not.toHaveBeenCalled();
+      expect(createDriveFileStub).not.toHaveBeenCalled();
+      expect(response.status).not.toHaveBeenCalled();
+    });
+  });
+
+  test('when the file found at the destination is trashed, then the server creates a new one', async () => {
     const requestedFileResource: WebDavRequestedResource = getRequestedFileResource();
     const requestedParentFolderResource: WebDavRequestedResource = getRequestedFolderResource({
       parentFolder: '/',
       folderName: '',
     });
     const folderFixture = newFolderItem({ name: requestedParentFolderResource.name });
-    const fileFixture = newFileItem({ folderUuid: folderFixture.uuid, size: 0, fileId: undefined });
-
-    const request = createWebDavRequestFixture({
-      method: 'PUT',
-      url: requestedFileResource.url,
-      headers: {
-        'content-length': '0',
-      },
+    const trashedFile = newFileItem({
+      folderUuid: folderFixture.uuid,
+      size: 0,
+      fileId: undefined,
+      status: FileStatus.TRASHED,
     });
-
-    const response = createWebDavResponseFixture({
-      status: vi.fn().mockReturnValue({ send: vi.fn() }),
-    });
-
-    const replaceError = new AxiosResponseError('Request failed with status code 500', 'PUT /files/uuid', {
-      status: 500,
-      data: {},
-      headers: { 'x-request-id': 'req-123' },
-      statusText: 'Internal Server Error',
-      // @ts-expect-error partial AxiosResponse fixture, only the fields read by AxiosResponseError are needed
-      config: {},
-    });
-
-    vi.spyOn(WebDavUtils, 'getRequestedResource')
-      .mockResolvedValueOnce(requestedFileResource)
-      .mockResolvedValueOnce(requestedParentFolderResource);
-    vi.spyOn(WebDavUtils, 'getDriveItemFromResource').mockResolvedValueOnce(fileFixture);
-    vi.spyOn(WebDavUtils, 'getDriveFolderFromResource').mockResolvedValue(folderFixture);
-    vi.spyOn(AuthService.instance, 'getAuthDetails').mockResolvedValue(UserCredentialsFixture);
-    const deleteDriveFileStub = vi.spyOn(WebDavUtils, 'deleteOrTrashItem').mockResolvedValue();
-    const replaceDriveFileStub = vi.spyOn(DriveFileService.instance, 'replaceFile').mockRejectedValue(replaceError);
-    const createDriveFileStub = vi.spyOn(DriveFileService.instance, 'createFile').mockResolvedValue(fileFixture);
-
-    await sut.handle(request, response);
-
-    expect(response.status).toHaveBeenCalledWith(204);
-    expect(replaceDriveFileStub).toHaveBeenCalledOnce();
-    expect(webdavLogger.warn).toHaveBeenCalledWith(
-      expect.stringContaining('Request failed with status code 500 (requestId: req-123)'),
-    );
-    expect(deleteDriveFileStub).toHaveBeenCalledWith(fileFixture);
-    expect(createDriveFileStub).toHaveBeenCalledOnce();
-  });
-
-  test('when replacing an existing file is blocked for the CLI version, then the existing file is left untouched', async () => {
-    const requestedFileResource: WebDavRequestedResource = getRequestedFileResource();
-    const requestedParentFolderResource: WebDavRequestedResource = getRequestedFolderResource({
-      parentFolder: '/',
-      folderName: '',
-    });
-    const folderFixture = newFolderItem({ name: requestedParentFolderResource.name });
-    const fileFixture = newFileItem({ folderUuid: folderFixture.uuid, size: 0, fileId: undefined });
+    const createdFile = newFileItem({ folderUuid: folderFixture.uuid, size: 0, fileId: undefined });
     const request = createWebDavRequestFixture({
       method: 'PUT',
       url: requestedFileResource.url,
@@ -272,21 +382,100 @@ describe('PUT request handler', () => {
     const response = createWebDavResponseFixture({
       status: vi.fn().mockReturnValue({ send: vi.fn() }),
     });
-    const versionError = newClientVersionUnsupportedError();
 
     vi.spyOn(WebDavUtils, 'getRequestedResource')
       .mockResolvedValueOnce(requestedFileResource)
       .mockResolvedValueOnce(requestedParentFolderResource);
-    vi.spyOn(WebDavUtils, 'getDriveItemFromResource').mockResolvedValueOnce(fileFixture);
+    vi.spyOn(WebDavUtils, 'getDriveItemFromResource').mockResolvedValueOnce(trashedFile);
     vi.spyOn(WebDavUtils, 'getDriveFolderFromResource').mockResolvedValue(folderFixture);
     vi.spyOn(AuthService.instance, 'getAuthDetails').mockResolvedValue(UserCredentialsFixture);
-    const deleteDriveFileStub = vi.spyOn(WebDavUtils, 'deleteOrTrashItem').mockResolvedValue();
-    vi.spyOn(DriveFileService.instance, 'replaceFile').mockRejectedValue(versionError);
-    const createDriveFileStub = vi.spyOn(DriveFileService.instance, 'createFile').mockResolvedValue(fileFixture);
+    const replaceDriveFileStub = vi.spyOn(DriveFileService.instance, 'replaceFile');
+    const createDriveFileStub = vi.spyOn(DriveFileService.instance, 'createFile').mockResolvedValue(createdFile);
 
-    await expect(sut.handle(request, response)).rejects.toBe(versionError);
+    await sut.handle(request, response);
 
-    expect(deleteDriveFileStub).not.toHaveBeenCalled();
-    expect(createDriveFileStub).not.toHaveBeenCalled();
+    expect(replaceDriveFileStub).not.toHaveBeenCalled();
+    expect(createDriveFileStub).toHaveBeenCalledOnce();
+    expect(response.status).toHaveBeenCalledWith(201);
+  });
+
+  describe('when creating a new file conflicts', () => {
+    const setupCreateConflict = (createError: unknown, existing?: ReturnType<typeof newFileItem>) => {
+      const requestedFileResource: WebDavRequestedResource = getRequestedFileResource();
+      const requestedParentFolderResource: WebDavRequestedResource = getRequestedFolderResource({
+        parentFolder: '/',
+        folderName: '',
+      });
+      const folderFixture = newFolderItem({ name: requestedParentFolderResource.name });
+      const request = createWebDavRequestFixture({
+        method: 'PUT',
+        url: requestedFileResource.url,
+        headers: { 'content-length': '0' },
+      });
+      const response = createWebDavResponseFixture({
+        status: vi.fn().mockReturnValue({ send: vi.fn() }),
+      });
+
+      vi.spyOn(WebDavUtils, 'getRequestedResource')
+        .mockResolvedValueOnce(requestedFileResource)
+        .mockResolvedValueOnce(requestedParentFolderResource);
+      vi.spyOn(WebDavUtils, 'getDriveItemFromResource').mockResolvedValueOnce(existing);
+      vi.spyOn(WebDavUtils, 'getDriveFolderFromResource').mockResolvedValue(folderFixture);
+      vi.spyOn(AuthService.instance, 'getAuthDetails').mockResolvedValue(UserCredentialsFixture);
+      const dropCacheStub = vi.spyOn(DriveItemRepository.instance, 'delete').mockResolvedValue(undefined);
+      const forgetFileWriteSpy = vi.spyOn(DriveItemService.instance, 'forgetFileWrite');
+      vi.spyOn(DriveFileService.instance, 'createFile').mockRejectedValue(createError);
+
+      return { request, response, requestedFileResource, dropCacheStub, forgetFileWriteSpy };
+    };
+
+    test('when the file found was trashed and the create conflicts, then its uuid is dropped and the client is asked to retry', async () => {
+      const trashed = newFileItem({ uuid: 'trashed-uuid', status: FileStatus.TRASHED });
+      const { request, response, requestedFileResource, dropCacheStub, forgetFileWriteSpy } = setupCreateConflict(
+        newApiError(409, { data: { message: 'A file with this name already exists in this location' } }),
+        trashed,
+      );
+
+      await expect(sut.handle(request, response)).rejects.toBeInstanceOf(ServiceUnavailableError);
+
+      expect(dropCacheStub).toHaveBeenCalledExactlyOnceWith(['trashed-uuid']);
+      expect(forgetFileWriteSpy).toHaveBeenCalledExactlyOnceWith(requestedFileResource.url, 'trashed-uuid');
+      expect(response.status).not.toHaveBeenCalled();
+    });
+
+    test('when a concurrent PUT wrote the file first, then its cache row and remembered write survive the 409', async () => {
+      const { request, response, requestedFileResource, dropCacheStub } = setupCreateConflict(newApiError(409));
+      const winner = newFileItem({ uuid: 'winner-uuid' });
+      DriveItemService.instance.rememberFileWrite(requestedFileResource.url, winner);
+
+      await expect(sut.handle(request, response)).rejects.toBeInstanceOf(ServiceUnavailableError);
+
+      expect(dropCacheStub).not.toHaveBeenCalled();
+      vi.spyOn(DriveItemRepository.instance, 'getByPath').mockResolvedValue(
+        new DriveItemBD({
+          uuid: winner.uuid,
+          path: requestedFileResource.url,
+          type: 'file',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }),
+      );
+      vi.spyOn(DriveFileService.instance, 'getFileMetadata').mockRejectedValue(newApiError(404));
+      vi.spyOn(DriveFileService.instance, 'getFileMetadataByPath').mockRejectedValue(newApiError(404));
+      await expect(DriveItemService.instance.getFileByPath(requestedFileResource.url)).resolves.toBe(winner);
+    });
+
+    test.each([404, 500])(
+      'when the create fails with %i, then it passes through and the cache is kept',
+      async (status) => {
+        const createError = newApiError(status);
+        const { request, response, dropCacheStub, forgetFileWriteSpy } = setupCreateConflict(createError);
+
+        await expect(sut.handle(request, response)).rejects.toBe(createError);
+
+        expect(dropCacheStub).not.toHaveBeenCalled();
+        expect(forgetFileWriteSpy).not.toHaveBeenCalled();
+      },
+    );
   });
 });

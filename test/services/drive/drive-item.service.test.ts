@@ -1,4 +1,4 @@
-import { describe, expect, test, vi } from 'vitest';
+import { afterEach, describe, expect, test, vi } from 'vitest';
 import { DriveItemService } from '../../../src/services/drive/drive-item.service';
 import { DriveItemRepository } from '../../../src/services/database/drive-item/drive-item.repository';
 import { DriveItemBD } from '../../../src/services/database/drive-item/drive-item.domain';
@@ -212,6 +212,142 @@ describe('Drive Item Service', () => {
       );
 
       await expect(sut.getFileByPath(path)).rejects.toThrow('File not found at path');
+    });
+  });
+
+  describe('trusting a file this server just wrote', () => {
+    const cacheEntry = (path: string, uuid: string) =>
+      new DriveItemBD({ uuid, path, type: 'file', createdAt: new Date(), updatedAt: new Date() });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    test('when the API says a just-written file is missing, then the written file is returned and kept in cache', async () => {
+      const path = '/recent/just-written.txt';
+      const written = newFileItem({ uuid: 'written-uuid' });
+      sut.rememberFileWrite(path, written);
+      vi.spyOn(DriveItemRepository.instance, 'getByPath').mockResolvedValue(cacheEntry(path, written.uuid));
+      vi.spyOn(DriveFileService.instance, 'getFileMetadata').mockRejectedValue(newApiError(404));
+      const pathLookupSpy = vi.spyOn(DriveFileService.instance, 'getFileMetadataByPath');
+      const deleteSpy = vi.spyOn(DriveItemRepository.instance, 'delete').mockResolvedValue(undefined);
+
+      const result = await sut.getFileByPath(path);
+
+      expect(result).toBe(written);
+      expect(pathLookupSpy).not.toHaveBeenCalled();
+      expect(deleteSpy).not.toHaveBeenCalled();
+    });
+
+    test('when the API finds a just-written file, then the API answer is returned', async () => {
+      const path = '/recent/found.txt';
+      const written = newFileItem({ uuid: 'found-uuid' });
+      const fromApi = newFileItem({ uuid: 'found-uuid' });
+      sut.rememberFileWrite(path, written);
+      vi.spyOn(DriveItemRepository.instance, 'getByPath').mockResolvedValue(cacheEntry(path, written.uuid));
+      vi.spyOn(DriveFileService.instance, 'getFileMetadata').mockResolvedValue(fromApi);
+      vi.spyOn(DriveItemRepository.instance, 'createOrUpdate').mockResolvedValue(undefined);
+
+      const result = await sut.getFileByPath(path);
+
+      expect(result).toBe(fromApi);
+    });
+
+    test('when the uuid lookup fails transiently and the path lookup says missing, then the written file is returned', async () => {
+      const path = '/recent/transient.txt';
+      const written = newFileItem({ uuid: 'transient-uuid' });
+      sut.rememberFileWrite(path, written);
+      vi.spyOn(DriveItemRepository.instance, 'getByPath').mockResolvedValue(cacheEntry(path, written.uuid));
+      vi.spyOn(DriveFileService.instance, 'getFileMetadata').mockRejectedValue(newApiError(504));
+      vi.spyOn(DriveFileService.instance, 'getFileMetadataByPath').mockRejectedValue(newApiError(404));
+
+      const result = await sut.getFileByPath(path);
+
+      expect(result).toBe(written);
+    });
+
+    test('when the write is older than the trust window, then the not found is reported', async () => {
+      vi.useFakeTimers();
+      const path = '/recent/expired.txt';
+      const written = newFileItem({ uuid: 'expired-uuid' });
+      sut.rememberFileWrite(path, written);
+      vi.advanceTimersByTime(10_001);
+      vi.spyOn(DriveItemRepository.instance, 'getByPath').mockResolvedValue(cacheEntry(path, written.uuid));
+      vi.spyOn(DriveFileService.instance, 'getFileMetadata').mockRejectedValue(newApiError(404));
+      vi.spyOn(DriveFileService.instance, 'getFileMetadataByPath').mockRejectedValue(newApiError(404));
+      vi.spyOn(DriveItemRepository.instance, 'delete').mockResolvedValue(undefined);
+
+      await expect(sut.getFileByPath(path)).rejects.toBeInstanceOf(NotFoundError);
+    });
+
+    test('when the path no longer maps to the written file, then the not found is reported', async () => {
+      const path = '/recent/replaced-elsewhere.txt';
+      sut.rememberFileWrite(path, newFileItem({ uuid: 'old-uuid' }));
+      vi.spyOn(DriveItemRepository.instance, 'getByPath').mockResolvedValue(cacheEntry(path, 'other-uuid'));
+      vi.spyOn(DriveFileService.instance, 'getFileMetadata').mockRejectedValue(newApiError(404));
+      vi.spyOn(DriveFileService.instance, 'getFileMetadataByPath').mockRejectedValue(newApiError(404));
+      vi.spyOn(DriveItemRepository.instance, 'delete').mockResolvedValue(undefined);
+
+      await expect(sut.getFileByPath(path)).rejects.toBeInstanceOf(NotFoundError);
+    });
+
+    test('when the written file was deleted through this server, then the not found is reported', async () => {
+      const path = '/recent/deleted.txt';
+      sut.rememberFileWrite(path, newFileItem({ uuid: 'deleted-uuid' }));
+      vi.spyOn(DriveItemRepository.instance, 'getByPath').mockResolvedValue(undefined);
+      vi.spyOn(DriveFileService.instance, 'getFileMetadataByPath').mockRejectedValue(newApiError(404));
+
+      await expect(sut.getFileByPath(path)).rejects.toBeInstanceOf(NotFoundError);
+    });
+
+    test('when a just-written file is moved, then the destination keeps the protection with its new name', async () => {
+      const written = newFileItem({ uuid: 'moved-uuid', name: 'backup', type: 'temp' });
+      sut.rememberFileWrite('/recent/backup.temp', written);
+      sut.moveFileWrite('/recent/backup.temp', '/recent/backup.dat');
+      vi.spyOn(DriveItemRepository.instance, 'getByPath').mockImplementation(async (path) =>
+        cacheEntry(path, written.uuid),
+      );
+      vi.spyOn(DriveFileService.instance, 'getFileMetadata').mockRejectedValue(newApiError(404));
+      vi.spyOn(DriveFileService.instance, 'getFileMetadataByPath').mockRejectedValue(newApiError(404));
+      vi.spyOn(DriveItemRepository.instance, 'delete').mockResolvedValue(undefined);
+
+      const result = await sut.getFileByPath('/recent/backup.dat');
+
+      expect(result).toMatchObject({ uuid: written.uuid, name: 'backup', type: 'dat' });
+      await expect(sut.getFileByPath('/recent/backup.temp')).rejects.toBeInstanceOf(NotFoundError);
+    });
+
+    test('when a write is forgotten by uuid, then only a write of that uuid is dropped', async () => {
+      const path = '/forget/by-uuid.txt';
+      const newer = newFileItem({ uuid: 'newer-uuid' });
+      sut.rememberFileWrite(path, newer);
+      sut.forgetFileWrite(path, 'older-uuid');
+      vi.spyOn(DriveItemRepository.instance, 'getByPath').mockResolvedValue(cacheEntry(path, newer.uuid));
+      vi.spyOn(DriveFileService.instance, 'getFileMetadata').mockRejectedValue(newApiError(404));
+      vi.spyOn(DriveFileService.instance, 'getFileMetadataByPath').mockRejectedValue(newApiError(404));
+      vi.spyOn(DriveItemRepository.instance, 'delete').mockResolvedValue(undefined);
+
+      await expect(sut.getFileByPath(path)).resolves.toBe(newer);
+
+      sut.forgetFileWrite(path, newer.uuid);
+      await expect(sut.getFileByPath(path)).rejects.toBeInstanceOf(NotFoundError);
+    });
+
+    test('when a folder is forgotten, then the writes under it are forgotten and siblings are kept', async () => {
+      const inside = newFileItem({ uuid: 'inside-uuid' });
+      const sibling = newFileItem({ uuid: 'sibling-uuid' });
+      sut.rememberFileWrite('/forget/folder/file.txt', inside);
+      sut.rememberFileWrite('/forget/folder-2/file.txt', sibling);
+      sut.forgetFileWrites('/forget/folder');
+      vi.spyOn(DriveItemRepository.instance, 'getByPath').mockImplementation(async (path) =>
+        cacheEntry(path, path.startsWith('/forget/folder/') ? inside.uuid : sibling.uuid),
+      );
+      vi.spyOn(DriveFileService.instance, 'getFileMetadata').mockRejectedValue(newApiError(404));
+      vi.spyOn(DriveFileService.instance, 'getFileMetadataByPath').mockRejectedValue(newApiError(404));
+      vi.spyOn(DriveItemRepository.instance, 'delete').mockResolvedValue(undefined);
+
+      await expect(sut.getFileByPath('/forget/folder/file.txt')).rejects.toBeInstanceOf(NotFoundError);
+      await expect(sut.getFileByPath('/forget/folder-2/file.txt')).resolves.toBe(sibling);
     });
   });
 

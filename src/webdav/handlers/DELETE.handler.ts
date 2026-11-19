@@ -3,6 +3,7 @@ import { WebDavMethodHandler } from '../../types/webdav.types';
 import { WebDavUtils } from '../../utils/webdav.utils';
 import { webdavLogger } from '../../utils/logger.utils';
 import { NotFoundError } from '../../utils/errors.utils';
+import { DriveItemService } from '../../services/drive/drive-item.service';
 
 export class DELETERequestHandler implements WebDavMethodHandler {
   handle = async (req: Request, res: Response) => {
@@ -16,6 +17,7 @@ export class DELETERequestHandler implements WebDavMethodHandler {
     }
 
     await WebDavUtils.deleteOrTrashItem(driveItem);
+    DriveItemService.instance.forgetFileWrites(resource.url);
 
     res.status(204).send();
   };

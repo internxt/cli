@@ -1,9 +1,10 @@
 import { Request, Response } from 'express';
 import { DriveFileService } from '../../services/drive/drive-file.service';
 import { DriveItemRepository } from '../../services/database/drive-item/drive-item.repository';
+import { DriveItemService } from '../../services/drive/drive-item.service';
 import { AuthService } from '../../services/auth.service';
 import { WebDavMethodHandler } from '../../types/webdav.types';
-import { ConflictError, ErrorUtils } from '../../utils/errors.utils';
+import { ConflictError, ErrorUtils, ServiceUnavailableError } from '../../utils/errors.utils';
 import { WebDavUtils } from '../../utils/webdav.utils';
 import { webdavLogger } from '../../utils/logger.utils';
 import { EncryptionVersion } from '@internxt/sdk/dist/drive/storage/types';
@@ -12,6 +13,7 @@ import { WebDavFolderService } from '../../services/webdav/webdav-folder.service
 import { ThumbnailService } from '../../services/thumbnail.service';
 import { FormatUtils } from '../../utils/format.utils';
 import { UploadUtils } from '../../utils/upload.utils';
+import { DriveFileItem } from '../../types/drive.types';
 
 export class PUTRequestHandler implements WebDavMethodHandler {
   handle = async (req: Request, res: Response) => {
@@ -109,24 +111,22 @@ export class PUTRequestHandler implements WebDavMethodHandler {
     };
 
     let file;
-    if (driveFileItem?.itemType === 'file') {
+    if (isReplacement && driveFileItem) {
       try {
         file = await DriveFileService.instance.replaceFile(driveFileItem.uuid, filePayload);
       } catch (error) {
-        if (ErrorUtils.isClientVersionUnsupported(error)) throw error;
-        webdavLogger.warn(
-          ErrorUtils.withRequestId(
-            `[PUT] File replace failed for '${resource.url}', falling back to delete and create: ${
-              error instanceof Error ? error.message : String(error)
-            }`,
-            error,
-          ),
-        );
-        await WebDavUtils.deleteOrTrashItem(driveFileItem);
-        file = await DriveFileService.instance.createFile(filePayload);
+        if (!ErrorUtils.isNotFoundError(error) && !ErrorUtils.isFileNotReplaceable(error)) throw error;
+        // The lookup came from a lagging replica; the primary says this file is gone, so PUT creates it
+        webdavLogger.info(`[PUT] '${resource.url}' is no longer replaceable, creating it instead`, {
+          uuid: driveFileItem.uuid,
+        });
+        await DriveItemRepository.instance.delete([driveFileItem.uuid]);
+        DriveItemService.instance.forgetFileWrite(resource.url, driveFileItem.uuid);
+        isReplacement = false;
+        file = await this.createFileOrRetryLater(resource.url, filePayload);
       }
     } else {
-      file = await DriveFileService.instance.createFile(filePayload);
+      file = await this.createFileOrRetryLater(resource.url, filePayload, driveFileItem?.uuid);
     }
     timings.driveUpload = driveTimer.stop();
 
@@ -139,6 +139,7 @@ export class PUTRequestHandler implements WebDavMethodHandler {
         updatedAt: new Date(),
       },
     ]);
+    DriveItemService.instance.rememberFileWrite(resource.url, file);
 
     const thumbnailTimer = CLIUtils.timer();
     await ThumbnailService.instance.tryUploadThumbnail({
@@ -167,5 +168,30 @@ export class PUTRequestHandler implements WebDavMethodHandler {
 
     res.header('ETag', WebDavUtils.getItemETag(file));
     res.status(statusCode).send();
+  };
+
+  private readonly createFileOrRetryLater = async (
+    url: string,
+    payload: Parameters<DriveFileService['createFile']>[0],
+    staleUuid?: string,
+  ): Promise<DriveFileItem> => {
+    try {
+      return await DriveFileService.instance.createFile(payload);
+    } catch (error) {
+      // POST /files only returns 409 when a live file with this name exists
+      if (!ErrorUtils.isApiConflict(error)) throw error;
+
+      webdavLogger.warn(
+        ErrorUtils.withRequestId(
+          `[PUT] '${url}' conflicts on the API, asking to retry: ${ErrorUtils.getResponseMessage(error) ?? 'no message'}`,
+          error,
+        ),
+      );
+      if (staleUuid) {
+        await DriveItemRepository.instance.delete([staleUuid]);
+        DriveItemService.instance.forgetFileWrite(url, staleUuid);
+      }
+      throw new ServiceUnavailableError(`File '${url}' already exists but could not be found yet, retry later`);
+    }
   };
 }

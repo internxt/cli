@@ -15,7 +15,7 @@ export class DriveFileService {
       itemType: 'file',
       name: payload.plainName,
       uuid: driveFile.uuid,
-      size: driveFile.size,
+      size: DriveUtils.parseFileSize(driveFile.size),
       bucket: driveFile.bucket,
       createdAt: new Date(driveFile.createdAt),
       updatedAt: new Date(driveFile.updatedAt),
@@ -41,7 +41,7 @@ export class DriveFileService {
       itemType: 'file',
       name: driveFile.plainName ?? '',
       uuid: driveFile.uuid,
-      size: driveFile.size,
+      size: DriveUtils.parseFileSize(driveFile.size),
       bucket: driveFile.bucket,
       createdAt: new Date(driveFile.createdAt),
       updatedAt: new Date(driveFile.updatedAt),
@@ -66,7 +66,8 @@ export class DriveFileService {
       filesList: [file],
     });
 
-    const existentFile = existentFiles[0];
+    // The duplicate check can match a file with the same name but a different extension
+    const existentFile = existentFiles.find((existent) => (existent.type ?? '') === (file.type ?? ''));
     if (!existentFile) return undefined;
 
     return {
